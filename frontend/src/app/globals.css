@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/*
+  AyurPass design tokens — committed warm-ivory light theme.
+  Dosha meter colors are CVD-validated against the card surface (#fffdf9).
+*/
+:root {
+  color-scheme: light;
+
+  --background: #f6f3ec;
+  --surface: #fffdf9;
+  --foreground: #211e19;
+  --ink-secondary: #57534a;
+  --ink-muted: #8a857a;
+  --hairline: #e7e1d4;
+
+  --forest: #24382e;
+  --forest-deep: #182720;
+  --leaf: #3d6650;
+  --gold: #b9892f;
+  --gold-soft: #e9d9b8;
+  --clay: #f0e9db;
+
+  --vata: #4a3aa7;
+  --pitta: #eb6834;
+  --kapha: #1baf7a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-leaf: var(--leaf);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-clay: var(--clay);
+
+  --color-vata: var(--vata);
+  --color-pitta: var(--pitta);
+  --color-kapha: var(--kapha);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--gold-soft);
+}

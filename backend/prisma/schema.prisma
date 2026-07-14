@@ -1,0 +1,327 @@
+// prisma/schema.prisma
+// AyurPass - Production-grade Prisma Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  phone         String?
+  passwordHash  String?
+  role          Role
+  fullName      String?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  consumer      Consumer?
+  professional  Professional?
+  provider      Provider?
+}
+
+enum Role {
+  CONSUMER
+  PROFESSIONAL
+  PROVIDER_ADMIN
+  PLATFORM_ADMIN
+}
+
+model Consumer {
+  userId            String    @id
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prakritiPrimary   String?
+  prakritiScores    Json?
+  preferences       Json?
+  location          Unsupported("geography")?
+
+  healthProfiles    HealthProfile[]
+  bookings          Booking[]
+  consents          ClientConsent[]
+  treatmentPlans    TreatmentPlan[]
+  orders            Order[]
+}
+
+model Provider {
+  id                String    @id @default(uuid())
+  userId            String?   @unique
+  user              User?     @relation(fields: [userId], references: [id])
+  businessName      String
+  type              ProviderType
+  brandProfile      Json?
+  address           Json?
+  timezone          String?
+  stripeAccountId   String?
+  subscriptionTier  String?
+  verificationStatus String   @default("pending")
+  createdAt         DateTime  @default(now())
+
+  professionals     Professional[]
+  services          Service[]
+  products          Product[]
+  packages          Package[]
+  bookings          Booking[]
+  treatmentPlans    TreatmentPlan[]
+  rooms             Room[]
+  orders            Order[]
+  integrations      Integration[]
+}
+
+enum ProviderType {
+  AYURVEDA_CLINIC
+  AYURVEDA_RESORT
+  PANCHAKARMA_CENTER
+  WELLNESS_RETREAT
+  YOGA_STUDIO
+  LUXURY_SPA
+  MEDITATION_CENTER
+  HYBRID
+}
+
+model Professional {
+  id                      String    @id @default(uuid())
+  userId                  String   @unique
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerId              String
+  provider                Provider  @relation(fields: [providerId], references: [id])
+  title                   String?
+  specializations         String[]
+  doshaExpertise          Json?
+  bio                     String?
+  certifications          Json?
+  yearsExperience         Int?
+  hourlyRate              Decimal?  @db.Decimal(10, 2)
+  availabilityPreferences Json?
+  verificationDocuments   Json?
+  rating                  Decimal   @default(0) @db.Decimal(3, 2)
+  reviewCount             Int       @default(0)
+
+  services                Service[]
+  bookings                Booking[]
+  treatmentPlans        TreatmentPlan[]
+}
+
+model Service {
+  id                 String    @id @default(uuid())
+  providerId         String
+  provider           Provider  @relation(fields: [providerId], references: [id])
+  professionalId     String?
+  professional       Professional? @relation(fields: [professionalId], references: [id])
+  category           ServiceCategory
+  name               String
+  description        String?
+  durationMinutes    Int
+  price              Decimal   @db.Decimal(10, 2)
+  currency           String    @default("USD")
+  doshaCompatibility Json?
+  isVirtual          Boolean   @default(false)
+  maxParticipants    Int       @default(1)
+  createdAt          DateTime  @default(now())
+
+  bookings           Booking[]
+  package            Package?
+}
+
+enum ServiceCategory {
+  AYURVEDA
+  YOGA
+  SPA
+  MEDITATION
+  CONSULTATION
+  PACKAGE
+}
+
+model Booking {
+  id                  String    @id @default(uuid())
+  consumerId          String
+  consumer            Consumer  @relation(fields: [consumerId], references: [userId])
+  serviceId           String
+  service             Service   @relation(fields: [serviceId], references: [id])
+  professionalId      String?
+  professional        Professional? @relation(fields: [professionalId], references: [id])
+  providerId          String
+  provider            Provider  @relation(fields: [providerId], references: [id])
+  roomId              String?
+  room                Room?     @relation(fields: [roomId], references: [id])
+  startTime           DateTime
+  endTime             DateTime
+  timezone            String?
+  status              BookingStatus @default(PENDING)
+  totalAmount         Decimal?  @db.Decimal(10, 2)
+  platformCommission  Decimal?  @db.Decimal(10, 2)
+  providerPayout      Decimal?  @db.Decimal(10, 2)
+  paymentIntentId     String?
+  paymentStatus       String    @default("unpaid")
+  notes               String?
+  createdAt           DateTime  @default(now())
+}
+
+model Room {
+  id          String    @id @default(uuid())
+  providerId  String
+  provider    Provider  @relation(fields: [providerId], references: [id])
+  name        String
+  description String?
+  capacity    Int       @default(1)
+  hourlyCost  Decimal?  @db.Decimal(10, 2)
+  createdAt   DateTime  @default(now())
+
+  bookings    Booking[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Package {
+  id                String    @id @default(uuid())
+  providerId        String
+  provider          Provider  @relation(fields: [providerId], references: [id])
+  name              String
+  description       String?
+  totalPrice        Decimal   @db.Decimal(10, 2)
+  durationDays      Int?
+  includedServices  Json?
+  includedProducts  Json?
+  doshaFocus        Json?
+  isRecurring       Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  // Bookable unit auto-managed alongside the package (category PACKAGE)
+  serviceId         String?   @unique
+  service           Service?  @relation(fields: [serviceId], references: [id])
+}
+
+model TreatmentPlan {
+  id             String    @id @default(uuid())
+  consumerId     String
+  consumer       Consumer  @relation(fields: [consumerId], references: [userId])
+  professionalId String?
+  professional   Professional? @relation(fields: [professionalId], references: [id])
+  providerId     String
+  provider       Provider  @relation(fields: [providerId], references: [id])
+  name           String?
+  description    String?
+  startDate      DateTime?
+  endDate        DateTime?
+  phases         Json?
+  status         String    @default("active")
+  aiGenerated    Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+}
+
+model ClientConsent {
+  id             String    @id @default(uuid())
+  consumerId     String
+  consumer       Consumer  @relation(fields: [consumerId], references: [userId])
+  granteeId      String?
+  permissionType String
+  scope          Json?
+  expiresAt      DateTime?
+  status         String    @default("active")
+  createdAt      DateTime  @default(now())
+}
+
+model AccessAuditLog {
+  id           BigInt    @id @default(autoincrement())
+  consumerId   String?
+  accessorId   String?
+  action       String
+  resourceType String
+  resourceId   String?
+  purpose      String?
+  timestamp    DateTime  @default(now())
+  ipAddress    String?
+}
+
+model HealthProfile {
+  id                    String    @id @default(uuid())
+  consumerId            String
+  consumer              Consumer  @relation(fields: [consumerId], references: [userId])
+  vataScore             Decimal?  @db.Decimal(5, 2)
+  pittaScore            Decimal?  @db.Decimal(5, 2)
+  kaphaScore            Decimal?  @db.Decimal(5, 2)
+  questionnaireResponses Json?
+  currentImbalances     Json?
+  lastAssessment        DateTime?
+  updatedAt             DateTime  @default(now())
+}
+
+model Product {
+  id                    String    @id @default(uuid())
+  providerId            String
+  provider              Provider  @relation(fields: [providerId], references: [id])
+  name                  String
+  category              String?
+  description           String?
+  price                 Decimal?  @db.Decimal(10, 2)
+  inventoryQuantity     Int?
+  doshaRecommendations  Json?
+  images                Json?
+  createdAt             DateTime  @default(now())
+
+  orderItems            OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id                 String      @id @default(uuid())
+  consumerId         String
+  consumer           Consumer    @relation(fields: [consumerId], references: [userId])
+  providerId         String
+  provider           Provider    @relation(fields: [providerId], references: [id])
+  status             OrderStatus @default(PENDING)
+  subtotal           Decimal     @db.Decimal(10, 2)
+  platformCommission Decimal?    @db.Decimal(10, 2)
+  providerPayout     Decimal?    @db.Decimal(10, 2)
+  paymentStatus      String      @default("unpaid")
+  paymentIntentId    String?
+  shippingAddress    Json?
+  notes              String?
+  createdAt          DateTime    @default(now())
+
+  items              OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+}
+
+model Integration {
+  id                String    @id @default(uuid())
+  providerId        String
+  provider          Provider  @relation(fields: [providerId], references: [id])
+  type              String // SQUARE_POS | STRIPE_PAYMENTS | GOOGLE_CALENDAR | ...
+  status            String    @default("disconnected")
+  externalAccountId String?
+  config            Json?
+  connectedAt       DateTime?
+  lastSyncAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@unique([providerId, type])
+}

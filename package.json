@@ -1,0 +1,26 @@
+{
+  "name": "ayurpass",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AyurPass - Premium Global Wellness Ecosystem",
+  "scripts": {
+    "start": "concurrently -k -n api,web -c green,yellow \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start:dev": "npm run start:dev --workspace @ayurpass/backend",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mobile": "cd mobile && npm start",
+    "build:backend": "cd backend && npm run build",
+    "prisma:generate": "cd backend && npx prisma generate",
+    "prisma:migrate": "cd backend && npx prisma migrate dev",
+    "install:all": "npm install && cd backend && npm install"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "mobile",
+    "shared"
+  ],
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

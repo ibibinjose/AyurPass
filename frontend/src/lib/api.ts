@@ -1,0 +1,325 @@
+import type {
+  AdminOverview,
+  AdminProvider,
+  AuthResponse,
+  AuthTokens,
+  Booking,
+  BookingStatus,
+  BrandProfile,
+  BusinessAddress,
+  Channel,
+  HealthProfile,
+  Order,
+  OrderStatus,
+  Product,
+  Professional,
+  Provider,
+  ProviderType,
+  RegisterPayload,
+  Room,
+  Service,
+  ServiceCategory,
+  SyncReport,
+  TreatmentPlan,
+  UserProfile,
+  WellnessPackage,
+} from "./types";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+const ACCESS_KEY = "ayurpass.accessToken";
+const REFRESH_KEY = "ayurpass.refreshToken";
+
+export const tokenStore = {
+  get access() {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(ACCESS_KEY);
+  },
+  get refresh() {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(REFRESH_KEY);
+  },
+  set(tokens: AuthTokens) {
+    window.localStorage.setItem(ACCESS_KEY, tokens.accessToken);
+    window.localStorage.setItem(REFRESH_KEY, tokens.refreshToken);
+  },
+  clear() {
+    window.localStorage.removeItem(ACCESS_KEY);
+    window.localStorage.removeItem(REFRESH_KEY);
+  },
+};
+
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
+interface RequestOptions {
+  method?: string;
+  body?: unknown;
+  auth?: boolean;
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { method = "GET", body, auth = false } = options;
+
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (auth && tokenStore.access) headers.Authorization = `Bearer ${tokenStore.access}`;
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+    try {
+      const data = await res.json();
+      if (typeof data?.message === "string") message = data.message;
+      else if (Array.isArray(data?.message)) message = data.message.join(", ");
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(message, res.status);
+  }
+
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
+export const api = {
+  // --- auth ---
+  register: (payload: RegisterPayload) =>
+    request<AuthResponse>("/auth/register", { method: "POST", body: payload }),
+  login: (email: string, password: string) =>
+    request<AuthResponse>("/auth/login", { method: "POST", body: { email, password } }),
+  refresh: (refreshToken: string) =>
+    request<AuthTokens>("/auth/refresh", { method: "POST", body: { refreshToken } }),
+  profile: () => request<UserProfile>("/auth/profile", { auth: true }),
+
+  // --- users ---
+  userByEmail: (email: string) =>
+    request<UserProfile | null>(`/users/email/${encodeURIComponent(email)}`),
+  updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
+    request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
+
+  // --- packages ---
+  packages: () => request<WellnessPackage[]>("/packages"),
+  packagesByProvider: (providerId: string) =>
+    request<WellnessPackage[]>(`/packages/provider/${providerId}`),
+  createPackage: (data: Partial<WellnessPackage> & { providerId: string; name: string; totalPrice: number }) =>
+    request<WellnessPackage>("/packages", { method: "POST", body: data, auth: true }),
+  updatePackage: (id: string, data: Partial<WellnessPackage>) =>
+    request<WellnessPackage>(`/packages/${id}`, { method: "PUT", body: data, auth: true }),
+  deletePackage: (id: string) =>
+    request<WellnessPackage>(`/packages/${id}`, { method: "DELETE", auth: true }),
+
+  // --- services ---
+  services: (category?: ServiceCategory) =>
+    request<Service[]>(`/services${category ? `?category=${category}` : ""}`),
+  service: (id: string) => request<Service | null>(`/services/${id}`),
+  servicesByProvider: (providerId: string) =>
+    request<Service[]>(`/services/provider/${providerId}`),
+  createService: (data: {
+    providerId: string;
+    professionalId?: string;
+    category: ServiceCategory;
+    name: string;
+    description?: string;
+    durationMinutes: number;
+    price: number;
+    isVirtual?: boolean;
+    maxParticipants?: number;
+  }) => request<Service>("/services", { method: "POST", body: data, auth: true }),
+  updateService: (id: string, data: Partial<Omit<Service, "id" | "provider" | "professional">>) =>
+    request<Service>(`/services/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteService: (id: string) =>
+    request<Service>(`/services/${id}`, { method: "DELETE", auth: true }),
+
+  // --- bookings ---
+  createBooking: (data: {
+    consumerId: string;
+    serviceId: string;
+    providerId: string;
+    professionalId?: string;
+    startTime: string;
+    endTime: string;
+    timezone?: string;
+    notes?: string;
+  }) => request<Booking>("/bookings", { method: "POST", body: data, auth: true }),
+  bookingsByConsumer: (consumerId: string) =>
+    request<Booking[]>(`/bookings/consumer/${consumerId}`, { auth: true }),
+  bookingsByProvider: (providerId: string) =>
+    request<Booking[]>(`/bookings/provider/${providerId}`, { auth: true }),
+  updateBooking: (
+    id: string,
+    data: {
+      status?: BookingStatus;
+      notes?: string;
+      roomId?: string | null;
+      professionalId?: string | null;
+      startTime?: string;
+      endTime?: string;
+    },
+  ) => request<Booking>(`/bookings/${id}`, { method: "PUT", body: data, auth: true }),
+
+  // --- rooms ---
+  roomsByProvider: (providerId: string) =>
+    request<Room[]>(`/rooms/provider/${providerId}`, { auth: true }),
+  createRoom: (data: {
+    providerId: string;
+    name: string;
+    description?: string;
+    capacity?: number;
+    hourlyCost?: number;
+  }) => request<Room>("/rooms", { method: "POST", body: data, auth: true }),
+  updateRoom: (
+    id: string,
+    data: { name?: string; description?: string; capacity?: number; hourlyCost?: number },
+  ) => request<Room>(`/rooms/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteRoom: (id: string) => request<Room>(`/rooms/${id}`, { method: "DELETE", auth: true }),
+
+  // --- payments (Stripe placeholder) ---
+  paymentMode: () => request<{ provider: string; mock: boolean }>("/payments/mode"),
+  payBooking: (bookingId: string) =>
+    request<Booking>(`/payments/checkout/${bookingId}`, { method: "POST", auth: true }),
+  refundBooking: (bookingId: string) =>
+    request<Booking>(`/payments/refund/${bookingId}`, { method: "POST", auth: true }),
+
+  // --- providers (business profile) ---
+  provider: (id: string) => request<Provider>(`/providers/${id}`),
+  updateProvider: (
+    id: string,
+    data: {
+      businessName?: string;
+      type?: ProviderType;
+      brandProfile?: BrandProfile;
+      address?: BusinessAddress;
+      timezone?: string;
+    },
+  ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
+
+  // --- products ---
+  products: (category?: string) =>
+    request<Product[]>(`/products${category ? `?category=${encodeURIComponent(category)}` : ""}`),
+  product: (id: string) => request<Product | null>(`/products/${id}`),
+  productsByProvider: (providerId: string) => request<Product[]>(`/products/provider/${providerId}`),
+  createProduct: (data: {
+    providerId: string;
+    name: string;
+    category?: string;
+    description?: string;
+    price: number;
+    inventoryQuantity?: number;
+  }) => request<Product>("/products", { method: "POST", body: data, auth: true }),
+  updateProduct: (
+    id: string,
+    data: {
+      name?: string;
+      category?: string;
+      description?: string;
+      price?: number;
+      inventoryQuantity?: number;
+    },
+  ) => request<Product>(`/products/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteProduct: (id: string) =>
+    request<Product>(`/products/${id}`, { method: "DELETE", auth: true }),
+
+  // --- orders ---
+  createOrder: (data: {
+    consumerId: string;
+    items: { productId: string; quantity: number }[];
+    shippingAddress?: BusinessAddress;
+    notes?: string;
+  }) => request<Order>("/orders", { method: "POST", body: data, auth: true }),
+  ordersByConsumer: (consumerId: string) =>
+    request<Order[]>(`/orders/consumer/${consumerId}`, { auth: true }),
+  ordersByProvider: (providerId: string) =>
+    request<Order[]>(`/orders/provider/${providerId}`, { auth: true }),
+  updateOrder: (id: string, data: { status?: OrderStatus; notes?: string }) =>
+    request<Order>(`/orders/${id}`, { method: "PUT", body: data, auth: true }),
+  payOrder: (orderId: string) =>
+    request<Order>(`/payments/checkout-order/${orderId}`, { method: "POST", auth: true }),
+  refundOrder: (orderId: string) =>
+    request<Order>(`/payments/refund-order/${orderId}`, { method: "POST", auth: true }),
+
+  // --- channels / integrations ---
+  channels: (providerId: string) =>
+    request<Channel[]>(`/integrations/provider/${providerId}`, { auth: true }),
+  connectChannel: (providerId: string, type: string) =>
+    request<{ id: string }>("/integrations/connect", {
+      method: "POST",
+      body: { providerId, type },
+      auth: true,
+    }),
+  disconnectChannel: (integrationId: string) =>
+    request<{ id: string }>(`/integrations/${integrationId}/disconnect`, {
+      method: "POST",
+      auth: true,
+    }),
+  syncChannel: (integrationId: string) =>
+    request<SyncReport>(`/integrations/${integrationId}/sync`, { method: "POST", auth: true }),
+
+  // --- admin ---
+  adminOverview: () => request<AdminOverview>("/admin/overview", { auth: true }),
+  adminProviders: () => request<AdminProvider[]>("/admin/providers", { auth: true }),
+  adminSetVerification: (providerId: string, status: "pending" | "verified" | "rejected") =>
+    request<AdminProvider>(`/admin/providers/${providerId}/verification`, {
+      method: "PUT",
+      body: { status },
+      auth: true,
+    }),
+  adminBookings: () => request<Booking[]>("/admin/bookings", { auth: true }),
+  adminUsers: () =>
+    request<(UserProfile & { provider?: { id: string; businessName: string } | null })[]>(
+      "/admin/users",
+      { auth: true },
+    ),
+
+  // --- treatment plans ---
+  plansByConsumer: (consumerId: string) =>
+    request<TreatmentPlan[]>(`/treatment-plans/consumer/${consumerId}`, { auth: true }),
+
+  // --- health profiles ---
+  healthProfile: (consumerId: string) =>
+    request<HealthProfile | null>(`/health-profiles/consumer/${consumerId}`, { auth: true }),
+  saveHealthProfile: (
+    consumerId: string,
+    data: {
+      consumerId: string;
+      vataScore: number;
+      pittaScore: number;
+      kaphaScore: number;
+      questionnaireResponses?: unknown;
+      lastAssessment?: string;
+    },
+  ) =>
+    request<HealthProfile>(`/health-profiles/consumer/${consumerId}`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+
+  // --- professionals ---
+  professionalsByProvider: (providerId: string) =>
+    request<Professional[]>(`/professionals/provider/${providerId}`, { auth: true }),
+  createProfessional: (data: {
+    userId: string;
+    providerId: string;
+    title?: string;
+    specializations?: string[];
+    bio?: string;
+    yearsExperience?: number;
+    hourlyRate?: number;
+  }) => request<Professional>("/professionals", { method: "POST", body: data, auth: true }),
+};
+
+export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {
+  const n = Number(value ?? 0);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+}
