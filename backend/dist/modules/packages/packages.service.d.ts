@@ -5,18 +5,18 @@ export declare class PackagesService {
     constructor(prisma: PrismaService);
     createPackage(data: CreatePackageDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -26,18 +26,18 @@ export declare class PackagesService {
     }>;
     findAll(): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -46,12 +46,12 @@ export declare class PackagesService {
         isRecurring: boolean;
     })[]>;
     findByProvider(providerId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -61,18 +61,18 @@ export declare class PackagesService {
     }[]>;
     findOne(id: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -82,18 +82,18 @@ export declare class PackagesService {
     }) | null>;
     updatePackage(id: string, data: UpdatePackageDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -102,12 +102,12 @@ export declare class PackagesService {
         isRecurring: boolean;
     }>;
     removePackage(id: string): Promise<{
-        id: string;
-        createdAt: Date;
-        name: string;
         serviceId: string | null;
         providerId: string;
+        name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;

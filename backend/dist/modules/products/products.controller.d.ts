@@ -5,109 +5,109 @@ export declare class ProductsController {
     constructor(service: ProductsService);
     create(createProductDto: CreateProductDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     }>;
     findAll(category?: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     })[]>;
     findByProvider(providerId: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     })[]>;
     findOne(id: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     }) | null>;
     update(id: string, updateProductDto: UpdateProductDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
     } & {
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     }>;
     remove(id: string): Promise<{
-        id: string;
-        name: string;
+        providerId: string;
         category: string | null;
+        name: string;
         description: string | null;
         price: import("@prisma/client/runtime/library").Decimal | null;
+        id: string;
+        createdAt: Date;
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
-        providerId: string;
     }>;
 }

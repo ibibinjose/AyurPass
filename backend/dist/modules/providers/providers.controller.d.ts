@@ -12,16 +12,16 @@ export declare class ProvidersController {
             rooms: number;
         };
     } & {
-        id: string;
-        userId: string | null;
         businessName: string;
+        timezone: string | null;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        timezone: string | null;
+        verificationStatus: string;
+        id: string;
+        userId: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        verificationStatus: string;
         createdAt: Date;
     }) | null>;
     update(id: string, updateProviderDto: UpdateProviderDto): Promise<{
@@ -33,16 +33,16 @@ export declare class ProvidersController {
             rooms: number;
         };
     } & {
-        id: string;
-        userId: string | null;
         businessName: string;
+        timezone: string | null;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        timezone: string | null;
+        verificationStatus: string;
+        id: string;
+        userId: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        verificationStatus: string;
         createdAt: Date;
     }>;
 }

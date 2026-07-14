@@ -6,29 +6,27 @@ export declare class ServicesController {
     constructor(service: ServicesService);
     create(createServiceDto: CreateServiceDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
         professional: {
+            title: string | null;
+            specializations: string[];
+            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
-            id: string;
-            title: string | null;
-            specializations: string[];
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         } | null;
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -36,32 +34,32 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     }>;
     findAll(category?: ServiceCategory): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
         professional: {
+            title: string | null;
+            specializations: string[];
+            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
-            id: string;
-            title: string | null;
-            specializations: string[];
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         } | null;
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -69,32 +67,32 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     })[]>;
     findByProvider(providerId: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
         professional: {
+            title: string | null;
+            specializations: string[];
+            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
-            id: string;
-            title: string | null;
-            specializations: string[];
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         } | null;
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -102,32 +100,32 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     })[]>;
     findOne(id: string): Promise<({
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
         professional: {
+            title: string | null;
+            specializations: string[];
+            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
-            id: string;
-            title: string | null;
-            specializations: string[];
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         } | null;
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -135,32 +133,32 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     }) | null>;
     update(id: string, updateServiceDto: UpdateServiceDto): Promise<{
         provider: {
-            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
+            id: string;
         };
         professional: {
+            title: string | null;
+            specializations: string[];
+            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
-            id: string;
-            title: string | null;
-            specializations: string[];
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         } | null;
     } & {
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -168,14 +166,14 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     }>;
     remove(id: string): Promise<{
-        id: string;
-        createdAt: Date;
-        name: string;
         professionalId: string | null;
         providerId: string;
         category: import(".prisma/client").$Enums.ServiceCategory;
+        name: string;
         description: string | null;
         durationMinutes: number;
         price: import("@prisma/client/runtime/library").Decimal;
@@ -183,5 +181,7 @@ export declare class ServicesController {
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
         maxParticipants: number;
+        id: string;
+        createdAt: Date;
     }>;
 }

@@ -4,34 +4,47 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     findById(id: string): Promise<Omit<{
+        provider: {
+            businessName: string;
+            timezone: string | null;
+            type: import(".prisma/client").$Enums.ProviderType;
+            brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
+            address: import("@prisma/client/runtime/library").JsonValue | null;
+            verificationStatus: string;
+            id: string;
+            userId: string | null;
+            stripeAccountId: string | null;
+            subscriptionTier: string | null;
+            createdAt: Date;
+        } | null;
         consumer: {
-            userId: string;
-            prakritiPrimary: string | null;
             prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
             preferences: import("@prisma/client/runtime/library").JsonValue | null;
+            userId: string;
+            prakritiPrimary: string | null;
         } | null;
         professional: ({
             provider: {
-                id: string;
-                createdAt: Date;
-                userId: string | null;
                 businessName: string;
+                timezone: string | null;
                 type: import(".prisma/client").$Enums.ProviderType;
                 brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
                 address: import("@prisma/client/runtime/library").JsonValue | null;
-                timezone: string | null;
+                verificationStatus: string;
+                id: string;
+                userId: string | null;
                 stripeAccountId: string | null;
                 subscriptionTier: string | null;
-                verificationStatus: string;
+                createdAt: Date;
             };
         } & {
-            id: string;
-            userId: string;
-            providerId: string;
             title: string | null;
             specializations: string[];
-            doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
             bio: string | null;
+            providerId: string;
+            id: string;
+            userId: string;
+            doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
             certifications: import("@prisma/client/runtime/library").JsonValue | null;
             yearsExperience: number | null;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -40,60 +53,47 @@ export declare class UsersController {
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         }) | null;
-        provider: {
-            id: string;
-            createdAt: Date;
-            userId: string | null;
-            businessName: string;
-            type: import(".prisma/client").$Enums.ProviderType;
-            brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
-            address: import("@prisma/client/runtime/library").JsonValue | null;
-            timezone: string | null;
-            stripeAccountId: string | null;
-            subscriptionTier: string | null;
-            verificationStatus: string;
-        } | null;
     } & {
-        id: string;
         email: string;
-        phone: string | null;
-        passwordHash: string | null;
-        role: import(".prisma/client").$Enums.Role;
         fullName: string | null;
+        phone: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }, "passwordHash"> | null>;
     findByEmail(email: string): Promise<Omit<{
-        id: string;
         email: string;
-        phone: string | null;
-        passwordHash: string | null;
-        role: import(".prisma/client").$Enums.Role;
         fullName: string | null;
+        phone: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }, "passwordHash"> | null>;
     create(createUserDto: CreateUserDto): Promise<Omit<{
-        id: string;
         email: string;
-        phone: string | null;
-        passwordHash: string | null;
-        role: import(".prisma/client").$Enums.Role;
         fullName: string | null;
+        phone: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }, "passwordHash"> | null>;
     update(id: string, updateUserDto: UpdateUserDto): Promise<Omit<{
-        id: string;
         email: string;
-        phone: string | null;
-        passwordHash: string | null;
-        role: import(".prisma/client").$Enums.Role;
         fullName: string | null;
+        phone: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }, "passwordHash"> | null>;

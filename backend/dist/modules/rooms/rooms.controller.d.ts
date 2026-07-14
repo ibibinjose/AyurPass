@@ -4,48 +4,48 @@ export declare class RoomsController {
     private readonly service;
     constructor(service: RoomsService);
     create(createRoomDto: CreateRoomDto): Promise<{
-        id: string;
+        providerId: string;
         name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         capacity: number;
         hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        providerId: string;
     }>;
     findByProvider(providerId: string): Promise<{
-        id: string;
+        providerId: string;
         name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         capacity: number;
         hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        providerId: string;
     }[]>;
     findOne(id: string): Promise<{
-        id: string;
+        providerId: string;
         name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         capacity: number;
         hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        providerId: string;
     } | null>;
     update(id: string, updateRoomDto: UpdateRoomDto): Promise<{
-        id: string;
+        providerId: string;
         name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         capacity: number;
         hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        providerId: string;
     }>;
     remove(id: string): Promise<{
-        id: string;
+        providerId: string;
         name: string;
         description: string | null;
+        id: string;
+        createdAt: Date;
         capacity: number;
         hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
-        createdAt: Date;
-        providerId: string;
     }>;
 }
