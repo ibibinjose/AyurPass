@@ -16,6 +16,7 @@ const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
   { value: "YOGA_STUDIO", label: "Yoga studio" },
   { value: "LUXURY_SPA", label: "Luxury spa" },
   { value: "MEDITATION_CENTER", label: "Meditation center" },
+  { value: "HEALTH_CLUB", label: "Health club" },
   { value: "HYBRID", label: "Hybrid wellness center" },
 ];
 

@@ -11,6 +11,11 @@ export class ProfessionalsController {
     return this.professionalsService.createProfessional(createProfessionalDto);
   }
 
+  @Get()
+  findAll() {
+    return this.professionalsService.findAll();
+  }
+
   @Get('provider/:id')
   findByProvider(@Param('id') providerId: string) {
     return this.professionalsService.findByProvider(providerId);

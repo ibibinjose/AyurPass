@@ -3,16 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
-import type { Product, Provider, Service, ServiceCategory, ProviderType } from "@/lib/types";
+import type { Product, Provider, Service, ServiceCategory, ProviderType, Professional } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProviderCard } from "@/components/ProviderCard";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
+import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { EmptyState, Input } from "@/components/ui";
 import { MapPinIcon, SearchIcon } from "@/components/icons";
 
-type Tab = "providers" | "services" | "products";
+type Tab = "providers" | "services" | "products" | "professionals";
 
 const PROVIDER_GROUPS: { label: string; types: ProviderType[] }[] = [
   { label: "Ayurveda", types: ["AYURVEDA_CLINIC", "AYURVEDA_RESORT", "PANCHAKARMA_CENTER"] },
@@ -29,6 +30,7 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   "SPA",
   "MEDITATION",
   "FITNESS",
+  "COACHING",
   "CONSULTATION",
   "PACKAGE",
 ];
@@ -65,6 +67,7 @@ export default function DiscoverPage() {
   const [providers, setProviders] = useState<Provider[] | null>(null);
   const [services, setServices] = useState<Service[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [professionals, setProfessionals] = useState<Professional[] | null>(null);
   const [error, setError] = useState(false);
 
   const [tab, setTab] = useState<Tab>("providers");
@@ -75,18 +78,24 @@ export default function DiscoverPage() {
   const [productCategory, setProductCategory] = useState<string>("ALL");
 
   useEffect(() => {
-    Promise.all([api.providers(), api.services(), api.products()])
-      .then(([p, s, pr]) => {
+    Promise.all([
+      api.providers(), 
+      api.services(), 
+      api.products(),
+      api.professionals()
+    ])
+      .then(([p, s, pr, prof]) => {
         setProviders(p);
         setServices(s);
         setProducts(pr);
+        setProfessionals(prof);
       })
       .catch(() => setError(true));
   }, []);
 
-  const loading = !error && (providers === null || services === null || products === null);
+  const loading = !error && (providers === null || services === null || products === null || professionals === null);
 
-  // Provider address by id — lets services & products inherit their venue's location.
+  // Provider address by id — lets services, products and professionals inherit their venue's location.
   const providersById = useMemo(() => {
     const map = new Map<string, Provider>();
     (providers ?? []).forEach((p) => map.set(p.id, p));
@@ -100,7 +109,7 @@ export default function DiscoverPage() {
   const loc = location.trim();
 
   // Base lists filtered by the shared name + location search (category applied later).
-  // These drive the per-tab result counts so the search spans all three catalogues.
+  // These drive the per-tab result counts so the search spans all four catalogues.
   const base = useMemo(() => {
     const filterProviders = (list: Provider[]) =>
       list.filter((p) => {
@@ -135,14 +144,29 @@ export default function DiscoverPage() {
         return true;
       });
 
+    const filterProfessionals = (list: Professional[]) =>
+      list.filter((prof) => {
+        if (
+          q &&
+          !includesText(prof.user?.fullName ?? "", q) &&
+          !includesText(prof.title ?? "", q) &&
+          !includesText(prof.specializations.join(" "), q) &&
+          !includesText(prof.provider?.businessName ?? "", q)
+        )
+          return false;
+        if (loc && !includesText(providerLocation(prof.providerId), loc)) return false;
+        return true;
+      });
+
     return {
       providers: providers ? filterProviders(providers) : null,
       services: services ? filterServices(services) : null,
       products: products ? filterProducts(products) : null,
+      professionals: professionals ? filterProfessionals(professionals) : null,
     };
     // providersById is derived from providers; listed deps cover it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providers, services, products, q, loc]);
+  }, [providers, services, products, professionals, q, loc]);
 
   const activeTypes = providerGroup
     ? PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? []
@@ -157,6 +181,7 @@ export default function DiscoverPage() {
   const shownProducts = base.products?.filter(
     (p) => productCategory === "ALL" || p.category === productCategory,
   );
+  const shownProfessionals = base.professionals;
 
   const productCategories = useMemo(() => {
     const set = new Set<string>();
@@ -168,12 +193,14 @@ export default function DiscoverPage() {
     providers: base.providers?.length ?? 0,
     services: base.services?.length ?? 0,
     products: base.products?.length ?? 0,
+    professionals: base.professionals?.length ?? 0,
   };
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "providers", label: "Providers" },
     { key: "services", label: "Services" },
     { key: "products", label: "Products" },
+    { key: "professionals", label: "Practitioners" },
   ];
 
   const skeleton = (
@@ -193,7 +220,7 @@ export default function DiscoverPage() {
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Discover wellness near you</h1>
         <p className="mt-2 max-w-2xl text-ink-secondary">
           Search verified clinics, studios, spas, meditation centers and health clubs — plus every
-          treatment and product they offer. Filter by name, location and discipline.
+          treatment, practitioner and product they offer. Filter by name, location and discipline.
         </p>
 
         {/* Search: name + location */}
@@ -203,7 +230,7 @@ export default function DiscoverPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, treatment or product…"
+              placeholder="Search by name, treatment, practitioner or product…"
               aria-label="Search by name"
               className="pl-10"
             />
@@ -290,6 +317,11 @@ export default function DiscoverPage() {
               ))}
             </>
           )}
+          {tab === "professionals" && (
+            <div className="text-sm text-ink-secondary">
+              Filter by location and search terms
+            </div>
+          )}
         </div>
 
         {/* Results */}
@@ -327,16 +359,29 @@ export default function DiscoverPage() {
                 body="Try a broader search, a different discipline, or clear your location filter."
               />
             )
-          ) : shownProducts && shownProducts.length > 0 ? (
+          ) : tab === "products" ? (
+            shownProducts && shownProducts.length > 0 ? (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {shownProducts.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title={searchActive || productCategory !== "ALL" ? "No products match those filters" : "No products yet"}
+                body="Try a broader search, a different category, or clear your location filter."
+              />
+            )
+          ) : shownProfessionals && shownProfessionals.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {shownProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {shownProfessionals.map((prof) => (
+                <ProfessionalCard key={prof.id} professional={prof} />
               ))}
             </div>
           ) : (
             <EmptyState
-              title={searchActive || productCategory !== "ALL" ? "No products match those filters" : "No products yet"}
-              body="Try a broader search, a different category, or clear your location filter."
+              title={searchActive ? "No practitioners match those filters" : "No practitioners yet"}
+              body="Try a broader search or clear your location filter."
             />
           )}
         </div>

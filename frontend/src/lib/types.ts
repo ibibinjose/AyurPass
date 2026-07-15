@@ -81,17 +81,24 @@ export interface Provider {
 
 export interface Professional {
   id: string;
+  code?: string;
   userId: string;
   providerId: string;
   title?: string | null;
   specializations: string[];
+  doshaExpertise?: Record<string, unknown> | null;
   bio?: string | null;
+  certifications?: unknown;
   yearsExperience?: number | null;
   hourlyRate?: string | number | null;
+  availabilityPreferences?: unknown;
+  verificationDocuments?: unknown;
   rating: string | number;
   reviewCount: number;
-  user?: User;
-  provider?: Provider;
+  createdAt: string;
+  updatedAt: string;
+  provider?: Pick<Provider, "id" | "businessName" | "type">;
+  user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }
 
 /** User as returned by GET /auth/profile — includes linked profiles. */

@@ -339,6 +339,7 @@ export const api = {
     }),
 
   // --- professionals ---
+  professionals: () => request<Professional[]>('/professionals'),
   professionalsByProvider: (providerId: string) =>
     request<Professional[]>(`/professionals/provider/${providerId}`, { auth: true }),
   createProfessional: (data: {

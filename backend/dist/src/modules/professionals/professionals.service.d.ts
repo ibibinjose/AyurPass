@@ -1,0 +1,86 @@
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
+export declare class ProfessionalsService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    createProfessional(data: CreateProfessionalDto): Promise<{
+        id: string;
+        title: string | null;
+        specializations: string[];
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
+        certifications: import("@prisma/client/runtime/library").JsonValue | null;
+        yearsExperience: number | null;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        availabilityPreferences: import("@prisma/client/runtime/library").JsonValue | null;
+        verificationDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        rating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+        userId: string;
+        providerId: string;
+    }>;
+    findAll(): Promise<{
+        id: string;
+        title: string | null;
+        specializations: string[];
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
+        certifications: import("@prisma/client/runtime/library").JsonValue | null;
+        yearsExperience: number | null;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        availabilityPreferences: import("@prisma/client/runtime/library").JsonValue | null;
+        verificationDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        rating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+        userId: string;
+        providerId: string;
+    }[]>;
+    findByProvider(providerId: string): Promise<{
+        id: string;
+        title: string | null;
+        specializations: string[];
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
+        certifications: import("@prisma/client/runtime/library").JsonValue | null;
+        yearsExperience: number | null;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        availabilityPreferences: import("@prisma/client/runtime/library").JsonValue | null;
+        verificationDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        rating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+        userId: string;
+        providerId: string;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: string;
+        title: string | null;
+        specializations: string[];
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
+        certifications: import("@prisma/client/runtime/library").JsonValue | null;
+        yearsExperience: number | null;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        availabilityPreferences: import("@prisma/client/runtime/library").JsonValue | null;
+        verificationDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        rating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+        userId: string;
+        providerId: string;
+    } | null>;
+    updateProfessional(id: string, data: UpdateProfessionalDto): Promise<{
+        id: string;
+        title: string | null;
+        specializations: string[];
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
+        certifications: import("@prisma/client/runtime/library").JsonValue | null;
+        yearsExperience: number | null;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        availabilityPreferences: import("@prisma/client/runtime/library").JsonValue | null;
+        verificationDocuments: import("@prisma/client/runtime/library").JsonValue | null;
+        rating: import("@prisma/client/runtime/library").Decimal;
+        reviewCount: number;
+        userId: string;
+        providerId: string;
+    }>;
+}

@@ -1,0 +1,53 @@
+import { BookingStatus } from '@prisma/client';
+export declare class Booking {
+    id: string;
+    consumerId: string;
+    serviceId: string;
+    professionalId?: string;
+    providerId: string;
+    roomId?: string;
+    startTime: Date;
+    endTime: Date;
+    timezone?: string;
+    status: BookingStatus;
+    totalAmount?: number;
+    notes?: string;
+    paymentIntentId?: string;
+    paymentStatus?: string;
+    giftCardRedeemed?: number;
+    pointsRedeemed?: number;
+    pointsEarned?: number;
+    platformCommission?: number;
+    providerPayout?: number;
+    createdAt: Date;
+    updatedAt?: Date;
+}
+export declare class CreateBookingDto {
+    consumerId: string;
+    serviceId: string;
+    professionalId?: string;
+    providerId: string;
+    roomId?: string;
+    startTime: Date;
+    endTime: Date;
+    timezone?: string;
+    status?: BookingStatus;
+    totalAmount?: number;
+    notes?: string;
+}
+export declare class UpdateBookingDto {
+    status?: BookingStatus;
+    notes?: string;
+    roomId?: string | null;
+    professionalId?: string | null;
+    startTime?: Date;
+    endTime?: Date;
+}
+export declare class BookingStatus {
+    static readonly PENDING = "PENDING";
+    static readonly CONFIRMED = "CONFIRMED";
+    static readonly IN_PROGRESS = "IN_PROGRESS";
+    static readonly COMPLETED = "COMPLETED";
+    static readonly CANCELLED = "CANCELLED";
+    static readonly NO_SHOW = "NO_SHOW";
+}
