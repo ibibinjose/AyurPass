@@ -5,23 +5,25 @@ export declare class BookingsController {
     constructor(bookingsService: BookingsService);
     create(createBookingDto: CreateBookingDto): Promise<{
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-            id: string;
         };
         professional: {
-            title: string | null;
-            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
+            id: string;
+            title: string | null;
         } | null;
         service: {
+            id: string;
+            createdAt: Date;
+            name: string;
             professionalId: string | null;
             providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
             description: string | null;
             durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
@@ -29,16 +31,16 @@ export declare class BookingsController {
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
-            id: string;
-            createdAt: Date;
         };
         room: {
-            name: string;
             id: string;
+            name: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
+        id: string;
+        createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
@@ -52,30 +54,33 @@ export declare class BookingsController {
         roomId: string | null;
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
-        id: string;
-        createdAt: Date;
         paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     }>;
     findByConsumer(consumerId: string): Promise<({
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-            id: string;
         };
         professional: {
-            title: string | null;
-            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
+            id: string;
+            title: string | null;
         } | null;
         service: {
+            id: string;
+            createdAt: Date;
+            name: string;
             professionalId: string | null;
             providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
             description: string | null;
             durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
@@ -83,16 +88,16 @@ export declare class BookingsController {
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
-            id: string;
-            createdAt: Date;
         };
         room: {
-            name: string;
             id: string;
+            name: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
+        id: string;
+        createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
@@ -106,38 +111,41 @@ export declare class BookingsController {
         roomId: string | null;
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
-        id: string;
-        createdAt: Date;
         paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     })[]>;
     findByProvider(providerId: string): Promise<({
-        provider: {
-            businessName: string;
-            type: import(".prisma/client").$Enums.ProviderType;
-            id: string;
-        };
         consumer: {
-            userId: string;
             user: {
                 email: string;
                 fullName: string | null;
                 id: string;
             };
+            userId: string;
+        };
+        provider: {
+            id: string;
+            businessName: string;
+            type: import(".prisma/client").$Enums.ProviderType;
         };
         professional: {
-            title: string | null;
-            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
+            id: string;
+            title: string | null;
         } | null;
         service: {
+            id: string;
+            createdAt: Date;
+            name: string;
             professionalId: string | null;
             providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
             description: string | null;
             durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
@@ -145,16 +153,16 @@ export declare class BookingsController {
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
-            id: string;
-            createdAt: Date;
         };
         room: {
-            name: string;
             id: string;
+            name: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
+        id: string;
+        createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
@@ -168,30 +176,33 @@ export declare class BookingsController {
         roomId: string | null;
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
-        id: string;
-        createdAt: Date;
         paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     })[]>;
     findOne(id: string): Promise<({
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-            id: string;
         };
         professional: {
-            title: string | null;
-            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
+            id: string;
+            title: string | null;
         } | null;
         service: {
+            id: string;
+            createdAt: Date;
+            name: string;
             professionalId: string | null;
             providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
             description: string | null;
             durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
@@ -199,16 +210,16 @@ export declare class BookingsController {
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
-            id: string;
-            createdAt: Date;
         };
         room: {
-            name: string;
             id: string;
+            name: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
+        id: string;
+        createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
@@ -222,30 +233,33 @@ export declare class BookingsController {
         roomId: string | null;
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
-        id: string;
-        createdAt: Date;
         paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     }) | null>;
     update(id: string, updateBookingDto: UpdateBookingDto): Promise<{
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-            id: string;
         };
         professional: {
-            title: string | null;
-            id: string;
             user: {
                 fullName: string | null;
                 id: string;
             };
+            id: string;
+            title: string | null;
         } | null;
         service: {
+            id: string;
+            createdAt: Date;
+            name: string;
             professionalId: string | null;
             providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
             description: string | null;
             durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
@@ -253,16 +267,16 @@ export declare class BookingsController {
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
-            id: string;
-            createdAt: Date;
         };
         room: {
-            name: string;
             id: string;
+            name: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
+        id: string;
+        createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
@@ -276,9 +290,10 @@ export declare class BookingsController {
         roomId: string | null;
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
-        id: string;
-        createdAt: Date;
         paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     }>;
 }

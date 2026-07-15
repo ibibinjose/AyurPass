@@ -10,6 +10,7 @@ import type { Order, Product } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LotusIcon, ShieldIcon } from "@/components/icons";
+import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
 
 export default function BuyProductPage() {
@@ -24,6 +25,7 @@ export default function BuyProductPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
+  const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
 
   useEffect(() => {
     if (!productId) return;
@@ -95,26 +97,53 @@ export default function BuyProductPage() {
           </p>
 
           {order.paymentStatus === "paid" ? (
-            <p className="mx-auto mt-5 w-fit rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
-              Paid {formatMoney(order.subtotal)} ✓
-            </p>
+            <div className="mt-5 space-y-1.5">
+              <p className="mx-auto w-fit rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
+                Paid {formatMoney(order.subtotal)} ✓
+              </p>
+              {(order.pointsEarned ?? 0) > 0 && (
+                <p className="text-sm text-gold">You earned {order.pointsEarned} reward points 🌿</p>
+              )}
+            </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-hairline bg-clay/40 p-4">
-              <Button
-                className="w-full"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  try {
-                    setOrder(await api.payOrder(order.id));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                {busy ? "Processing…" : `Pay ${formatMoney(order.subtotal)} with Stripe (test mode)`}
-              </Button>
-              <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
+            <div className="mt-6 space-y-4 text-left">
+              <RedeemPanel amountDue={Number(order.subtotal)} onChange={setRedemption} />
+              <div className="rounded-2xl border border-hairline bg-clay/40 p-4">
+                {redemption.discount > 0 && (
+                  <p className="mb-2 flex justify-between text-sm">
+                    <span className="text-ink-muted">You pay today</span>
+                    <span className="font-semibold text-foreground">
+                      {formatMoney(Math.max(0, Number(order.subtotal) - redemption.discount))}
+                    </span>
+                  </p>
+                )}
+                <Button
+                  className="w-full"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError(null);
+                    try {
+                      setOrder(
+                        await api.payOrder(order.id, {
+                          giftCardCode: redemption.giftCardCode,
+                          redeemPoints: redemption.redeemPoints,
+                        }),
+                      );
+                    } catch {
+                      setError("Payment couldn't be completed — please recheck your rewards.");
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {busy
+                    ? "Processing…"
+                    : `Pay ${formatMoney(Math.max(0, Number(order.subtotal) - redemption.discount))} with Stripe (test mode)`}
+                </Button>
+                <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
+                <ErrorNote message={error} />
+              </div>
             </div>
           )}
 

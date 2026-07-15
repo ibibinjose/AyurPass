@@ -25,6 +25,8 @@ const providers_module_1 = require("./modules/providers/providers.module");
 const products_module_1 = require("./modules/products/products.module");
 const orders_module_1 = require("./modules/orders/orders.module");
 const integrations_module_1 = require("./modules/integrations/integrations.module");
+const loyalty_module_1 = require("./modules/loyalty/loyalty.module");
+const gift_cards_module_1 = require("./modules/gift-cards/gift-cards.module");
 const health_profiles_module_1 = require("./modules/health-profiles/health-profiles.module");
 const health_module_1 = require("./health/health.module");
 let AppModule = class AppModule {
@@ -53,6 +55,8 @@ exports.AppModule = AppModule = __decorate([
             products_module_1.ProductsModule,
             orders_module_1.OrdersModule,
             integrations_module_1.IntegrationsModule,
+            loyalty_module_1.LoyaltyModule,
+            gift_cards_module_1.GiftCardsModule,
             health_profiles_module_1.HealthProfilesModule,
             health_module_1.HealthModule,
         ],

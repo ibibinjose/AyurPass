@@ -8,7 +8,10 @@ import type {
   BrandProfile,
   BusinessAddress,
   Channel,
+  GiftCard,
+  GiftCardLookup,
   HealthProfile,
+  LoyaltySummary,
   Order,
   OrderStatus,
   Product,
@@ -186,8 +189,12 @@ export const api = {
 
   // --- payments (Stripe placeholder) ---
   paymentMode: () => request<{ provider: string; mock: boolean }>("/payments/mode"),
-  payBooking: (bookingId: string) =>
-    request<Booking>(`/payments/checkout/${bookingId}`, { method: "POST", auth: true }),
+  payBooking: (bookingId: string, redemption?: { giftCardCode?: string; redeemPoints?: number }) =>
+    request<Booking>(`/payments/checkout/${bookingId}`, {
+      method: "POST",
+      body: redemption ?? {},
+      auth: true,
+    }),
   refundBooking: (bookingId: string) =>
     request<Booking>(`/payments/refund/${bookingId}`, { method: "POST", auth: true }),
 
@@ -243,10 +250,24 @@ export const api = {
     request<Order[]>(`/orders/provider/${providerId}`, { auth: true }),
   updateOrder: (id: string, data: { status?: OrderStatus; notes?: string }) =>
     request<Order>(`/orders/${id}`, { method: "PUT", body: data, auth: true }),
-  payOrder: (orderId: string) =>
-    request<Order>(`/payments/checkout-order/${orderId}`, { method: "POST", auth: true }),
+  payOrder: (orderId: string, redemption?: { giftCardCode?: string; redeemPoints?: number }) =>
+    request<Order>(`/payments/checkout-order/${orderId}`, {
+      method: "POST",
+      body: redemption ?? {},
+      auth: true,
+    }),
   refundOrder: (orderId: string) =>
     request<Order>(`/payments/refund-order/${orderId}`, { method: "POST", auth: true }),
+
+  // --- loyalty (AyurPass Rewards) ---
+  loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
+
+  // --- gift cards ---
+  purchaseGiftCard: (data: { amount: number; recipientEmail?: string; message?: string }) =>
+    request<GiftCard>("/gift-cards/purchase", { method: "POST", body: data, auth: true }),
+  myGiftCards: () => request<GiftCard[]>("/gift-cards/mine", { auth: true }),
+  lookupGiftCard: (code: string) =>
+    request<GiftCardLookup>(`/gift-cards/lookup/${encodeURIComponent(code)}`, { auth: true }),
 
   // --- channels / integrations ---
   channels: (providerId: string) =>
@@ -321,5 +342,12 @@ export const api = {
 
 export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {
   const n = Number(value ?? 0);
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+  // Whole amounts stay clean ($45); fractional amounts show cents ($0.05, $2.80).
+  const fractionDigits = Number.isInteger(n) ? 0 : 2;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(n);
 }

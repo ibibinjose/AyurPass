@@ -70,22 +70,22 @@ export declare class IntegrationsService {
         connectable: false;
     })[]>;
     connect(providerId: string, type: string): Promise<{
+        id: string;
+        createdAt: Date;
         providerId: string;
         status: string;
         type: string;
-        id: string;
-        createdAt: Date;
         externalAccountId: string | null;
         config: import("@prisma/client/runtime/library").JsonValue | null;
         connectedAt: Date | null;
         lastSyncAt: Date | null;
     }>;
     disconnect(id: string): Promise<{
+        id: string;
+        createdAt: Date;
         providerId: string;
         status: string;
         type: string;
-        id: string;
-        createdAt: Date;
         externalAccountId: string | null;
         config: import("@prisma/client/runtime/library").JsonValue | null;
         connectedAt: Date | null;

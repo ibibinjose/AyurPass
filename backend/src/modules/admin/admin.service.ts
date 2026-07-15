@@ -37,9 +37,12 @@ export class AdminService {
         }),
       ]);
 
-    const [paidBookings, paidOrders] = await this.prisma.$transaction([
+    const [paidBookings, paidOrders, giftCards, giftCardOutstanding, pointsOutstanding] = await this.prisma.$transaction([
       this.prisma.booking.aggregate({ where: { paymentStatus: 'paid' }, _sum: { totalAmount: true } }),
       this.prisma.order.aggregate({ where: { paymentStatus: 'paid' }, _sum: { subtotal: true } }),
+      this.prisma.giftCard.count(),
+      this.prisma.giftCard.aggregate({ where: { status: { not: 'void' } }, _sum: { balance: true } }),
+      this.prisma.loyaltyAccount.aggregate({ _sum: { pointsBalance: true } }),
     ]);
 
     const grossVolume = Number(bookingRevenue._sum.totalAmount ?? 0) + Number(orderRevenue._sum.subtotal ?? 0);
@@ -61,6 +64,9 @@ export class AdminService {
       grossVolume,
       platformRevenue,
       paidVolume,
+      giftCards,
+      giftCardOutstanding: giftCardOutstanding._sum.balance ?? 0,
+      pointsOutstanding: pointsOutstanding._sum.pointsBalance ?? 0,
     };
   }
 

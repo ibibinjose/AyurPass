@@ -12,9 +12,24 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentsController = void 0;
+exports.PaymentsController = exports.RedemptionDto = void 0;
 const common_1 = require("@nestjs/common");
+const class_validator_1 = require("class-validator");
 const payments_service_1 = require("./payments.service");
+class RedemptionDto {
+}
+exports.RedemptionDto = RedemptionDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], RedemptionDto.prototype, "giftCardCode", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], RedemptionDto.prototype, "redeemPoints", void 0);
 let PaymentsController = class PaymentsController {
     constructor(service) {
         this.service = service;
@@ -22,14 +37,14 @@ let PaymentsController = class PaymentsController {
     mode() {
         return { provider: 'stripe', mock: this.service.mockMode };
     }
-    checkout(bookingId) {
-        return this.service.checkout(bookingId);
+    checkout(bookingId, body = {}) {
+        return this.service.checkout(bookingId, body);
     }
     refund(bookingId) {
         return this.service.refund(bookingId);
     }
-    checkoutOrder(orderId) {
-        return this.service.checkoutOrder(orderId);
+    checkoutOrder(orderId, body = {}) {
+        return this.service.checkoutOrder(orderId, body);
     }
     refundOrder(orderId) {
         return this.service.refundOrder(orderId);
@@ -45,8 +60,9 @@ __decorate([
 __decorate([
     (0, common_1.Post)('checkout/:bookingId'),
     __param(0, (0, common_1.Param)('bookingId')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, RedemptionDto]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "checkout", null);
 __decorate([
@@ -59,8 +75,9 @@ __decorate([
 __decorate([
     (0, common_1.Post)('checkout-order/:orderId'),
     __param(0, (0, common_1.Param)('orderId')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, RedemptionDto]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "checkoutOrder", null);
 __decorate([

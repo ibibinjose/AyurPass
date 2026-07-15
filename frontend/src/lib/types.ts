@@ -152,6 +152,9 @@ export interface Booking {
   platformCommission?: string | number | null;
   providerPayout?: string | number | null;
   paymentStatus: PaymentStatus;
+  giftCardRedeemed?: string | number;
+  pointsRedeemed?: number;
+  pointsEarned?: number;
   notes?: string | null;
   createdAt: string;
   room?: Pick<Room, "id" | "name" | "capacity" | "hourlyCost"> | null;
@@ -252,6 +255,9 @@ export interface Order {
   providerPayout?: string | number | null;
   paymentStatus: PaymentStatus;
   paymentIntentId?: string | null;
+  giftCardRedeemed?: string | number;
+  pointsRedeemed?: number;
+  pointsEarned?: number;
   shippingAddress?: BusinessAddress | null;
   notes?: string | null;
   createdAt: string;
@@ -285,6 +291,52 @@ export interface SyncReport {
   mock: boolean;
 }
 
+export interface LoyaltyTransaction {
+  id: string;
+  type: "EARN" | "REDEEM" | "ADJUST";
+  points: number;
+  reason: string;
+  createdAt: string;
+}
+
+export interface LoyaltySummary {
+  pointsBalance: number;
+  lifetimePoints: number;
+  pointsValue: number;
+  pointRedemptionValue: number;
+  tier: string;
+  tierKey: string;
+  nextTier: string | null;
+  pointsToNextTier: number;
+  transactions: LoyaltyTransaction[];
+}
+
+export interface GiftCardTransaction {
+  id: string;
+  type: "ISSUE" | "REDEEM" | "REFUND";
+  amount: string | number;
+  reason?: string | null;
+  createdAt: string;
+}
+
+export interface GiftCard {
+  id: string;
+  code: string;
+  initialBalance: string | number;
+  balance: string | number;
+  status: "active" | "depleted" | "void";
+  recipientEmail?: string | null;
+  message?: string | null;
+  createdAt: string;
+  transactions?: GiftCardTransaction[];
+}
+
+export interface GiftCardLookup {
+  code: string;
+  balance: string | number;
+  status: "active" | "depleted" | "void";
+}
+
 export interface AdminOverview {
   users: number;
   consumers: number;
@@ -299,9 +351,12 @@ export interface AdminOverview {
   grossVolume: string | number;
   platformRevenue: string | number;
   paidVolume: string | number;
+  giftCards: number;
+  giftCardOutstanding: string | number;
+  pointsOutstanding: number;
 }
 
-export interface AdminProvider extends Provider {
+export interface AdminProvider extends Omit<Provider, "_count"> {
   user?: User | null;
   _count: { professionals: number; services: number; bookings: number; rooms: number };
 }

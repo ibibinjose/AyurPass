@@ -12,6 +12,7 @@ import type { Booking, Service } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CalendarIcon, ShieldIcon } from "@/components/icons";
+import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Textarea } from "@/components/ui";
 
 export default function BookServicePage() {
@@ -27,6 +28,7 @@ export default function BookServicePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
 
   useEffect(() => {
     if (!serviceId) return;
@@ -119,33 +121,53 @@ export default function BookServicePage() {
           </p>
 
           {confirmed.paymentStatus === "paid" ? (
-            <p className="mx-auto mt-5 w-fit rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
-              Paid {formatMoney(confirmed.totalAmount ?? service.price)} ✓
-            </p>
+            <div className="mt-5 space-y-1.5">
+              <p className="mx-auto w-fit rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
+                Paid {formatMoney(confirmed.totalAmount ?? service.price)} ✓
+              </p>
+              {(confirmed.pointsEarned ?? 0) > 0 && (
+                <p className="text-sm text-gold">
+                  You earned {confirmed.pointsEarned} reward points 🌿
+                </p>
+              )}
+            </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-hairline bg-clay/40 p-4">
-              <p className="text-sm text-ink-secondary">
+            <div className="mt-6 space-y-4 text-left">
+              <p className="text-center text-sm text-ink-secondary">
                 Secure your spot now, or pay at the venue.
               </p>
-              <Button
-                className="mt-3 w-full"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  try {
-                    setConfirmed(await api.payBooking(confirmed.id));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                {busy
-                  ? "Processing…"
-                  : `Pay ${formatMoney(confirmed.totalAmount ?? service.price)} with Stripe (test mode)`}
-              </Button>
-              <p className="mt-2 text-xs text-ink-muted">
-                Test mode — no real card is charged.
-              </p>
+              <RedeemPanel
+                amountDue={Number(confirmed.totalAmount ?? service.price)}
+                onChange={setRedemption}
+              />
+              <div className="rounded-2xl border border-hairline bg-clay/40 p-4">
+                <Button
+                  className="w-full"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError(null);
+                    try {
+                      setConfirmed(
+                        await api.payBooking(confirmed.id, {
+                          giftCardCode: redemption.giftCardCode,
+                          redeemPoints: redemption.redeemPoints,
+                        }),
+                      );
+                    } catch {
+                      setError("Payment couldn't be completed — please recheck your rewards.");
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {busy
+                    ? "Processing…"
+                    : `Pay ${formatMoney(Math.max(0, Number(confirmed.totalAmount ?? service.price) - redemption.discount))} with Stripe (test mode)`}
+                </Button>
+                <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
+                <ErrorNote message={error} />
+              </div>
             </div>
           )}
 

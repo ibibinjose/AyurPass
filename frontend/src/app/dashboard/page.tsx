@@ -9,6 +9,7 @@ import type {
   AdminOverview,
   Booking,
   HealthProfile,
+  LoyaltySummary,
   Professional,
   Service,
   TreatmentPlan,
@@ -30,12 +31,14 @@ function ConsumerOverview() {
   const [health, setHealth] = useState<HealthProfile | null | undefined>(undefined);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [plans, setPlans] = useState<TreatmentPlan[]>([]);
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
 
   useEffect(() => {
     if (!user) return;
     api.healthProfile(user.id).then(setHealth).catch(() => setHealth(null));
     api.bookingsByConsumer(user.id).then(setBookings).catch(() => {});
     api.plansByConsumer(user.id).then(setPlans).catch(() => {});
+    api.loyalty().then(setLoyalty).catch(() => {});
   }, [user]);
 
   const upcoming = bookings.filter(
@@ -62,13 +65,18 @@ function ConsumerOverview() {
         <p className="mt-1 text-ink-muted">Your wellness sanctuary at a glance.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Upcoming sessions" value={upcoming.length} />
         <StatTile
           label="Active treatment plans"
           value={plans.filter((p) => p.status === "active").length}
         />
         <StatTile label="Total bookings" value={bookings.length} />
+        <StatTile
+          label="Reward points"
+          value={loyalty ? loyalty.pointsBalance.toLocaleString() : "—"}
+          hint={loyalty ? `${loyalty.tier} member` : undefined}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -327,6 +335,15 @@ function PlatformAdminOverview() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatTile label="Product orders" value={stats.orders} />
             <StatTile label="Products listed" value={stats.products} />
+            <StatTile
+              label="Gift cards issued"
+              value={stats.giftCards}
+              hint={`${formatMoney(stats.giftCardOutstanding)} outstanding`}
+            />
+            <StatTile
+              label="Reward points in circulation"
+              value={Number(stats.pointsOutstanding).toLocaleString()}
+            />
           </div>
           {stats.pendingVerifications > 0 && (
             <Link

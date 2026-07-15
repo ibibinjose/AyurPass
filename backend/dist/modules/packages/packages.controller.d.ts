@@ -5,18 +5,18 @@ export declare class PackagesController {
     constructor(service: PackagesService);
     create(createPackageDto: CreatePackageDto): Promise<{
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
-            id: string;
         };
     } & {
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -26,18 +26,18 @@ export declare class PackagesController {
     }>;
     findAll(): Promise<({
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
-            id: string;
         };
     } & {
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -46,12 +46,12 @@ export declare class PackagesController {
         isRecurring: boolean;
     })[]>;
     findByProvider(providerId: string): Promise<{
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -61,18 +61,18 @@ export declare class PackagesController {
     }[]>;
     findOne(id: string): Promise<({
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
-            id: string;
         };
     } & {
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -82,18 +82,18 @@ export declare class PackagesController {
     }) | null>;
     update(id: string, updatePackageDto: UpdatePackageDto): Promise<{
         provider: {
+            id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             verificationStatus: string;
-            id: string;
         };
     } & {
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
@@ -102,12 +102,12 @@ export declare class PackagesController {
         isRecurring: boolean;
     }>;
     remove(id: string): Promise<{
-        serviceId: string | null;
-        providerId: string;
-        name: string;
-        description: string | null;
         id: string;
         createdAt: Date;
+        name: string;
+        serviceId: string | null;
+        providerId: string;
+        description: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;

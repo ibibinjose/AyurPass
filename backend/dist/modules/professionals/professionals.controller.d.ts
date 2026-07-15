@@ -16,13 +16,13 @@ export declare class ProfessionalsController {
             updatedAt: Date;
         };
     } & {
+        id: string;
+        providerId: string;
+        userId: string;
         title: string | null;
         specializations: string[];
-        bio: string | null;
-        providerId: string;
-        id: string;
-        userId: string;
         doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -44,13 +44,13 @@ export declare class ProfessionalsController {
             updatedAt: Date;
         };
     } & {
+        id: string;
+        providerId: string;
+        userId: string;
         title: string | null;
         specializations: string[];
-        bio: string | null;
-        providerId: string;
-        id: string;
-        userId: string;
         doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -71,22 +71,9 @@ export declare class ProfessionalsController {
             createdAt: Date;
             updatedAt: Date;
         };
-        services: {
-            professionalId: string | null;
-            providerId: string;
-            category: import(".prisma/client").$Enums.ServiceCategory;
-            name: string;
-            description: string | null;
-            durationMinutes: number;
-            price: import("@prisma/client/runtime/library").Decimal;
-            currency: string;
-            doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
-            isVirtual: boolean;
-            maxParticipants: number;
+        bookings: {
             id: string;
             createdAt: Date;
-        }[];
-        bookings: {
             consumerId: string;
             serviceId: string;
             professionalId: string | null;
@@ -100,33 +87,49 @@ export declare class ProfessionalsController {
             roomId: string | null;
             platformCommission: import("@prisma/client/runtime/library").Decimal | null;
             providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+            paymentIntentId: string | null;
             paymentStatus: string;
+            giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+            pointsRedeemed: number;
+            pointsEarned: number;
+        }[];
+        services: {
             id: string;
             createdAt: Date;
-            paymentIntentId: string | null;
+            name: string;
+            professionalId: string | null;
+            providerId: string;
+            category: import(".prisma/client").$Enums.ServiceCategory;
+            description: string | null;
+            durationMinutes: number;
+            price: import("@prisma/client/runtime/library").Decimal;
+            currency: string;
+            doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
+            isVirtual: boolean;
+            maxParticipants: number;
         }[];
         treatmentPlans: {
+            id: string;
+            createdAt: Date;
+            name: string | null;
             consumerId: string;
             professionalId: string | null;
             providerId: string;
             status: string;
-            name: string | null;
             description: string | null;
-            id: string;
-            createdAt: Date;
             startDate: Date | null;
             endDate: Date | null;
             phases: import("@prisma/client/runtime/library").JsonValue | null;
             aiGenerated: boolean;
         }[];
     } & {
+        id: string;
+        providerId: string;
+        userId: string;
         title: string | null;
         specializations: string[];
-        bio: string | null;
-        providerId: string;
-        id: string;
-        userId: string;
         doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -148,13 +151,13 @@ export declare class ProfessionalsController {
             updatedAt: Date;
         };
     } & {
+        id: string;
+        providerId: string;
+        userId: string;
         title: string | null;
         specializations: string[];
-        bio: string | null;
-        providerId: string;
-        id: string;
-        userId: string;
         doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+        bio: string | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;

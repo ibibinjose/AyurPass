@@ -16,6 +16,8 @@ import { ProvidersModule } from './modules/providers/providers.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
+import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
 import { HealthProfilesModule } from './modules/health-profiles/health-profiles.module';
 import { HealthModule } from './health/health.module';
 
@@ -41,6 +43,8 @@ import { HealthModule } from './health/health.module';
     ProductsModule,
     OrdersModule,
     IntegrationsModule,
+    LoyaltyModule,
+    GiftCardsModule,
     HealthProfilesModule,
     HealthModule,
   ],

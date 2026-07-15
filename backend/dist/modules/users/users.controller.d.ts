@@ -4,47 +4,47 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     findById(id: string): Promise<Omit<{
+        consumer: {
+            userId: string;
+            prakritiPrimary: string | null;
+            prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
+            preferences: import("@prisma/client/runtime/library").JsonValue | null;
+        } | null;
         provider: {
-            businessName: string;
+            id: string;
+            createdAt: Date;
             timezone: string | null;
+            userId: string | null;
+            businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
             address: import("@prisma/client/runtime/library").JsonValue | null;
-            verificationStatus: string;
-            id: string;
-            userId: string | null;
             stripeAccountId: string | null;
             subscriptionTier: string | null;
-            createdAt: Date;
-        } | null;
-        consumer: {
-            prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
-            preferences: import("@prisma/client/runtime/library").JsonValue | null;
-            userId: string;
-            prakritiPrimary: string | null;
+            verificationStatus: string;
         } | null;
         professional: ({
             provider: {
-                businessName: string;
+                id: string;
+                createdAt: Date;
                 timezone: string | null;
+                userId: string | null;
+                businessName: string;
                 type: import(".prisma/client").$Enums.ProviderType;
                 brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
                 address: import("@prisma/client/runtime/library").JsonValue | null;
-                verificationStatus: string;
-                id: string;
-                userId: string | null;
                 stripeAccountId: string | null;
                 subscriptionTier: string | null;
-                createdAt: Date;
+                verificationStatus: string;
             };
         } & {
+            id: string;
+            providerId: string;
+            userId: string;
             title: string | null;
             specializations: string[];
-            bio: string | null;
-            providerId: string;
-            id: string;
-            userId: string;
             doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+            bio: string | null;
             certifications: import("@prisma/client/runtime/library").JsonValue | null;
             yearsExperience: number | null;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;

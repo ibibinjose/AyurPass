@@ -9,11 +9,13 @@ import {
   CalendarIcon,
   CompassIcon,
   FlameIcon,
+  GiftIcon,
   LeafIcon,
   LotusIcon,
   MoonIcon,
   ShieldIcon,
   SparkleIcon,
+  TrophyIcon,
   UsersIcon,
   PencilIcon,
 } from "@/components/icons";
@@ -25,6 +27,8 @@ const CONSUMER_NAV = [
   { href: "/dashboard/assessment", label: "Dosha assessment", icon: CompassIcon },
   { href: "/dashboard/bookings", label: "My bookings", icon: CalendarIcon },
   { href: "/dashboard/purchases", label: "My orders", icon: LotusIcon },
+  { href: "/dashboard/rewards", label: "Rewards", icon: TrophyIcon },
+  { href: "/dashboard/gift-cards", label: "Gift cards", icon: GiftIcon },
   { href: "/dashboard/plans", label: "Treatment plans", icon: SparkleIcon },
   { href: "/dashboard/settings", label: "Settings", icon: PencilIcon },
 ];

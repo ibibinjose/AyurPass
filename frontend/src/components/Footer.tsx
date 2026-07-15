@@ -22,6 +22,9 @@ export function Footer() {
           <Link href="/packages" className="hover:text-forest">
             Packages
           </Link>
+          <Link href="/dashboard/gift-cards" className="hover:text-forest">
+            Gift cards
+          </Link>
           <Link href="/register?as=provider" className="hover:text-forest">
             List your practice
           </Link>

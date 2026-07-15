@@ -131,3 +131,23 @@ export function PencilIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function GiftIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 11.5h16V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7.5Z" />
+      <path d="M3 8h18v3.5H3zM12 8v12" />
+      <path d="M12 8S10.5 4 8.5 4a2 2 0 0 0 0 4H12Zm0 0s1.5-4 3.5-4a2 2 0 0 1 0 4H12Z" />
+    </svg>
+  );
+}
+
+export function TrophyIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+      <path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3" />
+      <path d="M10 15h4M9 20h6M12 15v5" />
+    </svg>
+  );
+}

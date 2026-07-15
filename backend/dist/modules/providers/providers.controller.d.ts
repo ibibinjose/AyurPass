@@ -5,44 +5,44 @@ export declare class ProvidersController {
     constructor(service: ProvidersService);
     findOne(id: string): Promise<({
         _count: {
-            professionals: number;
             services: number;
+            professionals: number;
             products: number;
             packages: number;
             rooms: number;
         };
     } & {
-        businessName: string;
+        id: string;
+        createdAt: Date;
         timezone: string | null;
+        userId: string | null;
+        businessName: string;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        verificationStatus: string;
-        id: string;
-        userId: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        createdAt: Date;
+        verificationStatus: string;
     }) | null>;
     update(id: string, updateProviderDto: UpdateProviderDto): Promise<{
         _count: {
-            professionals: number;
             services: number;
+            professionals: number;
             products: number;
             packages: number;
             rooms: number;
         };
     } & {
-        businessName: string;
+        id: string;
+        createdAt: Date;
         timezone: string | null;
+        userId: string | null;
+        businessName: string;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        verificationStatus: string;
-        id: string;
-        userId: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        createdAt: Date;
+        verificationStatus: string;
     }>;
 }
