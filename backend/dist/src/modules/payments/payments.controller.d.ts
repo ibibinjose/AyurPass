@@ -13,15 +13,17 @@ export declare class PaymentsController {
     checkout(bookingId: string, body?: RedemptionDto): Promise<{
         service: {
             id: string;
+            code: string;
             createdAt: Date;
             name: string;
-            professionalId: string | null;
-            providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
             description: string | null;
-            durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
+            providerId: string;
+            professionalId: string | null;
+            durationMinutes: number;
             currency: string;
+            imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
@@ -30,45 +32,47 @@ export declare class PaymentsController {
             id: string;
             createdAt: Date;
             name: string;
-            providerId: string;
             description: string | null;
+            providerId: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
         id: string;
-        status: import(".prisma/client").$Enums.BookingStatus;
+        timezone: string | null;
         createdAt: Date;
+        providerId: string;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
-        providerId: string;
         roomId: string | null;
         startTime: Date;
         endTime: Date;
-        timezone: string | null;
+        status: import(".prisma/client").$Enums.BookingStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal | null;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        notes: string | null;
         paymentIntentId: string | null;
         paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
-        notes: string | null;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
     }>;
     refund(bookingId: string): Promise<{
         service: {
             id: string;
+            code: string;
             createdAt: Date;
             name: string;
-            professionalId: string | null;
-            providerId: string;
             category: import(".prisma/client").$Enums.ServiceCategory;
             description: string | null;
-            durationMinutes: number;
             price: import("@prisma/client/runtime/library").Decimal;
+            providerId: string;
+            professionalId: string | null;
+            durationMinutes: number;
             currency: string;
+            imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
             maxParticipants: number;
@@ -77,46 +81,47 @@ export declare class PaymentsController {
             id: string;
             createdAt: Date;
             name: string;
-            providerId: string;
             description: string | null;
+            providerId: string;
             capacity: number;
             hourlyCost: import("@prisma/client/runtime/library").Decimal | null;
         } | null;
     } & {
         id: string;
-        status: import(".prisma/client").$Enums.BookingStatus;
+        timezone: string | null;
         createdAt: Date;
+        providerId: string;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
-        providerId: string;
         roomId: string | null;
         startTime: Date;
         endTime: Date;
-        timezone: string | null;
+        status: import(".prisma/client").$Enums.BookingStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal | null;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        notes: string | null;
         paymentIntentId: string | null;
         paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
-        notes: string | null;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
     }>;
     checkoutOrder(orderId: string, body?: RedemptionDto): Promise<{
         items: ({
             product: {
                 id: string;
+                code: string;
                 createdAt: Date;
                 name: string;
-                providerId: string;
                 category: string | null;
                 description: string | null;
                 price: import("@prisma/client/runtime/library").Decimal | null;
                 inventoryQuantity: number | null;
                 doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
                 images: import("@prisma/client/runtime/library").JsonValue | null;
+                providerId: string;
             };
         } & {
             id: string;
@@ -127,18 +132,18 @@ export declare class PaymentsController {
         })[];
     } & {
         id: string;
-        status: import(".prisma/client").$Enums.OrderStatus;
         createdAt: Date;
-        consumerId: string;
         providerId: string;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        consumerId: string;
+        status: import(".prisma/client").$Enums.OrderStatus;
+        notes: string | null;
         paymentIntentId: string | null;
         paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
-        notes: string | null;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
@@ -146,15 +151,16 @@ export declare class PaymentsController {
         items: ({
             product: {
                 id: string;
+                code: string;
                 createdAt: Date;
                 name: string;
-                providerId: string;
                 category: string | null;
                 description: string | null;
                 price: import("@prisma/client/runtime/library").Decimal | null;
                 inventoryQuantity: number | null;
                 doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
                 images: import("@prisma/client/runtime/library").JsonValue | null;
+                providerId: string;
             };
         } & {
             id: string;
@@ -165,18 +171,18 @@ export declare class PaymentsController {
         })[];
     } & {
         id: string;
-        status: import(".prisma/client").$Enums.OrderStatus;
         createdAt: Date;
-        consumerId: string;
         providerId: string;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        consumerId: string;
+        status: import(".prisma/client").$Enums.OrderStatus;
+        notes: string | null;
         paymentIntentId: string | null;
         paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
-        notes: string | null;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
     }>;

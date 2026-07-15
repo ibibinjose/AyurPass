@@ -6,6 +6,7 @@ import { CATEGORY_LABEL } from "@/lib/catalog";
 import type { Service, ServiceCategory } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { EmptyState, Input } from "@/components/ui";
 
@@ -48,8 +49,7 @@ export default function ExplorePage() {
   }, [services, category, query]);
 
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Book a session</h1>
         <p className="mt-2 max-w-xl text-ink-secondary">
@@ -117,7 +117,6 @@ export default function ExplorePage() {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

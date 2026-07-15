@@ -78,7 +78,7 @@ __decorate([
     __metadata("design:type", String)
 ], BrandProfile.prototype, "contactPhone", void 0);
 __decorate([
-    (0, class_validator_1.IsPhoneNumber)(null),
+    (0, class_validator_1.IsPhoneNumber)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], BrandProfile.prototype, "primaryContactPhone", void 0);

@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import type { WellnessPackage } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PackageCard } from "@/components/PackageCard";
 import { EmptyState } from "@/components/ui";
 
@@ -21,8 +22,7 @@ export default function PackagesPage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Wellness packages</h1>
         <p className="mt-2 max-w-xl text-ink-secondary">
@@ -75,7 +75,6 @@ export default function PackagesPage() {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

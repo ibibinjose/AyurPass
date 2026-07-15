@@ -9,6 +9,7 @@ import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { Order, Product } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { LotusIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
@@ -269,10 +270,8 @@ export default function BuyProductPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">{children}</main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

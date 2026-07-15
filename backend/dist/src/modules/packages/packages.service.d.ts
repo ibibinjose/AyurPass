@@ -12,17 +12,17 @@ export declare class PackagesService {
         };
     } & {
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     }>;
     findAll(): Promise<({
         provider: {
@@ -33,31 +33,31 @@ export declare class PackagesService {
         };
     } & {
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     })[]>;
     findByProvider(providerId: string): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     }[]>;
     findOne(id: string): Promise<({
         provider: {
@@ -68,17 +68,17 @@ export declare class PackagesService {
         };
     } & {
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     }) | null>;
     updatePackage(id: string, data: UpdatePackageDto): Promise<{
         provider: {
@@ -89,30 +89,30 @@ export declare class PackagesService {
         };
     } & {
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     }>;
     removePackage(id: string): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         description: string | null;
+        providerId: string;
+        serviceId: string | null;
         totalPrice: import("@prisma/client/runtime/library").Decimal;
         durationDays: number | null;
         includedServices: import("@prisma/client/runtime/library").JsonValue | null;
         includedProducts: import("@prisma/client/runtime/library").JsonValue | null;
         doshaFocus: import("@prisma/client/runtime/library").JsonValue | null;
         isRecurring: boolean;
-        createdAt: Date;
-        providerId: string;
-        serviceId: string | null;
     }>;
 }

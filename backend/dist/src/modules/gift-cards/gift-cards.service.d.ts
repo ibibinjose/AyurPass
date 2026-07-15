@@ -7,48 +7,48 @@ export declare class GiftCardsService {
     purchase(purchaserId: string, dto: PurchaseGiftCardDto): Promise<{
         transactions: {
             id: string;
-            createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
+            createdAt: Date;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
+        createdAt: Date;
+        status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
-        message: string | null;
-        createdAt: Date;
     }>;
     myCards(purchaserId: string): Promise<({
         transactions: {
             id: string;
-            createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
+            createdAt: Date;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
+        createdAt: Date;
+        status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
-        message: string | null;
-        createdAt: Date;
     })[]>;
     private normalise;
     lookup(code: string): Promise<{
         code: string;
-        balance: import("@prisma/client/runtime/library").Decimal;
         status: string;
+        balance: import("@prisma/client/runtime/library").Decimal;
     }>;
     redeem(code: string, maxDollars: number, reason: string): Promise<number>;
 }

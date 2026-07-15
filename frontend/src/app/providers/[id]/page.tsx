@@ -8,6 +8,7 @@ import { formatAddress, formatCode, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { Product, Provider, Service } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandMark } from "@/components/BrandMark";
@@ -205,10 +206,8 @@ function SkeletonGrid() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">{children}</main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

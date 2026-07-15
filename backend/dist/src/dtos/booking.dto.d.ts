@@ -43,11 +43,3 @@ export declare class UpdateBookingDto {
     startTime?: Date;
     endTime?: Date;
 }
-export declare class BookingStatus {
-    static readonly PENDING = "PENDING";
-    static readonly CONFIRMED = "CONFIRMED";
-    static readonly IN_PROGRESS = "IN_PROGRESS";
-    static readonly COMPLETED = "COMPLETED";
-    static readonly CANCELLED = "CANCELLED";
-    static readonly NO_SHOW = "NO_SHOW";
-}

@@ -40,10 +40,3 @@ export declare class UpdateOrderDto {
     status?: OrderStatus;
     notes?: string;
 }
-export declare class OrderStatus {
-    static readonly PENDING = "PENDING";
-    static readonly PAID = "PAID";
-    static readonly FULFILLED = "FULFILLED";
-    static readonly CANCELLED = "CANCELLED";
-    static readonly REFUNDED = "REFUNDED";
-}

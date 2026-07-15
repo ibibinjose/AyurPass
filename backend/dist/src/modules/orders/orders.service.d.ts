@@ -4,223 +4,223 @@ export declare class OrdersService {
     private prisma;
     constructor(prisma: PrismaService);
     createOrder(data: CreateOrderDto): Promise<{
-        consumer: {
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-            userId: string;
-        };
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
         items: ({
             product: {
-                name: string;
                 id: string;
+                name: string;
                 category: string | null;
             };
         } & {
             id: string;
+            orderId: string;
+            productId: string;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
-            productId: string;
-            orderId: string;
         })[];
     } & {
         id: string;
-        consumerId: string;
+        createdAt: Date;
         providerId: string;
+        consumerId: string;
         status: import(".prisma/client").$Enums.OrderStatus;
-        subtotal: import("@prisma/client/runtime/library").Decimal;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
+        notes: string | null;
         paymentIntentId: string | null;
+        paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
-        notes: string | null;
-        createdAt: Date;
     }>;
     findByConsumer(consumerId: string): Promise<({
-        consumer: {
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-            userId: string;
-        };
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
         items: ({
             product: {
-                name: string;
                 id: string;
+                name: string;
                 category: string | null;
             };
         } & {
             id: string;
+            orderId: string;
+            productId: string;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
-            productId: string;
-            orderId: string;
         })[];
     } & {
         id: string;
-        consumerId: string;
+        createdAt: Date;
         providerId: string;
+        consumerId: string;
         status: import(".prisma/client").$Enums.OrderStatus;
-        subtotal: import("@prisma/client/runtime/library").Decimal;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
+        notes: string | null;
         paymentIntentId: string | null;
+        paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
-        notes: string | null;
-        createdAt: Date;
     })[]>;
     findByProvider(providerId: string): Promise<({
-        consumer: {
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-            userId: string;
-        };
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
         items: ({
             product: {
-                name: string;
                 id: string;
+                name: string;
                 category: string | null;
             };
         } & {
             id: string;
+            orderId: string;
+            productId: string;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
-            productId: string;
-            orderId: string;
         })[];
     } & {
         id: string;
-        consumerId: string;
+        createdAt: Date;
         providerId: string;
+        consumerId: string;
         status: import(".prisma/client").$Enums.OrderStatus;
-        subtotal: import("@prisma/client/runtime/library").Decimal;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
+        notes: string | null;
         paymentIntentId: string | null;
+        paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
-        notes: string | null;
-        createdAt: Date;
     })[]>;
     findOne(id: string): Promise<({
-        consumer: {
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-            userId: string;
-        };
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
         items: ({
             product: {
-                name: string;
                 id: string;
+                name: string;
                 category: string | null;
             };
         } & {
             id: string;
+            orderId: string;
+            productId: string;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
-            productId: string;
-            orderId: string;
         })[];
     } & {
         id: string;
-        consumerId: string;
+        createdAt: Date;
         providerId: string;
+        consumerId: string;
         status: import(".prisma/client").$Enums.OrderStatus;
-        subtotal: import("@prisma/client/runtime/library").Decimal;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
+        notes: string | null;
         paymentIntentId: string | null;
+        paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
-        notes: string | null;
-        createdAt: Date;
     }) | null>;
     updateOrder(id: string, data: UpdateOrderDto): Promise<{
-        consumer: {
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-            userId: string;
-        };
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
         items: ({
             product: {
-                name: string;
                 id: string;
+                name: string;
                 category: string | null;
             };
         } & {
             id: string;
+            orderId: string;
+            productId: string;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
-            productId: string;
-            orderId: string;
         })[];
     } & {
         id: string;
-        consumerId: string;
+        createdAt: Date;
         providerId: string;
+        consumerId: string;
         status: import(".prisma/client").$Enums.OrderStatus;
-        subtotal: import("@prisma/client/runtime/library").Decimal;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        paymentStatus: string;
+        notes: string | null;
         paymentIntentId: string | null;
+        paymentStatus: string;
         giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
         pointsRedeemed: number;
         pointsEarned: number;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
-        notes: string | null;
-        createdAt: Date;
     }>;
 }

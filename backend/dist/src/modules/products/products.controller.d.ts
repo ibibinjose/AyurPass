@@ -6,14 +6,16 @@ export declare class ProductsController {
     create(createProductDto: CreateProductDto): Promise<{
         provider: {
             id: string;
+            code: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue;
             verificationStatus: string;
-            code: never;
         };
     } & {
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -21,20 +23,21 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     }>;
     findAll(category?: string): Promise<({
         provider: {
             id: string;
+            code: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue;
             verificationStatus: string;
-            code: never;
         };
     } & {
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -42,20 +45,21 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     })[]>;
     findByProvider(providerId: string): Promise<({
         provider: {
             id: string;
+            code: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue;
             verificationStatus: string;
-            code: never;
         };
     } & {
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -63,20 +67,21 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     })[]>;
     findOne(id: string): Promise<({
         provider: {
             id: string;
+            code: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue;
             verificationStatus: string;
-            code: never;
         };
     } & {
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -84,20 +89,21 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     }) | null>;
     update(id: string, updateProductDto: UpdateProductDto): Promise<{
         provider: {
             id: string;
+            code: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
             brandProfile: import("@prisma/client/runtime/library").JsonValue;
             verificationStatus: string;
-            code: never;
         };
     } & {
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -105,11 +111,12 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     }>;
     remove(id: string): Promise<{
         id: string;
+        code: string;
+        createdAt: Date;
         name: string;
         category: string | null;
         description: string | null;
@@ -117,7 +124,6 @@ export declare class ProductsController {
         inventoryQuantity: number | null;
         doshaRecommendations: import("@prisma/client/runtime/library").JsonValue | null;
         images: import("@prisma/client/runtime/library").JsonValue | null;
-        createdAt: Date;
         providerId: string;
     }>;
 }

@@ -5,6 +5,7 @@ export declare class HealthProfilesController {
     constructor(service: HealthProfilesService);
     createOrUpdate(consumerId: string, data: CreateHealthProfileDto): Promise<{
         id: string;
+        updatedAt: Date;
         consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -12,10 +13,10 @@ export declare class HealthProfilesController {
         questionnaireResponses: import("@prisma/client/runtime/library").JsonValue | null;
         currentImbalances: import("@prisma/client/runtime/library").JsonValue | null;
         lastAssessment: Date | null;
-        updatedAt: Date;
     }>;
     getProfile(consumerId: string): Promise<{
         id: string;
+        updatedAt: Date;
         consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -23,10 +24,10 @@ export declare class HealthProfilesController {
         questionnaireResponses: import("@prisma/client/runtime/library").JsonValue | null;
         currentImbalances: import("@prisma/client/runtime/library").JsonValue | null;
         lastAssessment: Date | null;
-        updatedAt: Date;
     } | null>;
     update(consumerId: string, updateHealthProfileDto: UpdateHealthProfileDto): Promise<{
         id: string;
+        updatedAt: Date;
         consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -34,6 +35,5 @@ export declare class HealthProfilesController {
         questionnaireResponses: import("@prisma/client/runtime/library").JsonValue | null;
         currentImbalances: import("@prisma/client/runtime/library").JsonValue | null;
         lastAssessment: Date | null;
-        updatedAt: Date;
     }>;
 }

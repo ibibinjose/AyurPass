@@ -6,6 +6,7 @@ import { CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
 import type { Product, Provider, Service, ServiceCategory, ProviderType, Professional } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ProviderCard } from "@/components/ProviderCard";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -214,8 +215,7 @@ export default function DiscoverPage() {
   const searchActive = Boolean(q || loc);
 
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Discover wellness near you</h1>
         <p className="mt-2 max-w-2xl text-ink-secondary">
@@ -386,7 +386,6 @@ export default function DiscoverPage() {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

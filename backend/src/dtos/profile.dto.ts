@@ -51,7 +51,7 @@ export class BrandProfile {
   @IsOptional()
   contactPhone?: string;
 
-  @IsPhoneNumber(null)
+  @IsPhoneNumber()
   @IsOptional()
   primaryContactPhone?: string;
 

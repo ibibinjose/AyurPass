@@ -136,11 +136,3 @@ export class UpdateOrderDto {
   @IsOptional()
   notes?: string;
 }
-
-export class OrderStatus {
-  static readonly PENDING = 'PENDING';
-  static readonly PAID = 'PAID';
-  static readonly FULFILLED = 'FULFILLED';
-  static readonly CANCELLED = 'CANCELLED';
-  static readonly REFUNDED = 'REFUNDED';
-}

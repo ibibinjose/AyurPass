@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -102,8 +101,7 @@ const TIERS = [
 
 export default function Home() {
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
@@ -158,6 +156,14 @@ export default function Home() {
                   <p className="mt-2 text-sm leading-relaxed text-ink-secondary">{p.body}</p>
                 </div>
               ))}
+            </div>
+            <div className="mt-12 text-center">
+              <Link 
+                href="/wellness" 
+                className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-6 py-3 text-sm font-medium text-forest hover:border-leaf"
+              >
+                Learn more about wellness disciplines
+              </Link>
             </div>
           </div>
         </section>
@@ -280,7 +286,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

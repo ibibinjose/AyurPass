@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ProductCard } from "@/components/ProductCard";
 import { EmptyState, Input } from "@/components/ui";
 
@@ -40,8 +41,7 @@ export default function ShopPage() {
   }, [products, category, query]);
 
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Wellness shop</h1>
         <p className="mt-2 max-w-xl text-ink-secondary">
@@ -105,7 +105,6 @@ export default function ShopPage() {
           )}
         </div>
       </main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

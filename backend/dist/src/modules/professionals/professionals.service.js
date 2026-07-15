@@ -19,7 +19,7 @@ let ProfessionalsService = class ProfessionalsService {
     async createProfessional(data) {
         return this.prisma.professional.create({
             data,
-            include: { user: true, code: true },
+            include: { user: true },
         });
     }
     async findAll() {
@@ -36,14 +36,13 @@ let ProfessionalsService = class ProfessionalsService {
                         address: true
                     }
                 },
-                code: true
             },
         });
     }
     async findByProvider(providerId) {
         return this.prisma.professional.findMany({
             where: { providerId },
-            include: { user: true, code: true },
+            include: { user: true },
         });
     }
     async findOne(id) {
@@ -54,7 +53,6 @@ let ProfessionalsService = class ProfessionalsService {
                 services: true,
                 bookings: true,
                 treatmentPlans: true,
-                code: true
             },
         });
     }
@@ -62,7 +60,7 @@ let ProfessionalsService = class ProfessionalsService {
         return this.prisma.professional.update({
             where: { id },
             data,
-            include: { user: true, code: true },
+            include: { user: true },
         });
     }
 };

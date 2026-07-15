@@ -7,46 +7,46 @@ export declare class GiftCardsController {
     purchase(req: AuthedRequest, dto: PurchaseGiftCardDto): Promise<{
         transactions: {
             id: string;
-            createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
+            createdAt: Date;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
+        createdAt: Date;
+        status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
-        message: string | null;
-        createdAt: Date;
     }>;
     mine(req: AuthedRequest): Promise<({
         transactions: {
             id: string;
-            createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
+            createdAt: Date;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
+        createdAt: Date;
+        status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
-        message: string | null;
-        createdAt: Date;
     })[]>;
     lookup(code: string): Promise<{
         code: string;
-        balance: import("@prisma/client/runtime/library").Decimal;
         status: string;
+        balance: import("@prisma/client/runtime/library").Decimal;
     }>;
 }

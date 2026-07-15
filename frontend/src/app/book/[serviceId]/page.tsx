@@ -11,6 +11,7 @@ import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, Service } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { CalendarIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Textarea } from "@/components/ui";
@@ -340,10 +341,8 @@ export default function BookServicePage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <Navbar />
+    <LayoutWrapper>
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-10">{children}</main>
-      <Footer />
-    </>
+    </LayoutWrapper>
   );
 }

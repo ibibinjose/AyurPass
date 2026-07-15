@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderStatus = exports.UpdateOrderDto = exports.CreateOrderDto = exports.Order = exports.OrderItemDto = exports.OrderItemInputDto = void 0;
+exports.UpdateOrderDto = exports.CreateOrderDto = exports.Order = exports.OrderItemDto = exports.OrderItemInputDto = void 0;
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
@@ -172,12 +172,4 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "notes", void 0);
-class OrderStatus {
-}
-exports.OrderStatus = OrderStatus;
-OrderStatus.PENDING = 'PENDING';
-OrderStatus.PAID = 'PAID';
-OrderStatus.FULFILLED = 'FULFILLED';
-OrderStatus.CANCELLED = 'CANCELLED';
-OrderStatus.REFUNDED = 'REFUNDED';
 //# sourceMappingURL=order.dto.js.map

@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BookingStatus = exports.UpdateBookingDto = exports.CreateBookingDto = exports.Booking = void 0;
+exports.UpdateBookingDto = exports.CreateBookingDto = exports.Booking = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const client_1 = require("@prisma/client");
@@ -205,13 +205,4 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Date)
 ], UpdateBookingDto.prototype, "endTime", void 0);
-class BookingStatus {
-}
-exports.BookingStatus = BookingStatus;
-BookingStatus.PENDING = 'PENDING';
-BookingStatus.CONFIRMED = 'CONFIRMED';
-BookingStatus.IN_PROGRESS = 'IN_PROGRESS';
-BookingStatus.COMPLETED = 'COMPLETED';
-BookingStatus.CANCELLED = 'CANCELLED';
-BookingStatus.NO_SHOW = 'NO_SHOW';
 //# sourceMappingURL=booking.dto.js.map
