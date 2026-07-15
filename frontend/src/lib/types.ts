@@ -8,6 +8,8 @@ export type ProviderType =
   | "YOGA_STUDIO"
   | "LUXURY_SPA"
   | "MEDITATION_CENTER"
+  | "HEALTH_CLUB"
+  | "COACHING"
   | "HYBRID";
 
 export type BookingStatus =
@@ -30,6 +32,7 @@ export interface User {
 
 export interface Consumer {
   userId: string;
+  code?: string;
   prakritiPrimary?: string | null;
   prakritiScores?: Record<string, number> | null;
   preferences?: Record<string, unknown> | null;
@@ -41,6 +44,10 @@ export interface BrandProfile {
   contactPhone?: string;
   website?: string;
   openingHours?: string;
+  /** Brand mark / logo — data URL or hosted URL, shown across the marketplace. */
+  logoUrl?: string;
+  /** Wide banner shown on the provider profile. */
+  coverImageUrl?: string;
 }
 
 export interface BusinessAddress {
@@ -53,6 +60,7 @@ export interface BusinessAddress {
 
 export interface Provider {
   id: string;
+  code?: string;
   userId?: string | null;
   businessName: string;
   type: ProviderType;
@@ -98,11 +106,14 @@ export type ServiceCategory =
   | "YOGA"
   | "SPA"
   | "MEDITATION"
+  | "FITNESS"
+  | "COACHING"
   | "CONSULTATION"
   | "PACKAGE";
 
 export interface Service {
   id: string;
+  code?: string;
   providerId: string;
   professionalId?: string | null;
   category: ServiceCategory;
@@ -111,10 +122,11 @@ export interface Service {
   durationMinutes: number;
   price: string | number;
   currency: string;
+  imageUrl?: string | null;
   isVirtual: boolean;
   maxParticipants: number;
   createdAt: string;
-  provider?: Pick<Provider, "id" | "businessName" | "type" | "verificationStatus">;
+  provider?: Pick<Provider, "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile">;
   professional?: {
     id: string;
     title?: string | null;
@@ -224,15 +236,16 @@ export type AuthResponse = AuthTokens & { user: User };
 
 export interface Product {
   id: string;
+  code?: string;
   providerId: string;
   name: string;
   category?: string | null;
   description?: string | null;
   price: string | number | null;
   inventoryQuantity?: number | null;
-  images?: unknown;
+  images?: string[] | null;
   createdAt: string;
-  provider?: Pick<Provider, "id" | "businessName" | "type" | "verificationStatus">;
+  provider?: Pick<Provider, "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile">;
 }
 
 export type OrderStatus = "PENDING" | "PAID" | "FULFILLED" | "CANCELLED" | "REFUNDED";

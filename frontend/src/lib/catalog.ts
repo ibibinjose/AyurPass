@@ -1,4 +1,4 @@
-import type { ServiceCategory } from "./types";
+import type { BusinessAddress, ServiceCategory } from "./types";
 
 export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   AYURVEDA_CLINIC: "Ayurveda Clinic",
@@ -8,6 +8,8 @@ export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   YOGA_STUDIO: "Yoga Studio",
   LUXURY_SPA: "Luxury Spa",
   MEDITATION_CENTER: "Meditation Center",
+  HEALTH_CLUB: "Health Club",
+  COACHING: "Health & Lifestyle Coach",
   HYBRID: "Wellness Center",
 };
 
@@ -16,6 +18,8 @@ export const CATEGORY_LABEL: Record<ServiceCategory, string> = {
   YOGA: "Yoga",
   SPA: "Spa",
   MEDITATION: "Meditation",
+  FITNESS: "Fitness",
+  COACHING: "Coaching",
   CONSULTATION: "Consultation",
   PACKAGE: "Package",
 };
@@ -26,9 +30,25 @@ export const CATEGORY_TAG_CLASS: Record<ServiceCategory, string> = {
   YOGA: "bg-clay text-forest",
   SPA: "bg-gold-soft text-forest",
   MEDITATION: "bg-clay text-forest",
+  FITNESS: "bg-forest text-white",
+  COACHING: "bg-gold-soft text-forest",
   CONSULTATION: "bg-gold-soft text-forest",
   PACKAGE: "bg-forest text-white",
 };
+
+/** Render a short entity code as a recognisable badge, e.g. "#A3F9C21". */
+export function formatCode(code?: string | null): string {
+  return code ? `#${code}` : "";
+}
+
+/** Compact "City, Country" line from a provider's stored address. */
+export function formatAddress(address?: BusinessAddress | null): string {
+  if (!address) return "";
+  return [address.city, address.state, address.country]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(", ");
+}
 
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;

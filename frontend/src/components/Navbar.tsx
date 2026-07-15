@@ -12,6 +12,9 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Logo />
         <nav className="hidden items-center gap-7 text-sm text-ink-secondary sm:flex">
+          <Link href="/discover" className="hover:text-forest">
+            Discover
+          </Link>
           <Link href="/explore" className="hover:text-forest">
             Book a session
           </Link>

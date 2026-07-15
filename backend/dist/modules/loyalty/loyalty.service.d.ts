@@ -15,8 +15,8 @@ export declare class LoyaltyService {
         transactions: {
             id: string;
             createdAt: Date;
-            accountId: string;
             type: string;
+            accountId: string;
             points: number;
             reason: string;
         }[];

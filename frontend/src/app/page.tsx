@@ -3,7 +3,9 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
   ArrowRightIcon,
+  CheckIcon,
   CompassIcon,
+  DumbbellIcon,
   FlameIcon,
   LeafIcon,
   LotusIcon,
@@ -33,6 +35,11 @@ const PILLARS = [
     name: "Meditation",
     body: "Guided sessions, breathwork and residential retreats — in person, virtual or hybrid.",
   },
+  {
+    icon: DumbbellIcon,
+    name: "Health Club",
+    body: "Luxury gyms and health clubs — personal training, sculpted group classes and contrast recovery, tuned to your constitution.",
+  },
 ];
 
 const STEPS = [
@@ -53,30 +60,43 @@ const STEPS = [
   },
 ];
 
+const PROVIDER_PERKS = [
+  "Verified profile & global client reach",
+  "Integrated payments & scheduling",
+  "No-show protection built in",
+];
+
 const TIERS = [
   {
     name: "Starter",
     price: "$149",
     cadence: "/month",
+    blurb: "For solo practitioners finding their footing.",
     features: ["Bookings & scheduling", "Verified profile & listings", "Client messaging", "Standard commission"],
+    cta: "Start with Starter",
   },
   {
     name: "Growth",
     price: "$349",
     cadence: "/month",
     highlight: true,
+    badge: "Most popular",
+    blurb: "For growing clinics & multi-practitioner studios.",
     features: [
       "Everything in Starter",
       "Staff & multi-practitioner management",
       "Analytics & revenue insights",
       "Marketing automation",
     ],
+    cta: "Choose Growth",
   },
   {
     name: "Enterprise",
     price: "Custom",
     cadence: "",
+    blurb: "For multi-location brands & franchises.",
     features: ["Multi-location brands", "White-label options", "Dedicated success manager", "Custom integrations"],
+    cta: "Talk to sales",
   },
 ];
 
@@ -94,7 +114,7 @@ export default function Home() {
           <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-16 sm:pb-28 sm:pt-24">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-xs font-medium tracking-wide text-ink-secondary">
               <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-              Ayurveda · Yoga · Spa · Meditation
+              Ayurveda · Yoga · Spa · Meditation · Health Club
             </p>
             <h1 className="max-w-3xl font-display text-4xl leading-[1.08] text-forest sm:text-6xl">
               Wellness, tuned to your <em className="text-gold not-italic">constitution</em>.
@@ -124,11 +144,11 @@ export default function Home() {
         {/* Pillars */}
         <section id="pillars" className="border-y border-hairline bg-surface/60">
           <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
-            <h2 className="font-display text-3xl text-forest">Four disciplines, one journey</h2>
+            <h2 className="font-display text-3xl text-forest">Five disciplines, one journey</h2>
             <p className="mt-2 max-w-xl text-ink-secondary">
               Every offering is verified for authenticity and tagged for dosha compatibility.
             </p>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
               {PILLARS.map((p) => (
                 <div key={p.name} className="rounded-2xl border border-hairline bg-surface p-6">
                   <span className="flex h-11 w-11 items-center justify-center rounded-full bg-forest text-gold-soft">
@@ -162,8 +182,15 @@ export default function Home() {
         </section>
 
         {/* Provider CTA + pricing */}
-        <section id="providers" className="border-t border-hairline bg-forest">
-          <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <section
+          id="providers"
+          className="relative scroll-mt-20 overflow-hidden border-t border-hairline bg-forest"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_26rem_at_92%_-8%,rgba(185,137,47,0.18),transparent),radial-gradient(40rem_24rem_at_-8%_108%,rgba(61,102,80,0.35),transparent)]"
+          />
+          <div className="relative mx-auto max-w-6xl px-5 py-16 sm:py-20">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-soft">
                 For clinics, studios & spas
@@ -175,23 +202,43 @@ export default function Home() {
                 Scheduling, staff management, analytics and marketing automation — plus a global
                 audience of clients matched to what you do best.
               </p>
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
+                {PROVIDER_PERKS.map((perk) => (
+                  <span
+                    key={perk}
+                    className="inline-flex items-center gap-2 text-sm text-white/80"
+                  >
+                    <CheckIcon className="h-4 w-4 shrink-0 text-gold-soft" />
+                    {perk}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="mt-12 grid gap-5 lg:grid-cols-3">
+            <div className="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
               {TIERS.map((t) => (
                 <div
                   key={t.name}
-                  className={`rounded-2xl p-7 ${
+                  className={`relative flex flex-col rounded-2xl p-7 ${
                     t.highlight
-                      ? "bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
+                      ? "bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.28)] ring-1 ring-gold/40"
                       : "border border-white/15 bg-white/5"
                   }`}
                 >
+                  {t.badge ? (
+                    <span className="absolute -top-3 left-7 inline-flex items-center gap-1.5 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-forest-deep">
+                      <SparkleIcon className="h-3.5 w-3.5" />
+                      {t.badge}
+                    </span>
+                  ) : null}
                   <h3
                     className={`font-display text-lg ${t.highlight ? "text-forest" : "text-white"}`}
                   >
                     {t.name}
                   </h3>
-                  <p className="mt-3">
+                  <p className={`mt-1 text-sm ${t.highlight ? "text-ink-muted" : "text-white/55"}`}>
+                    {t.blurb}
+                  </p>
+                  <p className="mt-4">
                     <span
                       className={`text-3xl font-semibold ${t.highlight ? "text-foreground" : "text-white"}`}
                     >
@@ -202,12 +249,14 @@ export default function Home() {
                     </span>
                   </p>
                   <ul
-                    className={`mt-5 space-y-2.5 text-sm ${t.highlight ? "text-ink-secondary" : "text-white/75"}`}
+                    className={`mt-5 flex-1 space-y-2.5 text-sm ${t.highlight ? "text-ink-secondary" : "text-white/75"}`}
                   >
                     {t.features.map((f) => (
                       <li key={f} className="flex gap-2.5">
-                        <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${t.highlight ? "bg-gold" : "bg-gold-soft"}`} />
-                        {f}
+                        <CheckIcon
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${t.highlight ? "text-gold" : "text-gold-soft"}`}
+                        />
+                        <span>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -219,11 +268,15 @@ export default function Home() {
                         : "border border-white/25 text-white hover:bg-white/10"
                     }`}
                   >
-                    List your practice
+                    {t.cta}
                   </Link>
                 </div>
               ))}
             </div>
+            <p className="mt-10 text-center text-xs text-white/55">
+              No setup fees · 14-day free trial · Cancel anytime · Commission only on completed
+              bookings
+            </p>
           </div>
         </section>
       </main>

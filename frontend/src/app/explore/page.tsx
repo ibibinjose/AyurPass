@@ -15,6 +15,7 @@ const FILTERS: { value: ServiceCategory | "ALL"; label: string }[] = [
   { value: "YOGA", label: "Yoga" },
   { value: "SPA", label: "Spa" },
   { value: "MEDITATION", label: "Meditation" },
+  { value: "FITNESS", label: "Fitness" },
   { value: "CONSULTATION", label: "Consultations" },
   { value: "PACKAGE", label: "Packages" },
 ];

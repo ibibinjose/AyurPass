@@ -107,6 +107,59 @@ export function ArrowRightIcon({ className }: IconProps) {
   );
 }
 
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="m5 12.5 4.2 4.2L19 7" />
+    </svg>
+  );
+}
+
+export function DumbbellIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6.5 8.5v7M4 10v3M17.5 8.5v7M20 10v3M6.5 12h11" />
+    </svg>
+  );
+}
+
+export function CoachIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 16.5 9.5 11l3 3L20 6.5" />
+      <path d="M15 6.5h5v5" />
+    </svg>
+  );
+}
+
+export function ImageIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="m5 18 5-5 3.5 3.5L16 14l3.5 3.5" />
+    </svg>
+  );
+}
+
+export function MapPinIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M12 21c4-4.5 6-7.8 6-10.5a6 6 0 1 0-12 0C6 13.2 8 16.5 12 21Z" />
+      <circle cx="12" cy="10.5" r="2.2" />
+    </svg>
+  );
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </svg>
+  );
+}
+
 export function PlusIcon({ className }: IconProps) {
   return (
     <svg {...base(className)}>

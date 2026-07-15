@@ -31,6 +31,10 @@ export class CreateServiceDto {
   @IsOptional()
   currency?: string;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
   @IsOptional()
   doshaCompatibility?: any;
 
@@ -74,6 +78,10 @@ export class UpdateServiceDto {
   @IsString()
   @IsOptional()
   currency?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   @IsOptional()
   doshaCompatibility?: any;

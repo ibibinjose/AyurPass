@@ -136,6 +136,7 @@ export const api = {
     description?: string;
     durationMinutes: number;
     price: number;
+    imageUrl?: string;
     isVirtual?: boolean;
     maxParticipants?: number;
   }) => request<Service>("/services", { method: "POST", body: data, auth: true }),
@@ -199,6 +200,15 @@ export const api = {
     request<Booking>(`/payments/refund/${bookingId}`, { method: "POST", auth: true }),
 
   // --- providers (business profile) ---
+  providers: (params?: { q?: string; type?: ProviderType; city?: string; country?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.q) search.set("q", params.q);
+    if (params?.type) search.set("type", params.type);
+    if (params?.city) search.set("city", params.city);
+    if (params?.country) search.set("country", params.country);
+    const qs = search.toString();
+    return request<Provider[]>(`/providers${qs ? `?${qs}` : ""}`);
+  },
   provider: (id: string) => request<Provider>(`/providers/${id}`),
   updateProvider: (
     id: string,
@@ -223,6 +233,7 @@ export const api = {
     description?: string;
     price: number;
     inventoryQuantity?: number;
+    images?: string[];
   }) => request<Product>("/products", { method: "POST", body: data, auth: true }),
   updateProduct: (
     id: string,
@@ -232,6 +243,7 @@ export const api = {
       description?: string;
       price?: number;
       inventoryQuantity?: number;
+      images?: string[];
     },
   ) => request<Product>(`/products/${id}`, { method: "PUT", body: data, auth: true }),
   deleteProduct: (id: string) =>

@@ -15,9 +15,41 @@ const prisma_service_1 = require("../../prisma/prisma.service");
 const PUBLIC_COUNTS = {
     select: { professionals: true, services: true, products: true, packages: true, rooms: true },
 };
+function addressText(address) {
+    if (!address || typeof address !== 'object' || Array.isArray(address))
+        return '';
+    const parts = ['city', 'state', 'postcode', 'country', 'street']
+        .map((k) => address[k])
+        .filter((v) => typeof v === 'string');
+    return parts.join(' ').toLowerCase();
+}
 let ProvidersService = class ProvidersService {
     constructor(prisma) {
         this.prisma = prisma;
+    }
+    async findAll(query = {}) {
+        const where = {};
+        if (query.q?.trim()) {
+            where.businessName = { contains: query.q.trim(), mode: 'insensitive' };
+        }
+        if (query.type)
+            where.type = query.type;
+        const providers = await this.prisma.provider.findMany({
+            where,
+            include: { _count: PUBLIC_COUNTS },
+            orderBy: { createdAt: 'desc' },
+        });
+        const locationNeedle = [query.city, query.country]
+            .filter((v) => Boolean(v && v.trim()))
+            .map((v) => v.trim().toLowerCase());
+        const filtered = locationNeedle.length
+            ? providers.filter((p) => {
+                const haystack = addressText(p.address);
+                return locationNeedle.every((needle) => haystack.includes(needle));
+            })
+            : providers;
+        const verifiedRank = (status) => (status === 'verified' ? 0 : 1);
+        return filtered.sort((a, b) => verifiedRank(a.verificationStatus) - verifiedRank(b.verificationStatus));
     }
     async findOne(id) {
         return this.prisma.provider.findUnique({

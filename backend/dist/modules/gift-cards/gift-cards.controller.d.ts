@@ -9,44 +9,44 @@ export declare class GiftCardsController {
             id: string;
             createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        status: string;
         code: string;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
         message: string | null;
-        createdAt: Date;
     }>;
     mine(req: AuthedRequest): Promise<({
         transactions: {
             id: string;
             createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        status: string;
         code: string;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
         message: string | null;
-        createdAt: Date;
     })[]>;
     lookup(code: string): Promise<{
+        status: string;
         code: string;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
     }>;
 }

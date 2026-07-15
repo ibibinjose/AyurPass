@@ -14,11 +14,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProvidersController = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const providers_service_1 = require("./providers.service");
 const provider_dto_1 = require("../../dtos/provider.dto");
 let ProvidersController = class ProvidersController {
     constructor(service) {
         this.service = service;
+    }
+    findAll(q, type, city, country) {
+        return this.service.findAll({ q, type, city, country });
     }
     findOne(id) {
         return this.service.findOne(id);
@@ -28,6 +32,16 @@ let ProvidersController = class ProvidersController {
     }
 };
 exports.ProvidersController = ProvidersController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('q')),
+    __param(1, (0, common_1.Query)('type')),
+    __param(2, (0, common_1.Query)('city')),
+    __param(3, (0, common_1.Query)('country')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], ProvidersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

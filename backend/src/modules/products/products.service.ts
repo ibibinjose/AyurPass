@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto, UpdateProductDto } from '../../dtos/product.dto';
 
 const PROVIDER_SELECT = {
-  select: { id: true, businessName: true, type: true, verificationStatus: true },
+  select: { id: true, code: true, businessName: true, type: true, verificationStatus: true, brandProfile: true },
 } as const;
 
 @Injectable()

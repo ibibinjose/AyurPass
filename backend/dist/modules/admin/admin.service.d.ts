@@ -21,67 +21,67 @@ export declare class AdminService {
         pointsOutstanding: number;
     }>;
     listProviders(): Promise<({
-        _count: {
-            professionals: number;
-            services: number;
-            bookings: number;
-            rooms: number;
-        };
         user: {
-            id: string;
-            createdAt: Date;
             email: string;
+            fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            fullName: string | null;
+            id: string;
+            createdAt: Date;
         } | null;
+        _count: {
+            bookings: number;
+            services: number;
+            professionals: number;
+            rooms: number;
+        };
     } & {
-        verificationStatus: string;
         id: string;
+        createdAt: Date;
+        timezone: string | null;
         userId: string | null;
         businessName: string;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        createdAt: Date;
+        verificationStatus: string;
     })[]>;
     setVerification(providerId: string, status: string): Promise<{
         user: {
-            id: string;
-            createdAt: Date;
             email: string;
+            fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            fullName: string | null;
+            id: string;
+            createdAt: Date;
         } | null;
     } & {
-        verificationStatus: string;
         id: string;
+        createdAt: Date;
+        timezone: string | null;
         userId: string | null;
         businessName: string;
         type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
         address: import("@prisma/client/runtime/library").JsonValue | null;
-        timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
-        createdAt: Date;
+        verificationStatus: string;
     }>;
     listBookings(): Promise<({
+        consumer: {
+            user: {
+                email: string;
+                fullName: string | null;
+                id: string;
+            };
+            userId: string;
+        };
         provider: {
             id: string;
             businessName: string;
-        };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
         };
         service: {
             id: string;
@@ -93,37 +93,37 @@ export declare class AdminService {
             name: string;
         } | null;
     } & {
-        totalAmount: import("@prisma/client/runtime/library").Decimal | null;
-        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
-        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
-        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
-        pointsRedeemed: number;
-        pointsEarned: number;
-        paymentStatus: string;
         id: string;
-        timezone: string | null;
         createdAt: Date;
         consumerId: string;
         serviceId: string;
         professionalId: string | null;
         providerId: string;
-        roomId: string | null;
         startTime: Date;
         endTime: Date;
+        timezone: string | null;
         status: import(".prisma/client").$Enums.BookingStatus;
-        paymentIntentId: string | null;
+        totalAmount: import("@prisma/client/runtime/library").Decimal | null;
         notes: string | null;
+        roomId: string | null;
+        platformCommission: import("@prisma/client/runtime/library").Decimal | null;
+        providerPayout: import("@prisma/client/runtime/library").Decimal | null;
+        paymentIntentId: string | null;
+        paymentStatus: string;
+        giftCardRedeemed: import("@prisma/client/runtime/library").Decimal;
+        pointsRedeemed: number;
+        pointsEarned: number;
     })[]>;
     listUsers(): Promise<{
         provider: {
             id: string;
             businessName: string;
         } | null;
-        id: string;
-        createdAt: Date;
         email: string;
+        fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        fullName: string | null;
+        id: string;
+        createdAt: Date;
     }[]>;
 }

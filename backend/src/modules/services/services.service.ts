@@ -5,7 +5,7 @@ import { CreateServiceDto, UpdateServiceDto } from '../../dtos/service.dto';
 
 const PUBLIC_INCLUDES = {
   provider: {
-    select: { id: true, businessName: true, type: true, verificationStatus: true },
+    select: { id: true, code: true, businessName: true, type: true, verificationStatus: true, brandProfile: true },
   },
   professional: {
     select: {

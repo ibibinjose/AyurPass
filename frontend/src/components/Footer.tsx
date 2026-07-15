@@ -13,6 +13,9 @@ export function Footer() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-8 text-sm text-ink-secondary">
+          <Link href="/discover" className="hover:text-forest">
+            Discover
+          </Link>
           <Link href="/explore" className="hover:text-forest">
             Book
           </Link>

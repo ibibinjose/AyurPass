@@ -9,46 +9,46 @@ export declare class GiftCardsService {
             id: string;
             createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        status: string;
         code: string;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
         message: string | null;
-        createdAt: Date;
     }>;
     myCards(purchaserId: string): Promise<({
         transactions: {
             id: string;
             createdAt: Date;
             type: string;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
+        createdAt: Date;
+        status: string;
         code: string;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
         purchaserId: string | null;
         recipientEmail: string | null;
         message: string | null;
-        createdAt: Date;
     })[]>;
     private normalise;
     lookup(code: string): Promise<{
+        status: string;
         code: string;
         balance: import("@prisma/client/runtime/library").Decimal;
-        status: string;
     }>;
     redeem(code: string, maxDollars: number, reason: string): Promise<number>;
 }
