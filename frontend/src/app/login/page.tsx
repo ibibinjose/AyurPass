@@ -32,7 +32,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <Logo />
+          <Logo variant="stacked" />
         </div>
         <div className="rounded-3xl border border-hairline bg-surface p-8">
           <h1 className="font-display text-2xl text-forest">Welcome back</h1>

@@ -9,6 +9,7 @@ export type ProviderType =
   | "LUXURY_SPA"
   | "MEDITATION_CENTER"
   | "HEALTH_CLUB"
+  | "NUTRITIONIST"
   | "COACHING"
   | "HYBRID";
 
@@ -110,7 +111,10 @@ export interface Professional {
   reviewCount: number;
   createdAt: string;
   updatedAt: string;
-  provider?: Pick<Provider, "id" | "businessName" | "type">;
+  provider?: Pick<
+    Provider,
+    "id" | "businessName" | "type" | "verificationStatus" | "address"
+  >;
   user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }
 
@@ -127,6 +131,7 @@ export type ServiceCategory =
   | "SPA"
   | "MEDITATION"
   | "FITNESS"
+  | "NUTRITION"
   | "COACHING"
   | "CONSULTATION"
   | "PACKAGE";
@@ -434,7 +439,8 @@ export type RetreatCategory =
   | "FITNESS_ADVENTURE"
   | "SILENT_RETREAT"
   | "WOMENS_RETREAT"
-  | "HEALING_RETREAT";
+  | "HEALING_RETREAT"
+  | "NUTRITION_DETOX";
 
 /** A dated, multi-day retreat or training program in the /retreats directory. */
 export interface Retreat {
@@ -468,6 +474,40 @@ export interface Retreat {
     Provider,
     "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
   >;
+}
+
+/** A platform-curated promotion / deal, created by admins. */
+export interface Offer {
+  id: string;
+  title: string;
+  description?: string | null;
+  discipline?: string | null;
+  discountLabel?: string | null;
+  code?: string | null;
+  imageUrl?: string | null;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
+  featured: boolean;
+  active: boolean;
+  startDate?: string | null;
+  endDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OfferInput {
+  title: string;
+  description?: string;
+  discipline?: string;
+  discountLabel?: string;
+  code?: string;
+  imageUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  featured?: boolean;
+  active?: boolean;
+  startDate?: string;
+  endDate?: string;
 }
 
 /** Payload for creating/updating a retreat from the provider dashboard. */

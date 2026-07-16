@@ -17,6 +17,7 @@ const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
   { value: "LUXURY_SPA", label: "Luxury spa" },
   { value: "MEDITATION_CENTER", label: "Meditation center" },
   { value: "HEALTH_CLUB", label: "Health club" },
+  { value: "NUTRITIONIST", label: "Nutritionist" },
   { value: "HYBRID", label: "Hybrid wellness center" },
 ];
 
@@ -61,7 +62,7 @@ function RegisterForm() {
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <Logo />
+          <Logo variant="stacked" />
         </div>
         <div className="rounded-3xl border border-hairline bg-surface p-8">
           <h1 className="font-display text-2xl text-forest">Begin your journey</h1>

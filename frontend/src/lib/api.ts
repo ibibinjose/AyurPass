@@ -11,6 +11,8 @@ import type {
   Enquiry,
   GiftCard,
   GiftCardLookup,
+  Offer,
+  OfferInput,
   HealthProfile,
   LoyaltySummary,
   Order,
@@ -274,6 +276,18 @@ export const api = {
     request<Retreat>(`/retreats/${id}`, { method: "DELETE", auth: true }),
   curateRetreat: (id: string, data: { featured?: boolean; verificationStatus?: string }) =>
     request<Retreat>(`/retreats/${id}/curation`, { method: "PATCH", body: data, auth: true }),
+
+  // --- offers & promotions ---
+  offers: (discipline?: string) =>
+    request<Offer[]>(`/offers${discipline ? `?discipline=${encodeURIComponent(discipline)}` : ""}`),
+  offer: (id: string) => request<Offer>(`/offers/${id}`),
+  adminOffers: () => request<Offer[]>("/offers/admin/all", { auth: true }),
+  createOffer: (data: OfferInput) =>
+    request<Offer>("/offers", { method: "POST", body: data, auth: true }),
+  updateOffer: (id: string, data: Partial<OfferInput>) =>
+    request<Offer>(`/offers/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteOffer: (id: string) =>
+    request<Offer>(`/offers/${id}`, { method: "DELETE", auth: true }),
 
   // --- products ---
   products: (category?: string) =>

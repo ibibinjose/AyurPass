@@ -6,40 +6,40 @@ export declare class EnquiriesController {
     constructor(service: EnquiriesService);
     create(dto: CreateEnquiryDto): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
+        providerId: string;
         email: string;
         phone: string | null;
-        message: string;
         status: string;
-        createdAt: Date;
-        providerId: string;
+        message: string;
         retreatId: string | null;
     }>;
     listMine(req: AuthedRequest): Promise<({
         retreat: {
-            slug: string;
             title: string;
+            slug: string;
         } | null;
     } & {
         id: string;
+        createdAt: Date;
         name: string;
+        providerId: string;
         email: string;
         phone: string | null;
-        message: string;
         status: string;
-        createdAt: Date;
-        providerId: string;
+        message: string;
         retreatId: string | null;
     })[]>;
     updateStatus(req: AuthedRequest, id: string, dto: UpdateEnquiryDto): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
+        providerId: string;
         email: string;
         phone: string | null;
-        message: string;
         status: string;
-        createdAt: Date;
-        providerId: string;
+        message: string;
         retreatId: string | null;
     }>;
 }

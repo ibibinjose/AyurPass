@@ -21,6 +21,7 @@ export const PROVIDER_TYPE_ICON: Record<ProviderType, IconType> = {
   LUXURY_SPA: FlameIcon,
   MEDITATION_CENTER: MoonIcon,
   HEALTH_CLUB: DumbbellIcon,
+  NUTRITIONIST: LeafIcon,
   COACHING: CoachIcon,
   HYBRID: SparkleIcon,
 };

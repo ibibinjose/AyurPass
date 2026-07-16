@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Text, View, StyleSheet } from "react-native";
+import { Image, Text, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../../src/components/ui";
 import { colors, fonts } from "../../src/theme";
@@ -19,9 +19,7 @@ export default function Welcome() {
     <LinearGradient colors={[colors.forestDeep, colors.forest, colors.leaf]} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1, justifyContent: "space-between", padding: 24 }}>
         <View style={{ marginTop: 24 }}>
-          <View style={styles.mark}>
-            <Ionicons name="leaf" size={28} color={colors.goldSoft} />
-          </View>
+          <Image source={require("../../assets/icon.png")} style={styles.mark} accessibilityLabel="AyurPass" />
           <Text style={styles.brand}>AyurPass</Text>
         </View>
 
@@ -55,14 +53,9 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   mark: {
-    height: 52,
-    width: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(233,217,184,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
+    height: 72,
+    width: 72,
+    borderRadius: 16,
     marginBottom: 12,
   },
   brand: { fontFamily: fonts.display, fontSize: 26, color: colors.white },

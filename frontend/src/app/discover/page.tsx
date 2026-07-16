@@ -23,6 +23,7 @@ const PROVIDER_GROUPS: { label: string; types: ProviderType[] }[] = [
   { label: "Spa", types: ["LUXURY_SPA"] },
   { label: "Meditation", types: ["MEDITATION_CENTER"] },
   { label: "Health Club", types: ["HEALTH_CLUB"] },
+  { label: "Nutrition", types: ["NUTRITIONIST"] },
   { label: "Retreats", types: ["WELLNESS_RETREAT"] },
 ];
 
@@ -32,6 +33,7 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   "SPA",
   "MEDITATION",
   "FITNESS",
+  "NUTRITION",
   "COACHING",
   "CONSULTATION",
   "PACKAGE",

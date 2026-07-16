@@ -33,6 +33,7 @@ const gift_cards_module_1 = require("./modules/gift-cards/gift-cards.module");
 const health_profiles_module_1 = require("./modules/health-profiles/health-profiles.module");
 const enquiries_module_1 = require("./modules/enquiries/enquiries.module");
 const retreats_module_1 = require("./modules/retreats/retreats.module");
+const offers_module_1 = require("./modules/offers/offers.module");
 const health_module_1 = require("./health/health.module");
 let AppModule = class AppModule {
 };
@@ -69,6 +70,7 @@ exports.AppModule = AppModule = __decorate([
             health_profiles_module_1.HealthProfilesModule,
             enquiries_module_1.EnquiriesModule,
             retreats_module_1.RetreatsModule,
+            offers_module_1.OffersModule,
             health_module_1.HealthModule,
         ],
         providers: [

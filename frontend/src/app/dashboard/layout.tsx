@@ -54,6 +54,7 @@ const PROVIDER_NAV = [
 const ADMIN_NAV = [
   { href: "/dashboard", label: "Overview", icon: LeafIcon },
   { href: "/dashboard/admin/providers", label: "Providers", icon: UsersIcon },
+  { href: "/dashboard/admin/offers", label: "Offers", icon: GiftIcon },
   { href: "/dashboard/admin/bookings", label: "All bookings", icon: CalendarIcon },
   { href: "/dashboard/admin/users", label: "Users", icon: CompassIcon },
   { href: "/dashboard/settings", label: "Settings", icon: PencilIcon },

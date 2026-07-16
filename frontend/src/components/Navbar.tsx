@@ -21,12 +21,15 @@ export function Navbar() {
         <Logo />
         
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-7 text-sm text-ink-secondary lg:flex">
+        <nav className="hidden items-center gap-6 text-sm text-ink-secondary lg:flex">
           <Link href="/discover" className="hover:text-forest transition-colors">
             Discover
           </Link>
           <Link href="/retreats" className="hover:text-forest transition-colors">
             Retreats
+          </Link>
+          <Link href="/offers" className="hover:text-forest transition-colors">
+            Offers
           </Link>
           <Link href="/explore" className="hover:text-forest transition-colors">
             Book a session
@@ -103,6 +106,13 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Retreats
+            </Link>
+            <Link
+              href="/offers"
+              className="py-2 text-ink-secondary hover:text-forest transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Offers
             </Link>
             <Link
               href="/explore"

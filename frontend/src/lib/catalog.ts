@@ -9,6 +9,7 @@ export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   LUXURY_SPA: "Luxury Spa",
   MEDITATION_CENTER: "Meditation Center",
   HEALTH_CLUB: "Health Club",
+  NUTRITIONIST: "Nutritionist",
   COACHING: "Health & Lifestyle Coach",
   HYBRID: "Wellness Center",
 };
@@ -19,6 +20,7 @@ export const CATEGORY_LABEL: Record<ServiceCategory, string> = {
   SPA: "Spa",
   MEDITATION: "Meditation",
   FITNESS: "Fitness",
+  NUTRITION: "Nutrition",
   COACHING: "Coaching",
   CONSULTATION: "Consultation",
   PACKAGE: "Package",
@@ -31,6 +33,7 @@ export const CATEGORY_TAG_CLASS: Record<ServiceCategory, string> = {
   SPA: "bg-gold-soft text-forest",
   MEDITATION: "bg-clay text-forest",
   FITNESS: "bg-forest text-white",
+  NUTRITION: "bg-leaf/15 text-forest",
   COACHING: "bg-gold-soft text-forest",
   CONSULTATION: "bg-gold-soft text-forest",
   PACKAGE: "bg-forest text-white",
@@ -47,9 +50,23 @@ export const RETREAT_CATEGORY_LABEL: Record<RetreatCategory, string> = {
   SILENT_RETREAT: "Silent Retreat",
   WOMENS_RETREAT: "Women's Retreat",
   HEALING_RETREAT: "Healing Retreat",
+  NUTRITION_DETOX: "Nutrition & Detox",
 };
 
 export const RETREAT_CATEGORIES = Object.keys(RETREAT_CATEGORY_LABEL) as RetreatCategory[];
+
+/** Wellness disciplines an admin offer can be tagged to (shared vocabulary). */
+export const OFFER_DISCIPLINES = [
+  "Ayurveda",
+  "Yoga",
+  "Luxury Spa",
+  "Meditation",
+  "Health Club",
+  "Nutrition",
+  "Retreat",
+  "Coaching",
+  "General",
+] as const;
 
 /** Format a retreat's date range, e.g. "12–19 Oct 2026" or "Flexible dates". */
 export function formatRetreatDates(start?: string | null, end?: string | null): string {

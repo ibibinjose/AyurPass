@@ -24,6 +24,7 @@ import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
 import { HealthProfilesModule } from './modules/health-profiles/health-profiles.module';
 import { EnquiriesModule } from './modules/enquiries/enquiries.module';
 import { RetreatsModule } from './modules/retreats/retreats.module';
+import { OffersModule } from './modules/offers/offers.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -57,6 +58,7 @@ import { HealthModule } from './health/health.module';
     HealthProfilesModule,
     EnquiriesModule,
     RetreatsModule,
+    OffersModule,
     HealthModule,
   ],
   providers: [

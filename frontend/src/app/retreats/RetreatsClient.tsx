@@ -37,10 +37,10 @@ function Chip({
   );
 }
 
-export default function RetreatsPage() {
+export default function RetreatsClient({ initialQuery = "" }: { initialQuery?: string }) {
   const [retreats, setRetreats] = useState<Retreat[] | null>(null);
   const [error, setError] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState<RetreatCategory | "ALL">("ALL");
   const [handpicked, setHandpicked] = useState(false);

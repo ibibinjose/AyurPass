@@ -88,6 +88,7 @@ enum ProviderType {
   LUXURY_SPA
   MEDITATION_CENTER
   HEALTH_CLUB
+  NUTRITIONIST
   COACHING
   HYBRID
 }
@@ -145,6 +146,7 @@ enum ServiceCategory {
   SPA
   MEDITATION
   FITNESS
+  NUTRITION
   COACHING
   CONSULTATION
   PACKAGE
@@ -458,4 +460,32 @@ enum RetreatCategory {
   SILENT_RETREAT
   WOMENS_RETREAT
   HEALING_RETREAT
+  NUTRITION_DETOX
+}
+
+/// Platform-curated promotion / deal. Admins create these to spotlight
+/// products, services, providers or retreats across any wellness discipline.
+model Offer {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  /// Discipline this promotion belongs to (AYURVEDA, YOGA, SPA, MEDITATION,
+  /// FITNESS, NUTRITION, RETREAT, ...) — free-form so it can span the taxonomy.
+  discipline    String?
+  /// Display badge, e.g. "20% OFF", "2-for-1", "Free consultation".
+  discountLabel String?
+  code          String?
+  imageUrl      String?
+  ctaLabel      String?
+  /// Where the promotion sends the visitor (a provider, product, retreat,
+  /// a /discover filter, or an external URL).
+  ctaUrl        String?
+  featured      Boolean   @default(false)
+  active        Boolean   @default(true)
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active, featured])
 }
