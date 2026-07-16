@@ -76,6 +76,7 @@ model Provider {
   orders            Order[]
   integrations      Integration[]
   enquiries         Enquiry[]
+  retreats          Retreat[]
 }
 
 enum ProviderType {
@@ -397,6 +398,8 @@ model Enquiry {
   id         String   @id @default(uuid())
   providerId String
   provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  retreatId  String?
+  retreat    Retreat? @relation(fields: [retreatId], references: [id], onDelete: SetNull)
   name       String
   email      String
   phone      String?
@@ -405,4 +408,54 @@ model Enquiry {
   createdAt  DateTime @default(now())
 
   @@index([providerId, createdAt])
+}
+
+/// A dated, multi-day retreat or training program (bookretreats-style).
+/// Owned by a Provider (any listing tier); discovered in the /retreats directory.
+model Retreat {
+  id                 String          @id @default(uuid())
+  slug               String          @unique
+  providerId         String
+  provider           Provider        @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  title              String
+  category           RetreatCategory
+  summary            String? // one-line hook for cards
+  description        String?
+  city               String?
+  country            String?
+  address            Json?
+  startDate          DateTime?
+  endDate            DateTime?
+  durationDays       Int?
+  priceFrom          Decimal?        @db.Decimal(10, 2)
+  currency           String          @default("USD")
+  capacity           Int?
+  skillLevel         String? // All levels | Beginner | Intermediate | Advanced
+  images             Json? // string[]
+  highlights         Json? // string[]
+  inclusions         Json? // string[]
+  externalBookingUrl String?
+  featured           Boolean         @default(false) // admin "handpicked"
+  verificationStatus String          @default("pending")
+  status             String          @default("published") // draft | published
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  enquiries          Enquiry[]
+
+  @@index([category, startDate])
+  @@index([featured])
+}
+
+enum RetreatCategory {
+  YOGA_RETREAT
+  YOGA_TEACHER_TRAINING
+  MEDITATION_RETREAT
+  AYURVEDA_PANCHAKARMA
+  DETOX_CLEANSE
+  SPA_WELLNESS
+  FITNESS_ADVENTURE
+  SILENT_RETREAT
+  WOMENS_RETREAT
+  HEALING_RETREAT
 }

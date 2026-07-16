@@ -25,6 +25,9 @@ export function Navbar() {
           <Link href="/discover" className="hover:text-forest transition-colors">
             Discover
           </Link>
+          <Link href="/retreats" className="hover:text-forest transition-colors">
+            Retreats
+          </Link>
           <Link href="/explore" className="hover:text-forest transition-colors">
             Book a session
           </Link>
@@ -87,15 +90,22 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-hairline bg-background/95 backdrop-blur p-5">
           <nav className="flex flex-col gap-4">
-            <Link 
-              href="/discover" 
+            <Link
+              href="/discover"
               className="py-2 text-ink-secondary hover:text-forest transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Discover
             </Link>
-            <Link 
-              href="/explore" 
+            <Link
+              href="/retreats"
+              className="py-2 text-ink-secondary hover:text-forest transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Retreats
+            </Link>
+            <Link
+              href="/explore"
               className="py-2 text-ink-secondary hover:text-forest transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >

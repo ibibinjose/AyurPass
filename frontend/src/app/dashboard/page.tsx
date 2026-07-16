@@ -107,16 +107,28 @@ function ConsumerOverview() {
         </Link>
       </div>
 
-      {/* Everything in one place: find wellness, or become a provider. */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Everything in one place: find wellness, explore retreats, or become a provider. */}
+      <div className="grid gap-4 sm:grid-cols-3">
         <Link
           href="/discover"
           className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
         >
           <div>
-            <h2 className="font-display text-xl text-forest">Discover wellness places</h2>
+            <h2 className="font-display text-lg text-forest">Discover places</h2>
             <p className="mt-1 text-sm text-ink-secondary">
-              Find Ayurveda, yoga, spa, meditation & retreats near you.
+              Ayurveda, yoga, spa, meditation & health clubs near you.
+            </p>
+          </div>
+          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
+        </Link>
+        <Link
+          href="/retreats"
+          className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <div>
+            <h2 className="font-display text-lg text-forest">Explore retreats</h2>
+            <p className="mt-1 text-sm text-ink-secondary">
+              Handpicked retreats & trainings around the world.
             </p>
           </div>
           <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
@@ -126,7 +138,7 @@ function ConsumerOverview() {
           className="group flex items-center justify-between rounded-2xl border border-dashed border-hairline bg-surface p-6 hover:border-leaf"
         >
           <div>
-            <h2 className="font-display text-xl text-forest">Own a wellness business?</h2>
+            <h2 className="font-display text-lg text-forest">Own a business?</h2>
             <p className="mt-1 text-sm text-ink-secondary">
               List it free and get discovered — no booking platform required.
             </p>

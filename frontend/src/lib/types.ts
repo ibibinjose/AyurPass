@@ -413,10 +413,81 @@ export interface RegisterPayload {
 export interface Enquiry {
   id: string;
   providerId: string;
+  retreatId?: string | null;
   name: string;
   email: string;
   phone?: string | null;
   message: string;
   status: "new" | "read" | "archived";
   createdAt: string;
+  /** Present on the provider inbox — which retreat the lead is about, if any. */
+  retreat?: { title: string; slug: string } | null;
+}
+
+export type RetreatCategory =
+  | "YOGA_RETREAT"
+  | "YOGA_TEACHER_TRAINING"
+  | "MEDITATION_RETREAT"
+  | "AYURVEDA_PANCHAKARMA"
+  | "DETOX_CLEANSE"
+  | "SPA_WELLNESS"
+  | "FITNESS_ADVENTURE"
+  | "SILENT_RETREAT"
+  | "WOMENS_RETREAT"
+  | "HEALING_RETREAT";
+
+/** A dated, multi-day retreat or training program in the /retreats directory. */
+export interface Retreat {
+  id: string;
+  slug: string;
+  providerId: string;
+  title: string;
+  category: RetreatCategory;
+  summary?: string | null;
+  description?: string | null;
+  city?: string | null;
+  country?: string | null;
+  address?: BusinessAddress | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  durationDays?: number | null;
+  priceFrom?: string | number | null;
+  currency: string;
+  capacity?: number | null;
+  skillLevel?: string | null;
+  images?: string[] | null;
+  highlights?: string[] | null;
+  inclusions?: string[] | null;
+  externalBookingUrl?: string | null;
+  featured: boolean;
+  verificationStatus: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  provider?: Pick<
+    Provider,
+    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
+  >;
+}
+
+/** Payload for creating/updating a retreat from the provider dashboard. */
+export interface RetreatInput {
+  title: string;
+  category: RetreatCategory;
+  summary?: string;
+  description?: string;
+  city?: string;
+  country?: string;
+  startDate?: string;
+  endDate?: string;
+  durationDays?: number;
+  priceFrom?: number;
+  currency?: string;
+  capacity?: number;
+  skillLevel?: string;
+  images?: string[];
+  highlights?: string[];
+  inclusions?: string[];
+  externalBookingUrl?: string;
+  status?: string;
 }

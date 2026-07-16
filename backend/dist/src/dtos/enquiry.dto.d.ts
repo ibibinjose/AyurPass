@@ -1,5 +1,6 @@
 export declare class CreateEnquiryDto {
     providerId: string;
+    retreatId?: string;
     name: string;
     email: string;
     phone?: string;

@@ -20,6 +20,9 @@ import type {
   Provider,
   ProviderType,
   RegisterPayload,
+  Retreat,
+  RetreatCategory,
+  RetreatInput,
   Room,
   Service,
   ServiceCategory,
@@ -223,9 +226,10 @@ export const api = {
     },
   ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
 
-  // --- enquiries (leads from listing pages) ---
+  // --- enquiries (leads from listing / retreat pages) ---
   createEnquiry: (data: {
     providerId: string;
+    retreatId?: string;
     name: string;
     email: string;
     phone?: string;
@@ -234,6 +238,42 @@ export const api = {
   myEnquiries: () => request<Enquiry[]>("/enquiries", { auth: true }),
   updateEnquiry: (id: string, status: Enquiry["status"]) =>
     request<Enquiry>(`/enquiries/${id}`, { method: "PATCH", body: { status }, auth: true }),
+
+  // --- retreats & trainings directory ---
+  retreats: (params?: {
+    q?: string;
+    category?: RetreatCategory;
+    city?: string;
+    country?: string;
+    month?: string;
+    maxPrice?: number;
+    maxDuration?: number;
+    featured?: boolean;
+  }) => {
+    const s = new URLSearchParams();
+    if (params?.q) s.set("q", params.q);
+    if (params?.category) s.set("category", params.category);
+    if (params?.city) s.set("city", params.city);
+    if (params?.country) s.set("country", params.country);
+    if (params?.month) s.set("month", params.month);
+    if (params?.maxPrice != null) s.set("maxPrice", String(params.maxPrice));
+    if (params?.maxDuration != null) s.set("maxDuration", String(params.maxDuration));
+    if (params?.featured) s.set("featured", "true");
+    const qs = s.toString();
+    return request<Retreat[]>(`/retreats${qs ? `?${qs}` : ""}`);
+  },
+  retreatBySlug: (slug: string) => request<Retreat>(`/retreats/slug/${slug}`),
+  retreatsByProvider: (providerId: string) =>
+    request<Retreat[]>(`/retreats/provider/${providerId}`),
+  myRetreats: () => request<Retreat[]>("/retreats/mine", { auth: true }),
+  createRetreat: (data: RetreatInput) =>
+    request<Retreat>("/retreats", { method: "POST", body: data, auth: true }),
+  updateRetreat: (id: string, data: Partial<RetreatInput>) =>
+    request<Retreat>(`/retreats/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteRetreat: (id: string) =>
+    request<Retreat>(`/retreats/${id}`, { method: "DELETE", auth: true }),
+  curateRetreat: (id: string, data: { featured?: boolean; verificationStatus?: string }) =>
+    request<Retreat>(`/retreats/${id}/curation`, { method: "PATCH", body: data, auth: true }),
 
   // --- products ---
   products: (category?: string) =>

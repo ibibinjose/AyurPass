@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { Enquiry } from "@/lib/types";
@@ -149,6 +150,15 @@ export default function EnquiriesPage() {
                   </div>
                   <span className="text-xs text-ink-muted">{timeAgo(e.createdAt)}</span>
                 </div>
+
+                {e.retreat && (
+                  <Link
+                    href={`/retreats/${e.retreat.slug}`}
+                    className="mt-2 inline-block rounded-full bg-clay px-2.5 py-0.5 text-xs text-ink-secondary hover:text-forest"
+                  >
+                    About retreat: {e.retreat.title}
+                  </Link>
+                )}
 
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-ink-secondary">
                   {e.message}

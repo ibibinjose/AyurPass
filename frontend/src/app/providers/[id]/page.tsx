@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatAddress, formatCode, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import type { Product, Provider, Service } from "@/lib/types";
+import type { Product, Provider, Retreat, Service } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
+import { RetreatCard } from "@/components/RetreatCard";
 import { BrandMark } from "@/components/BrandMark";
 import { EnquireModal } from "@/components/EnquireModal";
 import { ArrowRightIcon, CheckIcon, MapPinIcon, ShieldIcon } from "@/components/icons";
@@ -29,6 +30,7 @@ export default function ProviderProfilePage() {
   const [provider, setProvider] = useState<Provider | null | undefined>(undefined);
   const [services, setServices] = useState<Service[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [retreats, setRetreats] = useState<Retreat[]>([]);
   const [enquireOpen, setEnquireOpen] = useState(false);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function ProviderProfilePage() {
       .catch(() => setProvider(null));
     api.servicesByProvider(id).then(setServices).catch(() => setServices([]));
     api.productsByProvider(id).then(setProducts).catch(() => setProducts([]));
+    api.retreatsByProvider(id).then(setRetreats).catch(() => setRetreats([]));
   }, [id]);
 
   if (provider === null) {
@@ -270,6 +273,17 @@ export default function ProviderProfilePage() {
                 alt=""
                 className="h-48 w-full rounded-2xl border border-hairline object-cover"
               />
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Retreats & trainings hosted by this provider */}
+      {retreats.length > 0 && (
+        <Section title="Retreats & trainings" count={retreats.length}>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {retreats.map((r) => (
+              <RetreatCard key={r.id} retreat={r} />
             ))}
           </div>
         </Section>

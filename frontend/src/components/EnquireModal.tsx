@@ -15,11 +15,14 @@ export function EnquireModal({
   onClose,
   providerId,
   businessName,
+  retreatId,
 }: {
   open: boolean;
   onClose: () => void;
   providerId: string;
   businessName: string;
+  /** When set, the lead is attributed to this retreat. */
+  retreatId?: string;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,7 +54,7 @@ export function EnquireModal({
     setError(null);
     setBusy(true);
     try {
-      await api.createEnquiry({ providerId, name, email, phone: phone || undefined, message });
+      await api.createEnquiry({ providerId, retreatId, name, email, phone: phone || undefined, message });
       setSent(true);
     } catch {
       setError("We couldn't send your enquiry. Please try again.");

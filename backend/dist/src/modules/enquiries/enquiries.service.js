@@ -26,6 +26,7 @@ let EnquiriesService = class EnquiriesService {
         return this.prisma.enquiry.create({
             data: {
                 providerId: dto.providerId,
+                retreatId: dto.retreatId || null,
                 name: dto.name.trim(),
                 email: dto.email.trim(),
                 phone: dto.phone?.trim() || null,
@@ -51,6 +52,7 @@ let EnquiriesService = class EnquiriesService {
         return this.prisma.enquiry.findMany({
             where: { providerId: provider.id },
             orderBy: { createdAt: 'desc' },
+            include: { retreat: { select: { title: true, slug: true } } },
         });
     }
     async updateStatus(userSub, id, dto) {

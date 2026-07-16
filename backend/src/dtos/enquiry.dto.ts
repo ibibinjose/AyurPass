@@ -13,6 +13,11 @@ export class CreateEnquiryDto {
   @IsNotEmpty()
   providerId: string;
 
+  /** Optional — attributes the lead to a specific retreat. */
+  @IsString()
+  @IsOptional()
+  retreatId?: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

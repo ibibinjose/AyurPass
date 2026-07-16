@@ -13,8 +13,14 @@ export declare class EnquiriesController {
         status: string;
         createdAt: Date;
         providerId: string;
+        retreatId: string | null;
     }>;
-    listMine(req: AuthedRequest): Promise<{
+    listMine(req: AuthedRequest): Promise<({
+        retreat: {
+            slug: string;
+            title: string;
+        } | null;
+    } & {
         id: string;
         name: string;
         email: string;
@@ -23,7 +29,8 @@ export declare class EnquiriesController {
         status: string;
         createdAt: Date;
         providerId: string;
-    }[]>;
+        retreatId: string | null;
+    })[]>;
     updateStatus(req: AuthedRequest, id: string, dto: UpdateEnquiryDto): Promise<{
         id: string;
         name: string;
@@ -33,5 +40,6 @@ export declare class EnquiriesController {
         status: string;
         createdAt: Date;
         providerId: string;
+        retreatId: string | null;
     }>;
 }

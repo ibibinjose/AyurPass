@@ -12,9 +12,15 @@ export declare class EnquiriesService {
         status: string;
         createdAt: Date;
         providerId: string;
+        retreatId: string | null;
     }>;
     private providerForUser;
-    listMine(userSub: string): Promise<{
+    listMine(userSub: string): Promise<({
+        retreat: {
+            slug: string;
+            title: string;
+        } | null;
+    } & {
         id: string;
         name: string;
         email: string;
@@ -23,7 +29,8 @@ export declare class EnquiriesService {
         status: string;
         createdAt: Date;
         providerId: string;
-    }[]>;
+        retreatId: string | null;
+    })[]>;
     updateStatus(userSub: string, id: string, dto: UpdateEnquiryDto): Promise<{
         id: string;
         name: string;
@@ -33,5 +40,6 @@ export declare class EnquiriesService {
         status: string;
         createdAt: Date;
         providerId: string;
+        retreatId: string | null;
     }>;
 }

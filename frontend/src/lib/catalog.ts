@@ -1,4 +1,4 @@
-import type { BusinessAddress, ServiceCategory } from "./types";
+import type { BusinessAddress, RetreatCategory, ServiceCategory } from "./types";
 
 export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   AYURVEDA_CLINIC: "Ayurveda Clinic",
@@ -35,6 +35,35 @@ export const CATEGORY_TAG_CLASS: Record<ServiceCategory, string> = {
   CONSULTATION: "bg-gold-soft text-forest",
   PACKAGE: "bg-forest text-white",
 };
+
+export const RETREAT_CATEGORY_LABEL: Record<RetreatCategory, string> = {
+  YOGA_RETREAT: "Yoga Retreat",
+  YOGA_TEACHER_TRAINING: "Yoga Teacher Training",
+  MEDITATION_RETREAT: "Meditation Retreat",
+  AYURVEDA_PANCHAKARMA: "Ayurveda & Panchakarma",
+  DETOX_CLEANSE: "Detox & Cleanse",
+  SPA_WELLNESS: "Spa & Wellness",
+  FITNESS_ADVENTURE: "Fitness & Adventure",
+  SILENT_RETREAT: "Silent Retreat",
+  WOMENS_RETREAT: "Women's Retreat",
+  HEALING_RETREAT: "Healing Retreat",
+};
+
+export const RETREAT_CATEGORIES = Object.keys(RETREAT_CATEGORY_LABEL) as RetreatCategory[];
+
+/** Format a retreat's date range, e.g. "12–19 Oct 2026" or "Flexible dates". */
+export function formatRetreatDates(start?: string | null, end?: string | null): string {
+  if (!start) return "Flexible dates";
+  const s = new Date(start);
+  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" };
+  if (!end) return s.toLocaleDateString(undefined, opts);
+  const e = new Date(end);
+  const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
+  if (sameMonth) {
+    return `${s.getDate()}–${e.toLocaleDateString(undefined, opts)}`;
+  }
+  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
+}
 
 /** Render a short entity code as a recognisable badge, e.g. "#A3F9C21". */
 export function formatCode(code?: string | null): string {

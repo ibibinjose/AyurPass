@@ -12,13 +12,13 @@ export declare class AuthService {
         refreshToken: string;
         user: Omit<{
             id: string;
-            email: string;
-            phone: string | null;
-            passwordHash: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            fullName: string | null;
-            avatarUrl: string | null;
             createdAt: Date;
+            email: string;
+            fullName: string | null;
+            phone: string | null;
+            role: import(".prisma/client").$Enums.Role;
+            passwordHash: string | null;
+            avatarUrl: string | null;
             updatedAt: Date;
         }, "passwordHash"> | null;
     }>;
@@ -27,13 +27,13 @@ export declare class AuthService {
         refreshToken: string;
         user: Omit<{
             id: string;
-            email: string;
-            phone: string | null;
-            passwordHash: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            fullName: string | null;
-            avatarUrl: string | null;
             createdAt: Date;
+            email: string;
+            fullName: string | null;
+            phone: string | null;
+            role: import(".prisma/client").$Enums.Role;
+            passwordHash: string | null;
+            avatarUrl: string | null;
             updatedAt: Date;
         }, "passwordHash"> | null;
     }>;
@@ -42,9 +42,24 @@ export declare class AuthService {
         refreshToken: string;
     }>;
     getProfile(token: string): Promise<Omit<{
-        consumer: {
-            userId: string;
+        provider: {
+            id: string;
             code: string;
+            userId: string | null;
+            businessName: string;
+            type: import(".prisma/client").$Enums.ProviderType;
+            brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
+            address: import("@prisma/client/runtime/library").JsonValue | null;
+            timezone: string | null;
+            stripeAccountId: string | null;
+            subscriptionTier: string | null;
+            listingTier: string;
+            verificationStatus: string;
+            createdAt: Date;
+        } | null;
+        consumer: {
+            code: string;
+            userId: string;
             prakritiPrimary: string | null;
             prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
             preferences: import("@prisma/client/runtime/library").JsonValue | null;
@@ -52,9 +67,8 @@ export declare class AuthService {
         professional: ({
             provider: {
                 id: string;
-                createdAt: Date;
-                userId: string | null;
                 code: string;
+                userId: string | null;
                 businessName: string;
                 type: import(".prisma/client").$Enums.ProviderType;
                 brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
@@ -64,11 +78,12 @@ export declare class AuthService {
                 subscriptionTier: string | null;
                 listingTier: string;
                 verificationStatus: string;
+                createdAt: Date;
             };
         } & {
             id: string;
-            userId: string;
             code: string;
+            userId: string;
             providerId: string;
             title: string | null;
             specializations: string[];
@@ -82,30 +97,15 @@ export declare class AuthService {
             rating: import("@prisma/client/runtime/library").Decimal;
             reviewCount: number;
         }) | null;
-        provider: {
-            id: string;
-            createdAt: Date;
-            userId: string | null;
-            code: string;
-            businessName: string;
-            type: import(".prisma/client").$Enums.ProviderType;
-            brandProfile: import("@prisma/client/runtime/library").JsonValue | null;
-            address: import("@prisma/client/runtime/library").JsonValue | null;
-            timezone: string | null;
-            stripeAccountId: string | null;
-            subscriptionTier: string | null;
-            listingTier: string;
-            verificationStatus: string;
-        } | null;
     } & {
         id: string;
-        email: string;
-        phone: string | null;
-        passwordHash: string | null;
-        role: import(".prisma/client").$Enums.Role;
-        fullName: string | null;
-        avatarUrl: string | null;
         createdAt: Date;
+        email: string;
+        fullName: string | null;
+        phone: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        passwordHash: string | null;
+        avatarUrl: string | null;
         updatedAt: Date;
     }, "passwordHash"> | null>;
     private generateTokens;

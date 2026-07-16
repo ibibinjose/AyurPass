@@ -39,6 +39,7 @@ const PROVIDER_NAV = [
   { href: "/dashboard/schedule", label: "Schedule", icon: CalendarIcon },
   { href: "/dashboard/services", label: "Sessions", icon: CompassIcon },
   { href: "/dashboard/packages", label: "Packages", icon: SparkleIcon },
+  { href: "/dashboard/retreats", label: "Retreats", icon: CompassIcon },
   { href: "/dashboard/products", label: "Products", icon: LotusIcon },
   { href: "/dashboard/orders", label: "Orders", icon: FlameIcon },
   { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon },
