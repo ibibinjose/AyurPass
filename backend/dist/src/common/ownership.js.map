@@ -1,1 +1,0 @@
-{"version":3,"file":"ownership.js","sourceRoot":"","sources":["../../../src/common/ownership.ts"],"names":[],"mappings":";;AASA,8CAIC;AAbD,2CAAoD;AASpD,SAAgB,iBAAiB,CAAC,IAAgB,EAAE,UAAkB;IACpE,IAAI,IAAI,CAAC,IAAI,KAAK,gBAAgB;QAAE,OAAO;IAC3C,IAAI,IAAI,CAAC,GAAG,KAAK,UAAU;QAAE,OAAO;IACpC,MAAM,IAAI,2BAAkB,CAAC,mCAAmC,CAAC,CAAC;AACpE,CAAC"}
