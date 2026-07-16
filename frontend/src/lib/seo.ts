@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { Provider, Retreat } from "./types";
+import { BRAND_ASSET_VERSION } from "./brand";
 import { PROVIDER_TYPE_LABEL, RETREAT_CATEGORY_LABEL, formatAddress } from "./catalog";
 
 /** Canonical site origin — override per environment via NEXT_PUBLIC_SITE_URL. */
@@ -42,8 +43,8 @@ export function organizationJsonLd() {
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_TAGLINE,
-    logo: abs("/brand/ayurpass-logo-stacked.png"),
-    image: abs("/brand/ayurpass-logo-stacked.png"),
+    logo: abs(`/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`),
+    image: abs(`/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`),
   };
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { JsonLd } from "@/components/JsonLd";
+import { BRAND_ASSET_VERSION } from "@/lib/brand";
 import {
   DEFAULT_KEYWORDS,
   organizationJsonLd,
@@ -23,7 +24,7 @@ const fraunces = Fraunces({
   axes: ["opsz"],
 });
 
-const OG_IMAGE = "/brand/ayurpass-logo-stacked.png";
+const OG_IMAGE = `/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -38,10 +39,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-      { url: "/brand/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: `/icon.png?v=${BRAND_ASSET_VERSION}`, sizes: "512x512", type: "image/png" },
+      { url: `/brand/icon-32.png?v=${BRAND_ASSET_VERSION}`, sizes: "32x32", type: "image/png" },
     ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: `/apple-icon.png?v=${BRAND_ASSET_VERSION}`, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     title: "AyurPass — Ayurveda, Yoga, Spa, Meditation & Retreat Finder",
