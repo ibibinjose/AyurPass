@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practicePath, practitionerPath } from "@/lib/paths";
@@ -34,10 +34,13 @@ import {
   ProfilePageFrame,
   ProfileSection,
   ProfileSharePreview,
+  ProfileMediaMasonry,
   ProfileShell,
   ProfileStat,
   ProfileStatSep,
   ProfileStatsLine,
+  ProfileTabs,
+  ProfileThemeScope,
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
@@ -113,6 +116,7 @@ export default function ProviderProfilePage() {
   const [retreats, setRetreats] = useState<Retreat[]>([]);
   const [team, setTeam] = useState<Professional[]>([]);
   const [enquireOpen, setEnquireOpen] = useState(false);
+  const [tab, setTab] = useState("about");
 
   useEffect(() => {
     if (!slug && !id) return;
@@ -182,26 +186,49 @@ export default function ProviderProfilePage() {
   const aboutBrief = brand?.about?.replace(/\s+/g, " ").trim().slice(0, 140);
 
   const linkItems = buildPracticeLinks(brand);
-  const hasMainContent = !!brand?.about || linkItems.length > 0 || tags.length > 0 || gallery.length > 0;
   const serviceCount = services?.length ?? 0;
   const teamCount = team.length;
+  const mediaImages = useMemo(() => {
+    const g = [...gallery];
+    if (coverUrl && !g.includes(coverUrl)) g.unshift(coverUrl);
+    if (logo && !g.includes(logo)) g.push(logo);
+    return g;
+  }, [gallery, coverUrl, logo]);
+
+  const tabs = useMemo(() => {
+    const t: { id: string; label: string; count?: number }[] = [{ id: "about", label: "About" }];
+    if (mediaImages.length) t.push({ id: "media", label: "Media", count: mediaImages.length });
+    if (linkItems.length) t.push({ id: "links", label: "Links", count: linkItems.length });
+    if (hasBookableServices) t.push({ id: "services", label: "Services", count: serviceCount });
+    if (retreats.length) t.push({ id: "retreats", label: "Retreats", count: retreats.length });
+    return t;
+  }, [mediaImages.length, linkItems.length, hasBookableServices, serviceCount, retreats.length]);
+
+  useEffect(() => {
+    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+  }, [tabs, tab]);
 
   return (
     <PageWrap>
       <Link
         href="/discover"
-        className="mb-5 inline-flex text-sm text-ink-muted transition-colors hover:text-forest"
+        className="profile-spring mb-4 inline-flex min-h-10 items-center rounded-full px-1 text-sm font-semibold text-ink-muted transition-colors hover:text-forest"
       >
         ← Back to discovery
       </Link>
 
       <ProfilePageFrame coverUrl={coverUrl ?? logo}>
         <ProfileHeroShell>
-          <ProfileAvatar name={provider.businessName} imageUrl={logo} />
+          <ProfileAvatar
+            name={provider.businessName}
+            imageUrl={logo}
+            size={128}
+            status={verified ? "online" : "offline"}
+          />
 
           <ProfileHeroInfo>
             <div className="flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
-              <h1 className="font-display text-[1.625rem] font-semibold leading-tight tracking-tight text-forest sm:text-[2rem]">
+              <h1 className="font-display text-[1.75rem] font-semibold leading-[1.15] tracking-tight text-forest sm:text-[2.125rem]">
                 {provider.businessName}
               </h1>
               {verified ? <ProfileVerifiedMark /> : null}
@@ -273,90 +300,99 @@ export default function ProviderProfilePage() {
           </ProfileHeroInfo>
         </ProfileHeroShell>
 
+        <div className="relative z-[1] border-t border-[var(--separator)] px-5 pt-5 sm:px-8">
+          <ProfileTabs tabs={tabs} active={tab} onChange={setTab} />
+        </div>
+
         <ProfileBodyGrid
           main={
             <>
-              {brand?.about ? (
-                <ProfileSection label="About">
-                  <ProfileAboutText>{brand.about}</ProfileAboutText>
-                </ProfileSection>
+              {tab === "about" ? (
+                <>
+                  {brand?.about ? (
+                    <ProfileSection label="About">
+                      <ProfileAboutText>{brand.about}</ProfileAboutText>
+                    </ProfileSection>
+                  ) : null}
+                  {tags.length > 0 ? (
+                    <ProfileSection label="Focus areas">
+                      <div className="flex flex-wrap gap-2.5">
+                        {tags.map((t) => (
+                          <ProfileChip key={t} label={t} />
+                        ))}
+                      </div>
+                    </ProfileSection>
+                  ) : null}
+                  {products && products.length > 0 ? (
+                    <ProfileSection label="Products">
+                      <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+                        {products.map((p) => (
+                          <ProductCard key={p.id} product={p} />
+                        ))}
+                      </div>
+                    </ProfileSection>
+                  ) : null}
+                  {!brand?.about && tags.length === 0 && !(products && products.length) ? (
+                    <ProfileEmptyState
+                      title="Nothing here yet"
+                      body="This practice hasn't added their full story yet. Send an enquiry to get in touch."
+                    />
+                  ) : null}
+                </>
               ) : null}
 
-              {linkItems.length > 0 ? (
-                <ProfileSection label="Links & social">
-                  <ProfileLinkButtons items={linkItems} />
-                </ProfileSection>
-              ) : null}
-
-              {tags.length > 0 ? (
-                <ProfileSection label="Focus areas">
-                  <div className="flex flex-wrap gap-2.5">
-                    {tags.map((t) => (
-                      <ProfileChip key={t} label={t} />
-                    ))}
-                  </div>
-                </ProfileSection>
-              ) : null}
-
-              {gallery.length > 0 ? (
-                <ProfileSection label="Gallery">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {gallery.map((src) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={src}
-                        src={src}
-                        alt=""
-                        className="h-52 w-full rounded-2xl border border-hairline object-cover shadow-[0_4px_16px_rgba(36,56,46,0.06)]"
-                      />
-                    ))}
-                  </div>
-                </ProfileSection>
-              ) : null}
-
-              {retreats.length > 0 ? (
-                <ProfileSection label="Retreats & trainings">
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {retreats.map((r) => (
-                      <RetreatCard key={r.id} retreat={r} />
-                    ))}
-                  </div>
-                </ProfileSection>
-              ) : null}
-
-              {hasBookableServices ? (
-                <ProfileSection label="Services & sessions">
-                  {services === null ? (
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      {Array.from({ length: 2 }).map((_, i) => (
-                        <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
-                      ))}
-                    </div>
+              {tab === "media" ? (
+                <ProfileSection label="Media">
+                  {mediaImages.length ? (
+                    <ProfileMediaMasonry images={mediaImages} />
                   ) : (
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      {services.map((s) => (
-                        <ServiceCard key={s.id} service={s} />
-                      ))}
-                    </div>
+                    <ProfileEmptyState title="No media yet" body="Gallery images will appear here." />
                   )}
                 </ProfileSection>
               ) : null}
 
-              {products && products.length > 0 ? (
-                <ProfileSection label="Products">
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {products.map((p) => (
-                      <ProductCard key={p.id} product={p} />
-                    ))}
-                  </div>
+              {tab === "links" ? (
+                <ProfileSection label="Links & social">
+                  {linkItems.length ? (
+                    <ProfileLinkButtons items={linkItems} />
+                  ) : (
+                    <ProfileEmptyState title="No links yet" body="Website and social links will show here." />
+                  )}
                 </ProfileSection>
               ) : null}
 
-              {!hasMainContent && !hasBookableServices && retreats.length === 0 ? (
-                <ProfileEmptyState
-                  title="Nothing here yet"
-                  body="This practice hasn't added their full story yet. Send an enquiry to get in touch."
-                />
+              {tab === "services" ? (
+                <ProfileSection label="Services & sessions">
+                  {services === null ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
+                      ))}
+                    </div>
+                  ) : hasBookableServices ? (
+                    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+                      {services.map((s) => (
+                        <ServiceCard key={s.id} service={s} />
+                      ))}
+                    </div>
+                  ) : (
+                    <ProfileEmptyState title="No sessions listed" body="Bookable services will appear here." />
+                  )}
+                </ProfileSection>
+              ) : null}
+
+              {tab === "retreats" ? (
+                <ProfileSection label="Retreats & trainings">
+                  {retreats.length ? (
+                    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+                      {retreats.map((r) => (
+                        <RetreatCard key={r.id} retreat={r} />
+                      ))}
+                    </div>
+                  ) : (
+                    <ProfileEmptyState title="No retreats yet" body="Retreat listings will appear here." />
+                  )}
+                </ProfileSection>
               ) : null}
             </>
           }
@@ -431,8 +467,10 @@ export default function ProviderProfilePage() {
 function PageWrap({ children }: { children: React.ReactNode }) {
   return (
     <LayoutWrapper>
-      <div className="px-4 py-6 sm:px-5 sm:py-8">
-        <ProfileShell>{children}</ProfileShell>
+      <div className="px-3 py-4 sm:px-5 sm:py-8">
+        <ProfileShell>
+          <ProfileThemeScope>{children}</ProfileThemeScope>
+        </ProfileShell>
       </div>
     </LayoutWrapper>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, formatMoney } from "@/lib/api";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practicePath } from "@/lib/paths";
@@ -33,10 +33,13 @@ import {
   ProfilePageFrame,
   ProfileSection,
   ProfileSharePreview,
+  ProfileMediaMasonry,
   ProfileShell,
   ProfileStat,
   ProfileStatSep,
   ProfileStatsLine,
+  ProfileTabs,
+  ProfileThemeScope,
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
@@ -122,6 +125,7 @@ export default function PractitionerProfileClient() {
     undefined,
   );
   const [enquireOpen, setEnquireOpen] = useState(false);
+  const [tab, setTab] = useState("about");
 
   useEffect(() => {
     if (!slug) return;
@@ -211,11 +215,30 @@ export default function PractitionerProfileClient() {
     professional.reviewCount > 0 ||
     (professional.yearsExperience != null && professional.yearsExperience > 0);
 
+  const gallery = useMemo(() => {
+    const g = brand?.gallery?.filter(Boolean) ?? [];
+    if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
+    if (avatar && !g.includes(avatar)) return [...g, avatar];
+    return g;
+  }, [brand?.gallery, coverUrl, avatar]);
+
+  const tabs = useMemo(() => {
+    const t: { id: string; label: string; count?: number }[] = [{ id: "about", label: "About" }];
+    if (gallery.length) t.push({ id: "media", label: "Media", count: gallery.length });
+    if (linkItems.length) t.push({ id: "links", label: "Links", count: linkItems.length });
+    if (hasBookableServices) t.push({ id: "services", label: "Services", count: services.length });
+    return t;
+  }, [gallery.length, linkItems.length, hasBookableServices, services.length]);
+
+  useEffect(() => {
+    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+  }, [tabs, tab]);
+
   return (
     <PageWrap>
       <Link
         href="/discover"
-        className="mb-5 inline-flex text-sm text-ink-muted transition-colors hover:text-forest"
+        className="profile-spring mb-4 inline-flex min-h-10 items-center rounded-full px-1 text-sm font-semibold text-ink-muted transition-colors hover:text-forest"
       >
         ← Back to discovery
       </Link>
@@ -226,11 +249,13 @@ export default function PractitionerProfileClient() {
             name={displayName}
             imageUrl={avatar}
             hubLogoUrl={practiceLogo && practiceLogo !== avatar ? practiceLogo : null}
+            size={128}
+            status={verified || aaaListed ? "online" : "offline"}
           />
 
           <ProfileHeroInfo>
             <div className="flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
-              <h1 className="font-display text-[1.625rem] font-semibold leading-tight tracking-tight text-forest sm:text-[2rem]">
+              <h1 className="font-display text-[1.75rem] font-semibold leading-[1.15] tracking-tight text-forest sm:text-[2.125rem]">
                 {displayName}
               </h1>
               {verified || aaaListed ? <ProfileVerifiedMark /> : null}
@@ -308,46 +333,70 @@ export default function PractitionerProfileClient() {
           </ProfileHeroInfo>
         </ProfileHeroShell>
 
+        <div className="relative z-[1] border-t border-[var(--separator)] px-5 pt-5 sm:px-8">
+          <ProfileTabs tabs={tabs} active={tab} onChange={setTab} />
+        </div>
+
         <ProfileBodyGrid
           main={
             <>
-              {about ? (
-                <ProfileSection label="About">
-                  <ProfileAboutText>{about}</ProfileAboutText>
+              {tab === "about" ? (
+                <>
+                  {about ? (
+                    <ProfileSection label="About">
+                      <ProfileAboutText>{about}</ProfileAboutText>
+                    </ProfileSection>
+                  ) : null}
+                  {professional.specializations.length > 0 ? (
+                    <ProfileSection label="Specializations">
+                      <div className="flex flex-wrap gap-2.5">
+                        {professional.specializations.map((spec) => (
+                          <ProfileChip key={spec} label={spec} />
+                        ))}
+                      </div>
+                    </ProfileSection>
+                  ) : null}
+                  {!about && professional.specializations.length === 0 ? (
+                    <ProfileEmptyState
+                      title="Nothing here yet"
+                      body="This practitioner hasn't added their full story yet. Check back soon."
+                    />
+                  ) : null}
+                </>
+              ) : null}
+
+              {tab === "media" ? (
+                <ProfileSection label="Media">
+                  {gallery.length ? (
+                    <ProfileMediaMasonry images={gallery} />
+                  ) : (
+                    <ProfileEmptyState title="No media yet" body="Photos will appear here when added." />
+                  )}
                 </ProfileSection>
               ) : null}
 
-              {linkItems.length > 0 ? (
+              {tab === "links" ? (
                 <ProfileSection label="Links & social">
-                  <ProfileLinkButtons items={linkItems} />
+                  {linkItems.length ? (
+                    <ProfileLinkButtons items={linkItems} />
+                  ) : (
+                    <ProfileEmptyState title="No links yet" body="Website and contact links will show here." />
+                  )}
                 </ProfileSection>
               ) : null}
 
-              {professional.specializations.length > 0 ? (
-                <ProfileSection label="Specializations">
-                  <div className="flex flex-wrap gap-2.5">
-                    {professional.specializations.map((spec) => (
-                      <ProfileChip key={spec} label={spec} />
-                    ))}
-                  </div>
-                </ProfileSection>
-              ) : null}
-
-              {hasBookableServices ? (
+              {tab === "services" ? (
                 <ProfileSection label="Services & sessions">
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    {services.map((s) => (
-                      <ServiceCard key={s.id} service={s} />
-                    ))}
-                  </div>
+                  {hasBookableServices ? (
+                    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+                      {services.map((s) => (
+                        <ServiceCard key={s.id} service={s} />
+                      ))}
+                    </div>
+                  ) : (
+                    <ProfileEmptyState title="No sessions listed" body="Bookable services will appear here." />
+                  )}
                 </ProfileSection>
-              ) : null}
-
-              {!hasMainContent && !hasBookableServices ? (
-                <ProfileEmptyState
-                  title="Nothing here yet"
-                  body="This practitioner hasn't added their full story yet. Check back soon."
-                />
               ) : null}
             </>
           }
@@ -430,8 +479,10 @@ export default function PractitionerProfileClient() {
 function PageWrap({ children }: { children: React.ReactNode }) {
   return (
     <LayoutWrapper>
-      <div className="px-4 py-6 sm:px-5 sm:py-8">
-        <ProfileShell>{children}</ProfileShell>
+      <div className="px-3 py-4 sm:px-5 sm:py-8">
+        <ProfileShell>
+          <ProfileThemeScope>{children}</ProfileThemeScope>
+        </ProfileShell>
       </div>
     </LayoutWrapper>
   );

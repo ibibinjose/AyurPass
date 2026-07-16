@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRightIcon,
   CalendarIcon,
@@ -21,20 +21,32 @@ import {
 } from "@/components/icons";
 import { useEngagement } from "@/hooks/useEngagement";
 import type { EngagementTarget } from "@/lib/engagement";
+import {
+  PROFILE_ACCENTS,
+  accentById,
+  getStoredAccentId,
+  setStoredAccentId,
+  type ProfileAccentId,
+} from "@/lib/profile-theme";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const actionBtn =
-  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors sm:px-4";
-const actionPrimary = `${actionBtn} bg-forest text-white shadow-[0_2px_8px_rgba(36,56,46,0.14)] hover:bg-forest-deep`;
-const actionOutline = `${actionBtn} border border-hairline bg-surface text-forest hover:border-leaf`;
-const actionActive = `${actionBtn} border border-leaf/50 bg-leaf/10 text-forest`;
-const actionLikeActive = `${actionBtn} border border-red-200 bg-red-50 text-red-700`;
+  "profile-spring inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all sm:px-5";
+const actionPrimary = `${actionBtn} bg-[var(--profile-accent,var(--forest))] text-white shadow-[0_4px_14px_rgba(0,0,0,0.12)] hover:brightness-110 active:scale-[0.97]`;
+const actionOutline = `${actionBtn} border border-[var(--separator)] bg-surface/90 text-foreground backdrop-blur-sm hover:bg-[var(--fill-secondary)] active:scale-[0.97]`;
+const actionActive = `${actionBtn} border-transparent bg-[var(--profile-accent-soft,var(--fill-secondary))] text-[var(--profile-accent,var(--forest))] active:scale-[0.97]`;
+const actionLikeActive = `${actionBtn} border-transparent bg-red-50 text-red-600 active:scale-[0.97]`;
 
-/** CulturePass-style overline-labelled section. */
+/** Neo-minimal section with accent overline. */
 export function ProfileSection({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-3.5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">{label}</p>
+    <section className="flex flex-col gap-3.5 animate-[profile-enter_0.4s_cubic-bezier(0.22,1,0.36,1)_both]">
+      <p
+        className="text-[11px] font-bold uppercase tracking-[0.16em]"
+        style={{ color: "var(--profile-accent, var(--gold))" }}
+      >
+        {label}
+      </p>
       {children}
     </section>
   );
@@ -113,26 +125,54 @@ function LinkRowIcon({ item }: { item: ProfileLinkItem }) {
 }
 
 const linkRowClass =
-  "group flex items-center gap-3.5 rounded-2xl border border-hairline bg-surface px-5 py-4 shadow-[0_1px_0_rgba(36,56,46,0.04)] transition-all hover:-translate-y-px hover:border-leaf/35 hover:shadow-[0_8px_24px_rgba(36,56,46,0.07)] active:translate-y-0";
+  "profile-spring group flex items-center gap-3.5 rounded-2xl border border-[var(--separator)] bg-surface/95 px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:border-[var(--profile-accent,var(--leaf))]/30 hover:shadow-[0_10px_28px_rgba(0,0,0,0.08)] active:translate-y-0 sm:px-5 sm:py-4";
 
-/** Stacked full-width link rows — link-in-bio style. */
+function hostnameOf(href: string): string | null {
+  try {
+    return new URL(href).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+/** Stacked full-width rich link rows — link-in-bio with host preview. */
 export function ProfileLinkButtons({ items }: { items: ProfileLinkItem[] }) {
   if (items.length === 0) return null;
   return (
     <div className="flex flex-col gap-3">
       {items.map((item) => {
+        const host = item.href.startsWith("http") ? hostnameOf(item.href) : null;
+        const favicon = host
+          ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`
+          : null;
         const inner = (
           <>
-            <LinkRowIcon item={item} />
+            {favicon ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={favicon}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-xl border border-[var(--separator)] bg-clay/50 object-contain p-2"
+              />
+            ) : (
+              <LinkRowIcon item={item} />
+            )}
             <span className="min-w-0 flex-1 text-left">
-              <span className="block font-medium text-foreground group-hover:text-forest">
+              <span className="block font-semibold text-foreground transition-colors group-hover:text-[var(--profile-accent,var(--forest))]">
                 {item.label}
               </span>
-              {item.sublabel ? (
-                <span className="mt-0.5 block truncate text-sm text-ink-muted">{item.sublabel}</span>
+              {item.sublabel || host ? (
+                <span className="mt-0.5 block truncate text-sm font-medium text-ink-muted">
+                  {item.sublabel ?? host}
+                </span>
+              ) : null}
+              {host && item.sublabel ? (
+                <span className="mt-1 inline-flex rounded-full bg-[var(--fill-secondary)] px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+                  {host}
+                </span>
               ) : null}
             </span>
-            <ExternalLinkIcon className="h-4 w-4 shrink-0 text-ink-muted opacity-60 transition-opacity group-hover:opacity-100" />
+            <ExternalLinkIcon className="h-4 w-4 shrink-0 text-ink-muted opacity-50 transition-opacity group-hover:opacity-100" />
           </>
         );
         if (item.external !== false && item.href.startsWith("http")) {
@@ -356,16 +396,22 @@ export function ProfileAffiliationPill({
   );
 }
 
+/**
+ * Avatar with optional glowing activity ring (neo-vibe status).
+ * Ring uses profile accent CSS variables.
+ */
 export function ProfileAvatar({
   name,
   imageUrl,
   hubLogoUrl,
-  size = 112,
+  size = 120,
+  status = "online",
 }: {
   name: string;
   imageUrl?: string | null;
   hubLogoUrl?: string | null;
   size?: number;
+  status?: "online" | "offline" | "none";
 }) {
   const initials = name
     .split(/\s+/)
@@ -373,32 +419,55 @@ export function ProfileAvatar({
     .map((w) => w[0])
     .join("")
     .toUpperCase();
+  const ringPad = status === "none" ? 0 : 5;
+  const outer = size + ringPad * 2;
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imageUrl}
-          alt=""
-          className="h-full w-full rounded-full object-cover shadow-[0_8px_30px_rgba(36,56,46,0.12)] ring-2 ring-surface ring-offset-2 ring-offset-background"
-          style={{ width: size, height: size }}
-        />
-      ) : (
-        <div
-          className="flex items-center justify-center rounded-full bg-gradient-to-br from-gold-soft to-clay font-display text-2xl text-forest shadow-[0_8px_30px_rgba(36,56,46,0.1)] ring-2 ring-surface ring-offset-2 ring-offset-background"
-          style={{ width: size, height: size }}
+    <div
+      className="relative shrink-0"
+      style={{ width: outer, height: outer }}
+    >
+      {status !== "none" ? (
+        <span
           aria-hidden
+          className={`profile-status-ring absolute inset-0 rounded-full ${
+            status === "online" ? "profile-status-ring--live" : ""
+          }`}
+          style={{
+            background: `conic-gradient(from 210deg, var(--profile-accent, #1e3228), var(--gold-soft), var(--profile-accent, #1e3228))`,
+            padding: ringPad,
+          }}
         >
-          {initials || <UsersIcon className="h-10 w-10" />}
-        </div>
-      )}
+          <span className="block h-full w-full rounded-full bg-surface" />
+        </span>
+      ) : null}
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.14)] ring-4 ring-surface"
+        style={{ width: size, height: size }}
+      >
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full items-center justify-center font-display text-2xl text-white"
+            style={{ background: "var(--profile-gradient, linear-gradient(145deg,#1e3228,#3d6650))" }}
+            aria-hidden
+          >
+            {initials || <UsersIcon className="h-10 w-10" />}
+          </div>
+        )}
+      </div>
       {hubLogoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={hubLogoUrl}
           alt=""
-          className="absolute -bottom-0.5 -right-0.5 h-9 w-9 rounded-full border-2 border-surface object-cover shadow-sm"
+          className="absolute bottom-0.5 right-0.5 z-[1] h-10 w-10 rounded-full border-[3px] border-surface object-cover shadow-md"
         />
       ) : null}
     </div>
@@ -487,7 +556,7 @@ export function ProfileStatSep() {
 
 export function ProfileShell({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1024px] rounded-[28px] border border-hairline/80 bg-surface/90 px-5 py-7 shadow-[0_12px_40px_rgba(36,56,46,0.06)] sm:px-8 sm:py-9">
+    <div className="profile-shell mx-auto w-full max-w-[1040px] overflow-hidden rounded-[1.75rem] border border-[var(--separator)] bg-surface/95 shadow-[0_20px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:rounded-[2rem]">
       {children}
     </div>
   );
@@ -495,7 +564,7 @@ export function ProfileShell({ children }: { children: ReactNode }) {
 
 export function ProfileHeroShell({ children }: { children: ReactNode }) {
   return (
-    <header className="flex flex-col items-center gap-7 border-b border-hairline/70 pb-9 md:flex-row md:items-start md:gap-10 md:pb-11">
+    <header className="relative z-[1] flex flex-col items-center gap-6 px-5 pb-8 pt-2 sm:px-8 sm:pb-10 md:flex-row md:items-end md:gap-9 md:pt-0">
       {children}
     </header>
   );
@@ -503,7 +572,7 @@ export function ProfileHeroShell({ children }: { children: ReactNode }) {
 
 export function ProfileHeroInfo({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full flex-col items-center gap-2 text-center md:flex-1 md:items-start md:gap-1.5 md:text-left">
+    <div className="flex w-full flex-col items-center gap-2 text-center md:flex-1 md:items-start md:gap-1.5 md:pb-1 md:text-left">
       {children}
     </div>
   );
@@ -511,11 +580,150 @@ export function ProfileHeroInfo({ children }: { children: ReactNode }) {
 
 export function ProfileBodyGrid({ main, sidebar }: { main: ReactNode; sidebar: ReactNode }) {
   return (
-    <div className="mt-9 flex flex-col gap-10 pb-4 md:mt-11 md:flex-row md:items-start md:gap-14">
-      <div className="min-w-0 flex flex-1 flex-col gap-11">{main}</div>
-      <aside className="flex w-full flex-col gap-9 md:sticky md:top-24 md:w-[300px] md:shrink-0">
+    <div className="relative z-[1] flex flex-col gap-10 border-t border-[var(--separator)] px-5 pb-8 pt-8 sm:px-8 sm:pb-10 md:flex-row md:items-start md:gap-12 md:pt-10">
+      <div className="flex min-w-0 flex-1 flex-col gap-9">{main}</div>
+      <aside className="flex w-full flex-col gap-8 md:sticky md:top-28 md:w-[300px] md:shrink-0">
         {sidebar}
       </aside>
+    </div>
+  );
+}
+
+/** Sliding pill tabs — sticky under the app nav for fluid section switching. */
+export function ProfileTabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: string; label: string; count?: number }[];
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="profile-tabs-sticky sticky top-[calc(3.5rem+var(--safe-top))] z-30 -mx-1 px-1 py-1 sm:top-[calc(4rem+var(--safe-top))]">
+      <div
+        className="chip-scroll flex gap-1 overflow-x-auto rounded-full border border-[var(--separator)] bg-surface/90 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl"
+        role="tablist"
+      >
+        {tabs.map((t) => {
+          const selected = t.id === active;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => onChange(t.id)}
+              className={`profile-spring min-h-10 shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                selected
+                  ? "bg-[var(--profile-accent,var(--forest))] text-white shadow-[0_2px_10px_rgba(0,0,0,0.12)]"
+                  : "text-ink-muted hover:text-foreground"
+              }`}
+            >
+              {t.label}
+              {t.count != null ? (
+                <span className={`ml-1.5 text-xs ${selected ? "text-white/80" : "opacity-70"}`}>
+                  {t.count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Tall masonry media grid for gallery immersion. */
+export function ProfileMediaMasonry({ images }: { images: string[] }) {
+  if (!images.length) return null;
+  return (
+    <div className="profile-masonry columns-2 gap-3 sm:columns-3 sm:gap-4">
+      {images.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={`${src}-${i}`}
+          src={src}
+          alt=""
+          loading="lazy"
+          className={`mb-3 w-full break-inside-avoid rounded-2xl object-cover shadow-[0_4px_20px_rgba(0,0,0,0.06)] sm:mb-4 ${
+            i % 3 === 0 ? "aspect-[3/4]" : i % 3 === 1 ? "aspect-square" : "aspect-[4/5]"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Built-in accent theme picker for the profile surface. */
+export function ProfileThemePicker({
+  value,
+  onChange,
+}: {
+  value: ProfileAccentId;
+  onChange: (id: ProfileAccentId) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+        Theme accent
+      </p>
+      <div className="flex flex-wrap gap-2.5" role="listbox" aria-label="Profile accent">
+        {PROFILE_ACCENTS.map((a) => {
+          const selected = a.id === value;
+          return (
+            <button
+              key={a.id}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              title={a.label}
+              onClick={() => onChange(a.id)}
+              className={`profile-spring h-9 w-9 rounded-full shadow-inner ring-offset-2 ring-offset-surface transition-transform ${
+                selected ? "scale-110 ring-2 ring-[var(--system-blue)]" : "hover:scale-105"
+              }`}
+              style={{ background: a.gradient }}
+            >
+              <span className="sr-only">{a.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Applies accent CSS vars to a profile tree + persists choice. */
+export function ProfileThemeScope({ children }: { children: ReactNode }) {
+  const [accentId, setAccentId] = useState<ProfileAccentId>("forest");
+
+  useEffect(() => {
+    setAccentId(getStoredAccentId());
+  }, []);
+
+  const accent = accentById(accentId);
+
+  return (
+    <div
+      className="profile-theme-scope"
+      style={
+        {
+          "--profile-accent": accent.primary,
+          "--profile-accent-soft": accent.soft,
+          "--profile-gradient": accent.gradient,
+        } as CSSProperties
+      }
+    >
+      {children}
+      <div className="border-t border-[var(--separator)] px-5 py-5 sm:px-8">
+        <ProfileThemePicker
+          value={accentId}
+          onChange={(id) => {
+            setAccentId(id);
+            setStoredAccentId(id);
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -554,29 +762,74 @@ export function ProfileEmptyState({ title, body }: { title: string; body: string
   );
 }
 
-/** Optional soft cover band behind hero. */
-export function ProfileCoverBand({ imageUrl }: { imageUrl?: string | null }) {
+/**
+ * Immersive fluid hero cover — blurred photo or accent gradient with soft fade.
+ * Optional `parallaxY` (px) for scroll-linked depth.
+ */
+export function ProfileCoverBand({
+  imageUrl,
+  parallaxY = 0,
+}: {
+  imageUrl?: string | null;
+  parallaxY?: number;
+}) {
   if (!imageUrl) {
     return (
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-leaf/8 via-gold-soft/20 to-transparent sm:h-44"
-      />
+        className="pointer-events-none absolute inset-x-0 top-0 h-44 overflow-hidden sm:h-56"
+      >
+        <div
+          className="absolute inset-0 scale-110 will-change-transform"
+          style={{
+            background: "var(--profile-gradient, linear-gradient(145deg,#1e3228,#3d6650,#e9d9b8))",
+            transform: `translate3d(0, ${parallaxY * 0.35}px, 0)`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-surface" />
+      </div>
     );
   }
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-36 overflow-hidden sm:h-44">
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imageUrl} alt="" className="h-full w-full object-cover opacity-[0.22] blur-[2px]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-surface/80 to-surface" />
+      <img
+        src={imageUrl}
+        alt=""
+        className="h-[130%] w-full object-cover opacity-95 will-change-transform"
+        style={{ transform: `translate3d(0, ${parallaxY * 0.4}px, 0) scale(1.05)` }}
+      />
+      <div className="absolute inset-0 backdrop-blur-[1.5px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-surface" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-surface to-transparent" />
     </div>
   );
 }
 
 export function ProfilePageFrame({ coverUrl, children }: { coverUrl?: string | null; children: ReactNode }) {
+  const [parallaxY, setParallaxY] = useState(0);
+
+  useEffect(() => {
+    let raf = 0;
+    function onScroll() {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setParallaxY(Math.min(120, Math.max(0, window.scrollY)));
+      });
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
   return (
     <div className="relative">
-      <ProfileCoverBand imageUrl={coverUrl} />
+      <ProfileCoverBand imageUrl={coverUrl} parallaxY={parallaxY} />
+      {/* Spacer so avatar sits half over the cover */}
+      <div className="h-28 sm:h-36" aria-hidden />
       <div className="relative">{children}</div>
     </div>
   );
@@ -585,8 +838,10 @@ export function ProfilePageFrame({ coverUrl, children }: { coverUrl?: string | n
 /** Inner shell padding for public profile pages (compose with LayoutWrapper). */
 export function ProfilePageWrap({ children }: { children: ReactNode }) {
   return (
-    <div className="px-4 py-6 sm:px-5 sm:py-8">
-      <ProfileShell>{children}</ProfileShell>
+    <div className="px-3 py-4 sm:px-5 sm:py-8">
+      <ProfileShell>
+        <ProfileThemeScope>{children}</ProfileThemeScope>
+      </ProfileShell>
     </div>
   );
 }

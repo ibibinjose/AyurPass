@@ -1,16 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { useFocusEffect } from "expo-router";
-import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Body, Card, Display, Title } from "../../src/components/ui";
+import { Body, Card, VerifiedTick } from "../../src/components/ui";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
 import { api } from "../../src/api";
 import type { Dosha } from "../../src/dosha";
 import type { HealthProfile, LoyaltySummary } from "../../src/types";
-import { colors, fonts, radius } from "../../src/theme";
+import { colors, fonts, radius, spacing } from "../../src/theme";
 
 function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: number; primary: Dosha } {
   const vata = Number(p.vataScore ?? 0);
@@ -25,19 +33,38 @@ function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: numbe
   return { vata, pitta, kapha, primary };
 }
 
-function Row({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+function Row({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
   return (
-    <Pressable onPress={onPress} style={styles.row}>
-      <Ionicons name={icon} size={20} color={colors.leaf} />
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] }]}
+    >
+      <View style={styles.rowIcon}>
+        <Ionicons name={icon} size={18} color={colors.systemBlue} />
+      </View>
       <Text style={styles.rowLabel}>{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
     </Pressable>
   );
 }
 
+/**
+ * Neo-minimal consumer profile — immersive gradient hero, status ring avatar,
+ * soft cards, springy rows (mirrors web ProfileThemeScope vibe).
+ */
 export default function Profile() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const pad = width >= 400 ? 20 : 16;
   const [health, setHealth] = useState<HealthProfile | null>(null);
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
 
@@ -50,7 +77,13 @@ export default function Profile() {
   );
 
   const scores = health ? toScores(health) : null;
-  const initials = user?.fullName?.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const initials =
+    user?.fullName
+      ?.split(" ")
+      .map((s) => s[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() ?? "AP";
 
   function confirmLogout() {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -61,104 +94,253 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-        <Display>Profile</Display>
-
-        <View style={styles.identity}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials ?? "AP"}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Title>{user?.fullName ?? "Wellness seeker"}</Title>
-            <Body muted>{user?.email}</Body>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 48 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Immersive hero */}
+        <View style={styles.heroWrap}>
+          <LinearGradient
+            colors={[colors.forest, colors.leaf, colors.goldSoft]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
+          />
+          <View style={[styles.heroContent, { paddingHorizontal: pad }]}>
+            <View style={styles.avatarRing}>
+              <View style={styles.avatarInner}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            </View>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>
+                {user?.fullName ?? "Wellness seeker"}
+              </Text>
+              <VerifiedTick size={20} />
+            </View>
+            <Text style={styles.email} numberOfLines={1}>
+              {user?.email}
+            </Text>
+            {scores ? (
+              <View style={styles.doshaPill}>
+                <Text style={styles.doshaPillText}>
+                  Prakriti · {scores.primary.charAt(0).toUpperCase() + scores.primary.slice(1)}
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
 
-        {loyalty ? (
-          <Card style={{ marginTop: 16, backgroundColor: colors.forest, borderColor: colors.forest }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <View style={{ paddingHorizontal: pad, marginTop: -12 }}>
+          {loyalty ? (
+            <LinearGradient
+              colors={[colors.forest, "#2a4a3c"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.loyaltyCard}
+            >
               <View>
-                <Text style={styles.rewardsLabel}>AyurPass Rewards · {loyalty.tier}</Text>
-                <Text style={styles.rewardsPoints}>{loyalty.pointsBalance} pts</Text>
+                <Text style={styles.loyaltyEyebrow}>AyurPass Rewards</Text>
+                <Text style={styles.loyaltyPoints}>{loyalty.pointsBalance} pts</Text>
+                <Text style={styles.loyaltyTier}>{loyalty.tier} tier</Text>
               </View>
-              <Ionicons name="trophy-outline" size={30} color={colors.goldSoft} />
-            </View>
-            {loyalty.nextTier ? (
-              <Text style={styles.rewardsHint}>
-                {loyalty.pointsToNextTier} pts to {loyalty.nextTier}
-              </Text>
-            ) : null}
-          </Card>
-        ) : null}
+              <Ionicons name="sparkles" size={28} color={colors.goldSoft} />
+            </LinearGradient>
+          ) : null}
 
-        <View style={{ marginTop: 20 }}>
-          <Title style={{ fontSize: 18, marginBottom: 10 }}>Your constitution</Title>
           {scores ? (
-            <Card>
-              <DoshaMeterGroup {...scores} primary={scores.primary} />
-              <Pressable onPress={() => router.push("/assessment")} style={{ marginTop: 8 }}>
-                <Text style={styles.link}>Retake assessment →</Text>
-              </Pressable>
+            <Card style={{ marginTop: 14 }}>
+              <Text style={styles.sectionLabel}>Dosha balance</Text>
+              <DoshaMeterGroup
+                vata={scores.vata}
+                pitta={scores.pitta}
+                kapha={scores.kapha}
+                primary={scores.primary}
+              />
             </Card>
           ) : (
-            <Card>
-              <Body secondary>You haven&apos;t taken the Prakriti assessment yet.</Body>
-              <Pressable onPress={() => router.push("/assessment")} style={{ marginTop: 10 }}>
-                <Text style={styles.link}>Take the assessment →</Text>
-              </Pressable>
-            </Card>
+            <Pressable
+              onPress={() => router.push("/assessment")}
+              style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}
+            >
+              <Ionicons name="compass-outline" size={22} color={colors.systemBlue} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.ctaTitle}>Discover your dosha</Text>
+                <Text style={styles.ctaBody}>Take the Prakriti assessment</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
+            </Pressable>
           )}
-        </View>
 
-        <View style={{ marginTop: 20, gap: 2 }}>
-          <Row icon="calendar-outline" label="My bookings" onPress={() => router.push("/(tabs)/bookings")} />
-          <Row icon="compass-outline" label="Discover providers" onPress={() => router.push("/(tabs)")} />
-        </View>
+          <Card style={{ marginTop: 14, padding: 0, overflow: "hidden" }}>
+            <Row icon="calendar-outline" label="My bookings" onPress={() => router.push("/(tabs)/bookings")} />
+            <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/offers")} />
+            <Row
+              icon="compass-outline"
+              label={scores ? "Retake assessment" : "Dosha assessment"}
+              onPress={() => router.push("/assessment")}
+            />
+            <Row icon="search-outline" label="Explore sessions" onPress={() => router.push("/(tabs)/explore")} />
+          </Card>
 
-        <Pressable onPress={confirmLogout} style={styles.logout}>
-          <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-          <Text style={styles.logoutText}>Sign out</Text>
-        </Pressable>
+          <Pressable
+            onPress={confirmLogout}
+            style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={styles.signOutText}>Sign out</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  identity: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: 20 },
-  avatar: {
-    height: 60,
-    width: 60,
-    borderRadius: 30,
-    backgroundColor: colors.leaf,
+  heroWrap: {
+    minHeight: 220,
+    paddingBottom: 28,
+    overflow: "hidden",
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.95,
+  },
+  heroContent: {
+    alignItems: "center",
+    paddingTop: 28,
+  },
+  avatarRing: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    padding: 4,
+    backgroundColor: "rgba(255,255,255,0.35)",
+    marginBottom: 14,
+  },
+  avatarInner: {
+    flex: 1,
+    borderRadius: 48,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    borderColor: colors.surface,
   },
-  avatarText: { fontFamily: fonts.display, fontSize: 22, color: colors.white },
-  rewardsLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.goldSoft },
-  rewardsPoints: { fontFamily: fonts.display, fontSize: 28, color: colors.white, marginTop: 2 },
-  rewardsHint: { fontFamily: fonts.body, fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 8 },
-  link: { fontFamily: fonts.bodySemi, fontSize: 14, color: colors.forest },
-  row: {
+  avatarText: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.forest,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    maxWidth: "90%",
+  },
+  name: {
+    fontFamily: fonts.display,
+    fontSize: 26,
+    color: colors.white,
+    flexShrink: 1,
+  },
+  email: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: "rgba(255,255,255,0.85)",
+    marginTop: 4,
+  },
+  doshaPill: {
+    marginTop: 12,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.full,
+  },
+  doshaPillText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.white,
+    letterSpacing: 0.3,
+  },
+  loyaltyCard: {
+    borderRadius: radius.lg,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  loyaltyEyebrow: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 11,
+    color: colors.goldSoft,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  loyaltyPoints: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.white,
+    marginTop: 4,
+  },
+  loyaltyTier: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 2,
+  },
+  sectionLabel: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.inkMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  ctaCard: {
+    marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    borderRadius: radius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 8,
+    padding: 16,
   },
-  rowLabel: { flex: 1, fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.foreground },
-  logout: {
+  ctaTitle: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.forest },
+  ctaBody: { fontFamily: fonts.body, fontSize: 13, color: colors.inkMuted, marginTop: 2 },
+  row: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
+    minHeight: 52,
+  },
+  rowIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,122,255,0.1)",
+    alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+  },
+  rowLabel: {
+    flex: 1,
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.foreground,
+  },
+  signOut: {
     marginTop: 24,
+    alignItems: "center",
     paddingVertical: 14,
   },
-  logoutText: { fontFamily: fonts.bodySemi, fontSize: 15, color: colors.danger },
+  signOutText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.danger,
+  },
 });

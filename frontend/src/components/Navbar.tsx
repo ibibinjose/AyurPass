@@ -37,8 +37,19 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+
+  // Adaptive nav: deepen blur/opacity after scroll.
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 12);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Close mobile drawer on route change.
   useEffect(() => {
@@ -81,7 +92,13 @@ export function Navbar() {
   const moreActive = MORE_LINKS.some((l) => navActive(pathname, l.href));
 
   return (
-    <header className="safe-sticky-top sticky z-50 border-b border-hairline bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/85">
+    <header
+      className={`safe-sticky-top sticky z-50 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ${
+        scrolled
+          ? "border-[var(--separator)] bg-surface/80 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-xl supports-[backdrop-filter]:bg-surface/70"
+          : "border-transparent bg-background/70 backdrop-blur-md supports-[backdrop-filter]:bg-background/55"
+      }`}
+    >
       <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-[var(--space-page-x)] sm:min-h-16 sm:gap-4">
         <Logo />
 
