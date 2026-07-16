@@ -2,11 +2,13 @@ import { Controller, Get, Param, Body, Put, Query } from '@nestjs/common';
 import { ProviderType } from '@prisma/client';
 import { ProvidersService } from './providers.service';
 import { UpdateProviderDto } from '../../dtos/provider.dto';
+import { Public } from '../../common/public.decorator';
 
 @Controller('providers')
 export class ProvidersController {
   constructor(private readonly service: ProvidersService) {}
 
+  @Public()
   @Get()
   findAll(
     @Query('q') q?: string,
@@ -17,6 +19,7 @@ export class ProvidersController {
     return this.service.findAll({ q, type, city, country });
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

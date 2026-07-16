@@ -7,13 +7,13 @@ export declare class ProfessionalsService {
         user: {
             id: string;
             createdAt: Date;
+            passwordHash: string | null;
             email: string;
             fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            passwordHash: string | null;
-            avatarUrl: string | null;
             updatedAt: Date;
+            avatarUrl: string | null;
         };
     } & {
         id: string;
@@ -22,8 +22,8 @@ export declare class ProfessionalsService {
         providerId: string;
         title: string | null;
         specializations: string[];
-        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         bio: string | null;
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -44,13 +44,13 @@ export declare class ProfessionalsService {
         user: {
             id: string;
             createdAt: Date;
+            passwordHash: string | null;
             email: string;
             fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            passwordHash: string | null;
-            avatarUrl: string | null;
             updatedAt: Date;
+            avatarUrl: string | null;
         };
     } & {
         id: string;
@@ -59,8 +59,8 @@ export declare class ProfessionalsService {
         providerId: string;
         title: string | null;
         specializations: string[];
-        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         bio: string | null;
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -73,13 +73,13 @@ export declare class ProfessionalsService {
         user: {
             id: string;
             createdAt: Date;
+            passwordHash: string | null;
             email: string;
             fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            passwordHash: string | null;
-            avatarUrl: string | null;
             updatedAt: Date;
+            avatarUrl: string | null;
         };
     } & {
         id: string;
@@ -88,8 +88,8 @@ export declare class ProfessionalsService {
         providerId: string;
         title: string | null;
         specializations: string[];
-        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         bio: string | null;
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -102,13 +102,13 @@ export declare class ProfessionalsService {
         user: {
             id: string;
             createdAt: Date;
+            passwordHash: string | null;
             email: string;
             fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            passwordHash: string | null;
-            avatarUrl: string | null;
             updatedAt: Date;
+            avatarUrl: string | null;
         };
         services: {
             id: string;
@@ -120,8 +120,8 @@ export declare class ProfessionalsService {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -170,8 +170,8 @@ export declare class ProfessionalsService {
         providerId: string;
         title: string | null;
         specializations: string[];
-        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         bio: string | null;
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -184,13 +184,13 @@ export declare class ProfessionalsService {
         user: {
             id: string;
             createdAt: Date;
+            passwordHash: string | null;
             email: string;
             fullName: string | null;
             phone: string | null;
             role: import(".prisma/client").$Enums.Role;
-            passwordHash: string | null;
-            avatarUrl: string | null;
             updatedAt: Date;
+            avatarUrl: string | null;
         };
     } & {
         id: string;
@@ -199,8 +199,8 @@ export declare class ProfessionalsService {
         providerId: string;
         title: string | null;
         specializations: string[];
-        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         bio: string | null;
+        doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
         certifications: import("@prisma/client/runtime/library").JsonValue | null;
         yearsExperience: number | null;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;

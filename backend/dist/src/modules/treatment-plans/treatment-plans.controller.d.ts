@@ -1,5 +1,6 @@
 import { TreatmentPlansService } from './treatment-plans.service';
 import { CreateTreatmentPlanDto, UpdateTreatmentPlanDto } from '../../dtos/treatment-plan.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
 export declare class TreatmentPlansController {
     private readonly service;
     constructor(service: TreatmentPlansService);
@@ -17,7 +18,7 @@ export declare class TreatmentPlansController {
         phases: import("@prisma/client/runtime/library").JsonValue | null;
         aiGenerated: boolean;
     }>;
-    findByConsumer(consumerId: string): Promise<{
+    findByConsumer(consumerId: string, req: AuthedRequest): Promise<{
         id: string;
         createdAt: Date;
         name: string | null;

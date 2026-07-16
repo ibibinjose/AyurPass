@@ -16,14 +16,17 @@ exports.ConsentsController = void 0;
 const common_1 = require("@nestjs/common");
 const consents_service_1 = require("./consents.service");
 const consent_dto_1 = require("../../dtos/consent.dto");
+const ownership_1 = require("../../common/ownership");
 let ConsentsController = class ConsentsController {
     constructor(consentsService) {
         this.consentsService = consentsService;
     }
-    create(createConsentDto) {
+    create(createConsentDto, req) {
+        (0, ownership_1.assertSelfOrAdmin)(req.user, createConsentDto.consumerId);
         return this.consentsService.createConsent(createConsentDto);
     }
-    findByConsumer(consumerId) {
+    findByConsumer(consumerId, req) {
+        (0, ownership_1.assertSelfOrAdmin)(req.user, consumerId);
         return this.consentsService.getConsentsForConsumer(consumerId);
     }
     findOne(id) {
@@ -40,15 +43,17 @@ exports.ConsentsController = ConsentsController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [consent_dto_1.CreateConsentDto]),
+    __metadata("design:paramtypes", [consent_dto_1.CreateConsentDto, Object]),
     __metadata("design:returntype", void 0)
 ], ConsentsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('consumer/:id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ConsentsController.prototype, "findByConsumer", null);
 __decorate([

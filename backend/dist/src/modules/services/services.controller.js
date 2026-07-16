@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const services_service_1 = require("./services.service");
 const service_dto_1 = require("../../dtos/service.dto");
+const public_decorator_1 = require("../../common/public.decorator");
 let ServicesController = class ServicesController {
     constructor(service) {
         this.service = service;
@@ -49,6 +50,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServicesController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('category')),
     __metadata("design:type", Function),
@@ -56,6 +58,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServicesController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('provider/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -63,6 +66,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ServicesController.prototype, "findByProvider", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

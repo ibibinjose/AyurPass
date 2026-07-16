@@ -16,6 +16,7 @@ exports.PaymentsController = exports.RedemptionDto = void 0;
 const common_1 = require("@nestjs/common");
 const class_validator_1 = require("class-validator");
 const payments_service_1 = require("./payments.service");
+const public_decorator_1 = require("../../common/public.decorator");
 class RedemptionDto {
 }
 exports.RedemptionDto = RedemptionDto;
@@ -52,6 +53,7 @@ let PaymentsController = class PaymentsController {
 };
 exports.PaymentsController = PaymentsController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('mode'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

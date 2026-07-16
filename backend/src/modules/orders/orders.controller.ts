@@ -1,18 +1,22 @@
-import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderDto } from '../../dtos/order.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { assertSelfOrAdmin } from '../../common/ownership';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req: AuthedRequest) {
+    assertSelfOrAdmin(req.user, createOrderDto.consumerId);
     return this.service.createOrder(createOrderDto);
   }
 
   @Get('consumer/:id')
-  findByConsumer(@Param('id') consumerId: string) {
+  findByConsumer(@Param('id') consumerId: string, @Req() req: AuthedRequest) {
+    assertSelfOrAdmin(req.user, consumerId);
     return this.service.findByConsumer(consumerId);
   }
 

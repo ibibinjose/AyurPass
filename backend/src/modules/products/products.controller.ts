@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Param, Body, Put, Delete, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, UpdateProductDto } from '../../dtos/product.dto';
+import { Public } from '../../common/public.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -11,16 +12,19 @@ export class ProductsController {
     return this.service.createProduct(createProductDto);
   }
 
+  @Public()
   @Get()
   findAll(@Query('category') category?: string) {
     return this.service.findAll(category);
   }
 
+  @Public()
   @Get('provider/:id')
   findByProvider(@Param('id') providerId: string) {
     return this.service.findByProvider(providerId);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

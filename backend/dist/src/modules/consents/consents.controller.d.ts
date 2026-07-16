@@ -1,9 +1,10 @@
 import { ConsentsService } from './consents.service';
 import { CreateConsentDto, UpdateConsentDto } from '../../dtos/consent.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
 export declare class ConsentsController {
     private readonly consentsService;
     constructor(consentsService: ConsentsService);
-    create(createConsentDto: CreateConsentDto): Promise<{
+    create(createConsentDto: CreateConsentDto, req: AuthedRequest): Promise<{
         id: string;
         createdAt: Date;
         consumerId: string;
@@ -13,7 +14,7 @@ export declare class ConsentsController {
         scope: import("@prisma/client/runtime/library").JsonValue | null;
         expiresAt: Date | null;
     }>;
-    findByConsumer(consumerId: string): Promise<{
+    findByConsumer(consumerId: string, req: AuthedRequest): Promise<{
         id: string;
         createdAt: Date;
         consumerId: string;

@@ -17,8 +17,8 @@ export declare class LoyaltyController {
             type: string;
             createdAt: Date;
             accountId: string;
-            points: number;
             reason: string;
+            points: number;
         }[];
     }>;
 }

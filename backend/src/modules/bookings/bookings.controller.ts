@@ -1,18 +1,22 @@
-import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Req } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { assertSelfOrAdmin } from '../../common/ownership';
 
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto) {
+  create(@Body() createBookingDto: CreateBookingDto, @Req() req: AuthedRequest) {
+    assertSelfOrAdmin(req.user, createBookingDto.consumerId);
     return this.bookingsService.createBooking(createBookingDto);
   }
 
   @Get('consumer/:id')
-  findByConsumer(@Param('id') consumerId: string) {
+  findByConsumer(@Param('id') consumerId: string, @Req() req: AuthedRequest) {
+    assertSelfOrAdmin(req.user, consumerId);
     return this.bookingsService.findByConsumer(consumerId);
   }
 

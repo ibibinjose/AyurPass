@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const user_dto_1 = require("../../dtos/user.dto");
 const sanitize_user_1 = require("../../common/sanitize-user");
+const public_decorator_1 = require("../../common/public.decorator");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -36,6 +37,7 @@ let UsersController = class UsersController {
 };
 exports.UsersController = UsersController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -43,6 +45,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "findById", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('email/:email'),
     __param(0, (0, common_1.Param)('email')),
     __metadata("design:type", Function),
@@ -50,6 +53,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "findByEmail", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),

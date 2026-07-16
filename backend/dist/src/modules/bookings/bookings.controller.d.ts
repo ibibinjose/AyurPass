@@ -1,9 +1,10 @@
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
 export declare class BookingsController {
     private readonly bookingsService;
     constructor(bookingsService: BookingsService);
-    create(createBookingDto: CreateBookingDto): Promise<{
+    create(createBookingDto: CreateBookingDto, req: AuthedRequest): Promise<{
         provider: {
             id: string;
             businessName: string;
@@ -27,8 +28,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -62,7 +63,7 @@ export declare class BookingsController {
         platformCommission: import("@prisma/client/runtime/library").Decimal | null;
         providerPayout: import("@prisma/client/runtime/library").Decimal | null;
     }>;
-    findByConsumer(consumerId: string): Promise<({
+    findByConsumer(consumerId: string, req: AuthedRequest): Promise<({
         provider: {
             id: string;
             businessName: string;
@@ -86,8 +87,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -153,8 +154,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -212,8 +213,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -271,8 +272,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;

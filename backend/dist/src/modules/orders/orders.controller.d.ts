@@ -1,21 +1,14 @@
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderDto } from '../../dtos/order.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
 export declare class OrdersController {
     private readonly service;
     constructor(service: OrdersService);
-    create(createOrderDto: CreateOrderDto): Promise<{
+    create(createOrderDto: CreateOrderDto, req: AuthedRequest): Promise<{
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-        };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
         };
         items: ({
             product: {
@@ -25,11 +18,19 @@ export declare class OrdersController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
     } & {
         id: string;
         createdAt: Date;
@@ -47,19 +48,11 @@ export declare class OrdersController {
         subtotal: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
-    findByConsumer(consumerId: string): Promise<({
+    findByConsumer(consumerId: string, req: AuthedRequest): Promise<({
         provider: {
             id: string;
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
-        };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
         };
         items: ({
             product: {
@@ -69,11 +62,19 @@ export declare class OrdersController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
     } & {
         id: string;
         createdAt: Date;
@@ -97,14 +98,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-        };
         items: ({
             product: {
                 id: string;
@@ -113,11 +106,19 @@ export declare class OrdersController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
     } & {
         id: string;
         createdAt: Date;
@@ -141,14 +142,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-        };
         items: ({
             product: {
                 id: string;
@@ -157,11 +150,19 @@ export declare class OrdersController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
     } & {
         id: string;
         createdAt: Date;
@@ -185,14 +186,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        consumer: {
-            userId: string;
-            user: {
-                id: string;
-                email: string;
-                fullName: string | null;
-            };
-        };
         items: ({
             product: {
                 id: string;
@@ -201,11 +194,19 @@ export declare class OrdersController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
+        consumer: {
+            userId: string;
+            user: {
+                id: string;
+                email: string;
+                fullName: string | null;
+            };
+        };
     } & {
         id: string;
         createdAt: Date;

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Param, Body, Put, Delete, Query } from '@nestjs/
 import { ServiceCategory } from '@prisma/client';
 import { ServicesService } from './services.service';
 import { CreateServiceDto, UpdateServiceDto } from '../../dtos/service.dto';
+import { Public } from '../../common/public.decorator';
 
 @Controller('services')
 export class ServicesController {
@@ -12,16 +13,19 @@ export class ServicesController {
     return this.service.createService(createServiceDto);
   }
 
+  @Public()
   @Get()
   findAll(@Query('category') category?: ServiceCategory) {
     return this.service.findAll(category);
   }
 
+  @Public()
   @Get('provider/:id')
   findByProvider(@Param('id') providerId: string) {
     return this.service.findByProvider(providerId);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

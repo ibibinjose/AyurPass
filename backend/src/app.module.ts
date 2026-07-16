@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from './common/jwt-auth.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
@@ -27,6 +30,10 @@ import { HealthModule } from './health/health.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+    }),
     PrismaModule,
     UsersModule,
     BookingsModule,
@@ -47,6 +54,11 @@ import { HealthModule } from './health/health.module';
     GiftCardsModule,
     HealthProfilesModule,
     HealthModule,
+  ],
+  providers: [
+    // Global authentication: every route requires a valid access token
+    // unless annotated @Public(). See src/common/jwt-auth.guard.ts.
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
 export class AppModule {}

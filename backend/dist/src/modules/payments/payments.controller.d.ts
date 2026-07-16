@@ -21,8 +21,8 @@ export declare class PaymentsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -70,8 +70,8 @@ export declare class PaymentsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            durationMinutes: number;
             currency: string;
+            durationMinutes: number;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -125,9 +125,9 @@ export declare class PaymentsController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
     } & {
@@ -164,9 +164,9 @@ export declare class PaymentsController {
             };
         } & {
             id: string;
-            orderId: string;
             productId: string;
             quantity: number;
+            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
     } & {

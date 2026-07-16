@@ -8,7 +8,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const core_1 = require("@nestjs/core");
 const config_1 = require("@nestjs/config");
+const jwt_1 = require("@nestjs/jwt");
+const jwt_auth_guard_1 = require("./common/jwt-auth.guard");
 const prisma_module_1 = require("./prisma/prisma.module");
 const users_module_1 = require("./modules/users/users.module");
 const bookings_module_1 = require("./modules/bookings/bookings.module");
@@ -39,6 +42,10 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 envFilePath: '.env',
             }),
+            jwt_1.JwtModule.register({
+                global: true,
+                secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+            }),
             prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             bookings_module_1.BookingsModule,
@@ -59,6 +66,9 @@ exports.AppModule = AppModule = __decorate([
             gift_cards_module_1.GiftCardsModule,
             health_profiles_module_1.HealthProfilesModule,
             health_module_1.HealthModule,
+        ],
+        providers: [
+            { provide: core_1.APP_GUARD, useClass: jwt_auth_guard_1.JwtAuthGuard },
         ],
     })
 ], AppModule);

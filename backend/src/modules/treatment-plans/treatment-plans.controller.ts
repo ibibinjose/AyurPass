@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Patch, Param, Body, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Delete, Req } from '@nestjs/common';
 import { TreatmentPlansService } from './treatment-plans.service';
 import { CreateTreatmentPlanDto, UpdateTreatmentPlanDto } from '../../dtos/treatment-plan.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { assertSelfOrAdmin } from '../../common/ownership';
 
 @Controller('treatment-plans')
 export class TreatmentPlansController {
@@ -12,7 +14,8 @@ export class TreatmentPlansController {
   }
 
   @Get('consumer/:id')
-  findByConsumer(@Param('id') consumerId: string) {
+  findByConsumer(@Param('id') consumerId: string, @Req() req: AuthedRequest) {
+    assertSelfOrAdmin(req.user, consumerId);
     return this.service.getPlansForConsumer(consumerId);
   }
 

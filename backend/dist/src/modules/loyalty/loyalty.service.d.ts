@@ -17,8 +17,8 @@ export declare class LoyaltyService {
             type: string;
             createdAt: Date;
             accountId: string;
-            points: number;
             reason: string;
+            points: number;
         }[];
     }>;
     award(consumerId: string, dollarsPaid: number, reason: string): Promise<number>;

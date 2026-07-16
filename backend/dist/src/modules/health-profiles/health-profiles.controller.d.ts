@@ -1,12 +1,13 @@
 import { HealthProfilesService } from './health-profiles.service';
 import { CreateHealthProfileDto, UpdateHealthProfileDto } from '../../dtos/health-profile.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
 export declare class HealthProfilesController {
     private readonly service;
     constructor(service: HealthProfilesService);
-    createOrUpdate(consumerId: string, data: CreateHealthProfileDto): Promise<{
+    createOrUpdate(consumerId: string, data: CreateHealthProfileDto, req: AuthedRequest): Promise<{
         id: string;
-        updatedAt: Date;
         consumerId: string;
+        updatedAt: Date;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -14,10 +15,10 @@ export declare class HealthProfilesController {
         currentImbalances: import("@prisma/client/runtime/library").JsonValue | null;
         lastAssessment: Date | null;
     }>;
-    getProfile(consumerId: string): Promise<{
+    getProfile(consumerId: string, req: AuthedRequest): Promise<{
         id: string;
-        updatedAt: Date;
         consumerId: string;
+        updatedAt: Date;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -25,10 +26,10 @@ export declare class HealthProfilesController {
         currentImbalances: import("@prisma/client/runtime/library").JsonValue | null;
         lastAssessment: Date | null;
     } | null>;
-    update(consumerId: string, updateHealthProfileDto: UpdateHealthProfileDto): Promise<{
+    update(consumerId: string, updateHealthProfileDto: UpdateHealthProfileDto, req: AuthedRequest): Promise<{
         id: string;
-        updatedAt: Date;
         consumerId: string;
+        updatedAt: Date;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;

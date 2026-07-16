@@ -57,10 +57,10 @@ export declare class IntegrationsController {
         createdAt: Date;
         providerId: string;
         status: string;
-        externalAccountId: string | null;
-        config: import("@prisma/client/runtime/library").JsonValue | null;
-        connectedAt: Date | null;
         lastSyncAt: Date | null;
+        config: import("@prisma/client/runtime/library").JsonValue | null;
+        externalAccountId: string | null;
+        connectedAt: Date | null;
     }>;
     disconnect(id: string): Promise<{
         id: string;
@@ -68,10 +68,10 @@ export declare class IntegrationsController {
         createdAt: Date;
         providerId: string;
         status: string;
-        externalAccountId: string | null;
-        config: import("@prisma/client/runtime/library").JsonValue | null;
-        connectedAt: Date | null;
         lastSyncAt: Date | null;
+        config: import("@prisma/client/runtime/library").JsonValue | null;
+        externalAccountId: string | null;
+        connectedAt: Date | null;
     }>;
     sync(id: string): Promise<{
         integrationId: string;

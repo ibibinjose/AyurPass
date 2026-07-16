@@ -21,9 +21,9 @@ export declare class UsersController {
         consumer: {
             code: string;
             userId: string;
-            prakritiPrimary: string | null;
             prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
             preferences: import("@prisma/client/runtime/library").JsonValue | null;
+            prakritiPrimary: string | null;
         } | null;
         professional: ({
             provider: {
@@ -47,8 +47,8 @@ export declare class UsersController {
             providerId: string;
             title: string | null;
             specializations: string[];
-            doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
             bio: string | null;
+            doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
             certifications: import("@prisma/client/runtime/library").JsonValue | null;
             yearsExperience: number | null;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -60,45 +60,45 @@ export declare class UsersController {
     } & {
         id: string;
         createdAt: Date;
+        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        passwordHash: string | null;
-        avatarUrl: string | null;
         updatedAt: Date;
+        avatarUrl: string | null;
     }, "passwordHash"> | null>;
     findByEmail(email: string): Promise<Omit<{
         id: string;
         createdAt: Date;
+        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        passwordHash: string | null;
-        avatarUrl: string | null;
         updatedAt: Date;
+        avatarUrl: string | null;
     }, "passwordHash"> | null>;
     create(createUserDto: CreateUserDto): Promise<Omit<{
         id: string;
         createdAt: Date;
+        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        passwordHash: string | null;
-        avatarUrl: string | null;
         updatedAt: Date;
+        avatarUrl: string | null;
     }, "passwordHash"> | null>;
     update(id: string, updateUserDto: UpdateUserDto): Promise<Omit<{
         id: string;
         createdAt: Date;
+        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        passwordHash: string | null;
-        avatarUrl: string | null;
         updatedAt: Date;
+        avatarUrl: string | null;
     }, "passwordHash"> | null>;
 }

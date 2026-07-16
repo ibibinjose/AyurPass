@@ -16,14 +16,17 @@ exports.BookingsController = void 0;
 const common_1 = require("@nestjs/common");
 const bookings_service_1 = require("./bookings.service");
 const booking_dto_1 = require("../../dtos/booking.dto");
+const ownership_1 = require("../../common/ownership");
 let BookingsController = class BookingsController {
     constructor(bookingsService) {
         this.bookingsService = bookingsService;
     }
-    create(createBookingDto) {
+    create(createBookingDto, req) {
+        (0, ownership_1.assertSelfOrAdmin)(req.user, createBookingDto.consumerId);
         return this.bookingsService.createBooking(createBookingDto);
     }
-    findByConsumer(consumerId) {
+    findByConsumer(consumerId, req) {
+        (0, ownership_1.assertSelfOrAdmin)(req.user, consumerId);
         return this.bookingsService.findByConsumer(consumerId);
     }
     findByProvider(providerId) {
@@ -40,15 +43,17 @@ exports.BookingsController = BookingsController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [booking_dto_1.CreateBookingDto]),
+    __metadata("design:paramtypes", [booking_dto_1.CreateBookingDto, Object]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('consumer/:id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "findByConsumer", null);
 __decorate([

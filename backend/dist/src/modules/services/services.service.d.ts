@@ -34,8 +34,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
@@ -71,8 +71,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
@@ -108,8 +108,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
@@ -145,8 +145,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
@@ -182,8 +182,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;
@@ -199,8 +199,8 @@ export declare class ServicesService {
         price: import("@prisma/client/runtime/library").Decimal;
         providerId: string;
         professionalId: string | null;
-        durationMinutes: number;
         currency: string;
+        durationMinutes: number;
         imageUrl: string | null;
         doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
         isVirtual: boolean;

@@ -1,6 +1,7 @@
 import { Controller, Post, Param, Get, Body } from '@nestjs/common';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { PaymentsService } from './payments.service';
+import { Public } from '../../common/public.decorator';
 
 export class RedemptionDto {
   @IsString()
@@ -17,6 +18,7 @@ export class RedemptionDto {
 export class PaymentsController {
   constructor(private readonly service: PaymentsService) {}
 
+  @Public()
   @Get('mode')
   mode() {
     return { provider: 'stripe', mock: this.service.mockMode };

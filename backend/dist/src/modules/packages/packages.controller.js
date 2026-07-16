@@ -16,6 +16,7 @@ exports.PackagesController = void 0;
 const common_1 = require("@nestjs/common");
 const packages_service_1 = require("./packages.service");
 const package_dto_1 = require("../../dtos/package.dto");
+const public_decorator_1 = require("../../common/public.decorator");
 let PackagesController = class PackagesController {
     constructor(service) {
         this.service = service;
@@ -48,12 +49,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PackagesController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], PackagesController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('provider/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -61,6 +64,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PackagesController.prototype, "findByProvider", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
