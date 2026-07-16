@@ -6,10 +6,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import type { Order, Product } from "@/lib/types";
+import type { Order, PaymentCheckout, Product } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { PayWithStripe } from "@/components/PayWithStripe";
 import { LotusIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
@@ -26,6 +27,7 @@ export default function BuyProductPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
+  const [stripePay, setStripePay] = useState<PaymentCheckout | null>(null);
   const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
 
   useEffect(() => {
@@ -109,42 +111,51 @@ export default function BuyProductPage() {
           ) : (
             <div className="mt-6 space-y-4 text-left">
               <RedeemPanel amountDue={Number(order.subtotal)} onChange={setRedemption} />
-              <div className="rounded-2xl border border-hairline bg-clay/40 p-4">
-                {redemption.discount > 0 && (
-                  <p className="mb-2 flex justify-between text-sm">
-                    <span className="text-ink-muted">You pay today</span>
-                    <span className="font-semibold text-foreground">
-                      {formatMoney(Math.max(0, Number(order.subtotal) - redemption.discount))}
-                    </span>
-                  </p>
+              {redemption.discount > 0 && (
+                <p className="mb-2 flex justify-between text-sm">
+                  <span className="text-ink-muted">You pay today</span>
+                  <span className="font-semibold text-foreground">
+                    {formatMoney(Math.max(0, Number(order.subtotal) - redemption.discount))}
+                  </span>
+                </p>
+              )}
+              <PayWithStripe
+                mock={stripePay?.mock ?? true}
+                clientSecret={stripePay?.clientSecret}
+                publishableKey={stripePay?.publishableKey}
+                amountLabel={formatMoney(
+                  Math.max(0, Number(order.subtotal) - redemption.discount),
                 )}
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={async () => {
-                    setBusy(true);
-                    setError(null);
-                    try {
-                      setOrder(
-                        await api.payOrder(order.id, {
-                          giftCardCode: redemption.giftCardCode,
-                          redeemPoints: redemption.redeemPoints,
-                        }),
-                      );
-                    } catch {
-                      setError("Payment couldn't be completed — please recheck your rewards.");
-                    } finally {
-                      setBusy(false);
+                busy={busy}
+                error={error}
+                onMockPay={async () => {
+                  setBusy(true);
+                  setError(null);
+                  try {
+                    const result = await api.payOrder(order.id, {
+                      giftCardCode: redemption.giftCardCode,
+                      redeemPoints: redemption.redeemPoints,
+                    });
+                    if (result.payment?.clientSecret) {
+                      setOrder(result);
+                      setStripePay(result.payment);
+                    } else {
+                      setOrder(result);
+                      setStripePay(null);
                     }
-                  }}
-                >
-                  {busy
-                    ? "Processing…"
-                    : `Pay ${formatMoney(Math.max(0, Number(order.subtotal) - redemption.discount))} with Stripe (test mode)`}
-                </Button>
-                <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
-                <ErrorNote message={error} />
-              </div>
+                  } catch {
+                    setError("Payment couldn't be completed — please recheck your rewards.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                onStripeSuccess={async () => {
+                  const paid = await api.confirmOrderPayment(order.id);
+                  setOrder(paid);
+                  setStripePay(null);
+                }}
+                onError={setError}
+              />
             </div>
           )}
 

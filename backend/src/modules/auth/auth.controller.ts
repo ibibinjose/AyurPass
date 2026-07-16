@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from '../../dtos/auth.dto';
 import { Public } from '../../common/public.decorator';
-import { Request } from 'express';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { sanitizeUser } from '../../common/sanitize-user';
 
 @Controller('auth')
 export class AuthController {
@@ -31,12 +32,9 @@ export class AuthController {
   }
 
   @Get('profile')
-  async getProfile(@Req() req: Request) {
-    // Extract user info from request (would come from JWT middleware in a real implementation)
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      throw new Error('Authentication token required');
-    }
-    return this.authService.getProfile(token);
+  async getProfile(@Req() req: AuthedRequest) {
+    const user = await this.usersService.findById(req.user.sub);
+    if (!user) throw new NotFoundException('User not found');
+    return sanitizeUser(user);
   }
 }

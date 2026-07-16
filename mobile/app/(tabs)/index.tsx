@@ -85,6 +85,14 @@ export default function Discover() {
         <Body muted>{firstName ? `Namaste, ${firstName}` : "Namaste"}</Body>
         <Display style={{ marginTop: 2 }}>Discover providers</Display>
 
+        <Pressable onPress={() => router.push("/offers")} style={styles.offersBanner}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.offersEyebrow}>Limited-time</Text>
+            <Text style={styles.offersTitle}>Wellness offers & deals</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.goldSoft} />
+        </Pressable>
+
         <View style={styles.search}>
           <Ionicons name="search-outline" size={18} color={colors.inkMuted} />
           <TextInput
@@ -123,6 +131,23 @@ export default function Discover() {
 }
 
 const styles = StyleSheet.create({
+  offersBanner: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.forest,
+    borderRadius: radius.lg,
+    padding: 16,
+    gap: 12,
+  },
+  offersEyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.goldSoft,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  offersTitle: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.white, marginTop: 2 },
   search: {
     flexDirection: "row",
     alignItems: "center",

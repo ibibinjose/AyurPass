@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Param, Body, Put, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  Put,
+  Req,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConsentsService } from './consents.service';
 import { CreateConsentDto, UpdateConsentDto } from '../../dtos/consent.dto';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
@@ -21,17 +31,30 @@ export class ConsentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.consentsService.findOne(id);
+  async findOne(@Param('id') id: string, @Req() req: AuthedRequest) {
+    const consent = await this.consentsService.findOne(id);
+    if (!consent) throw new NotFoundException('Consent not found');
+    assertSelfOrAdmin(req.user, consent.consumerId);
+    return consent;
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateConsentDto: UpdateConsentDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateConsentDto: UpdateConsentDto,
+    @Req() req: AuthedRequest,
+  ) {
+    const consent = await this.consentsService.findOne(id);
+    if (!consent) throw new NotFoundException('Consent not found');
+    assertSelfOrAdmin(req.user, consent.consumerId);
     return this.consentsService.updateConsent(id, updateConsentDto);
   }
 
   @Delete(':id')
-  revoke(@Param('id') id: string) {
+  async revoke(@Param('id') id: string, @Req() req: AuthedRequest) {
+    const consent = await this.consentsService.findOne(id);
+    if (!consent) throw new NotFoundException('Consent not found');
+    assertSelfOrAdmin(req.user, consent.consumerId);
     return this.consentsService.revokeConsent(id);
   }
 }

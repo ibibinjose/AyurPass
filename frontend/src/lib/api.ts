@@ -4,6 +4,7 @@ import type {
   AuthResponse,
   AuthTokens,
   Booking,
+  BookingCheckout,
   BookingStatus,
   BrandProfile,
   BusinessAddress,
@@ -16,7 +17,10 @@ import type {
   HealthProfile,
   LoyaltySummary,
   Order,
+  OrderCheckout,
   OrderStatus,
+  PaymentModeConfig,
+  StripeConnectStatus,
   Product,
   Professional,
   Provider,
@@ -194,16 +198,28 @@ export const api = {
   ) => request<Room>(`/rooms/${id}`, { method: "PUT", body: data, auth: true }),
   deleteRoom: (id: string) => request<Room>(`/rooms/${id}`, { method: "DELETE", auth: true }),
 
-  // --- payments (Stripe placeholder) ---
-  paymentMode: () => request<{ provider: string; mock: boolean }>("/payments/mode"),
+  // --- payments (Stripe Connect) ---
+  paymentMode: () => request<PaymentModeConfig>("/payments/mode"),
   payBooking: (bookingId: string, redemption?: { giftCardCode?: string; redeemPoints?: number }) =>
-    request<Booking>(`/payments/checkout/${bookingId}`, {
+    request<BookingCheckout>(`/payments/checkout/${bookingId}`, {
       method: "POST",
       body: redemption ?? {},
       auth: true,
     }),
+  confirmBookingPayment: (bookingId: string) =>
+    request<Booking>(`/payments/confirm/${bookingId}`, { method: "POST", auth: true }),
   refundBooking: (bookingId: string) =>
     request<Booking>(`/payments/refund/${bookingId}`, { method: "POST", auth: true }),
+  stripeConnectOnboard: (
+    providerId: string,
+    urls: { returnUrl: string; refreshUrl: string },
+  ) =>
+    request<{ mock: boolean; url: string; accountId: string; message?: string }>(
+      `/payments/connect/${providerId}/onboard`,
+      { method: "POST", body: urls, auth: true },
+    ),
+  stripeConnectStatus: (providerId: string) =>
+    request<StripeConnectStatus>(`/payments/connect/${providerId}/status`, { auth: true }),
 
   // --- providers (business profile) ---
   providers: (params?: { q?: string; type?: ProviderType; city?: string; country?: string }) => {
@@ -331,11 +347,13 @@ export const api = {
   updateOrder: (id: string, data: { status?: OrderStatus; notes?: string }) =>
     request<Order>(`/orders/${id}`, { method: "PUT", body: data, auth: true }),
   payOrder: (orderId: string, redemption?: { giftCardCode?: string; redeemPoints?: number }) =>
-    request<Order>(`/payments/checkout-order/${orderId}`, {
+    request<OrderCheckout>(`/payments/checkout-order/${orderId}`, {
       method: "POST",
       body: redemption ?? {},
       auth: true,
     }),
+  confirmOrderPayment: (orderId: string) =>
+    request<Order>(`/payments/confirm-order/${orderId}`, { method: "POST", auth: true }),
   refundOrder: (orderId: string) =>
     request<Order>(`/payments/refund-order/${orderId}`, { method: "POST", auth: true }),
 

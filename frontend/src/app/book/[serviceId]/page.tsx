@@ -8,10 +8,11 @@ import { api, formatMoney } from "@/lib/api";
 import { downloadBookingIcs } from "@/lib/ics";
 import { CATEGORY_LABEL, formatDuration, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
-import type { Booking, Service } from "@/lib/types";
+import type { Booking, PaymentCheckout, Service } from "@/lib/types";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { PayWithStripe } from "@/components/PayWithStripe";
 import { CalendarIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Textarea } from "@/components/ui";
@@ -29,6 +30,7 @@ export default function BookServicePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [stripePay, setStripePay] = useState<PaymentCheckout | null>(null);
   const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
 
   useEffect(() => {
@@ -141,34 +143,43 @@ export default function BookServicePage() {
                 amountDue={Number(confirmed.totalAmount ?? service.price)}
                 onChange={setRedemption}
               />
-              <div className="rounded-2xl border border-hairline bg-clay/40 p-4">
-                <Button
-                  className="w-full"
-                  disabled={busy}
-                  onClick={async () => {
-                    setBusy(true);
-                    setError(null);
-                    try {
-                      setConfirmed(
-                        await api.payBooking(confirmed.id, {
-                          giftCardCode: redemption.giftCardCode,
-                          redeemPoints: redemption.redeemPoints,
-                        }),
-                      );
-                    } catch {
-                      setError("Payment couldn't be completed — please recheck your rewards.");
-                    } finally {
-                      setBusy(false);
+              <PayWithStripe
+                mock={stripePay?.mock ?? true}
+                clientSecret={stripePay?.clientSecret}
+                publishableKey={stripePay?.publishableKey}
+                amountLabel={formatMoney(
+                  Math.max(0, Number(confirmed.totalAmount ?? service.price) - redemption.discount),
+                )}
+                busy={busy}
+                error={error}
+                onMockPay={async () => {
+                  setBusy(true);
+                  setError(null);
+                  try {
+                    const result = await api.payBooking(confirmed.id, {
+                      giftCardCode: redemption.giftCardCode,
+                      redeemPoints: redemption.redeemPoints,
+                    });
+                    if (result.payment?.clientSecret) {
+                      setConfirmed(result);
+                      setStripePay(result.payment);
+                    } else {
+                      setConfirmed(result);
+                      setStripePay(null);
                     }
-                  }}
-                >
-                  {busy
-                    ? "Processing…"
-                    : `Pay ${formatMoney(Math.max(0, Number(confirmed.totalAmount ?? service.price) - redemption.discount))} with Stripe (test mode)`}
-                </Button>
-                <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
-                <ErrorNote message={error} />
-              </div>
+                  } catch {
+                    setError("Payment couldn't be completed — please recheck your rewards.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                onStripeSuccess={async () => {
+                  const paid = await api.confirmBookingPayment(confirmed.id);
+                  setConfirmed(paid);
+                  setStripePay(null);
+                }}
+                onError={setError}
+              />
             </div>
           )}
 

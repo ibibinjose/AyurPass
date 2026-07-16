@@ -12,6 +12,7 @@ export const PROVIDER_TYPE_LABEL: Record<ProviderType, string> = {
   LUXURY_SPA: "Luxury Spa",
   MEDITATION_CENTER: "Meditation Center",
   HEALTH_CLUB: "Health Club",
+  NUTRITIONIST: "Nutritionist",
   COACHING: "Coaching",
   HYBRID: "Wellness Center",
 };
@@ -22,6 +23,7 @@ export const SERVICE_CATEGORY_LABEL: Record<ServiceCategory, string> = {
   SPA: "Spa",
   MEDITATION: "Meditation",
   FITNESS: "Fitness",
+  NUTRITION: "Nutrition",
   COACHING: "Coaching",
   CONSULTATION: "Consultation",
   PACKAGE: "Package",
@@ -36,6 +38,7 @@ export const PROVIDER_TYPE_ICON: Record<ProviderType, IoniconName> = {
   LUXURY_SPA: "flame-outline",
   MEDITATION_CENTER: "moon-outline",
   HEALTH_CLUB: "barbell-outline",
+  NUTRITIONIST: "nutrition-outline",
   COACHING: "compass-outline",
   HYBRID: "sparkles-outline",
 };
@@ -46,6 +49,7 @@ export const SERVICE_CATEGORY_ICON: Record<ServiceCategory, IoniconName> = {
   SPA: "flame-outline",
   MEDITATION: "moon-outline",
   FITNESS: "barbell-outline",
+  NUTRITION: "nutrition-outline",
   COACHING: "compass-outline",
   CONSULTATION: "chatbubbles-outline",
   PACKAGE: "gift-outline",

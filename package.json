@@ -10,9 +10,16 @@
     "dev:frontend": "cd frontend && npm run dev",
     "dev:mobile": "cd mobile && npm start",
     "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "typecheck:mobile": "cd mobile && npm run typecheck",
     "prisma:generate": "cd backend && npx prisma generate",
     "prisma:migrate": "cd backend && npx prisma migrate dev",
-    "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install"
+    "install:all": "npm install && cd backend && npm install && cd ../mobile && npm install",
+    "stripe:status": "node backend/scripts/stripe-status.mjs",
+    "stripe:listen": "bash scripts/stripe-listen.sh",
+    "seed:aaa-scrape": "node backend/scripts/scrape-aaa-practitioners.mjs",
+    "seed:aaa": "node backend/scripts/seed-aaa-practitioners.mjs",
+    "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa"
   },
   "workspaces": [
     "backend",

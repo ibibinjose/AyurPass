@@ -1,14 +1,27 @@
-import { Controller, Get, Post, Put, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Param, Body, Req } from '@nestjs/common';
 import { ProfessionalsService } from './professionals.service';
 import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
 import { Public } from '../../common/public.decorator';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import {
+  assertProviderAccess,
+  assertProfessionalProviderAccess,
+} from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('professionals')
 export class ProfessionalsController {
-  constructor(private readonly professionalsService: ProfessionalsService) {}
+  constructor(
+    private readonly professionalsService: ProfessionalsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
-  create(@Body() createProfessionalDto: CreateProfessionalDto) {
+  async create(
+    @Body() createProfessionalDto: CreateProfessionalDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProviderAccess(this.prisma, req.user, createProfessionalDto.providerId);
     return this.professionalsService.createProfessional(createProfessionalDto);
   }
 
@@ -31,7 +44,12 @@ export class ProfessionalsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProfessionalDto: UpdateProfessionalDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateProfessionalDto: UpdateProfessionalDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProfessionalProviderAccess(this.prisma, req.user, id);
     return this.professionalsService.updateProfessional(id, updateProfessionalDto);
   }
 }

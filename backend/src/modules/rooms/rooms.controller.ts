@@ -1,33 +1,48 @@
-import { Controller, Get, Post, Param, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put, Delete, Req } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto, UpdateRoomDto } from '../../dtos/room.dto';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { assertProviderAccess, assertRoomProviderAccess } from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('rooms')
 export class RoomsController {
-  constructor(private readonly service: RoomsService) {}
+  constructor(
+    private readonly service: RoomsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
-  create(@Body() createRoomDto: CreateRoomDto) {
+  async create(@Body() createRoomDto: CreateRoomDto, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, createRoomDto.providerId);
     return this.service.createRoom(createRoomDto);
   }
 
   @Get('provider/:id')
-  findByProvider(@Param('id') providerId: string) {
+  async findByProvider(@Param('id') providerId: string, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, providerId);
     return this.service.findByProvider(providerId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertRoomProviderAccess(this.prisma, req.user, id);
     return this.service.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateRoomDto: UpdateRoomDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertRoomProviderAccess(this.prisma, req.user, id);
     return this.service.updateRoom(id, updateRoomDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertRoomProviderAccess(this.prisma, req.user, id);
     return this.service.removeRoom(id);
   }
 }

@@ -1,14 +1,24 @@
-import { Controller, Get, Post, Param, Body, Put, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put, Delete, Query, Req } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto, UpdateProductDto } from '../../dtos/product.dto';
 import { Public } from '../../common/public.decorator';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import {
+  assertProviderAccess,
+  assertProductProviderAccess,
+} from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly service: ProductsService) {}
+  constructor(
+    private readonly service: ProductsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
+  async create(@Body() createProductDto: CreateProductDto, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, createProductDto.providerId);
     return this.service.createProduct(createProductDto);
   }
 
@@ -31,12 +41,18 @@ export class ProductsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProductProviderAccess(this.prisma, req.user, id);
     return this.service.updateProduct(id, updateProductDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertProductProviderAccess(this.prisma, req.user, id);
     return this.service.removeProduct(id);
   }
 }

@@ -394,6 +394,15 @@ model Integration {
   @@unique([providerId, type])
 }
 
+/// Stripe webhook events we've already processed, keyed by Stripe's event id.
+/// Stripe delivers events at-least-once, so we dedupe on this table to make
+/// side effects (loyalty awards, marking paid) exactly-once.
+model ProcessedWebhookEvent {
+  id          String   @id // Stripe event id (evt_...)
+  type        String
+  processedAt DateTime @default(now())
+}
+
 /// Lead / enquiry captured from a provider's public listing page.
 /// Lets free-listing providers (no AyurPass booking) still receive customers.
 model Enquiry {

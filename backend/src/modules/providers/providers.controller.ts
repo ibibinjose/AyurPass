@@ -1,12 +1,18 @@
-import { Controller, Get, Param, Body, Put, Query } from '@nestjs/common';
+import { Controller, Get, Param, Body, Put, Query, Req } from '@nestjs/common';
 import { ProviderType } from '@prisma/client';
 import { ProvidersService } from './providers.service';
 import { UpdateProviderDto } from '../../dtos/provider.dto';
 import { Public } from '../../common/public.decorator';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { assertProviderAccess } from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('providers')
 export class ProvidersController {
-  constructor(private readonly service: ProvidersService) {}
+  constructor(
+    private readonly service: ProvidersService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Public()
   @Get()
@@ -26,7 +32,12 @@ export class ProvidersController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProviderDto: UpdateProviderDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateProviderDto: UpdateProviderDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProviderAccess(this.prisma, req.user, id);
     return this.service.updateProvider(id, updateProviderDto);
   }
 }

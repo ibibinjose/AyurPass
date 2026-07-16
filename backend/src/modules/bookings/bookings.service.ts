@@ -38,7 +38,7 @@ export class BookingsService {
     const platformCommission =
       Math.round(totalAmount * PLATFORM_COMMISSION_RATE * 100) / 100;
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         ...data,
         totalAmount,
@@ -47,6 +47,50 @@ export class BookingsService {
       },
       include: BOOKING_INCLUDES,
     });
+
+    await this.grantBookingHealthConsents(booking);
+
+    return booking;
+  }
+
+  /** Scoped consent so practitioners can read dosha data for a booked session. */
+  private async grantBookingHealthConsents(booking: {
+    id: string;
+    consumerId: string;
+    providerId: string;
+    professionalId: string | null;
+    endTime: Date;
+  }) {
+    const expiresAt = new Date(booking.endTime);
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    const consents: {
+      consumerId: string;
+      granteeId: string;
+      permissionType: string;
+      scope: object;
+      expiresAt: Date;
+    }[] = [
+      {
+        consumerId: booking.consumerId,
+        granteeId: booking.providerId,
+        permissionType: 'view_health_profile',
+        scope: { bookingId: booking.id, dataCategories: ['dosha_scores'] },
+        expiresAt,
+      },
+    ];
+
+    if (booking.professionalId) {
+      consents.push({
+        consumerId: booking.consumerId,
+        granteeId: booking.professionalId,
+        permissionType: 'view_dosha_history',
+        scope: { bookingId: booking.id, dataCategories: ['dosha_scores', 'treatment_plans'] },
+        expiresAt,
+      });
+    }
+
+    await this.prisma.clientConsent.createMany({ data: consents });
   }
 
   async findByConsumer(consumerId: string) {

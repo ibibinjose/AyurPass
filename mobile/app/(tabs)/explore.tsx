@@ -16,6 +16,7 @@ const CATEGORIES: (ServiceCategory | "ALL")[] = [
   "SPA",
   "MEDITATION",
   "FITNESS",
+  "NUTRITION",
   "CONSULTATION",
 ];
 

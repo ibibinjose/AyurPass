@@ -94,9 +94,14 @@ export class IntegrationsService {
     });
   }
 
-  async disconnect(id: string) {
+  async findIntegration(id: string) {
     const integration = await this.prisma.integration.findUnique({ where: { id } });
     if (!integration) throw new NotFoundException('Integration not found');
+    return integration;
+  }
+
+  async disconnect(id: string) {
+    const integration = await this.findIntegration(id);
     // Real mode also revokes the token: POST /oauth2/revoke.
     return this.prisma.integration.update({
       where: { id },
@@ -106,8 +111,7 @@ export class IntegrationsService {
 
   /** Pretends to push the catalog and pull inventory; returns a sync report. */
   async sync(id: string) {
-    const integration = await this.prisma.integration.findUnique({ where: { id } });
-    if (!integration) throw new NotFoundException('Integration not found');
+    const integration = await this.findIntegration(id);
     if (integration.status !== 'connected') {
       throw new BadRequestException('Connect the channel before syncing');
     }

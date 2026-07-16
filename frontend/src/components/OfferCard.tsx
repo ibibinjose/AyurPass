@@ -27,7 +27,7 @@ function CardShell({
 
 export function OfferCard({ offer }: { offer: Offer }) {
   return (
-    <CardShell href={offer.ctaUrl}>
+    <CardShell href={`/offers/${offer.id}`}>
       <div className="relative h-40 w-full">
         {offer.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

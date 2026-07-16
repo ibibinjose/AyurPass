@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { RefreshControl, ScrollView, Text, View, StyleSheet } from "react-native";
+import { Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Badge, Body, Button, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
 import { useAuth } from "../../src/auth";
@@ -38,7 +38,33 @@ function BookingRow({ booking, onPaid }: { booking: Booking; onPaid: () => void 
     setPaying(true);
     setError(null);
     try {
-      await api.payBooking(booking.id);
+      const result = await api.payBooking(booking.id);
+      if (result.paymentStatus === "paid" || result.payment?.mock) {
+        onPaid();
+        return;
+      }
+      if (result.payment?.clientSecret) {
+        Alert.alert(
+          "Complete payment on web",
+          "Card checkout is available on ayurpass.com for now. After paying, tap Confirm to refresh.",
+          [
+            { text: "Cancel", style: "cancel", onPress: () => setPaying(false) },
+            {
+              text: "Confirm paid",
+              onPress: async () => {
+                try {
+                  await api.confirmBookingPayment(booking.id);
+                  onPaid();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
+                  setPaying(false);
+                }
+              },
+            },
+          ],
+        );
+        return;
+      }
       onPaid();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed.");

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateHealthProfileDto, UpdateHealthProfileDto } from '../../dtos/health-profile.dto';
 
@@ -24,7 +24,7 @@ export class HealthProfilesService {
   async updateProfile(consumerId: string, data: UpdateHealthProfileDto) {
     const existing = await this.prisma.healthProfile.findFirst({ where: { consumerId } });
     if (!existing) {
-      throw new Error('Health profile not found');
+      throw new NotFoundException('Health profile not found');
     }
     return this.prisma.healthProfile.update({ 
       where: { id: existing.id }, 

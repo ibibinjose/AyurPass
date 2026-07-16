@@ -43,6 +43,7 @@ const PROVIDER_NAV = [
   { href: "/dashboard/products", label: "Products", icon: LotusIcon },
   { href: "/dashboard/orders", label: "Orders", icon: FlameIcon },
   { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon },
+  { href: "/dashboard/payments", label: "Payments", icon: SparkleIcon },
   { href: "/dashboard/rooms", label: "Rooms", icon: MoonIcon },
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
   { href: "/dashboard/channels", label: "Online channels", icon: CompassIcon },

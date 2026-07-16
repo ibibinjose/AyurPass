@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
@@ -15,16 +20,13 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    // Check if user already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new ConflictException('User with this email already exists');
     }
-    
-    // Hash the password
+
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    
-    // Create the user with basic data
+
     const user = await this.usersService.createUser({
       email: registerDto.email,
       fullName: registerDto.fullName,
@@ -33,7 +35,6 @@ export class AuthService {
       phone: registerDto.phone,
     });
 
-    // Create corresponding profile based on role
     if (registerDto.role === 'CONSUMER') {
       await this.prisma.consumer.create({
         data: {
@@ -51,7 +52,7 @@ export class AuthService {
           listingTier: registerDto.listingTier === 'FREE_LISTING' ? 'FREE_LISTING' : 'BOOKING',
         },
       });
-      
+
       await this.prisma.professional.create({
         data: {
           userId: user.id,
@@ -63,7 +64,6 @@ export class AuthService {
       });
     }
 
-    // Generate tokens
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     return { user: sanitizeUser(user), ...tokens };
   }
@@ -71,12 +71,12 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user || !user.passwordHash) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
@@ -88,27 +88,16 @@ export class AuthService {
       const payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
-      
+
       const user = await this.usersService.findById(payload.sub);
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundException('User not found');
       }
 
       return this.generateTokens(user.id, user.email, user.role);
     } catch (error) {
-      throw new Error('Invalid refresh token');
-    }
-  }
-
-  async getProfile(token: string) {
-    try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_ACCESS_SECRET,
-      });
-
-      return sanitizeUser(await this.usersService.findById(payload.sub));
-    } catch (error) {
-      throw new Error('Invalid token');
+      if (error instanceof NotFoundException) throw error;
+      throw new UnauthorizedException('Invalid refresh token');
     }
   }
 

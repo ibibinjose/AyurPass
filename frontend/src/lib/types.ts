@@ -1,228 +1,70 @@
-export type Role = "CONSUMER" | "PROFESSIONAL" | "PROVIDER_ADMIN" | "PLATFORM_ADMIN";
+export type {
+  Role,
+  ProviderType,
+  BookingStatus,
+  ServiceCategory,
+  PaymentStatus,
+  User,
+  Consumer,
+  BrandProfile,
+  BusinessAddress,
+  Provider,
+  AuthTokens,
+  AuthResponse,
+  Offer,
+  PaymentCheckout,
+  PaymentModeConfig,
+  StripeConnectStatus,
+} from "@ayurpass/shared";
 
-export type ProviderType =
-  | "AYURVEDA_CLINIC"
-  | "AYURVEDA_RESORT"
-  | "PANCHAKARMA_CENTER"
-  | "WELLNESS_RETREAT"
-  | "YOGA_STUDIO"
-  | "LUXURY_SPA"
-  | "MEDITATION_CENTER"
-  | "HEALTH_CLUB"
-  | "NUTRITIONIST"
-  | "COACHING"
-  | "HYBRID";
+import type {
+  Booking as SharedBooking,
+  BusinessAddress,
+  HealthProfile as SharedHealthProfile,
+  LoyaltySummary as SharedLoyaltySummary,
+  PaymentCheckout,
+  PaymentStatus,
+  Professional as SharedProfessional,
+  RegisterPayload as SharedRegisterPayload,
+  Room,
+  Service,
+  User,
+  WellnessPackage as SharedWellnessPackage,
+} from "@ayurpass/shared";
 
-export type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "IN_PROGRESS"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "NO_SHOW";
-
-export interface User {
-  id: string;
-  email: string;
-  phone?: string | null;
-  role: Role;
-  fullName?: string | null;
-  avatarUrl?: string | null;
-  createdAt: string;
-}
-
-export interface Consumer {
-  userId: string;
-  code?: string;
-  prakritiPrimary?: string | null;
-  prakritiScores?: Record<string, number> | null;
-  preferences?: Record<string, unknown> | null;
-}
-
-export interface BrandProfile {
-  about?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  website?: string;
-  openingHours?: string;
-  /** Brand mark / logo — data URL or hosted URL, shown across the marketplace. */
-  logoUrl?: string;
-  /** Wide banner shown on the provider profile. */
-  coverImageUrl?: string;
-  /** Photo URLs shown as a gallery on the listing page. */
-  gallery?: string[];
-  /** Short discovery keywords, e.g. "Panchakarma", "Vegan", "Ocean view". */
-  tags?: string[];
-  /** Facilities offered, e.g. "Sauna", "Parking", "Wheelchair access". */
-  amenities?: string[];
-  socialLinks?: { instagram?: string; facebook?: string; youtube?: string; x?: string };
-  /** Where a free-listing sends visitors to book externally (their own site/portal). */
-  externalBookingUrl?: string;
-  /** Rough price positioning shown on listings. */
-  priceBand?: "$" | "$$" | "$$$" | "$$$$";
-}
-
-export interface BusinessAddress {
-  street?: string;
-  city?: string;
-  state?: string;
-  postcode?: string;
-  country?: string;
-}
-
-export interface Provider {
-  id: string;
-  code?: string;
-  userId?: string | null;
-  businessName: string;
-  type: ProviderType;
-  brandProfile?: BrandProfile | null;
-  address?: BusinessAddress | null;
-  timezone?: string | null;
-  subscriptionTier?: string | null;
-  /** "FREE_LISTING" (directory only) | "BOOKING" (accepts AyurPass bookings). */
-  listingTier?: string | null;
-  verificationStatus: string;
-  createdAt: string;
-  _count?: {
-    professionals: number;
-    services: number;
-    products: number;
-    packages: number;
-    rooms: number;
-  };
-}
-
-export interface Professional {
-  id: string;
-  code?: string;
-  userId: string;
-  providerId: string;
-  title?: string | null;
-  specializations: string[];
+export interface Professional extends SharedProfessional {
   doshaExpertise?: Record<string, unknown> | null;
-  bio?: string | null;
   certifications?: unknown;
-  yearsExperience?: number | null;
-  hourlyRate?: string | number | null;
   availabilityPreferences?: unknown;
   verificationDocuments?: unknown;
-  rating: string | number;
-  reviewCount: number;
-  createdAt: string;
   updatedAt: string;
-  provider?: Pick<
-    Provider,
-    "id" | "businessName" | "type" | "verificationStatus" | "address"
-  >;
-  user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }
 
 /** User as returned by GET /auth/profile — includes linked profiles. */
 export interface UserProfile extends User {
-  consumer?: Consumer | null;
-  provider?: Provider | null;
-  professional?: (Professional & { provider?: Provider }) | null;
+  consumer?: import("@ayurpass/shared").Consumer | null;
+  provider?: import("@ayurpass/shared").Provider | null;
+  professional?: (Professional & { provider?: import("@ayurpass/shared").Provider }) | null;
 }
 
-export type ServiceCategory =
-  | "AYURVEDA"
-  | "YOGA"
-  | "SPA"
-  | "MEDITATION"
-  | "FITNESS"
-  | "NUTRITION"
-  | "COACHING"
-  | "CONSULTATION"
-  | "PACKAGE";
+export type { Service, Room };
 
-export interface Service {
-  id: string;
-  code?: string;
-  providerId: string;
-  professionalId?: string | null;
-  category: ServiceCategory;
-  name: string;
-  description?: string | null;
-  durationMinutes: number;
-  price: string | number;
-  currency: string;
-  imageUrl?: string | null;
-  isVirtual: boolean;
-  maxParticipants: number;
-  createdAt: string;
-  provider?: Pick<Provider, "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile">;
-  professional?: {
-    id: string;
-    title?: string | null;
-    specializations: string[];
-    rating: string | number;
-    reviewCount: number;
-    user?: { id: string; fullName?: string | null };
-  } | null;
-}
-
-export type PaymentStatus = "unpaid" | "paid" | "refunded";
-
-export interface Room {
-  id: string;
-  providerId: string;
-  name: string;
-  description?: string | null;
-  capacity: number;
-  hourlyCost?: string | number | null;
-  createdAt: string;
-}
-
-export interface Booking {
-  id: string;
-  consumerId: string;
-  serviceId: string;
-  professionalId?: string | null;
-  providerId: string;
-  roomId?: string | null;
-  startTime: string;
-  endTime: string;
-  timezone?: string | null;
-  status: BookingStatus;
-  totalAmount?: string | number | null;
+export interface Booking extends SharedBooking {
   platformCommission?: string | number | null;
   providerPayout?: string | number | null;
-  paymentStatus: PaymentStatus;
   giftCardRedeemed?: string | number;
   pointsRedeemed?: number;
-  pointsEarned?: number;
-  notes?: string | null;
-  createdAt: string;
   room?: Pick<Room, "id" | "name" | "capacity" | "hourlyCost"> | null;
-  service?: Service;
-  professional?: {
-    id: string;
-    title?: string | null;
-    user?: { id: string; fullName?: string | null };
-  } | null;
-  provider?: Pick<Provider, "id" | "businessName" | "type">;
   consumer?: {
     userId: string;
     user?: { id: string; fullName?: string | null; email?: string };
   } | null;
 }
 
-export interface WellnessPackage {
-  id: string;
-  providerId: string;
-  name: string;
-  description?: string | null;
-  totalPrice: string | number;
-  durationDays?: number | null;
+export interface WellnessPackage extends SharedWellnessPackage {
   includedServices?: unknown;
   includedProducts?: unknown;
   doshaFocus?: Record<string, unknown> | null;
-  isRecurring: boolean;
-  createdAt: string;
-  /** Linked bookable service (category PACKAGE), managed by the backend. */
-  serviceId?: string | null;
-  provider?: Pick<Provider, "id" | "businessName" | "type" | "verificationStatus">;
 }
 
 export interface TreatmentPlan {
@@ -240,24 +82,10 @@ export interface TreatmentPlan {
   createdAt: string;
 }
 
-export interface HealthProfile {
-  id: string;
-  consumerId: string;
-  vataScore?: string | number | null;
-  pittaScore?: string | number | null;
-  kaphaScore?: string | number | null;
+export interface HealthProfile extends SharedHealthProfile {
   questionnaireResponses?: unknown;
   currentImbalances?: unknown;
-  lastAssessment?: string | null;
-  updatedAt: string;
 }
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export type AuthResponse = AuthTokens & { user: User };
 
 export interface Product {
   id: string;
@@ -270,7 +98,10 @@ export interface Product {
   inventoryQuantity?: number | null;
   images?: string[] | null;
   createdAt: string;
-  provider?: Pick<Provider, "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile">;
+  provider?: Pick<
+    import("@ayurpass/shared").Provider,
+    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
+  >;
 }
 
 export type OrderStatus = "PENDING" | "PAID" | "FULFILLED" | "CANCELLED" | "REFUNDED";
@@ -281,6 +112,14 @@ export interface OrderItem {
   quantity: number;
   unitPrice: string | number;
   product?: Pick<Product, "id" | "name" | "category">;
+}
+
+export interface BookingCheckout extends Booking {
+  payment?: PaymentCheckout;
+}
+
+export interface OrderCheckout extends Order {
+  payment?: PaymentCheckout;
 }
 
 export interface Order {
@@ -300,7 +139,7 @@ export interface Order {
   notes?: string | null;
   createdAt: string;
   items: OrderItem[];
-  provider?: Pick<Provider, "id" | "businessName" | "type">;
+  provider?: Pick<import("@ayurpass/shared").Provider, "id" | "businessName" | "type">;
   consumer?: { userId: string; user?: { id: string; fullName?: string | null; email?: string } };
 }
 
@@ -337,15 +176,8 @@ export interface LoyaltyTransaction {
   createdAt: string;
 }
 
-export interface LoyaltySummary {
-  pointsBalance: number;
-  lifetimePoints: number;
-  pointsValue: number;
+export interface LoyaltySummary extends SharedLoyaltySummary {
   pointRedemptionValue: number;
-  tier: string;
-  tierKey: string;
-  nextTier: string | null;
-  pointsToNextTier: number;
   transactions: LoyaltyTransaction[];
 }
 
@@ -394,19 +226,14 @@ export interface AdminOverview {
   pointsOutstanding: number;
 }
 
-export interface AdminProvider extends Omit<Provider, "_count"> {
+export interface AdminProvider extends Omit<import("@ayurpass/shared").Provider, "_count"> {
   user?: User | null;
   _count: { professionals: number; services: number; bookings: number; rooms: number };
 }
 
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  fullName: string;
-  phone?: string;
-  role?: Role;
+export interface RegisterPayload extends SharedRegisterPayload {
   businessName?: string;
-  providerType?: ProviderType;
+  providerType?: import("@ayurpass/shared").ProviderType;
   /** "FREE_LISTING" for directory-only provider signups. */
   listingTier?: string;
   title?: string;
@@ -471,28 +298,9 @@ export interface Retreat {
   createdAt: string;
   updatedAt: string;
   provider?: Pick<
-    Provider,
+    import("@ayurpass/shared").Provider,
     "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
   >;
-}
-
-/** A platform-curated promotion / deal, created by admins. */
-export interface Offer {
-  id: string;
-  title: string;
-  description?: string | null;
-  discipline?: string | null;
-  discountLabel?: string | null;
-  code?: string | null;
-  imageUrl?: string | null;
-  ctaLabel?: string | null;
-  ctaUrl?: string | null;
-  featured: boolean;
-  active: boolean;
-  startDate?: string | null;
-  endDate?: string | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface OfferInput {

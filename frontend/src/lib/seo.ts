@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { Provider, Retreat } from "./types";
+import type { Offer, Provider, Retreat } from "./types";
 import { BRAND_ASSET_VERSION } from "./brand";
 import { PROVIDER_TYPE_LABEL, RETREAT_CATEGORY_LABEL, formatAddress } from "./catalog";
 
@@ -220,6 +220,35 @@ export function retreatMetadata(retreat: Retreat): Metadata {
     path: `/retreats/${retreat.slug}`,
     images: retreat.images ?? undefined,
     keywords: [cat, where, "retreat", retreat.title].filter(Boolean) as string[],
+  });
+}
+
+export function offerJsonLd(offer: Offer) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Offer",
+    name: offer.title,
+    description: offer.description ?? undefined,
+    image: offer.imageUrl ?? undefined,
+    url: abs(`/offers/${offer.id}`),
+    category: offer.discipline ?? undefined,
+    validFrom: offer.startDate ?? undefined,
+    validThrough: offer.endDate ?? undefined,
+  };
+}
+
+export function offerMetadata(offer: Offer): Metadata {
+  return pageMetadata({
+    title: `${offer.title} — Wellness Offer`,
+    description:
+      offer.description?.slice(0, 155) ??
+      `${offer.title}${offer.discountLabel ? ` — ${offer.discountLabel}` : ""} on AyurPass.`,
+    path: `/offers/${offer.id}`,
+    images: offer.imageUrl ? [offer.imageUrl] : undefined,
+    keywords: [offer.discipline, offer.title, "wellness offer", "spa deal"].filter(
+      Boolean,
+    ) as string[],
+    noindex: !offer.active,
   });
 }
 

@@ -2,11 +2,19 @@ import { Controller, Get, Post, Param, Body, Put, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto, UpdateOrderDto } from '../../dtos/order.dto';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
-import { assertSelfOrAdmin } from '../../common/ownership';
+import {
+  assertSelfOrAdmin,
+  assertProviderAccess,
+  assertOrderParty,
+} from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly service: OrdersService) {}
+  constructor(
+    private readonly service: OrdersService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @Req() req: AuthedRequest) {
@@ -21,17 +29,24 @@ export class OrdersController {
   }
 
   @Get('provider/:id')
-  findByProvider(@Param('id') providerId: string) {
+  async findByProvider(@Param('id') providerId: string, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, providerId);
     return this.service.findByProvider(providerId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertOrderParty(this.prisma, req.user, id);
     return this.service.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertOrderParty(this.prisma, req.user, id);
     return this.service.updateOrder(id, updateOrderDto);
   }
 }

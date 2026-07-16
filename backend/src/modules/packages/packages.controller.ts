@@ -1,14 +1,24 @@
-import { Controller, Get, Post, Param, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put, Delete, Req } from '@nestjs/common';
 import { PackagesService } from './packages.service';
 import { CreatePackageDto, UpdatePackageDto } from '../../dtos/package.dto';
 import { Public } from '../../common/public.decorator';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+import {
+  assertProviderAccess,
+  assertPackageProviderAccess,
+} from '../../common/ownership';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('packages')
 export class PackagesController {
-  constructor(private readonly service: PackagesService) {}
+  constructor(
+    private readonly service: PackagesService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
-  create(@Body() createPackageDto: CreatePackageDto) {
+  async create(@Body() createPackageDto: CreatePackageDto, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, createPackageDto.providerId);
     return this.service.createPackage(createPackageDto);
   }
 
@@ -31,12 +41,18 @@ export class PackagesController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updatePackageDto: UpdatePackageDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updatePackageDto: UpdatePackageDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertPackageProviderAccess(this.prisma, req.user, id);
     return this.service.updatePackage(id, updatePackageDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertPackageProviderAccess(this.prisma, req.user, id);
     return this.service.removePackage(id);
   }
 }

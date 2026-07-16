@@ -4,8 +4,11 @@ import type {
   AuthResponse,
   AuthTokens,
   Booking,
+  BookingCheckout,
   HealthProfile,
   LoyaltySummary,
+  Offer,
+  PaymentModeConfig,
   Provider,
   ProviderType,
   RegisterPayload,
@@ -146,6 +149,9 @@ export const api = {
   servicesByProvider: (providerId: string) =>
     request<Service[]>(`/services/provider/${providerId}`),
   packages: () => request<WellnessPackage[]>("/packages"),
+  offers: (discipline?: string) =>
+    request<Offer[]>(`/offers${discipline ? `?discipline=${encodeURIComponent(discipline)}` : ""}`),
+  offer: (id: string) => request<Offer>(`/offers/${id}`),
 
   // bookings
   createBooking: (data: {
@@ -162,9 +168,15 @@ export const api = {
     request<Booking[]>(`/bookings/consumer/${consumerId}`, { auth: true }),
 
   // payments
-  paymentMode: () => request<{ provider: string; mock: boolean }>("/payments/mode"),
+  paymentMode: () => request<PaymentModeConfig>("/payments/mode"),
   payBooking: (bookingId: string) =>
-    request<Booking>(`/payments/checkout/${bookingId}`, { method: "POST", body: {}, auth: true }),
+    request<BookingCheckout>(`/payments/checkout/${bookingId}`, {
+      method: "POST",
+      body: {},
+      auth: true,
+    }),
+  confirmBookingPayment: (bookingId: string) =>
+    request<BookingCheckout>(`/payments/confirm/${bookingId}`, { method: "POST", auth: true }),
 
   // health / loyalty
   healthProfile: (consumerId: string) =>
