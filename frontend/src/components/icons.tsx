@@ -220,3 +220,61 @@ export function XIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function ShareIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13" />
+    </svg>
+  );
+}
+
+export function LinkIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.2-1.2" />
+    </svg>
+  );
+}
+
+export function ExternalLinkIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    </svg>
+  );
+}
+
+export function GlobeIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="m4 7 8 6 8-6" />
+    </svg>
+  );
+}
+
+export function PhoneIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M6.5 4h2l1.5 4.5-2 1.2a11 11 0 0 0 5.8 5.8l1.2-2L21 14.5V16.5a2 2 0 0 1-2.2 2 17 17 0 0 1-7.8-2.3A17 17 0 0 1 4.3 8.2 2 2 0 0 1 6.5 6Z" />
+    </svg>
+  );
+}
+
+export function HeartIcon({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg {...base(className)} fill={filled ? "currentColor" : "none"}>
+      <path d="M12 20.5s-7-4.6-9.5-8.5C.5 8.8 2.2 5 5.8 5c1.8 0 3.2 1 4.2 2.3C11 6 12.4 5 14.2 5 17.8 5 19.5 8.8 21.5 12c-2.5 3.9-9.5 8.5-9.5 8.5Z" />
+    </svg>
+  );
+}

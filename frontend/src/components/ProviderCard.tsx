@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatAddress, formatCode, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
+import { practicePath } from "@/lib/paths";
 import type { Provider } from "@/lib/types";
 import { BrandMark } from "./BrandMark";
 import { ArrowRightIcon, MapPinIcon, ShieldIcon } from "./icons";
@@ -28,7 +29,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
 
   return (
     <Link
-      href={`/providers/${provider.id}`}
+      href={practicePath(provider)}
       className="group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface transition-shadow hover:shadow-[0_8px_30px_rgba(36,56,46,0.08)]"
     >
       {cover ? (

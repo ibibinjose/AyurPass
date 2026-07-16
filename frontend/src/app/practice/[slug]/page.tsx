@@ -1,34 +1,35 @@
 import type { Metadata } from "next";
 import { api } from "@/lib/api";
-import { JsonLd } from "@/components/JsonLd";
 import { practicePath } from "@/lib/paths";
+import { JsonLd } from "@/components/JsonLd";
 import {
   breadcrumbJsonLd,
   providerLocalBusinessJsonLd,
   providerMetadata,
 } from "@/lib/seo";
-import ProviderProfileClient from "./ProviderProfileClient";
+import ProviderProfileClient from "@/app/providers/[id]/ProviderProfileClient";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const provider = await api.provider(id).catch(() => null);
-  if (!provider) {
+  const { slug } = await params;
+  try {
+    const provider = await api.providerBySlug(slug);
+    return providerMetadata(provider);
+  } catch {
     return { title: "Practice not found", robots: { index: false, follow: false } };
   }
-  return providerMetadata(provider);
 }
 
-export default async function ProviderProfilePage({
+export default async function PracticeProfilePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
-  const provider = await api.provider(id).catch(() => null);
+  const { slug } = await params;
+  const provider = await api.providerBySlug(slug).catch(() => null);
 
   return (
     <>

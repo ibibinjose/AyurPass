@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import type { Offer, Provider, Retreat } from "./types";
+import type { Offer, ProfessionalDetail, Provider, Retreat } from "./types";
 import { BRAND_ASSET_VERSION } from "./brand";
 import { PROVIDER_TYPE_LABEL, RETREAT_CATEGORY_LABEL, formatAddress } from "./catalog";
+import { practicePath } from "./paths";
 
 /** Canonical site origin — override per environment via NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (
@@ -128,7 +129,7 @@ export function providerLocalBusinessJsonLd(provider: Provider) {
     "@type": "HealthAndBeautyBusiness",
     name: provider.businessName,
     description: brand?.about ?? undefined,
-    url: abs(`/providers/${provider.id}`),
+    url: abs(practicePath(provider)),
     image: brand?.coverImageUrl ?? brand?.logoUrl ?? undefined,
     telephone: brand?.contactPhone ?? undefined,
     email: brand?.contactEmail ?? undefined,
@@ -252,6 +253,55 @@ export function offerMetadata(offer: Offer): Metadata {
   });
 }
 
+export function practitionerJsonLd(professional: ProfessionalDetail) {
+  const name = professional.user?.fullName || professional.title || "Practitioner";
+  const provider = professional.provider;
+  const where = provider ? formatAddress(provider.address) : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name,
+    jobTitle: professional.title ?? undefined,
+    description: professional.bio ?? provider?.brandProfile?.about ?? undefined,
+    image: professional.user?.avatarUrl ?? provider?.brandProfile?.logoUrl ?? undefined,
+    url: professional.slug ? abs(`/me/${professional.slug}`) : undefined,
+    worksFor: provider
+      ? {
+          "@type": "HealthAndBeautyBusiness",
+          name: provider.businessName,
+          address: where || undefined,
+        }
+      : undefined,
+  };
+}
+
+export function practitionerMetadata(professional: ProfessionalDetail): Metadata {
+  const name = professional.user?.fullName || professional.title || "Practitioner";
+  const title = professional.title || "Wellness practitioner";
+  const where = professional.provider
+    ? formatAddress(professional.provider.address)
+    : "";
+  const slug = professional.slug;
+  return pageMetadata({
+    title: `${name} — ${title}${where ? ` in ${where}` : ""}`,
+    description:
+      professional.bio?.slice(0, 155) ??
+      `${name}, ${title.toLowerCase()}${where ? ` in ${where}` : ""}. View profile, enquire and book on AyurPass.`,
+    path: slug ? `/me/${slug}` : "/discover",
+    images: [
+      professional.user?.avatarUrl,
+      professional.provider?.brandProfile?.coverImageUrl,
+      professional.provider?.brandProfile?.logoUrl,
+    ].filter(Boolean) as string[],
+    keywords: [
+      title,
+      ...(professional.specializations ?? []),
+      where,
+      name,
+    ].filter(Boolean) as string[],
+  });
+}
+
 export function providerMetadata(provider: Provider): Metadata {
   const type = PROVIDER_TYPE_LABEL[provider.type] ?? "Wellness";
   const where = formatAddress(provider.address);
@@ -260,7 +310,7 @@ export function providerMetadata(provider: Provider): Metadata {
     description:
       provider.brandProfile?.about?.slice(0, 155) ??
       `${provider.businessName}, ${type.toLowerCase()}${where ? ` in ${where}` : ""}. Discover, enquire and book on AyurPass.`,
-    path: `/providers/${provider.id}`,
+    path: practicePath(provider),
     images: [provider.brandProfile?.coverImageUrl, provider.brandProfile?.logoUrl].filter(
       Boolean,
     ) as string[],

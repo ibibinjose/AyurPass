@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { api } from "@/lib/api";
 import { RETREAT_CATEGORIES } from "@/lib/catalog";
+import { practicePath } from "@/lib/paths";
 import { abs } from "@/lib/seo";
 
 // Re-generate at most hourly — keeps the sitemap fresh without hammering the API.
@@ -43,17 +44,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   // Dynamic entities — degrade gracefully if the API is unreachable at build.
-  const [providers, retreats] = await Promise.all([
+  const [providers, retreats, professionals] = await Promise.all([
     api.providers().catch(() => []),
     api.retreats().catch(() => []),
+    api.professionals().catch(() => []),
   ]);
 
   for (const p of providers) {
+    if (!p.slug) continue;
     entries.push({
-      url: abs(`/providers/${p.id}`),
+      url: abs(practicePath(p)),
       lastModified: p.createdAt ? new Date(p.createdAt) : now,
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.85,
     });
   }
   for (const r of retreats) {
@@ -62,6 +65,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: r.updatedAt ? new Date(r.updatedAt) : now,
       changeFrequency: "weekly",
       priority: 0.8,
+    });
+  }
+  for (const pro of professionals) {
+    if (!pro.slug) continue;
+    entries.push({
+      url: abs(`/me/${pro.slug}`),
+      lastModified: pro.createdAt ? new Date(pro.createdAt) : now,
+      changeFrequency: "weekly",
+      priority: 0.85,
     });
   }
 

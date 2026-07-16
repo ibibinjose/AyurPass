@@ -38,6 +38,12 @@ export class ProfessionalsController {
   }
 
   @Public()
+  @Get('slug/:slug')
+  bySlug(@Param('slug') slug: string) {
+    return this.professionalsService.findBySlug(slug);
+  }
+
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.professionalsService.findOne(id);

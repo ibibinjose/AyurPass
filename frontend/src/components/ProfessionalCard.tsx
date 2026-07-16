@@ -16,6 +16,8 @@ export function ProfessionalCard({ professional }: { professional: Professional 
         .join(", ")
     : "";
   const verified = provider?.verificationStatus === "verified";
+  const aaaListed = professional.verificationDocuments?.source === "aaa";
+  const aaaProfileUrl = professional.verificationDocuments?.profileUrl;
   const stats = [
     professional.specializations.length > 0 
       ? countLabel(professional.specializations.length, "specialization") 
@@ -28,9 +30,18 @@ export function ProfessionalCard({ professional }: { professional: Professional 
       : null,
   ].filter(Boolean) as string[];
 
+  const href = professional.slug
+    ? `/me/${professional.slug}`
+    : provider?.id
+      ? `/providers/${provider.id}`
+      : aaaProfileUrl ?? "/discover";
+
   return (
     <Link
-      href={`/providers/${provider?.id}/team/${professional.id}`}
+      href={href}
+      {...(aaaProfileUrl && !professional.slug && !provider?.id
+        ? { target: "_blank", rel: "noreferrer" }
+        : {})}
       className="group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface transition-shadow hover:shadow-[0_8px_30px_rgba(36,56,46,0.08)]"
     >
       <div className="flex flex-1 flex-col p-6">
@@ -48,12 +59,20 @@ export function ProfessionalCard({ professional }: { professional: Professional 
               </p>
             </div>
           </div>
-          {verified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
-              <ShieldIcon className="h-3.5 w-3.5" />
-              Verified
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-1.5">
+            {aaaListed && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-forest px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-gold-soft">
+                <ShieldIcon className="h-3.5 w-3.5" />
+                AAA Listed
+              </span>
+            )}
+            {verified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
+                <ShieldIcon className="h-3.5 w-3.5" />
+                Verified
+              </span>
+            )}
+          </div>
         </div>
 
         {provider && (

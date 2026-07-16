@@ -41,26 +41,38 @@ function includesText(haystack: string, needle: string) {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }
 
-/** Chip button used for every filter row. */
+/** Chip button — optional count badge (e.g. Providers 84). */
 function Chip({
   active,
   onClick,
   children,
+  count,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  count?: number;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
         active
-          ? "bg-forest text-white"
+          ? "bg-forest text-white shadow-[0_2px_8px_rgba(36,56,46,0.12)]"
           : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
       }`}
     >
-      {children}
+      <span>{children}</span>
+      {count !== undefined ? (
+        <span
+          className={`min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none ${
+            active ? "bg-white/20 text-white" : "bg-clay text-ink-muted"
+          }`}
+        >
+          {count}
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -76,6 +88,7 @@ export default function DiscoverPage() {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
   const [providerGroup, setProviderGroup] = useState<string | null>(null);
+  const [professionalGroup, setProfessionalGroup] = useState<string | null>(null);
   const [serviceCategory, setServiceCategory] = useState<ServiceCategory | "ALL">("ALL");
   const [productCategory, setProductCategory] = useState<string>("ALL");
 
@@ -183,7 +196,18 @@ export default function DiscoverPage() {
   const shownProducts = base.products?.filter(
     (p) => productCategory === "ALL" || p.category === productCategory,
   );
-  const shownProfessionals = base.professionals;
+  const professionalGroupTypes = professionalGroup
+    ? PROVIDER_GROUPS.find((g) => g.label === professionalGroup)?.types ?? []
+    : null;
+
+  const shownProfessionals = base.professionals?.filter((prof) => {
+    if (!professionalGroupTypes) return true;
+    if (prof.provider?.type && professionalGroupTypes.includes(prof.provider.type)) return true;
+    const needle = professionalGroup!.toLowerCase();
+    return prof.specializations.some(
+      (s) => s.toLowerCase().includes(needle) || needle.includes(s.toLowerCase()),
+    );
+  });
 
   const productCategories = useMemo(() => {
     const set = new Set<string>();
@@ -192,11 +216,67 @@ export default function DiscoverPage() {
   }, [products]);
 
   const counts = {
+    providers: shownProviders?.length ?? base.providers?.length ?? 0,
+    services: shownServices?.length ?? base.services?.length ?? 0,
+    products: shownProducts?.length ?? base.products?.length ?? 0,
+    professionals: shownProfessionals?.length ?? base.professionals?.length ?? 0,
+  };
+
+  const tabTotals = {
     providers: base.providers?.length ?? 0,
     services: base.services?.length ?? 0,
     products: base.products?.length ?? 0,
     professionals: base.professionals?.length ?? 0,
   };
+
+  const providerGroupCounts = useMemo(() => {
+    const list = base.providers ?? [];
+    const map = new Map<string, number>();
+    map.set("All", list.length);
+    for (const g of PROVIDER_GROUPS) {
+      map.set(g.label, list.filter((p) => g.types.includes(p.type)).length);
+    }
+    return map;
+  }, [base.providers]);
+
+  const professionalGroupCounts = useMemo(() => {
+    const list = base.professionals ?? [];
+    const map = new Map<string, number>();
+    map.set("All", list.length);
+    for (const g of PROVIDER_GROUPS) {
+      map.set(
+        g.label,
+        list.filter((prof) => {
+          if (prof.provider?.type && g.types.includes(prof.provider.type)) return true;
+          const needle = g.label.toLowerCase();
+          return prof.specializations.some(
+            (s) => s.toLowerCase().includes(needle) || needle.includes(s.toLowerCase()),
+          );
+        }).length,
+      );
+    }
+    return map;
+  }, [base.professionals]);
+
+  const serviceCategoryCounts = useMemo(() => {
+    const list = base.services ?? [];
+    const map = new Map<string, number>();
+    map.set("ALL", list.length);
+    for (const c of SERVICE_CATEGORIES) {
+      map.set(c, list.filter((s) => s.category === c).length);
+    }
+    return map;
+  }, [base.services]);
+
+  const productCategoryCounts = useMemo(() => {
+    const list = base.products ?? [];
+    const map = new Map<string, number>();
+    map.set("ALL", list.length);
+    for (const c of productCategories) {
+      map.set(c, list.filter((p) => p.category === c).length);
+    }
+    return map;
+  }, [base.products, productCategories]);
 
   const TABS: { key: Tab; label: string }[] = [
     { key: "providers", label: "Providers" },
@@ -255,41 +335,35 @@ export default function DiscoverPage() {
           </div>
         </div>
 
-        {/* Tabs with live result counts */}
-        <div className="mt-6 flex flex-wrap gap-2 border-b border-hairline">
+        {/* Tabs + discipline filters — one chip bar */}
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           {TABS.map((t) => (
-            <button
+            <Chip
               key={t.key}
+              active={tab === t.key}
+              count={loading ? undefined : tabTotals[t.key]}
               onClick={() => setTab(t.key)}
-              className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-                tab === t.key
-                  ? "border-forest text-forest"
-                  : "border-transparent text-ink-muted hover:text-forest"
-              }`}
             >
               {t.label}
-              <span
-                className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                  tab === t.key ? "bg-forest text-white" : "bg-clay text-ink-secondary"
-                }`}
-              >
-                {loading ? "…" : counts[t.key]}
-              </span>
-            </button>
+            </Chip>
           ))}
-        </div>
 
-        {/* Category filters — contextual to the active tab */}
-        <div className="mt-6 flex flex-wrap gap-2">
+          <span className="mx-0.5 hidden h-7 w-px shrink-0 bg-hairline sm:inline" aria-hidden />
+
           {tab === "providers" && (
             <>
-              <Chip active={!providerGroup} onClick={() => setProviderGroup(null)}>
+              <Chip
+                active={!providerGroup}
+                count={loading ? undefined : providerGroupCounts.get("All")}
+                onClick={() => setProviderGroup(null)}
+              >
                 All
               </Chip>
               {PROVIDER_GROUPS.map((g) => (
                 <Chip
                   key={g.label}
                   active={providerGroup === g.label}
+                  count={loading ? undefined : providerGroupCounts.get(g.label)}
                   onClick={() => setProviderGroup(g.label)}
                 >
                   {g.label}
@@ -297,15 +371,21 @@ export default function DiscoverPage() {
               ))}
             </>
           )}
+
           {tab === "services" && (
             <>
-              <Chip active={serviceCategory === "ALL"} onClick={() => setServiceCategory("ALL")}>
+              <Chip
+                active={serviceCategory === "ALL"}
+                count={loading ? undefined : serviceCategoryCounts.get("ALL")}
+                onClick={() => setServiceCategory("ALL")}
+              >
                 All
               </Chip>
               {SERVICE_CATEGORIES.map((c) => (
                 <Chip
                   key={c}
                   active={serviceCategory === c}
+                  count={loading ? undefined : serviceCategoryCounts.get(c)}
                   onClick={() => setServiceCategory(c)}
                 >
                   {CATEGORY_LABEL[c]}
@@ -313,24 +393,65 @@ export default function DiscoverPage() {
               ))}
             </>
           )}
+
           {tab === "products" && (
             <>
-              <Chip active={productCategory === "ALL"} onClick={() => setProductCategory("ALL")}>
+              <Chip
+                active={productCategory === "ALL"}
+                onClick={() => setProductCategory("ALL")}
+                count={loading ? undefined : productCategoryCounts.get("ALL")}
+              >
                 All
               </Chip>
               {productCategories.map((c) => (
-                <Chip key={c} active={productCategory === c} onClick={() => setProductCategory(c)}>
+                <Chip
+                  key={c}
+                  active={productCategory === c}
+                  count={loading ? undefined : productCategoryCounts.get(c)}
+                  onClick={() => setProductCategory(c)}
+                >
                   {c}
                 </Chip>
               ))}
             </>
           )}
+
           {tab === "professionals" && (
-            <div className="text-sm text-ink-secondary">
-              Filter by location and search terms
-            </div>
+            <>
+              <Chip
+                active={!professionalGroup}
+                count={loading ? undefined : professionalGroupCounts.get("All")}
+                onClick={() => setProfessionalGroup(null)}
+              >
+                All
+              </Chip>
+              {PROVIDER_GROUPS.map((g) => (
+                <Chip
+                  key={g.label}
+                  active={professionalGroup === g.label}
+                  count={loading ? undefined : professionalGroupCounts.get(g.label)}
+                  onClick={() => setProfessionalGroup(g.label)}
+                >
+                  {g.label}
+                </Chip>
+              ))}
+            </>
           )}
         </div>
+
+        {!loading && (
+          <p className="mt-3 text-sm text-ink-muted">
+            Showing{" "}
+            <span className="font-medium text-foreground">{counts[tab]}</span>{" "}
+            {tab === "professionals" ? "practitioners" : tab}
+            {tab === "providers" && providerGroup ? ` · ${providerGroup}` : ""}
+            {tab === "professionals" && professionalGroup ? ` · ${professionalGroup}` : ""}
+            {tab === "services" && serviceCategory !== "ALL"
+              ? ` · ${CATEGORY_LABEL[serviceCategory]}`
+              : ""}
+            {tab === "products" && productCategory !== "ALL" ? ` · ${productCategory}` : ""}
+          </p>
+        )}
 
         {/* Results */}
         <div className="mt-8">
@@ -388,8 +509,12 @@ export default function DiscoverPage() {
             </div>
           ) : (
             <EmptyState
-              title={searchActive ? "No practitioners match those filters" : "No practitioners yet"}
-              body="Try a broader search or clear your location filter."
+              title={
+                searchActive || professionalGroup
+                  ? "No practitioners match those filters"
+                  : "No practitioners yet"
+              }
+              body="Try a broader search, a different discipline, or clear your location filter."
             />
           )}
         </div>

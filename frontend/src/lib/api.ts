@@ -23,6 +23,7 @@ import type {
   StripeConnectStatus,
   Product,
   Professional,
+  ProfessionalDetail,
   Provider,
   ProviderType,
   RegisterPayload,
@@ -232,6 +233,8 @@ export const api = {
     return request<Provider[]>(`/providers${qs ? `?${qs}` : ""}`);
   },
   provider: (id: string) => request<Provider>(`/providers/${id}`),
+  providerBySlug: (slug: string) =>
+    request<Provider>(`/providers/slug/${encodeURIComponent(slug)}`),
   updateProvider: (
     id: string,
     data: {
@@ -426,8 +429,12 @@ export const api = {
 
   // --- professionals ---
   professionals: () => request<Professional[]>('/professionals'),
+  professionalBySlug: (slug: string) =>
+    request<ProfessionalDetail>(`/professionals/slug/${encodeURIComponent(slug)}`),
   professionalsByProvider: (providerId: string) =>
     request<Professional[]>(`/professionals/provider/${providerId}`, { auth: true }),
+  publicProfessionalsByProvider: (providerId: string) =>
+    request<Professional[]>(`/professionals/provider/${providerId}`),
   createProfessional: (data: {
     userId: string;
     providerId: string;

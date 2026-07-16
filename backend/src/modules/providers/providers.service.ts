@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ProviderType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProviderDto } from '../../dtos/provider.dto';
+import { slugifyName, withSlugSuffix } from '../../common/slug';
 
 const PUBLIC_COUNTS = {
   select: { professionals: true, services: true, products: true, packages: true, rooms: true },
@@ -26,6 +27,23 @@ function addressText(address: Prisma.JsonValue | null | undefined): string {
 @Injectable()
 export class ProvidersService {
   constructor(private prisma: PrismaService) {}
+
+  async uniqueSlug(businessName: string, excludeId?: string): Promise<string> {
+    const base = slugifyName(businessName) || 'practice';
+    let n = 0;
+    while (true) {
+      const slug = n === 0 ? base : withSlugSuffix(base, n);
+      const hit = await this.prisma.provider.findFirst({
+        where: {
+          slug,
+          ...(excludeId ? { NOT: { id: excludeId } } : {}),
+        },
+        select: { id: true },
+      });
+      if (!hit) return slug;
+      n += 1;
+    }
+  }
 
   /**
    * Public discovery listing. Filters by business name and type in the database;
@@ -65,6 +83,17 @@ export class ProvidersService {
       where: { id },
       include: { _count: PUBLIC_COUNTS },
     });
+  }
+
+  /** Public practice profile — /practice/:slug */
+  async findBySlug(slug: string) {
+    const normalized = slug.trim().toLowerCase();
+    const provider = await this.prisma.provider.findFirst({
+      where: { slug: normalized },
+      include: { _count: PUBLIC_COUNTS },
+    });
+    if (!provider) throw new NotFoundException('Practice not found');
+    return provider;
   }
 
   async updateProvider(id: string, data: UpdateProviderDto) {

@@ -36,8 +36,14 @@ export interface Professional extends SharedProfessional {
   doshaExpertise?: Record<string, unknown> | null;
   certifications?: unknown;
   availabilityPreferences?: unknown;
-  verificationDocuments?: unknown;
   updatedAt: string;
+}
+
+/** Full public profile returned by GET /professionals/slug/:slug */
+export interface ProfessionalDetail extends Professional {
+  services?: Service[];
+  provider?: import("@ayurpass/shared").Provider;
+  user?: Pick<User, "id" | "fullName" | "email" | "phone" | "avatarUrl">;
 }
 
 /** User as returned by GET /auth/profile — includes linked profiles. */

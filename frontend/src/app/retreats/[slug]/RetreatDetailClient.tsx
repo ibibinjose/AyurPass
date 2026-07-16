@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, formatMoney } from "@/lib/api";
 import { formatRetreatDates, RETREAT_CATEGORY_LABEL } from "@/lib/catalog";
+import { practicePath } from "@/lib/paths";
 import type { Retreat } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
@@ -252,7 +253,7 @@ export default function RetreatDetailPage() {
               <h3 className="font-display text-lg text-forest">Hosted by</h3>
               <p className="mt-2 text-sm text-ink-secondary">{retreat.provider.businessName}</p>
               <Link
-                href={`/providers/${retreat.provider.id}`}
+                href={practicePath(retreat.provider)}
                 className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-forest hover:underline"
               >
                 View host profile

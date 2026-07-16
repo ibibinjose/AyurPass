@@ -33,12 +33,56 @@ function membershipTags(membership) {
   return tags;
 }
 
+function slugifyName(name) {
+  return (name || 'practitioner')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+}
+
+async function uniqueProfessionalSlug(base, excludeId) {
+  let slug = base || 'practitioner';
+  let n = 0;
+  while (true) {
+    const hit = await prisma.professional.findFirst({
+      where: { slug, NOT: excludeId ? { id: excludeId } : undefined },
+      select: { id: true },
+    });
+    if (!hit) return slug;
+    n += 1;
+    slug = `${base}-${n}`.slice(0, 80);
+  }
+}
+
+async function uniqueProviderSlug(base, excludeId) {
+  let slug = base || 'practice';
+  let n = 0;
+  while (true) {
+    const hit = await prisma.provider.findFirst({
+      where: { slug, NOT: excludeId ? { id: excludeId } : undefined },
+      select: { id: true },
+    });
+    if (!hit) return slug;
+    n += 1;
+    slug = `${base}-${n}`.slice(0, 80);
+  }
+}
+
 async function loadExistingByProfileId() {
   const rows = await prisma.professional.findMany({
     where: {
       verificationDocuments: { path: ['source'], equals: SOURCE_TAG },
     },
-    select: { id: true, verificationDocuments: true, userId: true, providerId: true },
+    select: {
+      id: true,
+      slug: true,
+      providerId: true,
+      verificationDocuments: true,
+      userId: true,
+    },
   });
   const map = new Map();
   for (const r of rows) {
@@ -87,9 +131,16 @@ async function upsertPractitioner(p, existingById) {
         avatarUrl: p.imageUrl || undefined,
       },
     });
+    const providerSlug =
+      (await prisma.provider.findUnique({
+        where: { id: existing.providerId },
+        select: { slug: true },
+      }))?.slug?.trim() ||
+      (await uniqueProviderSlug(slugifyName(`${p.name}-ayurveda`), existing.providerId));
     await prisma.provider.update({
       where: { id: existing.providerId },
       data: {
+        slug: providerSlug,
         businessName: `${p.name} — Ayurveda`,
         address,
         brandProfile,
@@ -97,9 +148,13 @@ async function upsertPractitioner(p, existingById) {
         listingTier: 'FREE_LISTING',
       },
     });
+    const slug =
+      existing.slug?.trim() ||
+      (await uniqueProfessionalSlug(slugifyName(p.name), existing.id));
     await prisma.professional.update({
       where: { id: existing.id },
       data: {
+        slug,
         title: p.membership ?? 'Ayurvedic Practitioner',
         bio: about,
         specializations: ['Ayurveda'],
@@ -137,9 +192,11 @@ async function upsertPractitioner(p, existingById) {
     }
   }
 
+  const providerSlug = await uniqueProviderSlug(slugifyName(`${p.name}-ayurveda`));
   const provider = await prisma.provider.create({
     data: {
       userId: user.id,
+      slug: providerSlug,
       businessName: `${p.name} — Ayurveda`,
       type: 'AYURVEDA_CLINIC',
       listingTier: 'FREE_LISTING',
@@ -150,10 +207,12 @@ async function upsertPractitioner(p, existingById) {
     },
   });
 
+  const slug = await uniqueProfessionalSlug(slugifyName(p.name));
   await prisma.professional.create({
     data: {
       userId: user.id,
       providerId: provider.id,
+      slug,
       title: p.membership ?? 'Ayurvedic Practitioner',
       bio: about,
       specializations: ['Ayurveda'],

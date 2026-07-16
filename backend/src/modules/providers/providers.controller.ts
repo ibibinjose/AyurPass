@@ -26,6 +26,12 @@ export class ProvidersController {
   }
 
   @Public()
+  @Get('slug/:slug')
+  bySlug(@Param('slug') slug: string) {
+    return this.service.findBySlug(slug);
+  }
+
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

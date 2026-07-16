@@ -81,6 +81,8 @@ export interface BusinessAddress {
 export interface Provider {
   id: string;
   code?: string;
+  /** Public vanity URL — /practice/:slug */
+  slug?: string | null;
   userId?: string | null;
   businessName: string;
   type: ProviderType;
@@ -103,6 +105,8 @@ export interface Provider {
 export interface Professional {
   id: string;
   code?: string;
+  /** Public vanity URL — /me/:slug */
+  slug?: string | null;
   userId: string;
   providerId: string;
   title?: string | null;
@@ -113,6 +117,12 @@ export interface Professional {
   rating: string | number;
   reviewCount: number;
   createdAt: string;
+  verificationDocuments?: {
+    source?: string;
+    externalProfileId?: number;
+    profileUrl?: string;
+    membership?: string | null;
+  } | null;
   provider?: Pick<Provider, "id" | "businessName" | "type" | "verificationStatus" | "address">;
   user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }

@@ -4,18 +4,94 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { formatAddress, formatCode, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import type { Product, Provider, Retreat, Service } from "@/lib/types";
+import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
+import { practicePath, practitionerPath } from "@/lib/paths";
+import { SITE_URL } from "@/lib/seo";
+import type { Product, Professional, Provider, Retreat, Service } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
 import { RetreatCard } from "@/components/RetreatCard";
-import { BrandMark } from "@/components/BrandMark";
 import { EnquireModal } from "@/components/EnquireModal";
-import { ArrowRightIcon, CheckIcon, MapPinIcon, ShieldIcon } from "@/components/icons";
-import { Button, EmptyState } from "@/components/ui";
+import { CheckIcon } from "@/components/icons";
+import {
+  AffiliatedPageCard,
+  ProfileAboutText,
+  ProfileAvatar,
+  ProfileBackgroundCard,
+  ProfileBackgroundRow,
+  ProfileActionBar,
+  ProfileBodyGrid,
+  ProfileChip,
+  ProfileEmptyState,
+  ProfileHeroInfo,
+  ProfileHeroShell,
+  ProfileLinkButtons,
+  ProfileLocationMeta,
+  ProfileMemberSince,
+  ProfileMetaBadge,
+  ProfileMetaRow,
+  ProfilePageFrame,
+  ProfileSection,
+  ProfileSharePreview,
+  ProfileShell,
+  ProfileStat,
+  ProfileStatSep,
+  ProfileStatsLine,
+  ProfileVerifiedMark,
+  type ProfileLinkItem,
+} from "@/components/profile/ProfilePrimitives";
 
-/** Build a Google Maps search link from a provider's stored address. */
+function buildPracticeLinks(brand?: Provider["brandProfile"]): ProfileLinkItem[] {
+  const social = brand?.socialLinks;
+  const items: ProfileLinkItem[] = [];
+  if (brand?.website) {
+    items.push({
+      kind: "website",
+      label: "Website",
+      sublabel: brand.website.replace(/^https?:\/\//, ""),
+      href: brand.website,
+    });
+  }
+  if (brand?.externalBookingUrl) {
+    items.push({
+      kind: "book",
+      label: "Book online",
+      sublabel: "External booking",
+      href: brand.externalBookingUrl,
+    });
+  }
+  if (brand?.contactEmail) {
+    items.push({
+      kind: "email",
+      label: "Email",
+      sublabel: brand.contactEmail,
+      href: `mailto:${brand.contactEmail}`,
+    });
+  }
+  if (brand?.contactPhone) {
+    items.push({
+      kind: "phone",
+      label: "Call",
+      sublabel: brand.contactPhone,
+      href: `tel:${brand.contactPhone}`,
+    });
+  }
+  if (social) {
+    for (const [name, url] of Object.entries(social)) {
+      if (url) {
+        items.push({
+          kind: "social",
+          label: name.charAt(0).toUpperCase() + name.slice(1),
+          sublabel: url.replace(/^https?:\/\//, "").split("/")[0],
+          href: url,
+        });
+      }
+    }
+  }
+  return items;
+}
+
 function mapsUrl(provider: Provider): string | null {
   const a = provider.address;
   const parts = [provider.businessName, a?.street, a?.city, a?.state, a?.country]
@@ -26,294 +102,302 @@ function mapsUrl(provider: Provider): string | null {
 }
 
 export default function ProviderProfilePage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id?: string; slug?: string }>();
+  const slug = params.slug;
+  const id = params.id;
   const [provider, setProvider] = useState<Provider | null | undefined>(undefined);
   const [services, setServices] = useState<Service[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [retreats, setRetreats] = useState<Retreat[]>([]);
+  const [team, setTeam] = useState<Professional[]>([]);
   const [enquireOpen, setEnquireOpen] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    api
-      .provider(id)
+    if (!slug && !id) return;
+    const loadProvider = slug ? api.providerBySlug(slug) : api.provider(id!);
+    loadProvider
       .then((p) => setProvider(p ?? null))
       .catch(() => setProvider(null));
-    api.servicesByProvider(id).then(setServices).catch(() => setServices([]));
-    api.productsByProvider(id).then(setProducts).catch(() => setProducts([]));
-    api.retreatsByProvider(id).then(setRetreats).catch(() => setRetreats([]));
-  }, [id]);
+  }, [slug, id]);
+
+  useEffect(() => {
+    if (!provider?.id) return;
+    const providerId = provider.id;
+    api.servicesByProvider(providerId).then(setServices).catch(() => setServices([]));
+    api.productsByProvider(providerId).then(setProducts).catch(() => setProducts([]));
+    api.retreatsByProvider(providerId).then(setRetreats).catch(() => setRetreats([]));
+    api.publicProfessionalsByProvider(providerId).then(setTeam).catch(() => setTeam([]));
+  }, [provider?.id]);
 
   if (provider === null) {
     return (
-      <Shell>
-        <EmptyState title="Practice not found" body="This listing may have been removed." />
+      <PageWrap>
+        <ProfileEmptyState title="Practice not found" body="This listing may have been removed." />
         <div className="mt-6 text-center">
-          <Link href="/discover" className="font-medium text-forest hover:underline">
+          <Link href="/discover" className="text-sm font-medium text-forest hover:underline">
             ← Back to discovery
           </Link>
         </div>
-      </Shell>
+      </PageWrap>
     );
   }
 
   if (provider === undefined) {
     return (
-      <Shell>
-        <div className="h-40 animate-pulse rounded-3xl bg-clay/70" />
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
-          ))}
+      <PageWrap>
+        <div className="flex flex-col items-center gap-7 border-b border-hairline/70 pb-9 md:flex-row md:items-start">
+          <div className="h-28 w-28 animate-pulse rounded-full bg-clay/70" />
+          <div className="flex w-full max-w-md flex-col items-center gap-3 md:items-start">
+            <div className="h-9 w-56 animate-pulse rounded-lg bg-clay/70" />
+            <div className="h-4 w-28 animate-pulse rounded bg-clay/60" />
+            <div className="mt-3 flex gap-3">
+              <div className="h-10 w-28 animate-pulse rounded-xl bg-clay/70" />
+            </div>
+          </div>
         </div>
-      </Shell>
+      </PageWrap>
     );
   }
 
   const location = formatAddress(provider.address);
   const verified = provider.verificationStatus === "verified";
   const brand = provider.brandProfile;
-  const cover = brand?.coverImageUrl;
-
+  const logo = brand?.logoUrl ?? brand?.coverImageUrl;
+  const coverUrl = brand?.coverImageUrl;
   const hasBookableServices = (services?.length ?? 0) > 0;
-  // Free-listing (or any practice not selling through AyurPass) leads with enquiry + external links.
-  const isListing = provider.listingTier === "FREE_LISTING" || !hasBookableServices;
-
   const gallery = brand?.gallery?.filter(Boolean) ?? [];
   const tags = brand?.tags?.filter(Boolean) ?? [];
   const amenities = brand?.amenities?.filter(Boolean) ?? [];
-  const social = brand?.socialLinks;
-  const socialEntries = social
-    ? (Object.entries(social).filter(([, v]) => Boolean(v)) as [string, string][])
-    : [];
   const map = mapsUrl(provider);
+  const typeLabel = PROVIDER_TYPE_LABEL[provider.type] ?? provider.type;
+  const memberSinceYear = provider.createdAt
+    ? new Date(provider.createdAt).getFullYear()
+    : null;
+  const sharePath = practicePath(provider);
+  const shareUrl =
+    typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : `${SITE_URL}${sharePath}`;
+  const aboutBrief = brand?.about?.replace(/\s+/g, " ").trim().slice(0, 140);
+
+  const linkItems = buildPracticeLinks(brand);
+  const hasMainContent = !!brand?.about || linkItems.length > 0 || tags.length > 0 || gallery.length > 0;
+  const serviceCount = services?.length ?? 0;
+  const teamCount = team.length;
 
   return (
-    <Shell>
-      <Link href="/discover" className="text-sm text-ink-muted hover:text-forest">
+    <PageWrap>
+      <Link
+        href="/discover"
+        className="mb-5 inline-flex text-sm text-ink-muted transition-colors hover:text-forest"
+      >
         ← Back to discovery
       </Link>
 
-      {/* Header */}
-      <section className="mt-4 overflow-hidden rounded-3xl border border-hairline bg-forest">
-        {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cover} alt="" className="h-40 w-full object-cover sm:h-52" />
-        ) : (
-          <div
-            aria-hidden
-            className="h-24 w-full bg-[linear-gradient(120deg,var(--color-forest),var(--color-leaf))] sm:h-28"
-          />
-        )}
-        <div className="flex flex-col gap-5 p-7 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-4">
-            <BrandMark provider={provider} size="lg" className="-mt-16 ring-2 ring-forest" />
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-display text-3xl text-white">{provider.businessName}</h1>
-                {verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
-                    <ShieldIcon className="h-3.5 w-3.5" />
-                    Verified
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2.5 text-sm text-gold-soft">
-                <span>{PROVIDER_TYPE_LABEL[provider.type] ?? provider.type}</span>
-                {brand?.priceBand && <span className="text-white/60">{brand.priceBand}</span>}
-                {provider.code && (
-                  <span className="font-mono tracking-wide text-white/60">
-                    {formatCode(provider.code)}
-                  </span>
-                )}
-              </p>
-              {location && (
-                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/75">
-                  <MapPinIcon className="h-4 w-4 shrink-0" />
-                  {map ? (
-                    <a href={map} target="_blank" rel="noreferrer" className="hover:underline">
-                      {location}
-                    </a>
+      <ProfilePageFrame coverUrl={coverUrl ?? logo}>
+        <ProfileHeroShell>
+          <ProfileAvatar name={provider.businessName} imageUrl={logo} />
+
+          <ProfileHeroInfo>
+            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+              <h1 className="font-display text-[1.75rem] leading-tight text-foreground sm:text-[2rem]">
+                {provider.businessName}
+              </h1>
+              {verified && <ProfileVerifiedMark />}
+            </div>
+
+            {provider.slug ? (
+              <p className="font-mono text-sm tracking-tight text-ink-muted">@{provider.slug}</p>
+            ) : null}
+
+            <p className="mt-0.5 text-lg leading-snug text-ink-secondary">{typeLabel}</p>
+
+            <ProfileMetaRow>
+              <ProfileMetaBadge label={typeLabel} />
+              {brand?.priceBand ? (
+                <span className="text-sm font-medium text-ink-muted">{brand.priceBand}</span>
+              ) : null}
+              {location ? <ProfileLocationMeta location={location} mapUrl={map} /> : null}
+              {memberSinceYear ? <ProfileMemberSince year={memberSinceYear} /> : null}
+            </ProfileMetaRow>
+
+            {provider.listingTier === "FREE_LISTING" ? (
+              <span className="mt-2 inline-flex rounded-full border border-hairline bg-clay/40 px-3 py-1 text-xs font-medium text-ink-secondary">
+                Directory listing
+              </span>
+            ) : null}
+
+            {(serviceCount > 0 || teamCount > 0) && (
+              <ProfileStatsLine>
+                {serviceCount > 0 ? (
+                  <ProfileStat
+                    value={serviceCount}
+                    label={serviceCount === 1 ? "service" : "services"}
+                  />
+                ) : null}
+                {serviceCount > 0 && teamCount > 0 ? <ProfileStatSep /> : null}
+                {teamCount > 0 ? (
+                  <ProfileStat
+                    value={teamCount}
+                    label={teamCount === 1 ? "practitioner" : "practitioners"}
+                  />
+                ) : null}
+              </ProfileStatsLine>
+            )}
+
+            <ProfileActionBar
+              target={{ kind: "provider", id: provider.id }}
+              shareUrl={shareUrl}
+              shareTitle={provider.businessName}
+              shareText={`${provider.businessName} — ${typeLabel}`}
+              onEnquire={() => setEnquireOpen(true)}
+              bookHref={hasBookableServices ? "/explore" : null}
+            />
+          </ProfileHeroInfo>
+        </ProfileHeroShell>
+
+        <ProfileBodyGrid
+          main={
+            <>
+              {brand?.about ? (
+                <ProfileSection label="About">
+                  <ProfileAboutText>{brand.about}</ProfileAboutText>
+                </ProfileSection>
+              ) : null}
+
+              {linkItems.length > 0 ? (
+                <ProfileSection label="Links & social">
+                  <ProfileLinkButtons items={linkItems} />
+                </ProfileSection>
+              ) : null}
+
+              {tags.length > 0 ? (
+                <ProfileSection label="Focus areas">
+                  <div className="flex flex-wrap gap-2.5">
+                    {tags.map((t) => (
+                      <ProfileChip key={t} label={t} />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {gallery.length > 0 ? (
+                <ProfileSection label="Gallery">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {gallery.map((src) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={src}
+                        src={src}
+                        alt=""
+                        className="h-52 w-full rounded-2xl border border-hairline object-cover shadow-[0_4px_16px_rgba(36,56,46,0.06)]"
+                      />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {retreats.length > 0 ? (
+                <ProfileSection label="Retreats & trainings">
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {retreats.map((r) => (
+                      <RetreatCard key={r.id} retreat={r} />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {hasBookableServices ? (
+                <ProfileSection label="Services & sessions">
+                  {services === null ? (
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
+                      ))}
+                    </div>
                   ) : (
-                    location
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      {services.map((s) => (
+                        <ServiceCard key={s.id} service={s} />
+                      ))}
+                    </div>
                   )}
+                </ProfileSection>
+              ) : null}
+
+              {products && products.length > 0 ? (
+                <ProfileSection label="Products">
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {products.map((p) => (
+                      <ProductCard key={p.id} product={p} />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+
+              {!hasMainContent && !hasBookableServices && retreats.length === 0 ? (
+                <ProfileEmptyState
+                  title="Nothing here yet"
+                  body="This practice hasn't added their full story yet. Send an enquiry to get in touch."
+                />
+              ) : null}
+            </>
+          }
+          sidebar={
+            <>
+              <ProfileSection label="Share preview">
+                <p className="-mt-1 text-xs leading-relaxed text-ink-muted">
+                  How this practice looks when the link is shared.
                 </p>
-              )}
-            </div>
-          </div>
+                <ProfileSharePreview
+                  title={provider.businessName}
+                  description={aboutBrief ?? typeLabel}
+                  path={sharePath}
+                  imageUrl={logo ?? coverUrl}
+                />
+              </ProfileSection>
 
-          {/* Adaptive CTA */}
-          {hasBookableServices ? (
-            <Link
-              href="/explore"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-forest hover:bg-gold-soft"
-            >
-              Book a session
-              <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-          ) : (
-            <button
-              onClick={() => setEnquireOpen(true)}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-forest hover:bg-gold-soft"
-            >
-              Enquire now
-              <ArrowRightIcon className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+              {amenities.length > 0 || brand?.openingHours ? (
+                <ProfileSection label="Background">
+                  <ProfileBackgroundCard>
+                    {brand?.openingHours ? (
+                      <ProfileBackgroundRow label="Opening hours">
+                        <p className="text-sm leading-relaxed text-ink-secondary">{brand.openingHours}</p>
+                      </ProfileBackgroundRow>
+                    ) : null}
+                    {amenities.length > 0 ? (
+                      <ProfileBackgroundRow label="Amenities">
+                        <ul className="flex flex-col gap-2 text-sm text-ink-secondary">
+                          {amenities.map((a) => (
+                            <li key={a} className="inline-flex items-center gap-2">
+                              <CheckIcon className="h-4 w-4 shrink-0 text-leaf" />
+                              {a}
+                            </li>
+                          ))}
+                        </ul>
+                      </ProfileBackgroundRow>
+                    ) : null}
+                  </ProfileBackgroundCard>
+                </ProfileSection>
+              ) : null}
 
-        {(brand?.about || brand?.openingHours || brand?.website || tags.length > 0) && (
-          <div className="space-y-4 border-t border-white/10 px-7 py-5">
-            {brand?.about && (
-              <p className="max-w-2xl leading-relaxed text-white/80">{brand.about}</p>
-            )}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-white/60">
-              {brand?.openingHours && <span>{brand.openingHours}</span>}
-              {brand?.website && (
-                <a
-                  href={brand.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-gold-soft hover:underline"
-                >
-                  Visit website
-                </a>
-              )}
-              {socialEntries.map(([name, url]) => (
-                <a
-                  key={name}
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="capitalize text-gold-soft hover:underline"
-                >
-                  {name}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Listing contact panel — how to reach a practice that doesn't book through us */}
-      {isListing && (
-        <section className="mt-8 rounded-3xl border border-hairline bg-surface p-7">
-          <h2 className="font-display text-2xl text-forest">Get in touch</h2>
-          <p className="mt-1 text-sm text-ink-secondary">
-            Send {provider.businessName} an enquiry, or reach them directly.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Button onClick={() => setEnquireOpen(true)}>Send an enquiry</Button>
-            {brand?.externalBookingUrl && (
-              <a
-                href={brand.externalBookingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-4 py-2 text-sm font-medium text-forest hover:border-leaf"
-              >
-                Book on their site
-                <ArrowRightIcon className="h-4 w-4" />
-              </a>
-            )}
-            {brand?.contactPhone && (
-              <a
-                href={`tel:${brand.contactPhone}`}
-                className="inline-flex items-center rounded-full border border-hairline bg-surface px-4 py-2 text-sm font-medium text-forest hover:border-leaf"
-              >
-                Call {brand.contactPhone}
-              </a>
-            )}
-            {brand?.contactEmail && (
-              <a
-                href={`mailto:${brand.contactEmail}`}
-                className="inline-flex items-center rounded-full border border-hairline bg-surface px-4 py-2 text-sm font-medium text-forest hover:border-leaf"
-              >
-                Email
-              </a>
-            )}
-          </div>
-
-          {amenities.length > 0 && (
-            <div className="mt-6 border-t border-hairline pt-5">
-              <h3 className="text-sm font-semibold text-foreground">Amenities</h3>
-              <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink-secondary">
-                {amenities.map((a) => (
-                  <li key={a} className="inline-flex items-center gap-1.5">
-                    <CheckIcon className="h-4 w-4 text-leaf" />
-                    {a}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Gallery */}
-      {gallery.length > 0 && (
-        <Section title="Gallery">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {gallery.map((src) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className="h-48 w-full rounded-2xl border border-hairline object-cover"
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Retreats & trainings hosted by this provider */}
-      {retreats.length > 0 && (
-        <Section title="Retreats & trainings" count={retreats.length}>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {retreats.map((r) => (
-              <RetreatCard key={r.id} retreat={r} />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Services — only when this practice sells through AyurPass */}
-      {hasBookableServices && (
-        <Section title="Services & sessions" count={services?.length}>
-          {services === null ? (
-            <SkeletonGrid />
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((s) => (
-                <ServiceCard key={s.id} service={s} />
-              ))}
-            </div>
-          )}
-        </Section>
-      )}
-
-      {/* Products */}
-      {products && products.length > 0 && (
-        <Section title="Products" count={products.length}>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </Section>
-      )}
+              {team.length > 0 ? (
+                <ProfileSection label="Practitioners">
+                  <div className="flex flex-col gap-3">
+                    {team.map((pro) => (
+                      <AffiliatedPageCard
+                        key={pro.id}
+                        href={practitionerPath(pro)}
+                        name={pro.user?.fullName || pro.title || "Practitioner"}
+                        imageUrl={pro.user?.avatarUrl}
+                        subtitle={pro.title ?? undefined}
+                      />
+                    ))}
+                  </div>
+                </ProfileSection>
+              ) : null}
+            </>
+          }
+        />
+      </ProfilePageFrame>
 
       <EnquireModal
         open={enquireOpen}
@@ -321,46 +405,16 @@ export default function ProviderProfilePage() {
         providerId={provider.id}
         businessName={provider.businessName}
       />
-    </Shell>
+    </PageWrap>
   );
 }
 
-function Section({
-  title,
-  count,
-  children,
-}: {
-  title: string;
-  count?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-10">
-      <h2 className="font-display text-2xl text-forest">
-        {title}
-        {typeof count === "number" && count > 0 && (
-          <span className="ml-2 text-base font-normal text-ink-muted">({count})</span>
-        )}
-      </h2>
-      <div className="mt-5">{children}</div>
-    </section>
-  );
-}
-
-function SkeletonGrid() {
-  return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
-      ))}
-    </div>
-  );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
+function PageWrap({ children }: { children: React.ReactNode }) {
   return (
     <LayoutWrapper>
-      <div className="mx-auto w-full max-w-6xl px-5 py-10">{children}</div>
+      <div className="px-4 py-6 sm:px-5 sm:py-8">
+        <ProfileShell>{children}</ProfileShell>
+      </div>
     </LayoutWrapper>
   );
 }

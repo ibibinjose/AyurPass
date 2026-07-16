@@ -53,6 +53,8 @@ model Consumer {
 model Provider {
   id                String    @id @default(uuid())
   code              String    @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
+  /** Public URL handle — e.g. /practice/anita-mudnur-ayurveda */
+  slug              String?   @unique
   userId            String?   @unique
   user              User?     @relation(fields: [userId], references: [id])
   businessName      String
@@ -96,6 +98,8 @@ enum ProviderType {
 model Professional {
   id                      String    @id @default(uuid())
   code                    String    @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
+  /** Public URL handle — e.g. /me/anita-mudnur */
+  slug                    String?   @unique
   userId                  String   @unique
   user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   providerId              String
