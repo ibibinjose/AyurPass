@@ -22,6 +22,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
 import { HealthProfilesModule } from './modules/health-profiles/health-profiles.module';
+import { EnquiriesModule } from './modules/enquiries/enquiries.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -53,6 +54,7 @@ import { HealthModule } from './health/health.module';
     LoyaltyModule,
     GiftCardsModule,
     HealthProfilesModule,
+    EnquiriesModule,
     HealthModule,
   ],
   providers: [

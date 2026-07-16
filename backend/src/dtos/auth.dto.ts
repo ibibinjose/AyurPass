@@ -29,6 +29,11 @@ export class RegisterDto {
   @IsOptional()
   providerType?: ProviderType;
 
+  /** "FREE_LISTING" for directory-only signups, "BOOKING" (default) for full merchants. */
+  @IsString()
+  @IsOptional()
+  listingTier?: string;
+
   @IsString()
   @IsOptional()
   title?: string;
@@ -117,6 +122,11 @@ export class RegisterPayload {
   @IsEnum(ProviderType)
   @IsOptional()
   providerType?: ProviderType;
+
+  /** "FREE_LISTING" for directory-only signups, "BOOKING" (default) for full merchants. */
+  @IsString()
+  @IsOptional()
+  listingTier?: string;
 
   @IsString()
   @IsOptional()

@@ -6,8 +6,8 @@ export declare class HealthProfilesController {
     constructor(service: HealthProfilesService);
     createOrUpdate(consumerId: string, data: CreateHealthProfileDto, req: AuthedRequest): Promise<{
         id: string;
-        consumerId: string;
         updatedAt: Date;
+        consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -17,8 +17,8 @@ export declare class HealthProfilesController {
     }>;
     getProfile(consumerId: string, req: AuthedRequest): Promise<{
         id: string;
-        consumerId: string;
         updatedAt: Date;
+        consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;
@@ -28,8 +28,8 @@ export declare class HealthProfilesController {
     } | null>;
     update(consumerId: string, updateHealthProfileDto: UpdateHealthProfileDto, req: AuthedRequest): Promise<{
         id: string;
-        consumerId: string;
         updatedAt: Date;
+        consumerId: string;
         vataScore: import("@prisma/client/runtime/library").Decimal | null;
         pittaScore: import("@prisma/client/runtime/library").Decimal | null;
         kaphaScore: import("@prisma/client/runtime/library").Decimal | null;

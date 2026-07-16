@@ -11,8 +11,13 @@ function countLabel(n: number, singular: string) {
 export function ProviderCard({ provider }: { provider: Provider }) {
   const location = formatAddress(provider.address);
   const verified = provider.verificationStatus === "verified";
-  const cover = provider.brandProfile?.coverImageUrl;
+  const brand = provider.brandProfile;
+  const cover = brand?.coverImageUrl;
   const counts = provider._count;
+  const bookable = (counts?.services ?? 0) > 0;
+  // Directory-only practices show discovery tags instead of catalogue counts.
+  const isListing = provider.listingTier === "FREE_LISTING" || !bookable;
+  const tags = (brand?.tags ?? []).filter(Boolean).slice(0, 3);
   const stats = counts
     ? [
         counts.services ? countLabel(counts.services, "service") : null,
@@ -36,17 +41,25 @@ export function ProviderCard({ provider }: { provider: Provider }) {
       <div className="flex flex-1 flex-col p-6">
         <div className="-mt-11 flex items-end justify-between">
           <BrandMark provider={provider} size="lg" className="ring-2 ring-surface" />
-          {verified && (
-            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
-              <ShieldIcon className="h-3.5 w-3.5" />
-              Verified
-            </span>
-          )}
+          <div className="mb-1 flex flex-col items-end gap-1">
+            {verified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
+                <ShieldIcon className="h-3.5 w-3.5" />
+                Verified
+              </span>
+            )}
+            {isListing && (
+              <span className="rounded-full bg-clay px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
+                Listing
+              </span>
+            )}
+          </div>
         </div>
 
         <h3 className="mt-4 font-display text-lg text-forest">{provider.businessName}</h3>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
           <span>{PROVIDER_TYPE_LABEL[provider.type] ?? provider.type}</span>
+          {brand?.priceBand && <span className="text-ink-secondary">{brand.priceBand}</span>}
           {provider.code && (
             <span className="font-mono tracking-wide text-ink-secondary">{formatCode(provider.code)}</span>
           )}
@@ -59,10 +72,20 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           </p>
         )}
 
-        {stats.length > 0 && <p className="mt-3 text-xs text-ink-muted">{stats.join(" · ")}</p>}
+        {isListing
+          ? tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {tags.map((t) => (
+                  <span key={t} className="rounded-full bg-clay px-2.5 py-0.5 text-[11px] text-ink-secondary">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )
+          : stats.length > 0 && <p className="mt-3 text-xs text-ink-muted">{stats.join(" · ")}</p>}
 
         <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-medium text-forest group-hover:gap-2.5">
-          View practice
+          {isListing ? "View listing" : "View practice"}
           <ArrowRightIcon className="h-4 w-4 transition-all" />
         </span>
       </div>

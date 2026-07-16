@@ -46,6 +46,7 @@ const PROVIDER_NAV = [
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
   { href: "/dashboard/channels", label: "Online channels", icon: CompassIcon },
   { href: "/dashboard/business", label: "Business", icon: ShieldIcon },
+  { href: "/dashboard/enquiries", label: "Enquiries", icon: UsersIcon },
   { href: "/dashboard/settings", label: "Settings", icon: PencilIcon },
 ];
 

@@ -37,8 +37,8 @@ export function Navbar() {
           <Link href="/wellness" className="hover:text-forest transition-colors">
             Wellness Guide
           </Link>
-          <Link href="/#providers" className="hover:text-forest transition-colors">
-            For providers
+          <Link href="/list-your-business" className="hover:text-forest transition-colors">
+            List your business
           </Link>
         </nav>
         
@@ -122,12 +122,12 @@ export function Navbar() {
             >
               Wellness Guide
             </Link>
-            <Link 
-              href="/#providers" 
+            <Link
+              href="/list-your-business"
               className="py-2 text-ink-secondary hover:text-forest transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              For providers
+              List your business
             </Link>
             
             <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-3">

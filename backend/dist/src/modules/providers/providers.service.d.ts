@@ -19,16 +19,17 @@ export declare class ProvidersService {
             rooms: number;
         };
     } & {
+        type: import(".prisma/client").$Enums.ProviderType;
         id: string;
         code: string;
         userId: string | null;
         businessName: string;
-        type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: Prisma.JsonValue | null;
         address: Prisma.JsonValue | null;
         timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
+        listingTier: string;
         verificationStatus: string;
         createdAt: Date;
     })[]>;
@@ -41,16 +42,17 @@ export declare class ProvidersService {
             rooms: number;
         };
     } & {
+        type: import(".prisma/client").$Enums.ProviderType;
         id: string;
         code: string;
         userId: string | null;
         businessName: string;
-        type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: Prisma.JsonValue | null;
         address: Prisma.JsonValue | null;
         timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
+        listingTier: string;
         verificationStatus: string;
         createdAt: Date;
     }) | null>;
@@ -63,16 +65,17 @@ export declare class ProvidersService {
             rooms: number;
         };
     } & {
+        type: import(".prisma/client").$Enums.ProviderType;
         id: string;
         code: string;
         userId: string | null;
         businessName: string;
-        type: import(".prisma/client").$Enums.ProviderType;
         brandProfile: Prisma.JsonValue | null;
         address: Prisma.JsonValue | null;
         timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
+        listingTier: string;
         verificationStatus: string;
         createdAt: Date;
     }>;

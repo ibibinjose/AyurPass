@@ -8,6 +8,7 @@ import { formatMoney } from "@/lib/api";
 import type {
   AdminOverview,
   Booking,
+  Enquiry,
   HealthProfile,
   LoyaltySummary,
   Professional,
@@ -106,6 +107,34 @@ function ConsumerOverview() {
         </Link>
       </div>
 
+      {/* Everything in one place: find wellness, or become a provider. */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/discover"
+          className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <div>
+            <h2 className="font-display text-xl text-forest">Discover wellness places</h2>
+            <p className="mt-1 text-sm text-ink-secondary">
+              Find Ayurveda, yoga, spa, meditation & retreats near you.
+            </p>
+          </div>
+          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
+        </Link>
+        <Link
+          href="/list-your-business"
+          className="group flex items-center justify-between rounded-2xl border border-dashed border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <div>
+            <h2 className="font-display text-xl text-forest">Own a wellness business?</h2>
+            <p className="mt-1 text-sm text-ink-secondary">
+              List it free and get discovered — no booking platform required.
+            </p>
+          </div>
+          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
+        </Link>
+      </div>
+
       <section className="rounded-2xl border border-hairline bg-surface p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-xl text-forest">Your constitution</h2>
@@ -173,6 +202,7 @@ function ProviderOverview() {
   const [team, setTeam] = useState<Professional[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
 
   useEffect(() => {
     if (!provider) return;
@@ -180,7 +210,11 @@ function ProviderOverview() {
     api.professionalsByProvider(provider.id).then(setTeam).catch(() => {});
     api.servicesByProvider(provider.id).then(setServices).catch(() => {});
     api.bookingsByProvider(provider.id).then(setBookings).catch(() => {});
+    api.myEnquiries().then(setEnquiries).catch(() => {});
   }, [provider]);
+
+  const isListing = provider?.listingTier === "FREE_LISTING" || services.length === 0;
+  const newLeads = enquiries.filter((e) => e.status === "new").length;
 
   const now = new Date();
   const upcoming = bookings.filter(
@@ -210,6 +244,11 @@ function ProviderOverview() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
+          label="New enquiries"
+          value={newLeads}
+          hint={enquiries.length ? `${enquiries.length} total leads` : undefined}
+        />
+        <StatTile
           label="Upcoming sessions"
           value={upcoming.length}
           hint={pending.length ? `${pending.length} awaiting confirmation` : undefined}
@@ -219,7 +258,68 @@ function ProviderOverview() {
           value={services.filter((s) => s.category !== "PACKAGE").length}
         />
         <StatTile label="Packages" value={packages.length} />
-        <StatTile label="Team members" value={team.length} />
+      </div>
+
+      {/* Listing-only practices: nudge toward the booking upgrade. */}
+      {isListing && (
+        <Link
+          href="/dashboard/services"
+          className="group flex items-center justify-between rounded-2xl border border-hairline bg-gold-soft/40 p-6 hover:border-leaf"
+        >
+          <div>
+            <h2 className="font-display text-xl text-forest">Start accepting online bookings</h2>
+            <p className="mt-1 text-sm text-ink-secondary">
+              You&apos;re on a free listing. Add a bookable session to take bookings &amp; payments
+              through AyurPass — clients can book you directly.
+            </p>
+          </div>
+          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
+        </Link>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Link
+          href={provider ? `/providers/${provider.id}` : "/discover"}
+          className="group rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <h2 className="font-display text-xl text-forest">Your public page</h2>
+          <p className="mt-2 text-sm text-ink-secondary">See exactly how visitors discover you.</p>
+          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest">
+            View listing
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+        <Link
+          href="/dashboard/enquiries"
+          className="group rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <h2 className="flex items-center gap-2 font-display text-xl text-forest">
+            Enquiries
+            {newLeads > 0 && (
+              <span className="rounded-full bg-forest px-2 py-0.5 text-xs font-semibold text-white">
+                {newLeads}
+              </span>
+            )}
+          </h2>
+          <p className="mt-2 text-sm text-ink-secondary">Leads sent from your listing page.</p>
+          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest">
+            View leads
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+        <Link
+          href="/dashboard/business"
+          className="group rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+        >
+          <h2 className="font-display text-xl text-forest">Business profile</h2>
+          <p className="mt-2 text-sm text-ink-secondary">
+            Edit photos, contact details, tags and amenities.
+          </p>
+          <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest">
+            Edit profile
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
       </div>
 
       {pending.length > 0 && (

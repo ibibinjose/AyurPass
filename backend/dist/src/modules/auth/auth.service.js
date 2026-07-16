@@ -50,6 +50,7 @@ let AuthService = class AuthService {
                     userId: user.id,
                     businessName: registerDto.businessName || `${registerDto.fullName}'s Practice`,
                     type: registerDto.providerType || 'AYURVEDA_CLINIC',
+                    listingTier: registerDto.listingTier === 'FREE_LISTING' ? 'FREE_LISTING' : 'BOOKING',
                 },
             });
             await this.prisma.professional.create({

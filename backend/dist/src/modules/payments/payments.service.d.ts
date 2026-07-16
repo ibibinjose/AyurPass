@@ -23,8 +23,8 @@ export declare class PaymentsService {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -72,8 +72,8 @@ export declare class PaymentsService {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -127,9 +127,9 @@ export declare class PaymentsService {
             };
         } & {
             id: string;
+            orderId: string;
             productId: string;
             quantity: number;
-            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
     } & {
@@ -166,9 +166,9 @@ export declare class PaymentsService {
             };
         } & {
             id: string;
+            orderId: string;
             productId: string;
             quantity: number;
-            orderId: string;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
         })[];
     } & {

@@ -108,10 +108,10 @@ export default function PartnersPage() {
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
               <Link
-                href="/register?as=provider"
+                href="/list-your-business"
                 className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
               >
-                List your practice
+                List your business — free
               </Link>
             </div>
           </div>

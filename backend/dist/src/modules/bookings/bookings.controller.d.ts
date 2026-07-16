@@ -28,8 +28,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -87,8 +87,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -154,8 +154,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -213,8 +213,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;
@@ -272,8 +272,8 @@ export declare class BookingsController {
             price: import("@prisma/client/runtime/library").Decimal;
             providerId: string;
             professionalId: string | null;
-            currency: string;
             durationMinutes: number;
+            currency: string;
             imageUrl: string | null;
             doshaCompatibility: import("@prisma/client/runtime/library").JsonValue | null;
             isVirtual: boolean;

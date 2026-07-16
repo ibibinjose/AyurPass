@@ -40,4 +40,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateProviderDto.prototype, "timezone", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateProviderDto.prototype, "listingTier", void 0);
 //# sourceMappingURL=provider.dto.js.map

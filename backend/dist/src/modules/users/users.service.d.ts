@@ -6,13 +6,13 @@ export declare class UsersService {
     findByEmail(email: string): Promise<{
         id: string;
         createdAt: Date;
-        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        updatedAt: Date;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        updatedAt: Date;
     } | null>;
     findById(id: string): Promise<({
         provider: {
@@ -26,15 +26,16 @@ export declare class UsersService {
             timezone: string | null;
             stripeAccountId: string | null;
             subscriptionTier: string | null;
+            listingTier: string;
             verificationStatus: string;
             createdAt: Date;
         } | null;
         consumer: {
             code: string;
             userId: string;
+            prakritiPrimary: string | null;
             prakritiScores: import("@prisma/client/runtime/library").JsonValue | null;
             preferences: import("@prisma/client/runtime/library").JsonValue | null;
-            prakritiPrimary: string | null;
         } | null;
         professional: ({
             provider: {
@@ -48,6 +49,7 @@ export declare class UsersService {
                 timezone: string | null;
                 stripeAccountId: string | null;
                 subscriptionTier: string | null;
+                listingTier: string;
                 verificationStatus: string;
                 createdAt: Date;
             };
@@ -58,8 +60,8 @@ export declare class UsersService {
             providerId: string;
             title: string | null;
             specializations: string[];
-            bio: string | null;
             doshaExpertise: import("@prisma/client/runtime/library").JsonValue | null;
+            bio: string | null;
             certifications: import("@prisma/client/runtime/library").JsonValue | null;
             yearsExperience: number | null;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
@@ -71,34 +73,34 @@ export declare class UsersService {
     } & {
         id: string;
         createdAt: Date;
-        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        updatedAt: Date;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        updatedAt: Date;
     }) | null>;
     createUser(data: any): Promise<{
         id: string;
         createdAt: Date;
-        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        updatedAt: Date;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        updatedAt: Date;
     }>;
     updateUser(id: string, data: UpdateUserDto): Promise<{
         id: string;
         createdAt: Date;
-        passwordHash: string | null;
         email: string;
         fullName: string | null;
         phone: string | null;
         role: import(".prisma/client").$Enums.Role;
-        updatedAt: Date;
+        passwordHash: string | null;
         avatarUrl: string | null;
+        updatedAt: Date;
     }>;
 }

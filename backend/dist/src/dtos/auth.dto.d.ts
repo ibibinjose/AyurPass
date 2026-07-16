@@ -7,6 +7,7 @@ export declare class RegisterDto {
     role?: Role;
     businessName?: string;
     providerType?: ProviderType;
+    listingTier?: string;
     title?: string;
     specializations?: string[];
     bio?: string;
@@ -40,6 +41,7 @@ export declare class RegisterPayload {
     role?: Role;
     businessName?: string;
     providerType?: ProviderType;
+    listingTier?: string;
     title?: string;
     specializations?: string[];
     bio?: string;

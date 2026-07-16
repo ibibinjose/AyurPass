@@ -5,4 +5,5 @@ export declare class UpdateProviderDto {
     brandProfile?: Record<string, unknown>;
     address?: Record<string, unknown>;
     timezone?: string;
+    listingTier?: string;
 }

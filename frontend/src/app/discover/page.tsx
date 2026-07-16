@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
@@ -219,8 +220,15 @@ export default function DiscoverPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
         <h1 className="font-display text-3xl text-forest sm:text-4xl">Discover wellness near you</h1>
         <p className="mt-2 max-w-2xl text-ink-secondary">
-          Search verified clinics, studios, spas, meditation centers and health clubs — plus every
-          treatment, practitioner and product they offer. Filter by name, location and discipline.
+          The dedicated finder for Ayurveda, yoga, luxury spa, meditation, health-club and retreat
+          places — search every clinic, studio and sanctuary, plus the treatments, practitioners and
+          products they offer. Filter by name, location and discipline.
+        </p>
+        <p className="mt-3 text-sm text-ink-muted">
+          Run a wellness business?{" "}
+          <Link href="/list-your-business" className="font-medium text-forest hover:underline">
+            List it free →
+          </Link>
         </p>
 
         {/* Search: name + location */}

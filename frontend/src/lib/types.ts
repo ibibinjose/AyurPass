@@ -48,6 +48,17 @@ export interface BrandProfile {
   logoUrl?: string;
   /** Wide banner shown on the provider profile. */
   coverImageUrl?: string;
+  /** Photo URLs shown as a gallery on the listing page. */
+  gallery?: string[];
+  /** Short discovery keywords, e.g. "Panchakarma", "Vegan", "Ocean view". */
+  tags?: string[];
+  /** Facilities offered, e.g. "Sauna", "Parking", "Wheelchair access". */
+  amenities?: string[];
+  socialLinks?: { instagram?: string; facebook?: string; youtube?: string; x?: string };
+  /** Where a free-listing sends visitors to book externally (their own site/portal). */
+  externalBookingUrl?: string;
+  /** Rough price positioning shown on listings. */
+  priceBand?: "$" | "$$" | "$$$" | "$$$$";
 }
 
 export interface BusinessAddress {
@@ -68,6 +79,8 @@ export interface Provider {
   address?: BusinessAddress | null;
   timezone?: string | null;
   subscriptionTier?: string | null;
+  /** "FREE_LISTING" (directory only) | "BOOKING" (accepts AyurPass bookings). */
+  listingTier?: string | null;
   verificationStatus: string;
   createdAt: string;
   _count?: {
@@ -389,7 +402,21 @@ export interface RegisterPayload {
   role?: Role;
   businessName?: string;
   providerType?: ProviderType;
+  /** "FREE_LISTING" for directory-only provider signups. */
+  listingTier?: string;
   title?: string;
   specializations?: string[];
   bio?: string;
+}
+
+/** A lead captured from a provider's public listing page. */
+export interface Enquiry {
+  id: string;
+  providerId: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  status: "new" | "read" | "archived";
+  createdAt: string;
 }

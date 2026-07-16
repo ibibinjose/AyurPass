@@ -62,6 +62,7 @@ model Provider {
   timezone          String?
   stripeAccountId   String?
   subscriptionTier  String?
+  listingTier       String    @default("BOOKING") // FREE_LISTING | BOOKING
   verificationStatus String   @default("pending")
   createdAt         DateTime  @default(now())
 
@@ -74,6 +75,7 @@ model Provider {
   rooms             Room[]
   orders            Order[]
   integrations      Integration[]
+  enquiries         Enquiry[]
 }
 
 enum ProviderType {
@@ -387,4 +389,20 @@ model Integration {
   createdAt         DateTime  @default(now())
 
   @@unique([providerId, type])
+}
+
+/// Lead / enquiry captured from a provider's public listing page.
+/// Lets free-listing providers (no AyurPass booking) still receive customers.
+model Enquiry {
+  id         String   @id @default(uuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name       String
+  email      String
+  phone      String?
+  message    String
+  status     String   @default("new") // new | read | archived
+  createdAt  DateTime @default(now())
+
+  @@index([providerId, createdAt])
 }

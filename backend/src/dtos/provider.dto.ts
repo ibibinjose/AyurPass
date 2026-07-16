@@ -23,4 +23,9 @@ export class UpdateProviderDto {
   @IsString()
   @IsOptional()
   timezone?: string;
+
+  /** "FREE_LISTING" | "BOOKING" — flips when a listing upgrades to accept bookings. */
+  @IsString()
+  @IsOptional()
+  listingTier?: string;
 }

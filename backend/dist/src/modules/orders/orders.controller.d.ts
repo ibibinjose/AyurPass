@@ -10,19 +10,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        items: ({
-            product: {
-                id: string;
-                name: string;
-                category: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            unitPrice: import("@prisma/client/runtime/library").Decimal;
-        })[];
         consumer: {
             userId: string;
             user: {
@@ -31,6 +18,19 @@ export declare class OrdersController {
                 fullName: string | null;
             };
         };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                category: string | null;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
+        })[];
     } & {
         id: string;
         createdAt: Date;
@@ -54,19 +54,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        items: ({
-            product: {
-                id: string;
-                name: string;
-                category: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            unitPrice: import("@prisma/client/runtime/library").Decimal;
-        })[];
         consumer: {
             userId: string;
             user: {
@@ -75,6 +62,19 @@ export declare class OrdersController {
                 fullName: string | null;
             };
         };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                category: string | null;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
+        })[];
     } & {
         id: string;
         createdAt: Date;
@@ -98,19 +98,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        items: ({
-            product: {
-                id: string;
-                name: string;
-                category: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            unitPrice: import("@prisma/client/runtime/library").Decimal;
-        })[];
         consumer: {
             userId: string;
             user: {
@@ -119,6 +106,19 @@ export declare class OrdersController {
                 fullName: string | null;
             };
         };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                category: string | null;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
+        })[];
     } & {
         id: string;
         createdAt: Date;
@@ -142,19 +142,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        items: ({
-            product: {
-                id: string;
-                name: string;
-                category: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            unitPrice: import("@prisma/client/runtime/library").Decimal;
-        })[];
         consumer: {
             userId: string;
             user: {
@@ -163,6 +150,19 @@ export declare class OrdersController {
                 fullName: string | null;
             };
         };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                category: string | null;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
+        })[];
     } & {
         id: string;
         createdAt: Date;
@@ -186,19 +186,6 @@ export declare class OrdersController {
             businessName: string;
             type: import(".prisma/client").$Enums.ProviderType;
         };
-        items: ({
-            product: {
-                id: string;
-                name: string;
-                category: string | null;
-            };
-        } & {
-            id: string;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            unitPrice: import("@prisma/client/runtime/library").Decimal;
-        })[];
         consumer: {
             userId: string;
             user: {
@@ -207,6 +194,19 @@ export declare class OrdersController {
                 fullName: string | null;
             };
         };
+        items: ({
+            product: {
+                id: string;
+                name: string;
+                category: string | null;
+            };
+        } & {
+            id: string;
+            orderId: string;
+            productId: string;
+            quantity: number;
+            unitPrice: import("@prisma/client/runtime/library").Decimal;
+        })[];
     } & {
         id: string;
         createdAt: Date;

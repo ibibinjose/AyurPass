@@ -49,6 +49,7 @@ export declare class AdminController {
         timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
+        listingTier: string;
         verificationStatus: string;
         createdAt: Date;
     })[]>;
@@ -72,6 +73,7 @@ export declare class AdminController {
         timezone: string | null;
         stripeAccountId: string | null;
         subscriptionTier: string | null;
+        listingTier: string;
         verificationStatus: string;
         createdAt: Date;
     }>;

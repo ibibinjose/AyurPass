@@ -8,6 +8,7 @@ import type {
   BrandProfile,
   BusinessAddress,
   Channel,
+  Enquiry,
   GiftCard,
   GiftCardLookup,
   HealthProfile,
@@ -218,8 +219,21 @@ export const api = {
       brandProfile?: BrandProfile;
       address?: BusinessAddress;
       timezone?: string;
+      listingTier?: string;
     },
   ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
+
+  // --- enquiries (leads from listing pages) ---
+  createEnquiry: (data: {
+    providerId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    message: string;
+  }) => request<Enquiry>("/enquiries", { method: "POST", body: data }),
+  myEnquiries: () => request<Enquiry[]>("/enquiries", { auth: true }),
+  updateEnquiry: (id: string, status: Enquiry["status"]) =>
+    request<Enquiry>(`/enquiries/${id}`, { method: "PATCH", body: { status }, auth: true }),
 
   // --- products ---
   products: (category?: string) =>

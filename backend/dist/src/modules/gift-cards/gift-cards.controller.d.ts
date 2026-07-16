@@ -9,16 +9,16 @@ export declare class GiftCardsController {
             id: string;
             type: string;
             createdAt: Date;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
         createdAt: Date;
-        message: string | null;
         status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
         purchaserId: string | null;
@@ -29,16 +29,16 @@ export declare class GiftCardsController {
             id: string;
             type: string;
             createdAt: Date;
-            amount: import("@prisma/client/runtime/library").Decimal;
             reason: string | null;
+            amount: import("@prisma/client/runtime/library").Decimal;
             giftCardId: string;
         }[];
     } & {
         id: string;
         code: string;
         createdAt: Date;
-        message: string | null;
         status: string;
+        message: string | null;
         initialBalance: import("@prisma/client/runtime/library").Decimal;
         balance: import("@prisma/client/runtime/library").Decimal;
         purchaserId: string | null;
