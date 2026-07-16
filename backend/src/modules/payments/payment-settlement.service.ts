@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
 import { StripeService } from './stripe.service';
+import { isStrictEnv } from '../../common/env';
 import type { PaymentIntentPayload, RedemptionInput, Settlement } from './payment.types';
 
 @Injectable()
@@ -17,6 +18,19 @@ export class PaymentSettlementService {
 
   get mockMode(): boolean {
     return !this.stripe.enabled;
+  }
+
+  /**
+   * Mock auto-pay is for local/dev only. Production (or AYURPASS_STRICT=1) must
+   * have real Stripe keys — never mark a booking/order paid without a charge path.
+   * Full gift-card/points cover (cardCharge === 0) is still allowed without Stripe.
+   */
+  assertMockPaymentsAllowed(): void {
+    if (this.mockMode && isStrictEnv()) {
+      throw new BadRequestException(
+        'Card payments are not configured. Set STRIPE_SECRET_KEY before taking live payments.',
+      );
+    }
   }
 
   async settle(

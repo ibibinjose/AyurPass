@@ -1,17 +1,12 @@
 import type { PaymentStatus } from "@/lib/types";
+import { StatusBadge } from "./StatusBadge";
 
-const STYLES: Record<PaymentStatus, string> = {
-  unpaid: "border border-hairline text-ink-secondary",
-  paid: "bg-forest text-white",
-  refunded: "bg-gold-soft text-forest",
+const TONE: Record<PaymentStatus, "muted" | "success" | "warning"> = {
+  unpaid: "muted",
+  paid: "success",
+  refunded: "warning",
 };
 
 export function PaymentBadge({ status }: { status: PaymentStatus }) {
-  return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${STYLES[status] ?? STYLES.unpaid}`}
-    >
-      {status}
-    </span>
-  );
+  return <StatusBadge label={status} tone={TONE[status] ?? "muted"} />;
 }

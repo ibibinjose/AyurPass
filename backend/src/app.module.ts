@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
+import { accessSecret } from './common/env';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
@@ -33,9 +35,18 @@ import { HealthModule } from './health/health.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // Global baseline: 120 requests / minute per IP. Auth routes set tighter
+    // limits via @Throttle on the controller methods.
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,
+        limit: 120,
+      },
+    ]),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+      secret: accessSecret(),
     }),
     PrismaModule,
     UsersModule,
@@ -65,6 +76,8 @@ import { HealthModule } from './health/health.module';
     // Global authentication: every route requires a valid access token
     // unless annotated @Public(). See src/common/jwt-auth.guard.ts.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // Rate limiting (IP-based). Override per-route with @Throttle / @SkipThrottle.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

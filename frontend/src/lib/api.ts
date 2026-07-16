@@ -1,9 +1,11 @@
 import type {
   AdminOverview,
   AdminProvider,
+  AccessAuditEntry,
   AuthResponse,
   AuthTokens,
   Booking,
+  ClientConsent,
   BookingCheckout,
   BookingStatus,
   BrandProfile,
@@ -75,10 +77,39 @@ interface RequestOptions {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  /** Internal: skip the single automatic refresh retry. */
+  _retried?: boolean;
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+/** Attempt a single shared token refresh. Returns true when a new access token is stored. */
+async function tryRefreshAccessToken(): Promise<boolean> {
+  const refresh = tokenStore.refresh;
+  if (!refresh) return false;
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const tokens = await request<AuthTokens>("/auth/refresh", {
+          method: "POST",
+          body: { refreshToken: refresh },
+          _retried: true,
+        });
+        tokenStore.set(tokens);
+        return true;
+      } catch {
+        tokenStore.clear();
+        return false;
+      } finally {
+        refreshInFlight = null;
+      }
+    })();
+  }
+  return refreshInFlight;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = false } = options;
+  const { method = "GET", body, auth = false, _retried = false } = options;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -89,6 +120,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  // Transparent access-token refresh for authenticated calls.
+  if (res.status === 401 && auth && !_retried) {
+    const ok = await tryRefreshAccessToken();
+    if (ok) {
+      return request<T>(path, { ...options, _retried: true });
+    }
+  }
 
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
@@ -118,9 +157,25 @@ export const api = {
 
   // --- users ---
   userByEmail: (email: string) =>
-    request<UserProfile | null>(`/users/email/${encodeURIComponent(email)}`),
+    request<UserProfile | null>(`/users/email/${encodeURIComponent(email)}`, { auth: true }),
   updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
     request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
+
+  // --- consents / health permissions ---
+  myConsents: (activeOnly = false) =>
+    request<ClientConsent[]>(`/consents/me${activeOnly ? "?activeOnly=true" : ""}`, {
+      auth: true,
+    }),
+  myAccessAudit: () => request<AccessAuditEntry[]>("/consents/me/audit", { auth: true }),
+  createConsent: (data: {
+    consumerId: string;
+    granteeId?: string;
+    permissionType: string;
+    scope?: Record<string, unknown>;
+    expiresAt?: string;
+  }) => request<ClientConsent>("/consents", { method: "POST", body: data, auth: true }),
+  revokeConsent: (id: string) =>
+    request<ClientConsent>(`/consents/${id}`, { method: "DELETE", auth: true }),
 
   // --- packages ---
   packages: () => request<WellnessPackage[]>("/packages"),

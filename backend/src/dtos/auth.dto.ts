@@ -1,5 +1,18 @@
-import { IsEmail, IsString, IsOptional, IsEnum, IsNotEmpty, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsNotEmpty,
+  IsBoolean,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { Role, ProviderType } from '@prisma/client';
+
+/** Minimum password length enforced API-side (UI already hints 8+). */
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 128;
 
 export class RegisterDto {
   @IsEmail()
@@ -7,6 +20,8 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(PASSWORD_MIN, { message: 'Password must be at least 8 characters' })
+  @MaxLength(PASSWORD_MAX)
   password: string;
 
   @IsString()
@@ -58,6 +73,7 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(PASSWORD_MAX)
   password: string;
 }
 
@@ -101,6 +117,8 @@ export class RegisterPayload {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(PASSWORD_MIN, { message: 'Password must be at least 8 characters' })
+  @MaxLength(PASSWORD_MAX)
   password: string;
 
   @IsString()

@@ -590,3 +590,12 @@ export function ProfilePageFrame({ coverUrl, children }: { coverUrl?: string | n
     </div>
   );
 }
+
+/** Inner shell padding for public profile pages (compose with LayoutWrapper). */
+export function ProfilePageWrap({ children }: { children: ReactNode }) {
+  return (
+    <div className="px-4 py-6 sm:px-5 sm:py-8">
+      <ProfileShell>{children}</ProfileShell>
+    </div>
+  );
+}

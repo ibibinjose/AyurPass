@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
 
@@ -64,33 +65,61 @@ export class BookingsService {
     const expiresAt = new Date(booking.endTime);
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    const consents: {
-      consumerId: string;
+    // Grant (or refresh) scoped health permissions for the booked provider / practitioner.
+    // Re-using existing active grants avoids duplicate rows when a client re-books.
+    const grants: {
       granteeId: string;
       permissionType: string;
       scope: object;
-      expiresAt: Date;
     }[] = [
       {
-        consumerId: booking.consumerId,
         granteeId: booking.providerId,
         permissionType: 'view_health_profile',
         scope: { bookingId: booking.id, dataCategories: ['dosha_scores'] },
-        expiresAt,
       },
     ];
 
     if (booking.professionalId) {
-      consents.push({
-        consumerId: booking.consumerId,
+      grants.push({
         granteeId: booking.professionalId,
         permissionType: 'view_dosha_history',
-        scope: { bookingId: booking.id, dataCategories: ['dosha_scores', 'treatment_plans'] },
-        expiresAt,
+        scope: {
+          bookingId: booking.id,
+          dataCategories: ['dosha_scores', 'treatment_plans'],
+        },
       });
     }
 
-    await this.prisma.clientConsent.createMany({ data: consents });
+    for (const grant of grants) {
+      const existing = await this.prisma.clientConsent.findFirst({
+        where: {
+          consumerId: booking.consumerId,
+          granteeId: grant.granteeId,
+          permissionType: grant.permissionType,
+          status: 'active',
+        },
+      });
+      if (existing) {
+        await this.prisma.clientConsent.update({
+          where: { id: existing.id },
+          data: {
+            scope: grant.scope as Prisma.InputJsonValue,
+            expiresAt,
+          },
+        });
+      } else {
+        await this.prisma.clientConsent.create({
+          data: {
+            consumerId: booking.consumerId,
+            granteeId: grant.granteeId,
+            permissionType: grant.permissionType,
+            scope: grant.scope as Prisma.InputJsonValue,
+            expiresAt,
+            status: 'active',
+          },
+        });
+      }
+    }
   }
 
   async findByConsumer(consumerId: string) {

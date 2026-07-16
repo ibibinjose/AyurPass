@@ -2,8 +2,25 @@ import { ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthedUser } from './jwt-auth.guard';
 
-/** Permission types that gate health-profile reads (see docs/08-API-CONTRACTS.md). */
+/**
+ * Permission types that gate health-profile reads.
+ * Keep in sync with docs/08-API-CONTRACTS.md and the frontend permission catalog.
+ */
 export const HEALTH_CONSENT_TYPES = ['view_health_profile', 'view_dosha_history'] as const;
+
+/** All grantable permission types (extend carefully — these are part of the public contract). */
+export const PERMISSION_TYPES = [
+  ...HEALTH_CONSENT_TYPES,
+  'view_treatment_plans',
+  'edit_notes',
+  'full_health_access',
+] as const;
+
+export type PermissionType = (typeof PERMISSION_TYPES)[number];
+
+export function isPermissionType(value: string): value is PermissionType {
+  return (PERMISSION_TYPES as readonly string[]).includes(value);
+}
 
 export type HealthAccessPurpose =
   | 'self_access'

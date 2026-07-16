@@ -30,6 +30,7 @@ const CONSUMER_NAV = [
   { href: "/dashboard/rewards", label: "Rewards", icon: TrophyIcon },
   { href: "/dashboard/gift-cards", label: "Gift cards", icon: GiftIcon },
   { href: "/dashboard/plans", label: "Treatment plans", icon: SparkleIcon },
+  { href: "/dashboard/permissions", label: "Privacy", icon: ShieldIcon },
   { href: "/dashboard/settings", label: "Settings", icon: PencilIcon },
 ];
 

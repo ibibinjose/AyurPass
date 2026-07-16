@@ -5,16 +5,22 @@ import {
   Headers,
   Param,
   Post,
-  Query,
   Req,
   BadRequestException,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { IsInt, IsOptional, IsString, IsUrl, Min } from 'class-validator';
 import { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
-import { assertProviderAccess } from '../../common/ownership';
+import {
+  assertBookingParty,
+  assertBookingPayer,
+  assertOrderParty,
+  assertOrderPayer,
+  assertProviderAccess,
+} from '../../common/ownership';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export class RedemptionDto {
@@ -51,33 +57,49 @@ export class PaymentsController {
     return this.service.getPlatformConfig();
   }
 
+  /** Consumer (payer) only — prevents redeeming another user's points/gift cards. */
   @Post('checkout/:bookingId')
-  checkout(@Param('bookingId') bookingId: string, @Body() body: RedemptionDto = {}) {
+  async checkout(
+    @Param('bookingId') bookingId: string,
+    @Body() body: RedemptionDto = {},
+    @Req() req: AuthedRequest,
+  ) {
+    await assertBookingPayer(this.prisma, req.user, bookingId);
     return this.service.checkout(bookingId, body);
   }
 
   @Post('confirm/:bookingId')
-  confirmBooking(@Param('bookingId') bookingId: string) {
+  async confirmBooking(@Param('bookingId') bookingId: string, @Req() req: AuthedRequest) {
+    await assertBookingPayer(this.prisma, req.user, bookingId);
     return this.service.confirmBookingPayment(bookingId);
   }
 
+  /** Consumer or provider staff may refund a booking they are party to. */
   @Post('refund/:bookingId')
-  refund(@Param('bookingId') bookingId: string) {
+  async refund(@Param('bookingId') bookingId: string, @Req() req: AuthedRequest) {
+    await assertBookingParty(this.prisma, req.user, bookingId);
     return this.service.refund(bookingId);
   }
 
   @Post('checkout-order/:orderId')
-  checkoutOrder(@Param('orderId') orderId: string, @Body() body: RedemptionDto = {}) {
+  async checkoutOrder(
+    @Param('orderId') orderId: string,
+    @Body() body: RedemptionDto = {},
+    @Req() req: AuthedRequest,
+  ) {
+    await assertOrderPayer(this.prisma, req.user, orderId);
     return this.service.checkoutOrder(orderId, body);
   }
 
   @Post('confirm-order/:orderId')
-  confirmOrder(@Param('orderId') orderId: string) {
+  async confirmOrder(@Param('orderId') orderId: string, @Req() req: AuthedRequest) {
+    await assertOrderPayer(this.prisma, req.user, orderId);
     return this.service.confirmOrderPayment(orderId);
   }
 
   @Post('refund-order/:orderId')
-  refundOrder(@Param('orderId') orderId: string) {
+  async refundOrder(@Param('orderId') orderId: string, @Req() req: AuthedRequest) {
+    await assertOrderParty(this.prisma, req.user, orderId);
     return this.service.refundOrder(orderId);
   }
 
@@ -97,7 +119,9 @@ export class PaymentsController {
     return this.service.connectStatus(providerId);
   }
 
+  /** Stripe delivers bursts; signature verification is the real gate. */
   @Public()
+  @SkipThrottle()
   @Post('webhook')
   async webhook(
     @Req() req: RawBodyRequest,

@@ -10,6 +10,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from '../../dtos/auth.dto';
 import { sanitizeUser } from '../../common/sanitize-user';
+import { accessSecret, refreshSecret } from '../../common/env';
 
 @Injectable()
 export class AuthService {
@@ -85,8 +86,8 @@ export class AuthService {
 
   async refreshTokens(refreshToken: string) {
     try {
-      const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(refreshToken, {
+        secret: refreshSecret(),
       });
 
       const user = await this.usersService.findById(payload.sub);
@@ -107,13 +108,13 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: (process.env.JWT_ACCESS_EXPIRES ||
         '15m') as JwtSignOptions['expiresIn'],
-      secret: process.env.JWT_ACCESS_SECRET,
+      secret: accessSecret(),
     });
 
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: (process.env.JWT_REFRESH_EXPIRES ||
         '7d') as JwtSignOptions['expiresIn'],
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: refreshSecret(),
     });
 
     return {

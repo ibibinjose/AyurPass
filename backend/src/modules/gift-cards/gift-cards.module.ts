@@ -3,9 +3,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { GiftCardsService } from './gift-cards.service';
 import { GiftCardsController } from './gift-cards.controller';
 import { JwtAuthGuard } from '../../common/jwt-auth.guard';
+import { accessSecret } from '../../common/env';
 
 @Module({
-  imports: [JwtModule.register({ secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret' })],
+  imports: [JwtModule.register({ secret: accessSecret() })],
   controllers: [GiftCardsController],
   providers: [GiftCardsService, JwtAuthGuard],
   exports: [GiftCardsService],

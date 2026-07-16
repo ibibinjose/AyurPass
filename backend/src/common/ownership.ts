@@ -116,6 +116,47 @@ export async function assertBookingParty(
   }
 }
 
+/**
+ * Only the booking's consumer (or platform admin) may initiate checkout / confirm.
+ * Providers must not redeem a client's gift card or loyalty points on their behalf.
+ */
+export async function assertBookingPayer(
+  prisma: PrismaService,
+  user: AuthedUser,
+  bookingId: string,
+): Promise<void> {
+  if (user.role === 'PLATFORM_ADMIN') return;
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { consumerId: true },
+  });
+  if (!booking) throw new NotFoundException('Booking not found');
+  if (booking.consumerId !== user.sub) {
+    throw new ForbiddenException('Only the booking owner can pay for this booking');
+  }
+}
+
+/**
+ * Only the order's consumer (or platform admin) may initiate checkout / confirm.
+ */
+export async function assertOrderPayer(
+  prisma: PrismaService,
+  user: AuthedUser,
+  orderId: string,
+): Promise<void> {
+  if (user.role === 'PLATFORM_ADMIN') return;
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { consumerId: true },
+  });
+  if (!order) throw new NotFoundException('Order not found');
+  if (order.consumerId !== user.sub) {
+    throw new ForbiddenException('Only the order owner can pay for this order');
+  }
+}
+
 export async function assertProfessionalProviderAccess(
   prisma: PrismaService,
   user: AuthedUser,

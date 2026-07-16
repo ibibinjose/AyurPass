@@ -3,11 +3,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { AdminGuard } from './admin.guard';
+import { accessSecret } from '../../common/env';
 
 @Module({
   imports: [
     JwtModule.register({
-      secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+      secret: accessSecret(),
     }),
   ],
   controllers: [AdminController],

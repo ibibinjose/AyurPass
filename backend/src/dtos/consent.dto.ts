@@ -1,7 +1,19 @@
-import { IsString, IsDateString, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsOptional,
+  IsIn,
+  IsObject,
+  IsNotEmpty,
+} from 'class-validator';
+import { PERMISSION_TYPES } from '../common/consent';
+
+const PERMISSION_TYPE_VALUES = [...PERMISSION_TYPES];
+const CONSENT_STATUSES = ['active', 'revoked', 'expired'] as const;
 
 export class CreateConsentDto {
   @IsString()
+  @IsNotEmpty()
   consumerId: string;
 
   @IsString()
@@ -9,27 +21,27 @@ export class CreateConsentDto {
   granteeId?: string;
 
   @IsString()
+  @IsIn(PERMISSION_TYPE_VALUES)
   permissionType: string;
 
   @IsOptional()
-  scope?: any;
+  @IsObject()
+  scope?: Record<string, unknown>;
 
   @IsDateString()
   @IsOptional()
   expiresAt?: string;
-
-  @IsString()
-  @IsOptional()
-  status?: string;
 }
 
 export class UpdateConsentDto {
   @IsString()
+  @IsIn([...CONSENT_STATUSES])
   @IsOptional()
   status?: string;
 
   @IsOptional()
-  scope?: any;
+  @IsObject()
+  scope?: Record<string, unknown>;
 
   @IsDateString()
   @IsOptional()

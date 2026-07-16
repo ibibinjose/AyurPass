@@ -1,4 +1,5 @@
 import { Controller, Post, Body, Get, Req, NotFoundException } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from '../../dtos/auth.dto';
@@ -13,19 +14,23 @@ export class AuthController {
     private usersService: UsersService,
   ) {}
 
+  /** Tight limits on credential endpoints to slow brute-force / stuffing. */
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
   @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('refresh')
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);

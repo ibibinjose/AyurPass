@@ -220,6 +220,48 @@ export interface HealthProfile {
   updatedAt: string;
 }
 
+export type PermissionType =
+  | "view_health_profile"
+  | "view_dosha_history"
+  | "view_treatment_plans"
+  | "edit_notes"
+  | "full_health_access";
+
+export type ConsentEffectiveStatus = "active" | "revoked" | "expired";
+
+export interface ConsentGrantee {
+  id: string;
+  kind: "provider" | "professional" | "unknown";
+  name: string;
+  title?: string | null;
+}
+
+export interface ClientConsent {
+  id: string;
+  consumerId: string;
+  granteeId?: string | null;
+  permissionType: string;
+  scope?: Record<string, unknown> | null;
+  expiresAt?: string | null;
+  status: string;
+  createdAt: string;
+  grantee?: ConsentGrantee | null;
+  isExpired: boolean;
+  effectiveStatus: ConsentEffectiveStatus;
+}
+
+export interface AccessAuditEntry {
+  id: string | number;
+  consumerId?: string | null;
+  accessorId?: string | null;
+  action: string;
+  resourceType: string;
+  resourceId?: string | null;
+  purpose?: string | null;
+  timestamp: string;
+  ipAddress?: string | null;
+}
+
 export interface LoyaltySummary {
   pointsBalance: number;
   lifetimePoints: number;

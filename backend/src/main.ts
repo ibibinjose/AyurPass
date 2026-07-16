@@ -2,8 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
+import { assertProductionConfig, corsOrigins, isStrictEnv } from './common/env';
 
 async function bootstrap() {
+  assertProductionConfig();
+
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.useGlobalPipes(
@@ -15,7 +18,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOrigins(),
     credentials: true,
   });
 
@@ -24,6 +27,9 @@ async function bootstrap() {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (isStrictEnv()) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
     next();
   });
 

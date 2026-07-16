@@ -53,6 +53,8 @@ export class PaymentsService {
     }
 
     if (this.mockMode) {
+      // Dev-only: refuse mock auto-pay in production / strict mode.
+      this.settlement.assertMockPaymentsAllowed();
       const updated = await this.settlement.markBookingPaid(
         bookingId,
         settled,
@@ -179,6 +181,7 @@ export class PaymentsService {
     }
 
     if (this.mockMode) {
+      this.settlement.assertMockPaymentsAllowed();
       const updated = await this.settlement.markOrderPaid(
         orderId,
         settled,

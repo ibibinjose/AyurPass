@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { accessSecret } from './env';
 
 export interface AuthedUser {
   sub: string;
@@ -39,7 +40,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Authentication token required');
     try {
       req.user = await this.jwtService.verifyAsync<AuthedUser>(token, {
-        secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+        secret: accessSecret(),
       });
       return true;
     } catch {

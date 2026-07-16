@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { accessSecret } from '../../common/env';
 
 /** Allows only PLATFORM_ADMIN access tokens. */
 @Injectable()
@@ -13,7 +14,7 @@ export class AdminGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Authentication token required');
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_ACCESS_SECRET || 'ayurpass_access_secret',
+        secret: accessSecret(),
       });
       if (payload.role !== 'PLATFORM_ADMIN') {
         throw new UnauthorizedException('Platform admin access required');
