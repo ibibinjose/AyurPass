@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
 import { slugifyName, withSlugSuffix } from '../../common/slug';
@@ -7,12 +8,16 @@ const PROVIDER_PUBLIC = {
   select: {
     id: true,
     code: true,
+    slug: true,
     businessName: true,
     type: true,
     verificationStatus: true,
     listingTier: true,
     brandProfile: true,
     address: true,
+    registrationNumber: true,
+    licenceNumber: true,
+    healthAuthorities: true,
   },
 } as const;
 
@@ -129,8 +134,25 @@ export class ProfessionalsService {
   async updateProfessional(id: string, data: UpdateProfessionalDto) {
     return this.prisma.professional.update({
       where: { id },
-      data,
-      include: { user: true },
+      data: {
+        title: data.title,
+        specializations: data.specializations,
+        doshaExpertise: data.doshaExpertise,
+        bio: data.bio,
+        certifications: data.certifications,
+        yearsExperience: data.yearsExperience,
+        hourlyRate: data.hourlyRate,
+        availabilityPreferences: data.availabilityPreferences,
+        verificationDocuments: data.verificationDocuments,
+        registrationNumber:
+          data.registrationNumber === undefined ? undefined : data.registrationNumber,
+        licenceNumber: data.licenceNumber === undefined ? undefined : data.licenceNumber,
+        healthAuthorities:
+          data.healthAuthorities === undefined
+            ? undefined
+            : (data.healthAuthorities as Prisma.InputJsonValue),
+      },
+      include: { user: true, provider: PROVIDER_PUBLIC },
     });
   }
 }

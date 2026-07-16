@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatMoney } from "@/lib/api";
 import { formatRetreatDates, RETREAT_CATEGORY_LABEL } from "@/lib/catalog";
 import type { Retreat } from "@/lib/types";
+import { VerifiedTick } from "./VerifiedTick";
 import { CalendarIcon, MapPinIcon, SparkleIcon } from "./icons";
 
 export function RetreatCard({ retreat }: { retreat: Retreat }) {
@@ -12,12 +13,17 @@ export function RetreatCard({ retreat }: { retreat: Retreat }) {
   return (
     <Link
       href={`/retreats/${retreat.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface transition-shadow hover:shadow-[0_8px_30px_rgba(36,56,46,0.08)]"
+      className="card-surface group flex flex-col overflow-hidden"
     >
       <div className="relative h-44 w-full">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className="h-44 w-full object-cover" />
+          <img
+            src={image}
+            alt={retreat.title}
+            className="h-44 w-full object-cover"
+            loading="lazy"
+          />
         ) : (
           <div
             aria-hidden
@@ -32,42 +38,44 @@ export function RetreatCard({ retreat }: { retreat: Retreat }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-leaf">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <p className="type-label text-leaf">
           {RETREAT_CATEGORY_LABEL[retreat.category] ?? retreat.category}
         </p>
-        <h3 className="mt-1.5 font-display text-lg leading-snug text-forest">{retreat.title}</h3>
+        <h3 className="type-title mt-1.5 text-[1.125rem] leading-snug sm:text-xl">{retreat.title}</h3>
 
-        {location && (
-          <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-secondary">
-            <MapPinIcon className="h-4 w-4 shrink-0 text-leaf" />
-            {location}
+        {location ? (
+          <p className="mt-2.5 inline-flex items-start gap-1.5 text-sm font-medium text-ink-secondary">
+            <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-leaf" />
+            <span>{location}</span>
           </p>
-        )}
-        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-ink-secondary">
-          <CalendarIcon className="h-4 w-4 shrink-0 text-leaf" />
-          {formatRetreatDates(retreat.startDate, retreat.endDate)}
-          {retreat.durationDays ? ` · ${retreat.durationDays} days` : ""}
+        ) : null}
+        <p className="mt-1.5 inline-flex items-start gap-1.5 text-sm font-medium text-ink-secondary">
+          <CalendarIcon className="mt-0.5 h-4 w-4 shrink-0 text-leaf" />
+          <span>
+            {formatRetreatDates(retreat.startDate, retreat.endDate)}
+            {retreat.durationDays ? ` · ${retreat.durationDays} days` : ""}
+          </span>
         </p>
 
-        <div className="mt-auto flex items-end justify-between pt-4">
-          <div>
+        <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+          <div className="min-w-0">
             {retreat.priceFrom != null ? (
-              <p className="text-sm text-ink-muted">
+              <p className="text-sm font-medium text-ink-muted">
                 from{" "}
-                <span className="font-display text-lg text-forest">
+                <span className="font-display text-lg font-semibold text-forest sm:text-xl">
                   {formatMoney(retreat.priceFrom, retreat.currency)}
                 </span>
               </p>
             ) : (
-              <p className="text-sm text-ink-muted">Price on request</p>
+              <p className="text-sm font-medium text-ink-muted">Price on request</p>
             )}
-            {retreat.provider && (
-              <p className="mt-0.5 truncate text-xs text-ink-muted">
-                {verified && "✓ "}
-                {retreat.provider.businessName}
+            {retreat.provider ? (
+              <p className="mt-1 flex min-w-0 items-center gap-1.5 text-sm font-semibold text-ink-secondary">
+                {verified ? <VerifiedTick size="sm" /> : null}
+                <span className="truncate">{retreat.provider.businessName}</span>
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

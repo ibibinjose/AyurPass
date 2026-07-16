@@ -1,188 +1,237 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "./Logo";
-import { Button } from "./ui";
 import { MenuIcon, XIcon } from "./icons";
-import { useState } from "react";
+
+const PRIMARY_LINKS = [
+  { href: "/discover", label: "Discover" },
+  { href: "/retreats", label: "Retreats" },
+  { href: "/offers", label: "Offers" },
+  { href: "/explore", label: "Book" },
+] as const;
+
+const MORE_LINKS = [
+  { href: "/shop", label: "Shop" },
+  { href: "/packages", label: "Packages" },
+  { href: "/wellness", label: "Wellness guide" },
+  { href: "/list-your-business", label: "List your business" },
+  { href: "/partners", label: "For partners" },
+] as const;
+
+function navActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const linkClass = (active: boolean) =>
+  `rounded-lg px-1.5 py-1 transition-colors ${
+    active ? "font-medium text-forest" : "text-ink-secondary hover:text-forest"
+  }`;
 
 export function Navbar() {
   const { user, loading, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  // Close mobile drawer on route change.
+  useEffect(() => {
+    setMobileOpen(false);
+    setMoreOpen(false);
+  }, [pathname]);
+
+  // Escape + click-outside for "More" menu.
+  useEffect(() => {
+    if (!moreOpen && !mobileOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+        setMobileOpen(false);
+      }
+    }
+    function onClick(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [moreOpen, mobileOpen]);
+
+  // Prevent body scroll when mobile menu is open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
+  const moreActive = MORE_LINKS.some((l) => navActive(pathname, l.href));
 
   return (
-    <header className="sticky top-0 z-50 border-b border-hairline bg-background/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+    <header className="safe-sticky-top sticky z-50 border-b border-hairline bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/85">
+      <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-[var(--space-page-x)] sm:min-h-16 sm:gap-4">
         <Logo />
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 text-sm text-ink-secondary lg:flex">
-          <Link href="/discover" className="hover:text-forest transition-colors">
-            Discover
-          </Link>
-          <Link href="/retreats" className="hover:text-forest transition-colors">
-            Retreats
-          </Link>
-          <Link href="/offers" className="hover:text-forest transition-colors">
-            Offers
-          </Link>
-          <Link href="/explore" className="hover:text-forest transition-colors">
-            Book a session
-          </Link>
-          <Link href="/shop" className="hover:text-forest transition-colors">
-            Shop
-          </Link>
-          <Link href="/packages" className="hover:text-forest transition-colors">
-            Packages
-          </Link>
-          <Link href="/wellness" className="hover:text-forest transition-colors">
-            Wellness Guide
-          </Link>
-          <Link href="/list-your-business" className="hover:text-forest transition-colors">
-            List your business
-          </Link>
+
+        <nav className="hidden items-center gap-5 text-sm lg:flex" aria-label="Primary">
+          {PRIMARY_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className={linkClass(navActive(pathname, l.href))}>
+              {l.label}
+            </Link>
+          ))}
+          <div className="relative" ref={moreRef}>
+            <button
+              type="button"
+              className={linkClass(moreActive || moreOpen)}
+              aria-expanded={moreOpen}
+              aria-haspopup="menu"
+              onClick={() => setMoreOpen((v) => !v)}
+            >
+              More
+              <span className="ml-0.5 inline-block text-[10px] opacity-70" aria-hidden>
+                ▾
+              </span>
+            </button>
+            {moreOpen ? (
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-50 mt-2 min-w-[12rem] rounded-2xl border border-hairline bg-surface p-1.5 shadow-[0_12px_40px_rgba(36,56,46,0.12)]"
+              >
+                {MORE_LINKS.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    role="menuitem"
+                    className={`block rounded-xl px-3.5 py-2.5 text-sm transition-colors ${
+                      navActive(pathname, l.href)
+                        ? "bg-clay/80 font-medium text-forest"
+                        : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
+                    }`}
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </nav>
-        
+
         <div className="hidden items-center gap-3 lg:flex">
-          {loading ? null : user ? (
+          {loading ? (
+            <span className="h-9 w-24 animate-pulse rounded-full bg-clay/80" aria-hidden />
+          ) : user ? (
             <>
               <Link
                 href="/dashboard"
-                className="rounded-full bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-forest-deep transition-colors"
+                className="rounded-full bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-deep"
               >
                 Dashboard
               </Link>
               <button
+                type="button"
                 onClick={logout}
-                className="text-sm text-ink-secondary hover:text-forest transition-colors"
+                className="text-sm text-ink-secondary transition-colors hover:text-forest"
               >
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm text-ink-secondary hover:text-forest transition-colors">
+              <Link
+                href="/login"
+                className="text-sm text-ink-secondary transition-colors hover:text-forest"
+              >
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="rounded-full bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-forest-deep transition-colors"
+                className="rounded-full bg-forest px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-forest-deep"
               >
                 Begin your journey
               </Link>
             </>
           )}
         </div>
-        
-        {/* Mobile menu button */}
-        <button 
-          className="lg:hidden text-ink-secondary"
-          onClick={toggleMobileMenu}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+
+        <button
+          type="button"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-clay/70 hover:text-forest lg:hidden"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          aria-controls={menuId}
         >
-          {mobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
+          {mobileOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
         </button>
       </div>
-      
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-hairline bg-background/95 backdrop-blur p-5">
-          <nav className="flex flex-col gap-4">
-            <Link
-              href="/discover"
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Discover
-            </Link>
-            <Link
-              href="/retreats"
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Retreats
-            </Link>
-            <Link
-              href="/offers"
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Offers
-            </Link>
-            <Link
-              href="/explore"
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Book a session
-            </Link>
-            <Link 
-              href="/shop" 
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Shop
-            </Link>
-            <Link 
-              href="/packages" 
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Packages
-            </Link>
-            <Link 
-              href="/wellness" 
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Wellness Guide
-            </Link>
-            <Link
-              href="/list-your-business"
-              className="py-2 text-ink-secondary hover:text-forest transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              List your business
-            </Link>
-            
-            <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-3">
+
+      {mobileOpen ? (
+        <div
+          id={menuId}
+          className="border-t border-hairline bg-background/98 backdrop-blur-md lg:hidden"
+        >
+          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
+            {[...PRIMARY_LINKS, ...MORE_LINKS].map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`rounded-xl px-3 py-3 text-base transition-colors ${
+                  navActive(pathname, l.href)
+                    ? "bg-clay/80 font-medium text-forest"
+                    : "text-ink-secondary hover:bg-clay/40 hover:text-forest"
+                }`}
+                onClick={() => setMobileOpen(false)}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <div className="mt-3 flex flex-col gap-2 border-t border-hairline pt-4">
               {loading ? null : user ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className="w-full rounded-full bg-forest px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-forest-deep transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-full bg-forest px-4 py-3 text-center text-sm font-medium text-white"
+                    onClick={() => setMobileOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <button
+                    type="button"
+                    className="rounded-xl px-3 py-3 text-left text-sm text-ink-secondary"
                     onClick={() => {
                       logout();
-                      setMobileMenuOpen(false);
+                      setMobileOpen(false);
                     }}
-                    className="w-full text-left py-2 text-sm text-ink-secondary hover:text-forest transition-colors"
                   >
                     Sign out
                   </button>
                 </>
               ) : (
                 <>
-                  <Link 
-                    href="/login" 
-                    className="py-2 text-sm text-ink-secondary hover:text-forest transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <Link
+                    href="/login"
+                    className="rounded-xl px-3 py-3 text-sm text-ink-secondary"
+                    onClick={() => setMobileOpen(false)}
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/register"
-                    className="w-full rounded-full bg-forest px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-forest-deep transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-full bg-forest px-4 py-3 text-center text-sm font-medium text-white"
+                    onClick={() => setMobileOpen(false)}
                   >
                     Begin your journey
                   </Link>
@@ -191,7 +240,7 @@ export function Navbar() {
             </div>
           </nav>
         </div>
-      )}
+      ) : null}
     </header>
   );
 }

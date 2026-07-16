@@ -3,7 +3,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Badge, Body, EmptyState, ErrorNote, Loading, Title } from "../../src/components/ui";
+import {
+  Badge,
+  Body,
+  EmptyState,
+  ErrorNote,
+  Loading,
+  Title,
+  VerifiedTick,
+} from "../../src/components/ui";
 import { ServiceCard } from "../../src/components/ServiceCard";
 import { api } from "../../src/api";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
@@ -50,18 +58,16 @@ export default function ProviderDetail() {
           <View style={styles.iconWrap}>
             <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={28} color={colors.goldSoft} />
           </View>
-          <View style={{ flex: 1 }}>
-            <Title>{provider.businessName}</Title>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Title style={{ flexShrink: 1 }}>{provider.businessName}</Title>
+              {verified ? <VerifiedTick size={22} /> : null}
+            </View>
             <Text style={styles.type}>{PROVIDER_TYPE_LABEL[provider.type]}</Text>
           </View>
         </View>
 
         <View style={{ flexDirection: "row", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-          {verified ? (
-            <Badge tone="leaf">✓ Verified</Badge>
-          ) : (
-            <Badge tone="muted">Pending verification</Badge>
-          )}
           {location ? <Badge tone="muted">{location}</Badge> : null}
         </View>
 

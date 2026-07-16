@@ -107,9 +107,9 @@ export function ArrowRightIcon({ className }: IconProps) {
   );
 }
 
-export function CheckIcon({ className }: IconProps) {
+export function CheckIcon({ className, strokeWidth }: IconProps & { strokeWidth?: number }) {
   return (
-    <svg {...base(className)}>
+    <svg {...base(className)} strokeWidth={strokeWidth ?? 1.6}>
       <path d="m5 12.5 4.2 4.2L19 7" />
     </svg>
   );

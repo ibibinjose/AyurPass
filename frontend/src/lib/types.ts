@@ -9,6 +9,7 @@ export type {
   BrandProfile,
   BusinessAddress,
   Provider,
+  HealthAuthorityBadge,
   AuthTokens,
   AuthResponse,
   Offer,

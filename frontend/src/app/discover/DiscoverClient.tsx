@@ -10,7 +10,7 @@ import { ProviderCard } from "@/components/ProviderCard";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
-import { EmptyState, Input } from "@/components/ui";
+import { Button, EmptyState, Input } from "@/components/ui";
 import { MapPinIcon, SearchIcon } from "@/components/icons";
 
 type Tab = "providers" | "services" | "products" | "professionals";
@@ -92,20 +92,31 @@ export default function DiscoverPage() {
   const [serviceCategory, setServiceCategory] = useState<ServiceCategory | "ALL">("ALL");
   const [productCategory, setProductCategory] = useState<string>("ALL");
 
-  useEffect(() => {
-    Promise.all([
-      api.providers(), 
-      api.services(), 
-      api.products(),
-      api.professionals()
-    ])
+  const load = () => {
+    setError(false);
+    setProviders(null);
+    setServices(null);
+    setProducts(null);
+    setProfessionals(null);
+    Promise.all([api.providers(), api.services(), api.products(), api.professionals()])
       .then(([p, s, pr, prof]) => {
         setProviders(p);
         setServices(s);
         setProducts(pr);
         setProfessionals(prof);
       })
-      .catch(() => setError(true));
+      .catch(() => {
+        setError(true);
+        setProviders([]);
+        setServices([]);
+        setProducts([]);
+        setProfessionals([]);
+      });
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
   }, []);
 
   const loading = !error && (providers === null || services === null || products === null || professionals === null);
@@ -297,16 +308,16 @@ export default function DiscoverPage() {
 
   return (
     <LayoutWrapper>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
-        <h1 className="font-display text-3xl text-forest sm:text-4xl">Discover wellness near you</h1>
-        <p className="mt-2 max-w-2xl text-ink-secondary">
+      <div className="page-shell flex-1">
+        <h1 className="type-display">Discover wellness near you</h1>
+        <p className="type-body mt-2 max-w-2xl font-medium">
           The dedicated finder for Ayurveda, yoga, luxury spa, meditation, health-club and retreat
           places — search every clinic, studio and sanctuary, plus the treatments, practitioners and
           products they offer. Filter by name, location and discipline.
         </p>
-        <p className="mt-3 text-sm text-ink-muted">
+        <p className="mt-3 text-sm font-semibold text-ink-muted">
           Run a wellness business?{" "}
-          <Link href="/list-your-business" className="font-medium text-forest hover:underline">
+          <Link href="/list-your-business" className="font-bold text-forest hover:underline">
             List it free →
           </Link>
         </p>
@@ -459,6 +470,11 @@ export default function DiscoverPage() {
             <EmptyState
               title="We couldn't load the directory"
               body="The wellness network is unreachable right now. Please try again shortly."
+              action={
+                <Button type="button" variant="ghost" onClick={load}>
+                  Try again
+                </Button>
+              }
             />
           ) : loading ? (
             skeleton
@@ -518,7 +534,7 @@ export default function DiscoverPage() {
             />
           )}
         </div>
-      </main>
+      </div>
     </LayoutWrapper>
   );
 }

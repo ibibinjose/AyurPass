@@ -46,28 +46,38 @@ export function Footer() {
             <h3 className="mb-4 font-display text-lg text-forest">Explore</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/discover" className="text-ink-secondary hover:text-forest transition-colors">
-                  Discover Providers
+                <Link href="/discover" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Discover providers
                 </Link>
               </li>
               <li>
-                <Link href="/explore" className="text-ink-secondary hover:text-forest transition-colors">
-                  Book Services
+                <Link href="/retreats" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Retreats & trainings
                 </Link>
               </li>
               <li>
-                <Link href="/shop" className="text-ink-secondary hover:text-forest transition-colors">
-                  Wellness Shop
+                <Link href="/explore" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Book a session
                 </Link>
               </li>
               <li>
-                <Link href="/packages" className="text-ink-secondary hover:text-forest transition-colors">
-                  Wellness Packages
+                <Link href="/offers" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Offers
                 </Link>
               </li>
               <li>
-                <Link href="/wellness" className="text-ink-secondary hover:text-forest transition-colors">
-                  Wellness Guide
+                <Link href="/shop" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Wellness shop
+                </Link>
+              </li>
+              <li>
+                <Link href="/packages" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Packages
+                </Link>
+              </li>
+              <li>
+                <Link href="/wellness" className="text-sm text-ink-secondary transition-colors hover:text-forest">
+                  Wellness guide
                 </Link>
               </li>
             </ul>

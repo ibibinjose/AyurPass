@@ -11,17 +11,22 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#24382e"
+      "backgroundColor": "#1e3228"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ayurpass.app"
+      "bundleIdentifier": "com.ayurpass.app",
+      "infoPlist": {
+        "UIRequiresFullScreen": false,
+        "UIStatusBarStyle": "UIStatusBarStyleDarkContent"
+      }
     },
     "android": {
       "package": "com.ayurpass.app",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#24382e"
+        "backgroundColor": "#1e3228"
       }
     },
     "web": {
@@ -34,7 +39,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#24382e",
+          "backgroundColor": "#1e3228",
           "image": "./assets/splash-icon.png",
           "imageWidth": 180
         }

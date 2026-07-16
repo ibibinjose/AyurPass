@@ -100,9 +100,18 @@ export class ProvidersService {
     return this.prisma.provider.update({
       where: { id },
       data: {
-        ...data,
+        businessName: data.businessName,
+        type: data.type,
+        timezone: data.timezone,
+        listingTier: data.listingTier,
+        registrationNumber: data.registrationNumber === undefined ? undefined : data.registrationNumber,
+        licenceNumber: data.licenceNumber === undefined ? undefined : data.licenceNumber,
         brandProfile: data.brandProfile as Prisma.InputJsonValue | undefined,
         address: data.address as Prisma.InputJsonValue | undefined,
+        healthAuthorities:
+          data.healthAuthorities === undefined
+            ? undefined
+            : (data.healthAuthorities as Prisma.InputJsonValue),
       },
       include: { _count: PUBLIC_COUNTS },
     });

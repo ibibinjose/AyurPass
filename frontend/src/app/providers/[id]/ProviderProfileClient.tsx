@@ -41,6 +41,8 @@ import {
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
+import { AuthorityBadgeRow, CredentialLines } from "@/components/AuthorityBadge";
+import { authoritiesForProvider } from "@/lib/credentials";
 
 function buildPracticeLinks(brand?: Provider["brandProfile"]): ProfileLinkItem[] {
   const social = brand?.socialLinks;
@@ -161,6 +163,7 @@ export default function ProviderProfilePage() {
 
   const location = formatAddress(provider.address);
   const verified = provider.verificationStatus === "verified";
+  const authorities = authoritiesForProvider(provider);
   const brand = provider.brandProfile;
   const logo = brand?.logoUrl ?? brand?.coverImageUrl;
   const coverUrl = brand?.coverImageUrl;
@@ -197,18 +200,34 @@ export default function ProviderProfilePage() {
           <ProfileAvatar name={provider.businessName} imageUrl={logo} />
 
           <ProfileHeroInfo>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-              <h1 className="font-display text-[1.75rem] leading-tight text-foreground sm:text-[2rem]">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
+              <h1 className="font-display text-[1.625rem] font-semibold leading-tight tracking-tight text-forest sm:text-[2rem]">
                 {provider.businessName}
               </h1>
-              {verified && <ProfileVerifiedMark />}
+              {verified ? <ProfileVerifiedMark /> : null}
             </div>
 
             {provider.slug ? (
-              <p className="font-mono text-sm tracking-tight text-ink-muted">@{provider.slug}</p>
+              <p className="font-mono text-sm font-medium tracking-tight text-ink-muted">
+                @{provider.slug}
+              </p>
             ) : null}
 
-            <p className="mt-0.5 text-lg leading-snug text-ink-secondary">{typeLabel}</p>
+            <p className="mt-0.5 text-base font-semibold leading-snug text-ink-secondary sm:text-lg">
+              {typeLabel}
+            </p>
+
+            {authorities.length > 0 ? (
+              <div className="mt-2 flex justify-center md:justify-start">
+                <AuthorityBadgeRow authorities={authorities} />
+              </div>
+            ) : null}
+
+            <CredentialLines
+              registrationNumber={provider.registrationNumber}
+              licenceNumber={provider.licenceNumber}
+              className="mt-2 justify-items-center md:justify-items-start"
+            />
 
             <ProfileMetaRow>
               <ProfileMetaBadge label={typeLabel} />

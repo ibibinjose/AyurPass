@@ -109,9 +109,25 @@ async function upsertPractitioner(p: AaaPractitioner) {
         address,
         brandProfile,
         verificationStatus: 'verified',
+        healthAuthorities: [
+          {
+            code: 'AAA',
+            name: 'Australian Association of Ayurveda',
+            region: 'AU',
+            profileUrl: verificationDocuments.profileUrl,
+            verified: true,
+          },
+        ],
         listingTier: 'FREE_LISTING',
       },
     });
+    const aaaMark = {
+      code: 'AAA',
+      name: 'Australian Association of Ayurveda',
+      region: 'AU',
+      profileUrl: verificationDocuments.profileUrl as string,
+      verified: true as const,
+    };
     await prisma.professional.update({
       where: { id: existing.id },
       data: {
@@ -119,10 +135,19 @@ async function upsertPractitioner(p: AaaPractitioner) {
         bio: about,
         specializations: ['Ayurveda'],
         verificationDocuments,
+        healthAuthorities: [aaaMark],
       },
     });
     return 'updated';
   }
+
+  const aaaMark = {
+    code: 'AAA',
+    name: 'Australian Association of Ayurveda',
+    region: 'AU',
+    profileUrl: verificationDocuments.profileUrl as string,
+    verified: true as const,
+  };
 
   const user = await prisma.user.create({
     data: {
@@ -144,6 +169,7 @@ async function upsertPractitioner(p: AaaPractitioner) {
       timezone: 'Australia/Sydney',
       address,
       brandProfile,
+      healthAuthorities: [aaaMark],
     },
   });
 
@@ -155,6 +181,7 @@ async function upsertPractitioner(p: AaaPractitioner) {
       bio: about,
       specializations: ['Ayurveda'],
       verificationDocuments,
+      healthAuthorities: [aaaMark],
     },
   });
 

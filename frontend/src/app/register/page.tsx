@@ -49,10 +49,16 @@ function RegisterForm() {
       });
       router.push(kind === "consumer" ? "/dashboard/assessment" : "/dashboard");
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      const status = err && typeof err === "object" && "status" in err ? Number((err as { status: number }).status) : 0;
       setError(
-        err instanceof Error && err.message.includes("exists")
-          ? "An account with this email already exists — try signing in instead."
-          : "We couldn't create your account. Please try again.",
+        status === 429
+          ? "Too many attempts. Please wait a minute and try again."
+          : msg.toLowerCase().includes("exist")
+            ? "An account with this email already exists — try signing in instead."
+            : msg.toLowerCase().includes("8 character")
+              ? "Password must be at least 8 characters."
+              : "We couldn't create your account. Please try again.",
       );
       setBusy(false);
     }

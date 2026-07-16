@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsObject, IsArray, MaxLength } from 'class-validator';
 import { ProviderType } from '@prisma/client';
 
 export class UpdateProviderDto {
@@ -28,4 +28,19 @@ export class UpdateProviderDto {
   @IsString()
   @IsOptional()
   listingTier?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(80)
+  registrationNumber?: string | null;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(80)
+  licenceNumber?: string | null;
+
+  /** Local health-authority approval marks (AAA, AHPRA, NMC, custom…). */
+  @IsArray()
+  @IsOptional()
+  healthAuthorities?: Record<string, unknown>[];
 }

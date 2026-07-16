@@ -54,6 +54,25 @@ export interface Consumer {
   preferences?: Record<string, unknown> | null;
 }
 
+/**
+ * Local health-authority / professional-body approval mark
+ * (e.g. AAA Australia, AHPRA, NMC India, CQC UK, custom).
+ */
+export interface HealthAuthorityBadge {
+  /** Short code shown on chips — AAA, AHPRA, NMC, etc. */
+  code: string;
+  /** Full authority name */
+  name: string;
+  /** ISO country or region code — AU, IN, UK, US, NZ… */
+  region?: string;
+  /** Membership / registration id with that authority */
+  registrationNumber?: string;
+  /** Public directory URL for verification */
+  profileUrl?: string;
+  /** Platform or authority has confirmed the mark */
+  verified?: boolean;
+}
+
 export interface BrandProfile {
   about?: string;
   contactEmail?: string;
@@ -92,6 +111,12 @@ export interface Provider {
   subscriptionTier?: string | null;
   listingTier?: string | null;
   verificationStatus: string;
+  /** Business / clinic registration number */
+  registrationNumber?: string | null;
+  /** Operating licence / permit */
+  licenceNumber?: string | null;
+  /** Local health-authority approval marks */
+  healthAuthorities?: HealthAuthorityBadge[] | null;
   createdAt: string;
   _count?: {
     professionals: number;
@@ -117,13 +142,27 @@ export interface Professional {
   rating: string | number;
   reviewCount: number;
   createdAt: string;
+  registrationNumber?: string | null;
+  licenceNumber?: string | null;
+  healthAuthorities?: HealthAuthorityBadge[] | null;
   verificationDocuments?: {
     source?: string;
     externalProfileId?: number;
     profileUrl?: string;
     membership?: string | null;
   } | null;
-  provider?: Pick<Provider, "id" | "businessName" | "type" | "verificationStatus" | "address">;
+  provider?: Pick<
+    Provider,
+    | "id"
+    | "businessName"
+    | "type"
+    | "verificationStatus"
+    | "address"
+    | "registrationNumber"
+    | "licenceNumber"
+    | "healthAuthorities"
+    | "slug"
+  >;
   user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }
 

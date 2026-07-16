@@ -16,6 +16,7 @@ import type {
   GiftCardLookup,
   Offer,
   OfferInput,
+  HealthAuthorityBadge,
   HealthProfile,
   LoyaltySummary,
   Order,
@@ -299,6 +300,9 @@ export const api = {
       address?: BusinessAddress;
       timezone?: string;
       listingTier?: string;
+      registrationNumber?: string | null;
+      licenceNumber?: string | null;
+      healthAuthorities?: HealthAuthorityBadge[];
     },
   ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
 
@@ -499,6 +503,19 @@ export const api = {
     yearsExperience?: number;
     hourlyRate?: number;
   }) => request<Professional>("/professionals", { method: "POST", body: data, auth: true }),
+  updateProfessional: (
+    id: string,
+    data: {
+      title?: string;
+      bio?: string;
+      specializations?: string[];
+      yearsExperience?: number;
+      registrationNumber?: string | null;
+      licenceNumber?: string | null;
+      healthAuthorities?: HealthAuthorityBadge[];
+      verificationDocuments?: Professional["verificationDocuments"];
+    },
+  ) => request<Professional>(`/professionals/${id}`, { method: "PUT", body: data, auth: true }),
 };
 
 export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {

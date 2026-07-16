@@ -1,26 +1,30 @@
 # AyurPass — Implementation Plan
 
-**Status:** Living document · **Last updated:** 2026-07-15
-**Related:** [PRD](./PRD.md) · [TRD](./TRD.md) · [Backend Schema](./BACKEND_SCHEMA.md)
+**Status:** Living document · **Last updated:** 2026-07-17
+**Related:** [PRD](./PRD.md) · [TRD](./TRD.md) · [Backend Schema](./BACKEND_SCHEMA.md) · [BUILD-LOG](./BUILD-LOG.md)
 
-**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (18 modules, 20 models) and web app are built, verified, and aligned with the blueprint. Work focuses on filling real gaps: mobile, hardening, and deployment. **Hosting target: AWS/GCP, HIPAA-ready.**
+**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (20+ modules) and web app are built and hardening. Work focuses on: live payments, tests, deploy, and mobile polish. **Hosting target: AWS/GCP, HIPAA-ready.**
 
 ---
 
 ## 1. Current status
 
 ### Built ✅
-- **Backend (NestJS + Prisma + PostgreSQL/PostGIS):** auth (JWT access/refresh), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (mock + redemption), products & orders (12% commission, transactional stock), loyalty, gift cards (atomic), health profiles, treatment plans, consents, integrations (mock), admin.
-- **Web (Next.js 16 / React 19 / Tailwind v4):** marketing site, consumer flows (discover, explore, shop, packages, book), provider/admin dashboard, content & legal pages, wellness guide.
-- **Mobile (Expo / React Native):** consumer app — auth → dosha assessment → discover → book → pay → profile. Typechecks clean; iOS bundle exports successfully.
+- **Backend (NestJS + Prisma + PostgreSQL):** auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin.
+- **Security (2026-07-17):** payment payer ownership, production secret/CORS hard-fail, password min length, auth rate limits, mock pay blocked in production/strict mode.
+- **Web (Next.js 16 / React 19 / Tailwind v4):** marketing site, discover/explore/shop/packages/retreats/offers, book + pay, provider/admin dashboard, privacy & permissions, legal pages. UX polish: skip links, focus rings, simplified nav, retryable catalogs.
+- **Mobile (Expo / React Native):** consumer app — auth → dosha → discover → book → pay → profile. Typechecks clean.
 
 ### Known gaps / debt
-- Payments are **mock** (no live Stripe Connect).
-- **No Redis**, no real object storage for media, no CDN.
-- ~~Auth guard not applied uniformly~~ ✅ **Fixed (2.1):** global `JwtAuthGuard` + `@Public()`; consumer-scoped routes enforce ownership (`assertSelfOrAdmin`).
-- No infra: no Docker images for services, no CI/CD, no hosting, no monitoring.
-- `shared/` package is empty (types duplicated between web and mobile).
-- Telehealth video and AI treatment-plan engine are schema-only.
+- Stripe Connect live path still needs provider onboarding + webhook ops in each env.
+- **No Redis**, no object storage/CDN for media.
+- ~~Auth guard not applied uniformly~~ ✅ **Fixed (2.1)**
+- ~~Payment money-route IDOR~~ ✅ **Fixed (2026-07-17)**
+- ~~Consent UI missing~~ ✅ **Consumer privacy page**
+- No Docker/deploy, no Sentry, limited automated tests (CI build + typecheck only).
+- `shared/` package has types; full shared API client still incomplete.
+- Telehealth + AI treatment engine schema-only.
+- Web JWT still in `localStorage` (prefer httpOnly cookies later).
 
 ---
 
@@ -45,15 +49,19 @@ Expo/React Native consumer app against the live API; standalone install; EAS-rea
 
 | # | Task | Notes |
 |---|---|---|
-| 2.1 | ✅ **Global `JwtAuthGuard`** on all routes (`@Public()` opt-out) + consumer ownership checks (`assertSelfOrAdmin`) | done & verified — closes the no-token gap **and** the consumer IDOR |
-| 2.2 | **Stripe Connect** (real) — provider onboarding, destination charges, payouts, webhooks | replace mock; keep mock for dev/test |
-| 2.3 | **Redis** — rate limiting, caching hot reads, session/refresh handling | Upstash/ElastiCache |
-| 2.4 | **Object storage** — media uploads to S3/R2 + CDN; replace data-URL/arbitrary-host images | provider logos, service images, avatars |
-| 2.5 | **`shared/` package** — single source of API types + client for web + mobile | remove duplication |
-| 2.6 | **Observability** — Sentry (api/web/mobile), structured logging (no PHI), health/readiness endpoints | |
-| 2.7 | **Security headers + CORS** per environment; secrets via env/secret store | |
-| 2.8 | **Consent enforcement + audit** wired into every health-data read | `ClientConsent` + `AccessAuditLog` |
-| 2.9 | **Automated tests in CI** — unit + API e2e; promote `scratchpad/*-e2e.mjs` into the suite | money/consent paths first |
+| 2.1 | ✅ **Global `JwtAuthGuard`** + ownership checks | done |
+| 2.1b | ✅ **Payment IDOR + auth throttle + prod secrets/CORS + mock-pay guard** | done 2026-07-17 |
+| 2.1c | ✅ **Consent UI + enriched consents API** | done |
+| 2.2 | **Stripe Connect** (real) — provider onboarding, destination charges, payouts, webhooks | keep mock for local only |
+| 2.3 | **Redis** — rate limiting store, caching hot reads, refresh revocation | Upstash/ElastiCache |
+| 2.4 | **Object storage** — media uploads to S3/R2 + CDN | provider logos, service images |
+| 2.5 | **`shared/` package** — API client + zod for web + mobile | partial types only |
+| 2.6 | **Observability** — Sentry (api/web/mobile), structured logging (no PHI) | |
+| 2.7 | ✅ **CORS allowlist + HSTS (strict)**; expand CSP on Next | partial — CSP next |
+| 2.8 | ✅ **Consent enforcement + audit** on health reads + consumer privacy page | |
+| 2.9 | **Automated tests in CI** — unit + API e2e for money/consent/IDOR | next priority |
+| 2.10 | **httpOnly session cookies** — retire `localStorage` JWT | |
+| 2.11 | **SSR/pagination** for discover/explore (LCP + SEO) | |
 
 **Exit criteria:** live payments in a test account; all protected routes guarded; errors reported to Sentry; media served from storage/CDN; e2e green in CI.
 

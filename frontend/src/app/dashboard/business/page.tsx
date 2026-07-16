@@ -5,8 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import type { BrandProfile, ProviderType } from "@/lib/types";
-import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
+import type { BrandProfile, HealthAuthorityBadge, ProviderType } from "@/lib/types";
+import { HEALTH_AUTHORITY_PRESETS, normalizeAuthorities } from "@/lib/credentials";
+import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea, SuccessNote } from "@/components/ui";
 
 const PROVIDER_TYPES = Object.keys(PROVIDER_TYPE_LABEL) as ProviderType[];
 const PRICE_BANDS = ["$", "$$", "$$$", "$$$$"] as const;
@@ -50,6 +51,11 @@ export default function BusinessProfilePage() {
   const [facebook, setFacebook] = useState("");
   const [youtube, setYoutube] = useState("");
 
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [licenceNumber, setLicenceNumber] = useState("");
+  const [authorityCodes, setAuthorityCodes] = useState<string[]>([]);
+  const [customAuthority, setCustomAuthority] = useState("");
+
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +86,9 @@ export default function BusinessProfilePage() {
         setInstagram(p.brandProfile?.socialLinks?.instagram ?? "");
         setFacebook(p.brandProfile?.socialLinks?.facebook ?? "");
         setYoutube(p.brandProfile?.socialLinks?.youtube ?? "");
+        setRegistrationNumber(p.registrationNumber ?? "");
+        setLicenceNumber(p.licenceNumber ?? "");
+        setAuthorityCodes(normalizeAuthorities(p.healthAuthorities).map((a) => a.code));
       })
       .catch(() => {});
   }, [provider]);
@@ -113,11 +122,31 @@ export default function BusinessProfilePage() {
           youtube: youtube || undefined,
         },
       };
+      const presetByCode = new Map(HEALTH_AUTHORITY_PRESETS.map((p) => [p.code, p]));
+      const healthAuthorities: HealthAuthorityBadge[] = authorityCodes.map((code) => {
+        const preset = presetByCode.get(code);
+        return {
+          code,
+          name: preset?.name ?? code,
+          region: preset?.region,
+          verified: true,
+        };
+      });
+      if (customAuthority.trim()) {
+        healthAuthorities.push({
+          code: customAuthority.trim().slice(0, 24),
+          name: customAuthority.trim(),
+          verified: false,
+        });
+      }
       await api.updateProvider(provider.id, {
         businessName,
         type,
         brandProfile,
         address: { street, city, state, postcode, country },
+        registrationNumber: registrationNumber.trim() || null,
+        licenceNumber: licenceNumber.trim() || null,
+        healthAuthorities,
       });
       await refreshProfile();
       setSaved(true);
@@ -162,25 +191,91 @@ export default function BusinessProfilePage() {
       </div>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-6">
-        <section className="space-y-4 rounded-2xl border border-hairline bg-surface p-6">
-          <h2 className="font-display text-lg text-forest">Identity</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Business name">
-              <Input required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
-            </Field>
-            <Field label="Business type">
-              <Select value={type} onChange={(e) => setType(e.target.value as ProviderType)}>
-                {PROVIDER_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {PROVIDER_TYPE_LABEL[t]}
-                  </option>
-                ))}
-              </Select>
+        <section className="ios-group space-y-0 p-0">
+          <div className="space-y-4 p-5 sm:p-6">
+            <h2 className="font-display text-lg font-semibold text-forest">Identity</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Business name">
+                <Input required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
+              </Field>
+              <Field label="Business type">
+                <Select value={type} onChange={(e) => setType(e.target.value as ProviderType)}>
+                  {PROVIDER_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {PROVIDER_TYPE_LABEL[t]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+            <Field label="About" hint="Tell clients about your philosophy and offering.">
+              <Textarea rows={4} value={about} onChange={(e) => setAbout(e.target.value)} />
             </Field>
           </div>
-          <Field label="About" hint="Tell clients about your philosophy and offering.">
-            <Textarea rows={4} value={about} onChange={(e) => setAbout(e.target.value)} />
-          </Field>
+        </section>
+
+        <section className="space-y-4 rounded-[1.125rem] border border-[var(--separator)] bg-surface p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:p-6">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-forest">
+              Credentials &amp; health authorities
+            </h2>
+            <p className="mt-1 text-sm font-medium text-ink-muted">
+              Registration and licence numbers, plus local authority approvals (e.g. AAA in Australia).
+              These appear on your public profile.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Business registration number" hint="Company / clinic registration ID">
+              <Input
+                value={registrationNumber}
+                onChange={(e) => setRegistrationNumber(e.target.value)}
+                placeholder="e.g. ACN or local business ID"
+              />
+            </Field>
+            <Field label="Licence number" hint="Operating or clinical licence where required">
+              <Input
+                value={licenceNumber}
+                onChange={(e) => setLicenceNumber(e.target.value)}
+                placeholder="e.g. council / state licence"
+              />
+            </Field>
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold text-foreground">Health authority approvals</p>
+            <div className="flex flex-wrap gap-2">
+              {HEALTH_AUTHORITY_PRESETS.map((preset) => {
+                const active = authorityCodes.includes(preset.code);
+                return (
+                  <button
+                    key={preset.code}
+                    type="button"
+                    onClick={() =>
+                      setAuthorityCodes((prev) =>
+                        active ? prev.filter((c) => c !== preset.code) : [...prev, preset.code],
+                      )
+                    }
+                    aria-pressed={active}
+                    className={`inline-flex min-h-10 items-center rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
+                      active
+                        ? "bg-[var(--system-blue)] text-white"
+                        : "border border-[var(--separator)] bg-[var(--fill-secondary)] text-ink-secondary"
+                    }`}
+                  >
+                    {preset.code}
+                    <span className="ml-1.5 text-xs font-medium opacity-80">{preset.region}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <Field label="Custom authority" hint="Optional — add a body not listed above.">
+              <Input
+                className="mt-3"
+                value={customAuthority}
+                onChange={(e) => setCustomAuthority(e.target.value)}
+                placeholder="e.g. State Ayurveda Council"
+              />
+            </Field>
+          </div>
         </section>
 
         <section className="space-y-4 rounded-2xl border border-hairline bg-surface p-6">
@@ -285,12 +380,8 @@ export default function BusinessProfilePage() {
         </section>
 
         <ErrorNote message={error} />
-        {saved && (
-          <p className="rounded-xl border border-hairline bg-clay/60 px-3.5 py-2.5 text-sm text-forest">
-            Business profile saved.
-          </p>
-        )}
-        <Button type="submit" disabled={busy}>
+        <SuccessNote message={saved ? "Business profile saved." : null} />
+        <Button type="submit" disabled={busy} className="min-h-11 w-full sm:w-auto">
           {busy ? "Saving…" : "Save business profile"}
         </Button>
       </form>

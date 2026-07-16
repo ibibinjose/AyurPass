@@ -1,131 +1,78 @@
-# AyurPass - Global Wellness Ecosystem
+# AyurPass
 
-AyurPass is a premium global health ecosystem designed to build a "Wellness Operating System" that combines Ayurveda, Yoga, Luxury Spa, and Meditation, creating a dual-sided intelligent marketplace platform for consumers and independent wellness practitioners.
+Premium wellness marketplace for **Ayurveda, yoga, luxury spa, meditation, health clubs and retreats** — a dual-sided platform for consumers and practitioners.
 
-## 🚀 Features
+## Stack
 
-- **Dual Marketplace**: Consumer App (React Native) + Provider Dashboard (Next.js)
-- **Full-Service Booking Management**: Complete booking system with Google Calendar sync
-- **Compliance**: HIPAA/GDPR compliant consent management with audit trails
-- **Professional Profiles**: Practitioner profiles and credential management
-- **User Lifecycle**: Complete user management with Prakriti profiles and health records
-- **Advanced Services**: Packages, personalized treatment plans, wellness travel
-- **AI Recommendations**: Prakriti-based personalized recommendations (coming soon)
-- **Payment Integration**: Stripe Connect multi-account splits
-- **Communication**: Twilio SMS notifications
-- **Calendar Integration**: Enterprise calendar sync
+| Layer | Tech |
+|---|---|
+| API | NestJS 11 · Prisma 6 · PostgreSQL · Stripe Connect · JWT auth |
+| Web | Next.js 16 · React 19 · Tailwind CSS v4 |
+| Mobile | Expo 52 · React Native 0.76 |
+| Shared | `@ayurpass/shared` types |
 
-## 🏗️ System Architecture
+## Features
 
-The application follows a modular architecture with:
-- Backend: NestJS (TypeScript), Prisma ORM, PostgreSQL
-- Prisma schema with comprehensive data models for the wellness ecosystem
-- Modular feature organization (users, bookings, consents, health-profiles, etc.)
+- Directory: practices, practitioners, services, products, retreats, offers  
+- Booking + payments (mock in local dev; Stripe when configured)  
+- Dosha assessment & health profiles (consent-gated)  
+- Loyalty rewards & gift cards  
+- Provider dashboard (calendar, enquiries, Stripe onboarding)  
+- Consumer privacy & permissions  
+- Mobile consumer app  
 
-## 📁 Directory Structure
+## Quick start
+
+```bash
+# Prerequisites: Node 20+, PostgreSQL
+cp backend/.env.example backend/.env   # edit DATABASE_URL, JWT secrets
+cp frontend/.env.example frontend/.env.local  # NEXT_PUBLIC_API_URL
+
+npm run install:all
+npm run prisma:generate
+npm run prisma:migrate
+npm start   # API :4000 + web :3000
+```
+
+| Script | Purpose |
+|---|---|
+| `npm start` | Backend + frontend together |
+| `npm run dev:backend` | Nest watch mode |
+| `npm run dev:frontend` | Next.js dev |
+| `npm run dev:mobile` | Expo |
+| `npm run stripe:status` | Stripe key / mock mode check |
+
+See [SETUP_LOCAL.md](./SETUP_LOCAL.md) and [RUN_APP.md](./RUN_APP.md).
+
+## Security notes (production)
+
+Set **real** `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET`, an explicit `CORS_ORIGIN` allowlist, and Stripe keys.  
+With `NODE_ENV=production` (or `AYURPASS_STRICT=1`), the API refuses default secrets, open CORS, and mock card payments.
+
+Money routes require the **booking/order owner** to checkout; parties may refund. Auth endpoints are rate-limited.
+
+## Documentation
+
+| Doc | Contents |
+|---|---|
+| [docs/IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md) | Roadmap & status |
+| [docs/BUILD-LOG.md](./docs/BUILD-LOG.md) | Changelog |
+| [docs/PRD.md](./docs/PRD.md) | Product requirements |
+| [docs/08-API-CONTRACTS.md](./docs/08-API-CONTRACTS.md) | API contracts |
+| [docs/APP_FLOW.md](./docs/APP_FLOW.md) | User flows |
+
+## Project layout
 
 ```
 AyurPass/
-├── backend/                 # NestJS backend application
-│   ├── src/
-│   │   ├── modules/         # Feature modules
-│   │   │   ├── auth/        # Authentication
-│   │   │   ├── users/       # User management
-│   │   │   ├── bookings/    # Booking system
-│   │   │   ├── consents/    # Consent management
-│   │   │   ├── health-profiles/ # Health profiles
-│   │   │   ├── professionals/ # Practitioner management
-│   │   │   ├── packages/    # Service packages
-│   │   │   └── treatment-plans/ # Treatment plans
-│   │   ├── prisma/          # Database schema
-│   │   └── dtos/            # Data transfer objects
-│   ├── prisma/
-│   └── package.json
-├── SETUP_LOCAL.md          # Local setup guide
-├── RUN_APP.md              # Running instructions
-├── setup-local.sh          # Setup script
-└── README.md
+├── backend/          # NestJS API
+├── frontend/         # Next.js web
+├── mobile/           # Expo app
+├── shared/           # Shared TypeScript types
+├── docs/             # Product & technical docs
+└── package.json      # Workspace scripts
 ```
 
-## 🛠️ Local Development Setup
+## License
 
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- PostgreSQL database (local installation or Docker)
-
-### Quick Setup
-
-1. **Set up PostgreSQL database**:
-   - Option A: Local installation with created database `ayurpass_dev`
-   - Option B: Using Docker:
-     ```bash
-     docker run --name ayurpass-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=ayurpass_dev -p 5432:5432 -d postgres:15
-     ```
-
-2. **Run the automated setup**:
-   ```bash
-   chmod +x setup-local.sh
-   ./setup-local.sh
-   ```
-
-3. **Or follow manual setup steps** (detailed in SETUP_LOCAL.md):
-   ```bash
-   cd backend
-   npm install
-   npx prisma generate
-   npx prisma migrate dev --name init
-   npm run start:dev
-   ```
-
-The application will be available at `http://localhost:4000`.
-
-## ▶️ Running the Application
-
-**Prerequisite**: the `ayurpass-postgres` Docker container must be running (`docker start ayurpass-postgres`).
-
-From the project root:
-
-```bash
-npm run start
-```
-
-This starts both servers together:
-- Backend API (NestJS) — http://localhost:4000
-- Frontend (Next.js) — http://localhost:3000
-
-To run them individually:
-- `npm run start:dev` (or `npm run dev:backend`) - Backend with auto-reload
-- `npm run dev:frontend` - Frontend dev server
-- `npm run build:backend` - Build the backend
-
-For detailed running instructions, see [RUN_APP.md](RUN_APP.md).
-
-## 🌐 API Endpoints
-
-- Auth: `POST /auth/register`, `POST /auth/login`
-- Users: `GET /users/:id`, `GET /users/email/:email`
-- Bookings: `POST /bookings`, `GET /bookings/consumer/:id`
-- Health Profiles: `POST /health-profiles/consumer/:id`, `GET /health-profiles/consumer/:id`
-- Professionals: `GET /professionals/provider/:id`
-- Packages: `POST /packages`, `GET /packages/provider/:id`
-- Treatment Plans: `POST /treatment-plans`, `GET /treatment-plans/consumer/:id`
-- Consents: `POST /consents`, `GET /consents/consumer/:id`
-- Health: `GET /health` (status check)
-
-## 🤝 Contributing
-
-We welcome contributions to the AyurPass project! Feel free to submit pull requests for bug fixes, new features, or documentation improvements.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-For support, please open an issue in this repository.
-
----
-
-Built with ❤️ for the global wellness community
+Private — all rights reserved.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { Button, ErrorNote, Field, Input, Textarea } from "@/components/ui";
 import { CheckIcon, XIcon } from "@/components/icons";
@@ -8,7 +8,7 @@ import { CheckIcon, XIcon } from "@/components/icons";
 /**
  * Lead-capture dialog shown on a provider's public listing page. Lets a visitor
  * reach a practice that doesn't sell through AyurPass — the enquiry lands in the
- * provider's dashboard. Kept as inline state (no native dialogs).
+ * provider's dashboard.
  */
 export function EnquireModal({
   open,
@@ -24,6 +24,8 @@ export function EnquireModal({
   /** When set, the lead is attributed to this retreat. */
   retreatId?: string;
 }) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,6 +33,32 @@ export function EnquireModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // Focus first field shortly after open.
+    const t = window.setTimeout(() => {
+      const el = panelRef.current?.querySelector<HTMLElement>(
+        'input, textarea, button:not([aria-label="Close"])',
+      );
+      el?.focus();
+    }, 30);
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !busy) {
+        e.preventDefault();
+        close();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+      window.clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- close uses stable reset
+  }, [open, busy]);
 
   if (!open) return null;
 
@@ -52,12 +80,31 @@ export function EnquireModal({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (name.trim().length < 2) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (message.trim().length < 10) {
+      setError("Please add a little more detail (at least 10 characters).");
+      return;
+    }
     setBusy(true);
     try {
-      await api.createEnquiry({ providerId, retreatId, name, email, phone: phone || undefined, message });
+      await api.createEnquiry({
+        providerId,
+        retreatId,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        message: message.trim(),
+      });
       setSent(true);
     } catch {
-      setError("We couldn't send your enquiry. Please try again.");
+      setError("We couldn't send your enquiry. Please try again in a moment.");
     } finally {
       setBusy(false);
     }
@@ -65,21 +112,27 @@ export function EnquireModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-forest/40 p-4 backdrop-blur-sm"
-      onClick={close}
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-forest/45 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={() => !busy && close()}
+      role="presentation"
     >
       <div
-        className="w-full max-w-md rounded-3xl border border-hairline bg-surface p-7 shadow-xl"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-hairline bg-surface p-6 shadow-xl sm:rounded-3xl sm:p-7"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between">
-          <h2 className="font-display text-xl text-forest">
+        <div className="flex items-start justify-between gap-3">
+          <h2 id={titleId} className="font-display text-xl text-forest">
             {sent ? "Enquiry sent" : `Enquire with ${businessName}`}
           </h2>
           <button
+            type="button"
             onClick={close}
             aria-label="Close"
-            className="rounded-full p-1 text-ink-muted hover:bg-clay hover:text-forest"
+            className="rounded-full p-2 text-ink-muted transition-colors hover:bg-clay hover:text-forest"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -98,7 +151,7 @@ export function EnquireModal({
             </Button>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+          <form onSubmit={onSubmit} className="mt-5 space-y-4" noValidate>
             <Field label="Your name">
               <Input
                 required
@@ -120,9 +173,11 @@ export function EnquireModal({
             </Field>
             <Field label="Phone (optional)">
               <Input
+                type="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 …"
+                placeholder="+61 …"
               />
             </Field>
             <Field label="Message">
@@ -131,7 +186,7 @@ export function EnquireModal({
                 rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="I'd love to know more about your Panchakarma programs and availability in October…"
+                placeholder="I'd love to know more about your programs and availability…"
               />
             </Field>
             <ErrorNote message={error} />

@@ -23,7 +23,21 @@ function ProviderCard({ provider, onPress }: { provider: Provider; onPress: () =
           <Text style={styles.name} numberOfLines={1}>
             {provider.businessName}
           </Text>
-          {verified ? <Ionicons name="shield-checkmark" size={15} color={colors.leaf} /> : null}
+          {verified ? (
+            <View
+              accessibilityLabel="Verified"
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: colors.systemBlue,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="checkmark" size={11} color={colors.white} />
+            </View>
+          ) : null}
         </View>
         <Text style={styles.type}>{PROVIDER_TYPE_LABEL[provider.type]}</Text>
         {location ? (
@@ -147,7 +161,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.6,
   },
-  offersTitle: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.white, marginTop: 2 },
+  offersTitle: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.white, marginTop: 2 },
   search: {
     flexDirection: "row",
     alignItems: "center",
@@ -157,10 +171,11 @@ const styles = StyleSheet.create({
     borderColor: colors.hairline,
     borderRadius: radius.full,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    minHeight: 48,
     marginTop: 16,
   },
-  searchInput: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.foreground },
+  searchInput: { flex: 1, fontFamily: fonts.body, fontSize: 16, color: colors.foreground },
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -170,16 +185,17 @@ const styles = StyleSheet.create({
     borderColor: colors.hairline,
     borderRadius: radius.lg,
     padding: 14,
+    minHeight: 72,
   },
   iconWrap: {
-    height: 46,
-    width: 46,
-    borderRadius: 23,
+    height: 48,
+    width: 48,
+    borderRadius: 24,
     backgroundColor: colors.forest,
     alignItems: "center",
     justifyContent: "center",
   },
-  name: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.forest, flexShrink: 1 },
-  type: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSecondary, marginTop: 2 },
-  meta: { fontFamily: fonts.body, fontSize: 12, color: colors.inkMuted },
+  name: { fontFamily: fonts.bodySemi, fontSize: 17, color: colors.forest, flexShrink: 1 },
+  type: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.inkSecondary, marginTop: 3 },
+  meta: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkMuted },
 });

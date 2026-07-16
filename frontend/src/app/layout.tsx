@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { JsonLd } from "@/components/JsonLd";
@@ -16,15 +16,31 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
   axes: ["opsz"],
+  display: "swap",
 });
 
-const OG_IMAGE = `/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`;
+/** Mobile-first viewport — iOS notch, Android system bars, no unwanted zoom. */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f0e8" },
+    { media: "(prefers-color-scheme: dark)", color: "#1e3228" },
+  ],
+  colorScheme: "light",
+};
+
+/** Landscape social card (1200×630) — better than square logo for large-image previews. */
+const OG_IMAGE = `/og-wellness.jpg?v=${BRAND_ASSET_VERSION}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -50,13 +66,13 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     type: "website",
-    locale: "en_US",
+    locale: "en_AU",
     images: [
       {
         url: OG_IMAGE,
-        width: 1024,
-        height: 1024,
-        alt: "AyurPass — wellness directory",
+        width: 1200,
+        height: 630,
+        alt: "AyurPass — find Ayurveda, yoga, spa and retreat places worldwide",
       },
     ],
   },
@@ -76,7 +92,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable} h-full antialiased`}>
-      <body className="min-h-screen flex flex-col">
+      <body className="flex min-h-[100dvh] min-h-screen flex-col">
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <AuthProvider>{children}</AuthProvider>
       </body>

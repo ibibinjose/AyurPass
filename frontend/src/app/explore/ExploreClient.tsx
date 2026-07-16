@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CATEGORY_LABEL } from "@/lib/catalog";
 import type { Service, ServiceCategory } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
-import { EmptyState, Input } from "@/components/ui";
+import {
+  Button,
+  CardSkeletonGrid,
+  EmptyState,
+  FilterChip,
+  Input,
+  PageHeader,
+} from "@/components/ui";
 
 const FILTERS: { value: ServiceCategory | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -26,12 +33,21 @@ export default function ExploreClient() {
   const [category, setCategory] = useState<ServiceCategory | "ALL">("ALL");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setError(false);
+    setServices(null);
     api
       .services()
       .then(setServices)
-      .catch(() => setError(true));
+      .catch(() => {
+        setError(true);
+        setServices([]);
+      });
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const visible = useMemo(() => {
     if (!services) return null;
@@ -49,27 +65,22 @@ export default function ExploreClient() {
 
   return (
     <LayoutWrapper>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
-        <h1 className="font-display text-3xl text-forest sm:text-4xl">Book a session</h1>
-        <p className="mt-2 max-w-xl text-ink-secondary">
-          Consultations, classes, treatments and programs — book directly with verified
-          practitioners. Free cancellation until 24 hours before your session.
-        </p>
+      <div className="page-shell flex-1">
+        <PageHeader
+          title="Book a session"
+          description="Consultations, classes, treatments and programs — book directly with verified practitioners. Free cancellation until 24 hours before your session."
+        />
 
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div className="chip-scroll flex gap-2 overflow-x-auto pb-1">
             {FILTERS.map((f) => (
-              <button
+              <FilterChip
                 key={f.value}
+                active={category === f.value}
                 onClick={() => setCategory(f.value)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  category === f.value
-                    ? "bg-forest text-white"
-                    : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-                }`}
               >
                 {f.label}
-              </button>
+              </FilterChip>
             ))}
           </div>
           <div className="sm:w-64">
@@ -87,13 +98,14 @@ export default function ExploreClient() {
             <EmptyState
               title="We couldn't load the catalog"
               body="The wellness network is unreachable right now. Please try again shortly."
+              action={
+                <Button type="button" variant="ghost" onClick={load}>
+                  Try again
+                </Button>
+              }
             />
           ) : visible === null ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-56 animate-pulse rounded-2xl bg-clay/70" />
-              ))}
-            </div>
+            <CardSkeletonGrid count={6} />
           ) : visible.length === 0 ? (
             <EmptyState
               title={
@@ -108,14 +120,19 @@ export default function ExploreClient() {
               }
             />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {visible.map((s) => (
-                <ServiceCard key={s.id} service={s} />
-              ))}
-            </div>
+            <>
+              <p className="mb-4 text-sm text-ink-muted" aria-live="polite">
+                {visible.length} {visible.length === 1 ? "session" : "sessions"}
+              </p>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {visible.map((s) => (
+                  <ServiceCard key={s.id} service={s} />
+                ))}
+              </div>
+            </>
           )}
         </div>
-      </main>
+      </div>
     </LayoutWrapper>
   );
 }

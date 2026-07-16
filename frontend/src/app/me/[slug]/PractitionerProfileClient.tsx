@@ -40,6 +40,8 @@ import {
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
+import { AuthorityBadgeRow, CredentialLines } from "@/components/AuthorityBadge";
+import { authoritiesForProfessional } from "@/lib/credentials";
 
 function buildLinkItems(
   professional: ProfessionalDetail,
@@ -170,6 +172,7 @@ export default function PractitionerProfileClient() {
   const displayName = user?.fullName || professional.title || "Practitioner";
   const title = professional.title || "Wellness practitioner";
   const verified = provider?.verificationStatus === "verified";
+  const authorities = authoritiesForProfessional(professional);
   const aaaListed = professional.verificationDocuments?.source === "aaa";
   const membership = professional.verificationDocuments?.membership;
   const location = provider ? formatAddress(provider.address) : "";
@@ -226,24 +229,38 @@ export default function PractitionerProfileClient() {
           />
 
           <ProfileHeroInfo>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-              <h1 className="font-display text-[1.75rem] leading-tight text-foreground sm:text-[2rem]">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
+              <h1 className="font-display text-[1.625rem] font-semibold leading-tight tracking-tight text-forest sm:text-[2rem]">
                 {displayName}
               </h1>
-              {(verified || aaaListed) && <ProfileVerifiedMark />}
+              {verified || aaaListed ? <ProfileVerifiedMark /> : null}
             </div>
 
             {professional.slug ? (
-              <p className="font-mono text-sm tracking-tight text-ink-muted">@{professional.slug}</p>
+              <p className="font-mono text-sm font-medium tracking-tight text-ink-muted">
+                @{professional.slug}
+              </p>
             ) : null}
 
-            <p className="mt-0.5 text-lg leading-snug text-ink-secondary">{title}</p>
+            <p className="mt-0.5 text-base font-semibold leading-snug text-ink-secondary sm:text-lg">
+              {title}
+            </p>
+
+            {authorities.length > 0 ? (
+              <div className="mt-2 flex justify-center md:justify-start">
+                <AuthorityBadgeRow authorities={authorities} />
+              </div>
+            ) : null}
+
+            <CredentialLines
+              registrationNumber={professional.registrationNumber}
+              licenceNumber={professional.licenceNumber}
+              className="mt-2 justify-items-center md:justify-items-start"
+            />
 
             <ProfileMetaRow>
               {professional.specializations[0] ? (
                 <ProfileMetaBadge label={professional.specializations[0]} />
-              ) : aaaListed ? (
-                <ProfileAaaBadge />
               ) : null}
               {location ? <ProfileLocationMeta location={location} mapUrl={map} /> : null}
               {memberSinceYear ? <ProfileMemberSince year={memberSinceYear} /> : null}

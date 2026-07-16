@@ -33,13 +33,20 @@ jobs:
       - run: npm ci
       - run: cd frontend && npm run build
 
+  # Mobile is standalone (not an npm workspace) — must install its own lockfile.
   mobile:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - run: npm ci
-      - run: cd mobile && npm run typecheck
+          cache-dependency-path: mobile/package-lock.json
+      - name: Install mobile dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck

@@ -1,4 +1,12 @@
-import { IsString, IsArray, IsNumber, IsOptional, IsBoolean, IsDecimal, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  MaxLength,
+} from 'class-validator';
 
 export class Professional {
   @IsString()
@@ -187,4 +195,18 @@ export class UpdateProfessionalDto {
 
   @IsOptional()
   verificationDocuments?: any;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(80)
+  registrationNumber?: string | null;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(80)
+  licenceNumber?: string | null;
+
+  @IsArray()
+  @IsOptional()
+  healthAuthorities?: Record<string, unknown>[];
 }

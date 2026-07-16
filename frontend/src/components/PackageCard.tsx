@@ -11,7 +11,7 @@ export function PackageCard({
   actions?: React.ReactNode;
 }) {
   return (
-    <article className="flex flex-col rounded-2xl border border-hairline bg-surface p-6 transition-shadow hover:shadow-[0_8px_30px_rgba(36,56,46,0.08)]">
+    <article className="card-surface flex flex-col p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-lg text-forest">{pkg.name}</h3>

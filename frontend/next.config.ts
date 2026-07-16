@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Prefer modern browsers; still transpile safely for Safari iOS / Chrome Android.
+  reactStrictMode: true,
+  poweredByHeader: false,
 };
 
 export default nextConfig;

@@ -9,8 +9,7 @@ function CardShell({
   href?: string | null;
   children: React.ReactNode;
 }) {
-  const cls =
-    "group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface transition-shadow hover:shadow-[0_8px_30px_rgba(36,56,46,0.08)]";
+  const cls = "card-surface group flex flex-col overflow-hidden";
   if (!href) return <div className={cls}>{children}</div>;
   if (href.startsWith("/"))
     return (
@@ -31,7 +30,12 @@ export function OfferCard({ offer }: { offer: Offer }) {
       <div className="relative h-40 w-full">
         {offer.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={offer.imageUrl} alt="" className="h-40 w-full object-cover" />
+          <img
+            src={offer.imageUrl}
+            alt={offer.title}
+            className="h-40 w-full object-cover"
+            loading="lazy"
+          />
         ) : (
           <div
             aria-hidden

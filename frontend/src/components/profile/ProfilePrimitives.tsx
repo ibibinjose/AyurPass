@@ -413,16 +413,7 @@ export function ProfileMetaBadge({ label }: { label: string }) {
   );
 }
 
-export function ProfileVerifiedMark() {
-  return (
-    <span
-      className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-leaf/15 text-leaf"
-      title="Verified"
-    >
-      <CheckIcon className="h-3.5 w-3.5" />
-    </span>
-  );
-}
+export { VerifiedTick as ProfileVerifiedMark } from "@/components/VerifiedTick";
 
 export function ProfileMetaRow({ children }: { children: ReactNode }) {
   return (
@@ -512,7 +503,7 @@ export function ProfileHeroShell({ children }: { children: ReactNode }) {
 
 export function ProfileHeroInfo({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full flex-col items-center gap-1.5 text-center md:flex-1 md:items-start md:text-left">
+    <div className="flex w-full flex-col items-center gap-2 text-center md:flex-1 md:items-start md:gap-1.5 md:text-left">
       {children}
     </div>
   );

@@ -66,6 +66,15 @@ model Provider {
   subscriptionTier  String?
   listingTier       String    @default("BOOKING") // FREE_LISTING | BOOKING
   verificationStatus String   @default("pending")
+  /** Business / clinic registration number (AHPRA org, company, local council, etc.) */
+  registrationNumber String?
+  /** Operating licence / permit number where required */
+  licenceNumber     String?
+  /**
+   * Local health-authority approval marks, e.g.
+   * [{ "code":"AAA", "name":"Australian Association of Ayurveda", "region":"AU", "verified":true }]
+   */
+  healthAuthorities Json?
   createdAt         DateTime  @default(now())
 
   professionals     Professional[]
@@ -113,6 +122,15 @@ model Professional {
   hourlyRate              Decimal?  @db.Decimal(10, 2)
   availabilityPreferences Json?
   verificationDocuments   Json?
+  /** Practitioner professional registration (e.g. association membership ID) */
+  registrationNumber      String?
+  /** Practitioner clinical / practice licence number */
+  licenceNumber           String?
+  /**
+   * Local health-authority approval marks for the practitioner
+   * (same shape as Provider.healthAuthorities).
+   */
+  healthAuthorities       Json?
   rating                  Decimal   @default(0) @db.Decimal(3, 2)
   reviewCount             Int       @default(0)
 

@@ -9,9 +9,11 @@ import {
   TextInputProps,
   View,
   ViewProps,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, fonts, radius } from "../theme";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, fonts, radius, tapMin, type as typeScale } from "../theme";
 
 export function Screen({
   children,
@@ -24,15 +26,18 @@ export function Screen({
   padded?: boolean;
   style?: ViewProps["style"];
 }) {
+  const { width } = useWindowDimensions();
+  const horizontal = width >= 768 ? 32 : width >= 400 ? 20 : 16;
   const inner = (
-    <View style={[padded && { paddingHorizontal: 20 }, style]}>{children}</View>
+    <View style={[padded && { paddingHorizontal: horizontal }, style]}>{children}</View>
   );
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
       {scroll ? (
         <ScrollView
-          contentContainerStyle={{ paddingVertical: 20, paddingBottom: 48 }}
+          contentContainerStyle={{ paddingVertical: 20, paddingBottom: 56 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {inner}
         </ScrollView>
@@ -66,8 +71,8 @@ export function Body({
     <Text
       style={[
         styles.body,
-        secondary && { color: colors.inkSecondary },
-        muted && { color: colors.inkMuted },
+        secondary && { color: colors.inkSecondary, fontFamily: fonts.bodyMedium },
+        muted && { color: colors.inkMuted, fontFamily: fonts.bodyMedium },
         style,
       ]}
     >
@@ -78,6 +83,26 @@ export function Body({
 
 export function Card({ children, style }: { children: React.ReactNode; style?: ViewProps["style"] }) {
   return <View style={[styles.card, style]}>{children}</View>;
+}
+
+/**
+ * Verified mark = tick only (no "Verified" label).
+ * Matches web VerifiedTick.
+ */
+export function VerifiedTick({ size = 22 }: { size?: number }) {
+  const icon = Math.round(size * 0.55);
+  return (
+    <View
+      accessibilityRole="image"
+      accessibilityLabel="Verified"
+      style={[
+        styles.verifiedTick,
+        { width: size, height: size, borderRadius: size / 2 },
+      ]}
+    >
+      <Ionicons name="checkmark" size={icon} color={colors.white} />
+    </View>
+  );
 }
 
 export function Button({
@@ -103,6 +128,7 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      accessibilityRole="button"
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: bg, opacity: isDisabled ? 0.55 : pressed ? 0.9 : 1 },
@@ -142,8 +168,8 @@ export function Badge({
   tone?: "leaf" | "gold" | "muted";
 }) {
   const map = {
-    leaf: { bg: "rgba(61,102,80,0.12)", fg: colors.leaf },
-    gold: { bg: "rgba(185,137,47,0.14)", fg: colors.gold },
+    leaf: { bg: "rgba(47,90,68,0.14)", fg: colors.leaf },
+    gold: { bg: "rgba(166,122,36,0.16)", fg: colors.gold },
     muted: { bg: colors.clay, fg: colors.inkSecondary },
   }[tone];
   return (
@@ -156,7 +182,7 @@ export function Badge({
 export function ErrorNote({ message }: { message?: string | null }) {
   if (!message) return null;
   return (
-    <View style={styles.errorNote}>
+    <View style={styles.errorNote} accessibilityRole="alert">
       <Text style={styles.errorText}>{message}</Text>
     </View>
   );
@@ -175,15 +201,19 @@ export function EmptyState({ title, body }: { title: string; body?: string }) {
   return (
     <View style={styles.empty}>
       <Text style={styles.emptyTitle}>{title}</Text>
-      {body ? <Body muted style={{ textAlign: "center", marginTop: 6 }}>{body}</Body> : null}
+      {body ? (
+        <Body muted style={{ textAlign: "center", marginTop: 8 }}>
+          {body}
+        </Body>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  display: { fontFamily: fonts.display, fontSize: 30, color: colors.forest, lineHeight: 36 },
-  title: { fontFamily: fonts.display, fontSize: 22, color: colors.forest },
-  body: { fontFamily: fonts.body, fontSize: 15, color: colors.foreground, lineHeight: 22 },
+  display: typeScale.display,
+  title: typeScale.title,
+  body: typeScale.body,
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
@@ -193,26 +223,43 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: radius.full,
-    paddingVertical: 15,
+    minHeight: tapMin,
+    paddingVertical: 14,
     paddingHorizontal: 22,
     alignItems: "center",
     justifyContent: "center",
   },
-  buttonText: { fontFamily: fonts.bodySemi, fontSize: 15 },
-  label: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.foreground, marginBottom: 6 },
+  buttonText: { fontFamily: fonts.bodySemi, fontSize: 16 },
+  label: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.foreground,
+    marginBottom: 8,
+  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.hairline,
     borderRadius: radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 13,
+    paddingVertical: 14,
+    minHeight: tapMin,
     fontFamily: fonts.body,
-    fontSize: 15,
+    fontSize: 16,
     color: colors.foreground,
   },
-  badge: { alignSelf: "flex-start", borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontFamily: fonts.bodyMedium, fontSize: 12 },
+  badge: {
+    alignSelf: "flex-start",
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  badgeText: { fontFamily: fonts.bodySemi, fontSize: 12 },
+  verifiedTick: {
+    backgroundColor: colors.systemBlue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   errorNote: {
     backgroundColor: "rgba(180,35,24,0.08)",
     borderWidth: 1,
@@ -221,7 +268,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginVertical: 4,
   },
-  errorText: { fontFamily: fonts.body, fontSize: 14, color: colors.danger },
+  errorText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger, lineHeight: 21 },
   empty: {
     borderWidth: 1,
     borderColor: colors.hairline,
@@ -231,5 +278,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: "center",
   },
-  emptyTitle: { fontFamily: fonts.display, fontSize: 18, color: colors.forest },
+  emptyTitle: { fontFamily: fonts.display, fontSize: 20, color: colors.forest },
 });
