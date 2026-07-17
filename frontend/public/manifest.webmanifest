@@ -1,7 +1,7 @@
 {
   "name": "AyurPass",
   "short_name": "AyurPass",
-  "description": "The dedicated finder for Ayurveda, yoga, luxury spa, meditation, health-club and retreat places worldwide.",
+  "description": "Find & book Ayurveda, Yoga & Wellness with verified practices worldwide.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#182720",

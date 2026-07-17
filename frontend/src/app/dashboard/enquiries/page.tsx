@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import type { Enquiry } from "@/lib/types";
+import { DashHeader, DashTabs } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
 
 type Filter = "new" | "all" | "archived";
@@ -71,12 +72,12 @@ export default function EnquiriesPage() {
   ];
 
   return (
-    <div>
-      <h1 className="font-display text-3xl text-forest">Enquiries</h1>
-      <p className="mt-1 text-ink-muted">
-        Leads sent from your public listing page. Reply from your own inbox — the visitor&apos;s
-        email is right here.
-      </p>
+    <div className="space-y-6">
+      <DashHeader
+        eyebrow="Sales"
+        title="Enquiries"
+        description="Leads from your public practice page. Reply from your own inbox — the visitor’s email is right here."
+      />
 
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (

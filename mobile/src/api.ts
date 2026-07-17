@@ -132,6 +132,52 @@ export const api = {
   updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
     request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
 
+  /**
+   * Authenticated image upload (JPEG/PNG/WebP/GIF, max 5 MB).
+   * On React Native pass `{ uri, name, type }` as the file parts of FormData.
+   */
+  uploadImage: async (file: {
+    uri: string;
+    name?: string;
+    type?: string;
+  }): Promise<{ url: string; filename: string; mimeType: string; size: number }> => {
+    const body = new FormData();
+    body.append("file", {
+      uri: file.uri,
+      name: file.name ?? "photo.jpg",
+      type: file.type ?? "image/jpeg",
+    } as unknown as Blob);
+
+    const headers: Record<string, string> = {};
+    if (tokenStore.access) headers.Authorization = `Bearer ${tokenStore.access}`;
+
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/uploads`, { method: "POST", headers, body });
+    } catch {
+      throw new ApiError(
+        `Can't reach the server at ${API_URL}. Make sure the backend is running.`,
+        0,
+      );
+    }
+    if (!res.ok) {
+      let message = `Upload failed (${res.status})`;
+      try {
+        const data = await res.json();
+        if (typeof data?.message === "string") message = data.message;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiError(message, res.status);
+    }
+    return (await res.json()) as {
+      url: string;
+      filename: string;
+      mimeType: string;
+      size: number;
+    };
+  },
+
   // discovery
   providers: (params?: { q?: string; type?: ProviderType; city?: string; country?: string }) => {
     const search = new URLSearchParams();

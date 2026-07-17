@@ -263,6 +263,103 @@ button {
   padding-top: var(--safe-top);
 }
 
+/*
+ * Directory / app sticky side panels.
+ * Keep filters visible while the results column scrolls.
+ */
+.directory-sidebar {
+  /* self-start so sticky has a short containing block height */
+  align-self: start;
+}
+.directory-sidebar-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+.directory-sidebar-panel::-webkit-scrollbar {
+  width: 4px;
+}
+.directory-sidebar-panel::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: 9999px;
+}
+
+/* Compact search + location inputs inside filter sidebars */
+.filter-search-field input,
+.filter-search-field textarea {
+  width: 100%;
+  min-height: 0 !important;
+  padding: 0.15rem 0 !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.3 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+.filter-search-field input:focus,
+.filter-search-field textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.filter-search-field input::placeholder {
+  font-size: 0.8125rem;
+}
+
+/*
+ * List density — horizontal rows: large image left, content right.
+ * Cards use .card-list-row + .card-list-media for structure.
+ */
+.directory-results[data-density="list"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.directory-results[data-density="list"] .card-list-row {
+  display: grid;
+  grid-template-columns: 7.25rem minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-height: 7.25rem;
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+.directory-results[data-density="list"] .card-list-row:hover {
+  border-color: color-mix(in srgb, var(--leaf) 32%, var(--separator));
+  box-shadow: 0 10px 28px rgba(36, 56, 46, 0.09);
+}
+.directory-results[data-density="list"] .card-list-media {
+  width: 7.25rem;
+  min-height: 7.25rem;
+  height: 100%;
+  min-height: 100%;
+}
+@media (min-width: 640px) {
+  .directory-results[data-density="list"] .card-list-row {
+    grid-template-columns: 11.5rem minmax(0, 1fr);
+    min-height: 9.5rem;
+  }
+  .directory-results[data-density="list"] .card-list-media {
+    width: 11.5rem;
+    min-height: 9.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .directory-results[data-density="list"] .card-list-row {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    min-height: 10.5rem;
+  }
+  .directory-results[data-density="list"] .card-list-media {
+    width: 13.5rem;
+    min-height: 10.5rem;
+  }
+}
+.directory-results[data-density="list"] .card-list-media img {
+  object-fit: cover;
+  object-position: center;
+}
+
 /* Space for fixed mobile bottom tab bar */
 .pb-tab-bar {
   padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
@@ -270,6 +367,45 @@ button {
 @media (min-width: 768px) {
   .pb-tab-bar {
     padding-bottom: 0;
+  }
+}
+
+/* Dashboard shell — iOS / Android safe areas + touch */
+.dash-shell {
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+.dash-mobile-top {
+  padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+}
+.dash-drawer-panel {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+}
+.dash-tab-bar {
+  /* Isolate paint; avoid jank when scrolling content under the bar */
+  transform: translateZ(0);
+  -webkit-backdrop-filter: blur(16px);
+}
+.dash-nav-link {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.dash-chip-scroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.dash-chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-nav-link,
+  .dash-tab-bar a {
+    transition: none !important;
   }
 }
 

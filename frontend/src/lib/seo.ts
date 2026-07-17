@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { Offer, ProfessionalDetail, Provider, Retreat } from "./types";
 import { BRAND_ASSET_VERSION } from "./brand";
 import { PROVIDER_TYPE_LABEL, RETREAT_CATEGORY_LABEL, formatAddress } from "./catalog";
-import { practicePath } from "./paths";
+import { practicePath, practitionerPath } from "./paths";
 
 /** Canonical site origin — override per environment via NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (
@@ -11,12 +11,18 @@ export const SITE_URL = (
 
 export const SITE_NAME = "AyurPass";
 
+/** Primary brand promise — find *and* book trusted wellness. */
 export const SITE_TAGLINE =
-  "The dedicated finder for Ayurveda, yoga, luxury spa, meditation, health-club & retreat places worldwide.";
+  "Find & book Ayurveda, Yoga & Wellness with verified practices worldwide.";
+
+export const SITE_TITLE_DEFAULT =
+  "AyurPass — Find & book Ayurveda, Yoga & Wellness";
 
 export const DEFAULT_KEYWORDS = [
   "Ayurveda",
   "Yoga retreat",
+  "book Ayurveda",
+  "book yoga class",
   "Meditation retreat",
   "Panchakarma",
   "Luxury spa",
@@ -25,7 +31,7 @@ export const DEFAULT_KEYWORDS = [
   "Detox retreat",
   "Health club",
   "Wellness directory",
-  "Retreat finder",
+  "wellness booking",
 ];
 
 /** Absolute URL for a site-relative path — needed for canonical & OG tags. */
@@ -257,6 +263,7 @@ export function practitionerJsonLd(professional: ProfessionalDetail) {
   const name = professional.user?.fullName || professional.title || "Practitioner";
   const provider = professional.provider;
   const where = provider ? formatAddress(provider.address) : undefined;
+  const path = practitionerPath(professional);
   return {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -264,7 +271,7 @@ export function practitionerJsonLd(professional: ProfessionalDetail) {
     jobTitle: professional.title ?? undefined,
     description: professional.bio ?? provider?.brandProfile?.about ?? undefined,
     image: professional.user?.avatarUrl ?? provider?.brandProfile?.logoUrl ?? undefined,
-    url: professional.slug ? abs(`/me/${professional.slug}`) : undefined,
+    url: abs(path),
     worksFor: provider
       ? {
           "@type": "HealthAndBeautyBusiness",
@@ -281,13 +288,13 @@ export function practitionerMetadata(professional: ProfessionalDetail): Metadata
   const where = professional.provider
     ? formatAddress(professional.provider.address)
     : "";
-  const slug = professional.slug;
+  const path = practitionerPath(professional);
   return pageMetadata({
     title: `${name} — ${title}${where ? ` in ${where}` : ""}`,
     description:
       professional.bio?.slice(0, 155) ??
       `${name}, ${title.toLowerCase()}${where ? ` in ${where}` : ""}. View profile, enquire and book on AyurPass.`,
-    path: slug ? `/me/${slug}` : "/discover",
+    path,
     images: [
       professional.user?.avatarUrl,
       professional.provider?.brandProfile?.coverImageUrl,

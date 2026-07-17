@@ -7,6 +7,7 @@ import type { Order, OrderStatus } from "@/lib/types";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { StatTile } from "@/components/StatTile";
+import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
 
 export default function ProviderOrdersPage() {
@@ -46,9 +47,12 @@ export default function ProviderOrdersPage() {
   const toFulfil = all.filter((o) => o.status === "PAID").length;
 
   return (
-    <div>
-      <h1 className="font-display text-3xl text-forest">Orders</h1>
-      <p className="mt-1 text-ink-muted">Product orders for {provider.businessName}.</p>
+    <div className="space-y-6">
+      <DashHeader
+        eyebrow="Sales"
+        title="Orders"
+        description={`Product orders for ${provider.businessName}. Fulfil paid orders and track payouts.`}
+      />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <StatTile label="Total orders" value={all.length} />

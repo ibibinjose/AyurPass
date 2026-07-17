@@ -1,13 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import { assertProductionConfig, corsOrigins, isStrictEnv } from './common/env';
 
 async function bootstrap() {
   assertProductionConfig();
 
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,6 +23,18 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigins(),
     credentials: true,
+  });
+
+  // Local image uploads (avatars, covers, gallery). Create dir if missing.
+  const uploadDir = join(process.cwd(), 'uploads');
+  if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads/',
+    maxAge: isStrictEnv() ? '7d' : 0,
+    setHeaders: (res) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cache-Control', isStrictEnv() ? 'public, max-age=604800' : 'no-cache');
+    },
   });
 
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -36,5 +51,6 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
   await app.listen(port);
   console.log(`🚀 AyurPass Backend running on port ${port}`);
+  console.log(`🖼  Uploads served from ${uploadDir} at /uploads/`);
 }
 bootstrap();

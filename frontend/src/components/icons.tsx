@@ -107,10 +107,77 @@ export function ArrowRightIcon({ className }: IconProps) {
   );
 }
 
-export function CheckIcon({ className, strokeWidth }: IconProps & { strokeWidth?: number }) {
+/**
+ * Crisp check / swoosh — optional filled green disc with centre dot
+ * (matches VerifiedTick language).
+ */
+export function CheckIcon({
+  className,
+  strokeWidth,
+  filled,
+}: IconProps & { strokeWidth?: number; filled?: boolean }) {
+  if (filled) {
+    return (
+      <svg
+        className={className}
+        width={24}
+        height={24}
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden
+      >
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="11" cy="13.2" r="1.35" fill="#fff" fillOpacity="0.95" />
+        <path
+          d="M5.9 12.4c1.5 1 3.05 2.45 4.4 4.4 3.25-5.7 6.65-8.6 8.6-9.85"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="2.35"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
   return (
-    <svg {...base(className)} strokeWidth={strokeWidth ?? 1.6}>
-      <path d="m5 12.5 4.2 4.2L19 7" />
+    <svg
+      {...base(className)}
+      strokeWidth={strokeWidth ?? 2.35}
+      fill="none"
+    >
+      <path d="M5.6 12.35c1.45 1 2.95 2.45 4.25 4.35 3.15-5.55 6.45-8.35 8.35-9.55" />
+    </svg>
+  );
+}
+
+/** Success / feature list mark — soft circle + swoosh. */
+export function CheckCircleIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9.25"
+        fill="currentColor"
+        fillOpacity="0.12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle cx="11" cy="13.1" r="1.1" fill="currentColor" fillOpacity="0.35" />
+      <path
+        d="M6.2 12.4c1.4 0.95 2.85 2.35 4.15 4.2 3.1-5.4 6.35-8.15 8.2-9.35"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -275,6 +342,25 @@ export function HeartIcon({ className, filled }: IconProps & { filled?: boolean 
   return (
     <svg {...base(className)} fill={filled ? "currentColor" : "none"}>
       <path d="M12 20.5s-7-4.6-9.5-8.5C.5 8.8 2.2 5 5.8 5c1.8 0 3.2 1 4.2 2.3C11 6 12.4 5 14.2 5 17.8 5 19.5 8.8 21.5 12c-2.5 3.9-9.5 8.5-9.5 8.5Z" />
+    </svg>
+  );
+}
+
+/** Thumbs-down quality signal (dislike). */
+export function DislikeIcon({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg {...base(className)} fill={filled ? "currentColor" : "none"}>
+      <path d="M17 14V4M10 14H5.5a2 2 0 0 1-1.9-2.6l1.8-6A2 2 0 0 1 7.3 4H15a2 2 0 0 1 2 2v6.4a2 2 0 0 1-.6 1.4L10 20v-4a2 2 0 0 0-2-2Z" />
+    </svg>
+  );
+}
+
+/** Report / flag for abuse. */
+export function FlagIcon({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg {...base(className)} fill={filled ? "currentColor" : "none"}>
+      <path d="M4 21V4" />
+      <path d="M4 4h11l-1.5 4L15 12H4" />
     </svg>
   );
 }

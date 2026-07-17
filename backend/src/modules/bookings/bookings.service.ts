@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
@@ -23,25 +23,108 @@ const BOOKING_INCLUDES = {
   },
 } as const;
 
+const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] as const;
+
+export type ProviderBookingQuery = {
+  from?: string;
+  to?: string;
+  professionalId?: string;
+  roomId?: string;
+};
+
 @Injectable()
 export class BookingsService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Prevent double-booking the same practitioner or room.
+   * Concurrent sessions are allowed when they use different resources.
+   */
+  private async assertNoConflicts(params: {
+    providerId: string;
+    startTime: Date;
+    endTime: Date;
+    professionalId?: string | null;
+    roomId?: string | null;
+    excludeBookingId?: string;
+  }) {
+    const start = new Date(params.startTime);
+    const end = new Date(params.endTime);
+    if (!(end > start)) {
+      throw new BadRequestException('End time must be after start time.');
+    }
+
+    const overlapWhere: Prisma.BookingWhereInput = {
+      providerId: params.providerId,
+      status: { in: [...ACTIVE_STATUSES] },
+      startTime: { lt: end },
+      endTime: { gt: start },
+      ...(params.excludeBookingId ? { NOT: { id: params.excludeBookingId } } : {}),
+    };
+
+    if (params.professionalId) {
+      const hit = await this.prisma.booking.findFirst({
+        where: { ...overlapWhere, professionalId: params.professionalId },
+        include: {
+          professional: { select: { title: true, user: { select: { fullName: true } } } },
+          service: { select: { name: true } },
+        },
+      });
+      if (hit) {
+        const who =
+          hit.professional?.user?.fullName || hit.professional?.title || 'This practitioner';
+        throw new BadRequestException(
+          `${who} already has “${hit.service?.name ?? 'a session'}” overlapping this time. Pick another therapist or slot.`,
+        );
+      }
+    }
+
+    if (params.roomId) {
+      const hit = await this.prisma.booking.findFirst({
+        where: { ...overlapWhere, roomId: params.roomId },
+        include: {
+          room: { select: { name: true } },
+          service: { select: { name: true } },
+        },
+      });
+      if (hit) {
+        throw new BadRequestException(
+          `Room “${hit.room?.name ?? 'selected'}” is occupied during this time. Choose another room or slot.`,
+        );
+      }
+    }
+  }
+
   async createBooking(data: CreateBookingDto) {
     let totalAmount = data.totalAmount;
-    if (totalAmount === undefined) {
+    let professionalId = data.professionalId;
+    if (totalAmount === undefined || professionalId === undefined) {
       const service = await this.prisma.service.findUnique({
         where: { id: data.serviceId },
-        select: { price: true },
+        select: { price: true, professionalId: true },
       });
-      totalAmount = service ? Number(service.price) : 0;
+      if (totalAmount === undefined) {
+        totalAmount = service ? Number(service.price) : 0;
+      }
+      if (!professionalId && service?.professionalId) {
+        professionalId = service.professionalId;
+      }
     }
     const platformCommission =
       Math.round(totalAmount * PLATFORM_COMMISSION_RATE * 100) / 100;
 
+    await this.assertNoConflicts({
+      providerId: data.providerId,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      professionalId,
+      roomId: data.roomId,
+    });
+
     const booking = await this.prisma.booking.create({
       data: {
         ...data,
+        professionalId,
         totalAmount,
         platformCommission,
         providerPayout: Math.round((totalAmount - platformCommission) * 100) / 100,
@@ -65,8 +148,6 @@ export class BookingsService {
     const expiresAt = new Date(booking.endTime);
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Grant (or refresh) scoped health permissions for the booked provider / practitioner.
-    // Re-using existing active grants avoids duplicate rows when a client re-books.
     const grants: {
       granteeId: string;
       permissionType: string;
@@ -130,9 +211,18 @@ export class BookingsService {
     });
   }
 
-  async findByProvider(providerId: string) {
+  async findByProvider(providerId: string, query: ProviderBookingQuery = {}) {
+    const where: Prisma.BookingWhereInput = { providerId };
+    if (query.from || query.to) {
+      where.startTime = {};
+      if (query.from) where.startTime.gte = new Date(query.from);
+      if (query.to) where.startTime.lt = new Date(query.to);
+    }
+    if (query.professionalId) where.professionalId = query.professionalId;
+    if (query.roomId) where.roomId = query.roomId;
+
     return this.prisma.booking.findMany({
-      where: { providerId },
+      where,
       include: {
         ...BOOKING_INCLUDES,
         consumer: {
@@ -142,7 +232,7 @@ export class BookingsService {
           },
         },
       },
-      orderBy: { startTime: 'desc' },
+      orderBy: { startTime: 'asc' },
     });
   }
 
@@ -154,6 +244,27 @@ export class BookingsService {
   }
 
   async updateBooking(id: string, data: UpdateBookingDto) {
+    const existing = await this.prisma.booking.findUnique({ where: { id } });
+    if (!existing) throw new BadRequestException('Booking not found.');
+
+    const startTime = data.startTime ?? existing.startTime;
+    const endTime = data.endTime ?? existing.endTime;
+    const professionalId =
+      data.professionalId !== undefined ? data.professionalId : existing.professionalId;
+    const roomId = data.roomId !== undefined ? data.roomId : existing.roomId;
+    const nextStatus = data.status ?? existing.status;
+
+    if (ACTIVE_STATUSES.includes(nextStatus as (typeof ACTIVE_STATUSES)[number])) {
+      await this.assertNoConflicts({
+        providerId: existing.providerId,
+        startTime,
+        endTime,
+        professionalId,
+        roomId,
+        excludeBookingId: id,
+      });
+    }
+
     return this.prisma.booking.update({
       where: { id },
       data,

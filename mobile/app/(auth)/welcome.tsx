@@ -21,6 +21,7 @@ export default function Welcome() {
         <View style={{ marginTop: 24 }}>
           <Image source={require("../../assets/icon.png")} style={styles.mark} accessibilityLabel="AyurPass" />
           <Text style={styles.brand}>AyurPass</Text>
+          <Text style={styles.tagline}>Find & book Ayurveda, Yoga & Wellness</Text>
         </View>
 
         <View>
@@ -28,8 +29,8 @@ export default function Welcome() {
             Wellness, tuned to your <Text style={{ color: colors.goldSoft }}>constitution</Text>.
           </Text>
           <Text style={styles.sub}>
-            Verified Ayurveda, yoga, spa and meditation — personalised to your dosha by a guided
-            Prakriti assessment.
+            Verified Ayurveda, Yoga & Wellness — find & book practices personalised to your
+            dosha.
           </Text>
 
           <View style={styles.pillars}>
@@ -59,6 +60,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   brand: { fontFamily: fonts.display, fontSize: 26, color: colors.white },
+  tagline: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: "rgba(255,255,255,0.72)",
+    marginTop: 6,
+    fontWeight: "600",
+  },
   headline: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, color: colors.white },
   sub: {
     fontFamily: fonts.body,

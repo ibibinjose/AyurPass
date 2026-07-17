@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { api, formatMoney } from "@/lib/api";
+import { trackRecentView } from "@/hooks/useRecentViews";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import { practicePath } from "@/lib/paths";
+import { practicePath, practitionerPath, professionalDisplayTitle } from "@/lib/paths";
+import { isValidNamespace } from "@/lib/paths";
 import { SITE_URL } from "@/lib/seo";
 import type { BrandProfile, ProfessionalDetail } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
@@ -26,25 +28,21 @@ import {
   ProfileHeroInfo,
   ProfileHeroShell,
   ProfileLinkButtons,
-  ProfileLocationMeta,
-  ProfileMemberSince,
-  ProfileMetaBadge,
-  ProfileMetaRow,
+  ProfileMetaLine,
   ProfilePageFrame,
   ProfileSection,
   ProfileSharePreview,
   ProfileMediaMasonry,
   ProfileShell,
-  ProfileStat,
-  ProfileStatSep,
-  ProfileStatsLine,
   ProfileTabs,
   ProfileThemeScope,
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
 import { AuthorityBadgeRow, CredentialLines } from "@/components/AuthorityBadge";
+import { QualityPanel } from "@/components/QualityControls";
 import { authoritiesForProfessional } from "@/lib/credentials";
+import { brandSocialToDisplay } from "@/lib/social";
 
 function buildLinkItems(
   professional: ProfessionalDetail,
@@ -86,17 +84,15 @@ function buildLinkItems(
   if (contactPhone) {
     items.push({ kind: "phone", label: "Call", sublabel: contactPhone, href: `tel:${contactPhone}` });
   }
-  if (social) {
-    for (const [name, url] of Object.entries(social)) {
-      if (url) {
-        items.push({
-          kind: "social",
-          label: name.charAt(0).toUpperCase() + name.slice(1),
-          sublabel: url.replace(/^https?:\/\//, "").split("/")[0],
-          href: url,
-        });
-      }
-    }
+  for (const s of brandSocialToDisplay(social)) {
+    items.push({
+      kind: "social",
+      platform: s.platform,
+      label: s.label,
+      handle: s.handle,
+      sublabel: s.handle,
+      href: s.href,
+    });
   }
   if (provider) {
     items.push({
@@ -119,8 +115,24 @@ function mapsUrl(provider: NonNullable<ProfessionalDetail["provider"]>): string 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.join(", "))}`;
 }
 
-export default function PractitionerProfileClient() {
-  const { slug } = useParams<{ slug: string }>();
+/**
+ * Resolves practitioners from:
+ *  - /me/:slug
+ *  - /pro|ayur|yoga|spa|…/:handle
+ *  - /:vanity (root — admin-approved only; loaded via vanity routes)
+ */
+export default function PractitionerProfileClient({
+  mode = "auto",
+  namespace,
+  vanity,
+}: {
+  mode?: "auto" | "slug" | "handle" | "vanity";
+  namespace?: string;
+  vanity?: boolean;
+} = {}) {
+  const params = useParams<{ slug?: string; handle?: string }>();
+  const slug = params.slug;
+  const handle = params.handle;
   const [professional, setProfessional] = useState<ProfessionalDetail | null | undefined>(
     undefined,
   );
@@ -128,12 +140,89 @@ export default function PractitionerProfileClient() {
   const [tab, setTab] = useState("about");
 
   useEffect(() => {
-    if (!slug) return;
-    api
-      .professionalBySlug(slug)
-      .then(setProfessional)
-      .catch(() => setProfessional(null));
-  }, [slug]);
+    let cancelled = false;
+
+    async function load() {
+      try {
+        let pro: ProfessionalDetail | null = null;
+        if (vanity || mode === "vanity") {
+          const h = handle || slug;
+          if (!h) return;
+          pro = await api.professionalByVanity(h);
+        } else if (mode === "handle" || (namespace && handle)) {
+          const ns = namespace || "pro";
+          if (!handle || !isValidNamespace(ns)) {
+            if (!cancelled) setProfessional(null);
+            return;
+          }
+          pro = await api.professionalByHandle(ns, handle);
+        } else if (handle && namespace) {
+          pro = await api.professionalByHandle(namespace, handle);
+        } else if (slug) {
+          pro = await api.professionalBySlug(slug);
+        } else if (handle) {
+          // /pro/:handle style when parent passes nothing but URL has handle under known folder
+          pro = await api.professionalByHandle("pro", handle);
+        } else {
+          if (!cancelled) setProfessional(null);
+          return;
+        }
+        if (!cancelled) setProfessional(pro);
+      } catch {
+        if (!cancelled) setProfessional(null);
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, handle, mode, namespace, vanity]);
+
+  useEffect(() => {
+    if (!professional) return;
+    const name = professional.user?.fullName || professional.title || "Practitioner";
+    trackRecentView({
+      kind: "professional",
+      id: professional.id,
+      title: name,
+      href: practitionerPath(professional),
+      subtitle: professionalDisplayTitle(professional) ?? undefined,
+    });
+  }, [professional?.id]);
+
+  // All hooks must run before any early return (stable hook order).
+  const provider = professional?.provider;
+  const brand = provider?.brandProfile;
+  const avatar = professional?.user?.avatarUrl ?? brand?.logoUrl ?? null;
+  const coverUrl = brand?.coverImageUrl ?? null;
+  const services = professional?.services ?? [];
+  const hasBookableServices = services.length > 0;
+
+  const linkItems = useMemo(
+    () => (professional ? buildLinkItems(professional, provider, brand) : []),
+    [professional, provider, brand],
+  );
+
+  const gallery = useMemo(() => {
+    const g = brand?.gallery?.filter(Boolean) ?? [];
+    if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
+    if (avatar && !g.includes(avatar)) return [...g, avatar];
+    return g;
+  }, [brand?.gallery, coverUrl, avatar]);
+
+  const tabs = useMemo(() => {
+    const t: { id: string; label: string; count?: number }[] = [{ id: "about", label: "About" }];
+    if (gallery.length) t.push({ id: "media", label: "Media", count: gallery.length });
+    if (linkItems.length) t.push({ id: "links", label: "Links", count: linkItems.length });
+    if (hasBookableServices) t.push({ id: "services", label: "Services", count: services.length });
+    t.push({ id: "reviews", label: "Reviews" });
+    return t;
+  }, [gallery.length, linkItems.length, hasBookableServices, services.length]);
+
+  useEffect(() => {
+    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+  }, [tabs, tab]);
 
   if (professional === null) {
     return (
@@ -170,24 +259,18 @@ export default function PractitionerProfileClient() {
     );
   }
 
-  const provider = professional.provider;
   const user = professional.user;
-  const brand = provider?.brandProfile;
   const displayName = user?.fullName || professional.title || "Practitioner";
-  const title = professional.title || "Wellness practitioner";
+  const title =
+    professionalDisplayTitle(professional) || professional.title || "Wellness practitioner";
   const verified = provider?.verificationStatus === "verified";
   const authorities = authoritiesForProfessional(professional);
   const aaaListed = professional.verificationDocuments?.source === "aaa";
   const membership = professional.verificationDocuments?.membership;
   const location = provider ? formatAddress(provider.address) : "";
-  const map = provider ? mapsUrl(provider) : null;
-  const avatar = user?.avatarUrl ?? brand?.logoUrl;
   const practiceLogo = brand?.logoUrl;
-  const coverUrl = brand?.coverImageUrl;
   const about = professional.bio || brand?.about;
   const aboutBrief = about?.replace(/\s+/g, " ").trim().slice(0, 140);
-  const services = professional.services ?? [];
-  const hasBookableServices = services.length > 0;
   const hourlyRate =
     professional.hourlyRate != null && Number(professional.hourlyRate) > 0
       ? formatMoney(professional.hourlyRate)
@@ -201,38 +284,12 @@ export default function PractitionerProfileClient() {
       ? `${window.location.origin}${sharePath}`
       : `${SITE_URL}${sharePath}`;
 
-  const linkItems = buildLinkItems(professional, provider, brand);
-  const hasMainContent =
-    !!about || linkItems.length > 0 || professional.specializations.length > 0;
   const hasBackground =
     !!membership ||
     professional.yearsExperience != null ||
     !!hourlyRate ||
     professional.reviewCount > 0 ||
     aaaListed;
-
-  const hasStats =
-    professional.reviewCount > 0 ||
-    (professional.yearsExperience != null && professional.yearsExperience > 0);
-
-  const gallery = useMemo(() => {
-    const g = brand?.gallery?.filter(Boolean) ?? [];
-    if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
-    if (avatar && !g.includes(avatar)) return [...g, avatar];
-    return g;
-  }, [brand?.gallery, coverUrl, avatar]);
-
-  const tabs = useMemo(() => {
-    const t: { id: string; label: string; count?: number }[] = [{ id: "about", label: "About" }];
-    if (gallery.length) t.push({ id: "media", label: "Media", count: gallery.length });
-    if (linkItems.length) t.push({ id: "links", label: "Links", count: linkItems.length });
-    if (hasBookableServices) t.push({ id: "services", label: "Services", count: services.length });
-    return t;
-  }, [gallery.length, linkItems.length, hasBookableServices, services.length]);
-
-  useEffect(() => {
-    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
-  }, [tabs, tab]);
 
   return (
     <PageWrap>
@@ -254,12 +311,10 @@ export default function PractitionerProfileClient() {
           />
 
           <ProfileHeroInfo>
-            <div className="flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
-              <h1 className="font-display text-[1.75rem] font-semibold leading-[1.15] tracking-tight text-forest sm:text-[2.125rem]">
-                {displayName}
-              </h1>
-              {verified || aaaListed ? <ProfileVerifiedMark /> : null}
-            </div>
+            <h1 className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center font-display text-[1.75rem] font-semibold leading-[1.15] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.125rem]">
+              <span>{displayName}</span>
+              {verified || aaaListed ? <ProfileVerifiedMark size="lg" /> : null}
+            </h1>
 
             {professional.slug ? (
               <p className="font-mono text-sm font-medium tracking-tight text-ink-muted">
@@ -267,9 +322,25 @@ export default function PractitionerProfileClient() {
               </p>
             ) : null}
 
-            <p className="mt-0.5 text-base font-semibold leading-snug text-ink-secondary sm:text-lg">
-              {title}
-            </p>
+            <ProfileMetaLine
+              parts={[
+                title,
+                professional.specializations[0],
+                provider?.address?.country ||
+                  provider?.address?.city ||
+                  location ||
+                  null,
+                memberSinceYear ? `Member since ${memberSinceYear}` : null,
+                professional.yearsExperience != null && professional.yearsExperience > 0
+                  ? `${professional.yearsExperience} years experience`
+                  : null,
+                professional.reviewCount > 0
+                  ? `${Number(professional.rating).toFixed(1)} ★ · ${professional.reviewCount} ${
+                      professional.reviewCount === 1 ? "review" : "reviews"
+                    }`
+                  : null,
+              ]}
+            />
 
             {authorities.length > 0 ? (
               <div className="mt-2 flex justify-center md:justify-start">
@@ -283,42 +354,12 @@ export default function PractitionerProfileClient() {
               className="mt-2 justify-items-center md:justify-items-start"
             />
 
-            <ProfileMetaRow>
-              {professional.specializations[0] ? (
-                <ProfileMetaBadge label={professional.specializations[0]} />
-              ) : null}
-              {location ? <ProfileLocationMeta location={location} mapUrl={map} /> : null}
-              {memberSinceYear ? <ProfileMemberSince year={memberSinceYear} /> : null}
-            </ProfileMetaRow>
-
             {provider ? (
               <ProfileAffiliationPill
                 href={practicePath(provider)}
                 name={provider.businessName}
                 imageUrl={practiceLogo}
               />
-            ) : null}
-
-            {hasStats ? (
-              <ProfileStatsLine>
-                {professional.reviewCount > 0 ? (
-                  <>
-                    <span>
-                      <span className="font-semibold text-foreground">
-                        {Number(professional.rating).toFixed(1)} ★
-                      </span>{" "}
-                      · {professional.reviewCount}{" "}
-                      {professional.reviewCount === 1 ? "review" : "reviews"}
-                    </span>
-                    {professional.yearsExperience != null && professional.yearsExperience > 0 ? (
-                      <ProfileStatSep />
-                    ) : null}
-                  </>
-                ) : null}
-                {professional.yearsExperience != null && professional.yearsExperience > 0 ? (
-                  <ProfileStat value={professional.yearsExperience} label="years experience" />
-                ) : null}
-              </ProfileStatsLine>
             ) : null}
 
             <ProfileActionBar
@@ -329,6 +370,7 @@ export default function PractitionerProfileClient() {
               onEnquire={() => setEnquireOpen(true)}
               bookHref={hasBookableServices ? "/explore" : null}
               enquireDisabled={!provider}
+              onOpenReviews={() => setTab("reviews")}
             />
           </ProfileHeroInfo>
         </ProfileHeroShell>
@@ -396,6 +438,16 @@ export default function PractitionerProfileClient() {
                   ) : (
                     <ProfileEmptyState title="No sessions listed" body="Bookable services will appear here." />
                   )}
+                </ProfileSection>
+              ) : null}
+
+              {tab === "reviews" ? (
+                <ProfileSection label="Quality & reviews">
+                  <QualityPanel
+                    target={{ type: "professional", id: professional.id }}
+                    title="Practitioner ratings"
+                    targetLabel={displayName}
+                  />
                 </ProfileSection>
               ) : null}
             </>

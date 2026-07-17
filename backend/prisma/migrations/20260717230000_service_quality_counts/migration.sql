@@ -1,0 +1,5 @@
+-- Service-level denormalized ratings / reactions for explore cards.
+ALTER TABLE "Service" ADD COLUMN IF NOT EXISTS "rating" DECIMAL(3,2) NOT NULL DEFAULT 0;
+ALTER TABLE "Service" ADD COLUMN IF NOT EXISTS "reviewCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Service" ADD COLUMN IF NOT EXISTS "likeCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Service" ADD COLUMN IF NOT EXISTS "dislikeCount" INTEGER NOT NULL DEFAULT 0;

@@ -55,6 +55,15 @@ model Provider {
   code              String    @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
   /** Public URL handle — e.g. /practice/anita-mudnur-ayurveda */
   slug              String?   @unique
+  /**
+   * Root vanity — ayurpass.com/:handle. Only live when vanityStatus = approved.
+   * Admin approval protects brands & celebrities.
+   */
+  vanityHandle      String?   @unique
+  vanityStatus      String    @default("none") // none | pending | approved | rejected
+  vanityRequestedAt DateTime?
+  vanityReviewedAt  DateTime?
+  vanityReviewNote  String?
   userId            String?   @unique
   user              User?     @relation(fields: [userId], references: [id])
   businessName      String
@@ -75,6 +84,11 @@ model Provider {
    * [{ "code":"AAA", "name":"Australian Association of Ayurveda", "region":"AU", "verified":true }]
    */
   healthAuthorities Json?
+  /** Aggregated 1–5 star average from Review rows */
+  rating            Decimal   @default(0) @db.Decimal(3, 2)
+  reviewCount       Int       @default(0)
+  likeCount         Int       @default(0)
+  dislikeCount      Int       @default(0)
   createdAt         DateTime  @default(now())
 
   professionals     Professional[]
@@ -107,13 +121,33 @@ enum ProviderType {
 model Professional {
   id                      String    @id @default(uuid())
   code                    String    @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
-  /** Public URL handle — e.g. /me/anita-mudnur */
+  /** Legacy public URL — e.g. /me/anita-mudnur */
   slug                    String?   @unique
+  /**
+   * Username for namespaced public URLs:
+   * /pro/:handle · /ayur/:handle · /yoga/:handle · …
+   */
+  handle                  String?
+  handleNamespace         String?   // pro | ayur | yoga | spa | meditation | fitness | nutrition | coach
+  /**
+   * Root vanity — ayurpass.com/:handle. Admin-approved only.
+   */
+  vanityHandle            String?   @unique
+  vanityStatus            String    @default("none") // none | pending | approved | rejected
+  vanityRequestedAt       DateTime?
+  vanityReviewedAt        DateTime?
+  vanityReviewNote        String?
   userId                  String   @unique
   user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   providerId              String
   provider                Provider  @relation(fields: [providerId], references: [id])
+  /** Free-text title shown on profiles */
   title                   String?
+  /**
+   * Structured title kind — AYURVEDA_DOCTOR, YOGA_INSTRUCTOR, etc.
+   * See shared PROFESSIONAL_TITLE_KINDS.
+   */
+  titleKind               String?
   specializations         String[]
   doshaExpertise          Json?
   bio                     String?
@@ -133,10 +167,83 @@ model Professional {
   healthAuthorities       Json?
   rating                  Decimal   @default(0) @db.Decimal(3, 2)
   reviewCount             Int       @default(0)
+  likeCount               Int       @default(0)
+  dislikeCount            Int       @default(0)
 
   services                Service[]
   bookings                Booking[]
   treatmentPlans        TreatmentPlan[]
+
+  @@unique([handleNamespace, handle])
+  @@index([handleNamespace, handle])
+  @@index([vanityStatus])
+}
+
+/**
+ * Quality-control review: one star rating (+ optional text) per user per target.
+ * Targets: provider | professional | service | product | retreat | offer
+ */
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  targetType String
+  targetId   String
+  rating     Int
+  title      String?
+  body       String?
+  status     String   @default("published") // published | hidden | flagged
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId, status])
+  @@index([userId])
+}
+
+/**
+ * Like / dislike reaction — one vote per user per target (mutually exclusive).
+ */
+model Reaction {
+  id         String   @id @default(uuid())
+  userId     String
+  targetType String
+  targetId   String
+  value      String // like | dislike
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId, value])
+  @@index([userId])
+}
+
+/**
+ * Abuse reports & product suggestions — quality / trust & safety.
+ * kind: abuse | suggestion
+ * Guests may submit with contactEmail; signed-in users set userId.
+ */
+model FeedbackReport {
+  id            String   @id @default(uuid())
+  kind          String // abuse | suggestion
+  /** spam | harassment | fake | safety | copyright | other | feature | improvement | content */
+  category      String
+  message       String
+  /** Optional listing this is about */
+  targetType    String?
+  targetId      String?
+  targetLabel   String?
+  pageUrl       String?
+  userId        String?
+  contactEmail  String?
+  contactName   String?
+  status        String   @default("open") // open | reviewing | resolved | dismissed
+  adminNote     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([kind, status])
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }
 
 model Service {
@@ -156,6 +263,11 @@ model Service {
   doshaCompatibility Json?
   isVirtual          Boolean   @default(false)
   maxParticipants    Int       @default(1)
+  /** Denormalized quality signals for catalog cards (targetType = service). */
+  rating             Decimal   @default(0) @db.Decimal(3, 2)
+  reviewCount        Int       @default(0)
+  likeCount          Int       @default(0)
+  dislikeCount       Int       @default(0)
   createdAt          DateTime  @default(now())
 
   bookings           Booking[]

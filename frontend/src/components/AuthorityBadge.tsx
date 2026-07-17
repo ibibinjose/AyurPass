@@ -1,26 +1,38 @@
 import type { HealthAuthorityBadge } from "@/lib/types";
+import { CheckIcon } from "@/components/icons";
 
 /**
  * Local health-authority approval chip (AAA, AHPRA, NMC…).
  * Apple-like capsule: clear code + optional region.
+ *
+ * Set linkable=false when nested inside another <a>/Link (e.g. discover cards)
+ * to avoid invalid nested anchors and hydration errors.
  */
 export function AuthorityBadge({
   authority,
   size = "md",
+  linkable = true,
 }: {
   authority: HealthAuthorityBadge;
   size?: "sm" | "md";
+  /** When false, never wrap in <a> (use inside parent links). */
+  linkable?: boolean;
 }) {
   const pad = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]";
+  const checkClass = size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5";
   const inner = (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border border-[var(--separator)] bg-[var(--fill-secondary)] font-semibold uppercase tracking-wide text-foreground ${pad}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-[var(--separator)] bg-[var(--fill-secondary)] font-semibold uppercase tracking-wide text-foreground ${pad}`}
       title={[authority.name, authority.region, authority.registrationNumber]
         .filter(Boolean)
         .join(" · ")}
     >
-      <span className="text-[var(--system-blue)]" aria-hidden>
-        ✓
+      <span
+        className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-[0_0_0_1px_rgba(22,163,74,0.2)]"
+        style={{ width: size === "sm" ? 13 : 15, height: size === "sm" ? 13 : 15 }}
+        aria-hidden
+      >
+        <CheckIcon className={checkClass} strokeWidth={2.8} />
       </span>
       <span>{authority.code}</span>
       {authority.region ? (
@@ -31,7 +43,7 @@ export function AuthorityBadge({
     </span>
   );
 
-  if (authority.profileUrl) {
+  if (linkable && authority.profileUrl) {
     return (
       <a
         href={authority.profileUrl}
@@ -49,15 +61,23 @@ export function AuthorityBadge({
 export function AuthorityBadgeRow({
   authorities,
   size = "md",
+  linkable = true,
 }: {
   authorities: HealthAuthorityBadge[];
   size?: "sm" | "md";
+  /** When false, badges are non-linking (safe inside parent <a>/Link). */
+  linkable?: boolean;
 }) {
   if (!authorities.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {authorities.map((a) => (
-        <AuthorityBadge key={`${a.code}-${a.region ?? ""}-${a.registrationNumber ?? ""}`} authority={a} size={size} />
+        <AuthorityBadge
+          key={`${a.code}-${a.region ?? ""}-${a.registrationNumber ?? ""}`}
+          authority={a}
+          size={size}
+          linkable={linkable}
+        />
       ))}
     </div>
   );

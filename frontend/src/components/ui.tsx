@@ -7,29 +7,62 @@ import type {
 } from "react";
 
 const fieldClasses =
-  "w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-sm text-foreground placeholder:text-ink-muted transition-colors focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/25 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-sm font-medium text-foreground placeholder:font-normal placeholder:text-ink-muted/80 transition-[border-color,box-shadow] duration-150 focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/20 disabled:cursor-not-allowed disabled:bg-clay/40 disabled:opacity-70";
 
 export function Field({
   label,
   children,
   hint,
   error,
+  optional,
+  required,
+  htmlFor,
+  className = "",
 }: {
   label: string;
   children: ReactNode;
   hint?: string;
   error?: string | null;
+  /** Shows a subtle “Optional” chip next to the label. */
+  optional?: boolean;
+  /** Shows a required asterisk (visual only — still set required on the input). */
+  required?: boolean;
+  htmlFor?: string;
+  className?: string;
 }) {
+  const isSpacer = !label.trim() || label === "\u00a0";
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-foreground">{label}</span>
+    <label htmlFor={htmlFor} className={`block ${className}`}>
+      {!isSpacer ? (
+        <span className="mb-1.5 flex min-h-[1.25rem] flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="text-sm font-semibold text-foreground">
+            {label}
+            {required ? (
+              <span className="ml-0.5 text-red-600" aria-hidden>
+                *
+              </span>
+            ) : null}
+          </span>
+          {optional ? (
+            <span className="rounded-full bg-clay px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+              Optional
+            </span>
+          ) : null}
+        </span>
+      ) : (
+        <span className="mb-1.5 block min-h-[1.25rem]" aria-hidden>
+          &nbsp;
+        </span>
+      )}
       {children}
       {error ? (
-        <span className="mt-1 block text-xs text-red-700" role="alert">
+        <span className="mt-1.5 block text-xs font-medium text-red-700" role="alert">
           {error}
         </span>
       ) : hint ? (
-        <span className="mt-1 block text-xs text-ink-muted">{hint}</span>
+        <span className="mt-1.5 block text-xs font-medium leading-relaxed text-ink-muted">
+          {hint}
+        </span>
       ) : null}
     </label>
   );
@@ -40,11 +73,25 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={`${fieldClasses} ${props.className ?? ""}`} />;
+  return (
+    <select
+      {...props}
+      className={`${fieldClasses} cursor-pointer appearance-none bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat pr-9 ${props.className ?? ""}`}
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7c72' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+        ...props.style,
+      }}
+    />
+  );
 }
 
 export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${fieldClasses} ${props.className ?? ""}`} />;
+  return (
+    <textarea
+      {...props}
+      className={`${fieldClasses} min-h-[6.5rem] resize-y leading-relaxed ${props.className ?? ""}`}
+    />
+  );
 }
 
 export function Button({

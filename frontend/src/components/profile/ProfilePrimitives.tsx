@@ -7,6 +7,7 @@ import {
   ArrowRightIcon,
   CalendarIcon,
   CheckIcon,
+  DislikeIcon,
   ExternalLinkIcon,
   GlobeIcon,
   HeartIcon,
@@ -19,7 +20,9 @@ import {
   ShieldIcon,
   UsersIcon,
 } from "@/components/icons";
+import { SocialBrandBadge } from "@/components/SocialBrandIcon";
 import { useEngagement } from "@/hooks/useEngagement";
+import { useQuality } from "@/hooks/useQuality";
 import type { EngagementTarget } from "@/lib/engagement";
 import {
   PROFILE_ACCENTS,
@@ -77,11 +80,18 @@ export interface ProfileLinkItem {
   href: string;
   external?: boolean;
   kind?: "website" | "email" | "phone" | "social" | "book" | "internal";
+  /** Social platform id for brand logos (instagram, x, …). */
+  platform?: string;
+  /** @handle or phone for social links. */
+  handle?: string;
 }
 
 function LinkRowIcon({ item }: { item: ProfileLinkItem }) {
   const key = `${item.kind ?? ""} ${item.label}`.toLowerCase();
   const box = "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-clay/80 text-forest";
+  if (item.kind === "social" || item.platform) {
+    return <SocialBrandBadge platform={item.platform || "other"} size="md" />;
+  }
   if (key.includes("email") || key.includes("mail")) {
     return (
       <span aria-hidden className={box}>
@@ -103,17 +113,17 @@ function LinkRowIcon({ item }: { item: ProfileLinkItem }) {
       </span>
     );
   }
+  if (key.includes("website") || key.includes("aaa")) {
+    return (
+      <span aria-hidden className={`${box} bg-[var(--profile-accent,var(--forest))] text-white`}>
+        <GlobeIcon className="h-5 w-5" />
+      </span>
+    );
+  }
   if (item.external !== false && item.href.startsWith("http")) {
     return (
       <span aria-hidden className={box}>
         <ExternalLinkIcon className="h-5 w-5" />
-      </span>
-    );
-  }
-  if (key.includes("website") || key.includes("aaa")) {
-    return (
-      <span aria-hidden className={box}>
-        <GlobeIcon className="h-5 w-5" />
       </span>
     );
   }
@@ -135,77 +145,162 @@ function hostnameOf(href: string): string | null {
   }
 }
 
-/** Stacked full-width rich link rows — link-in-bio with host preview. */
-export function ProfileLinkButtons({ items }: { items: ProfileLinkItem[] }) {
-  if (items.length === 0) return null;
+function ContactLinkRow({ item }: { item: ProfileLinkItem }) {
+  const host = item.href.startsWith("http") ? hostnameOf(item.href) : null;
+  const sub = item.handle || item.sublabel || host;
+  const inner = (
+    <>
+      <LinkRowIcon item={item} />
+      <span className="min-w-0 flex-1 text-left">
+        <span className="block font-semibold text-foreground transition-colors group-hover:text-[var(--profile-accent,var(--forest))]">
+          {item.label}
+        </span>
+        {sub ? (
+          <span className="mt-0.5 block truncate text-sm font-medium text-ink-muted">{sub}</span>
+        ) : null}
+      </span>
+      <ExternalLinkIcon className="h-4 w-4 shrink-0 text-ink-muted opacity-50 transition-opacity group-hover:opacity-100" />
+    </>
+  );
+  if (item.external !== false && item.href.startsWith("http")) {
+    return (
+      <a href={item.href} target="_blank" rel="noreferrer" className={linkRowClass}>
+        {inner}
+      </a>
+    );
+  }
+  if (item.href.startsWith("mailto:") || item.href.startsWith("tel:")) {
+    return (
+      <a href={item.href} className={linkRowClass}>
+        {inner}
+      </a>
+    );
+  }
   return (
-    <div className="flex flex-col gap-3">
-      {items.map((item) => {
-        const host = item.href.startsWith("http") ? hostnameOf(item.href) : null;
-        const favicon = host
-          ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`
-          : null;
-        const inner = (
-          <>
-            {favicon ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={favicon}
-                alt=""
-                className="h-11 w-11 shrink-0 rounded-xl border border-[var(--separator)] bg-clay/50 object-contain p-2"
-              />
-            ) : (
-              <LinkRowIcon item={item} />
-            )}
-            <span className="min-w-0 flex-1 text-left">
-              <span className="block font-semibold text-foreground transition-colors group-hover:text-[var(--profile-accent,var(--forest))]">
-                {item.label}
-              </span>
-              {item.sublabel || host ? (
-                <span className="mt-0.5 block truncate text-sm font-medium text-ink-muted">
-                  {item.sublabel ?? host}
-                </span>
-              ) : null}
-              {host && item.sublabel ? (
-                <span className="mt-1 inline-flex rounded-full bg-[var(--fill-secondary)] px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
-                  {host}
-                </span>
-              ) : null}
-            </span>
-            <ExternalLinkIcon className="h-4 w-4 shrink-0 text-ink-muted opacity-50 transition-opacity group-hover:opacity-100" />
-          </>
-        );
-        if (item.external !== false && item.href.startsWith("http")) {
+    <Link href={item.href} className={linkRowClass}>
+      {inner}
+    </Link>
+  );
+}
+
+/**
+ * Social follow strip — brand logos + handles.
+ * `compact`: logo-only circles (hero). Default: logo + handle (Links tab).
+ */
+export function ProfileSocialStrip({
+  items,
+  size = "md",
+  compact = false,
+}: {
+  items: ProfileLinkItem[];
+  size?: "sm" | "md";
+  compact?: boolean;
+}) {
+  const social = items.filter((i) => i.kind === "social" && i.href);
+  if (!social.length) return null;
+  const badgeSize = size === "sm" ? "sm" : "md";
+
+  if (compact) {
+    return (
+      <ul className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+        {social.map((item) => {
+          const platform = item.platform || "other";
+          const handle = item.handle || item.label;
           return (
+            <li key={`${platform}-${item.href}`}>
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                className="profile-spring block rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.08)] ring-2 ring-white transition-transform hover:-translate-y-0.5 hover:scale-105"
+                title={`${item.label}${handle ? ` · ${handle}` : ""}`}
+                aria-label={`${item.label}${handle ? ` ${handle}` : ""}`}
+              >
+                <SocialBrandBadge
+                  platform={platform}
+                  size={badgeSize}
+                  className="!rounded-full"
+                />
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  return (
+    <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
+      {social.map((item) => {
+        const platform = item.platform || "other";
+        const handle = item.handle || item.sublabel || item.label;
+        return (
+          <li key={`${platform}-${item.href}`}>
             <a
-              key={`${item.label}-${item.href}`}
               href={item.href}
               target="_blank"
               rel="noreferrer"
-              className={linkRowClass}
+              className="profile-spring group flex items-center gap-3 rounded-2xl border border-[var(--separator)] bg-surface px-3 py-3 shadow-[0_1px_0_rgba(0,0,0,0.03)] transition-all hover:-translate-y-0.5 hover:border-[var(--profile-accent,var(--leaf))]/35 hover:shadow-[0_10px_28px_rgba(36,56,46,0.08)]"
+              title={`${item.label}${handle ? ` · ${handle}` : ""}`}
+              aria-label={`${item.label}${handle ? ` ${handle}` : ""}`}
             >
-              {inner}
+              <SocialBrandBadge
+                platform={platform}
+                size="md"
+                className="shadow-sm ring-2 ring-white/90"
+              />
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block text-[11px] font-bold uppercase tracking-wide text-ink-muted">
+                  {item.label}
+                </span>
+                <span className="mt-0.5 block truncate font-mono text-sm font-semibold text-forest">
+                  {handle}
+                </span>
+              </span>
             </a>
-          );
-        }
-        if (item.href.startsWith("mailto:") || item.href.startsWith("tel:")) {
-          return (
-            <a key={`${item.label}-${item.href}`} href={item.href} className={linkRowClass}>
-              {inner}
-            </a>
-          );
-        }
-        return (
-          <Link key={`${item.label}-${item.href}`} href={item.href} className={linkRowClass}>
-            {inner}
-          </Link>
+          </li>
         );
       })}
+    </ul>
+  );
+}
+
+/**
+ * Links & social — contact once as rows; social as brand cards (logo + handle).
+ */
+export function ProfileLinkButtons({ items }: { items: ProfileLinkItem[] }) {
+  if (items.length === 0) return null;
+  const social = items.filter((i) => i.kind === "social");
+  const rest = items.filter((i) => i.kind !== "social");
+
+  return (
+    <div className="space-y-8">
+      {rest.length > 0 ? (
+        <div>
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--profile-accent,var(--gold))]">
+            Contact
+          </p>
+          <div className="flex flex-col gap-2.5">
+            {rest.map((item) => (
+              <ContactLinkRow key={`${item.label}-${item.href}`} item={item} />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {social.length > 0 ? (
+        <div>
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--profile-accent,var(--gold))]">
+            Social
+          </p>
+          <ProfileSocialStrip items={social} size="md" />
+        </div>
+      ) : null}
     </div>
   );
 }
 
-/** All hero actions in one row — Follow · Like · Enquire · Book · Share · Copy. */
+/** All hero actions in one row — Enquire · Book · Follow · Like · Dislike · Share. */
 export function ProfileActionBar({
   target,
   shareUrl,
@@ -214,6 +309,7 @@ export function ProfileActionBar({
   onEnquire,
   bookHref,
   enquireDisabled,
+  onOpenReviews,
 }: {
   target: EngagementTarget;
   shareUrl: string;
@@ -222,19 +318,19 @@ export function ProfileActionBar({
   onEnquire: () => void;
   bookHref?: string | null;
   enquireDisabled?: boolean;
+  /** Jump to reviews / rate panel */
+  onOpenReviews?: () => void;
 }) {
-  const { following, liked, onFollow, onLike } = useEngagement(target);
-  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+  const { following, onFollow, canEngage } = useEngagement(target);
+  const qualityTarget = { type: target.kind, id: target.id };
+  const { summary, busy: qualityBusy, setReaction } = useQuality(qualityTarget);
 
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopyState("copied");
-      window.setTimeout(() => setCopyState("idle"), 2000);
-    } catch {
-      /* clipboard unavailable */
-    }
-  }
+  const liked = summary?.myReaction === "like";
+  const disliked = summary?.myReaction === "dislike";
+  const likeCount = summary?.likeCount ?? 0;
+  const dislikeCount = summary?.dislikeCount ?? 0;
+  const rating = summary?.rating ?? 0;
+  const reviewCount = summary?.reviewCount ?? 0;
 
   async function share() {
     const payload = { title: shareTitle, text: shareText ?? shareTitle, url: shareUrl };
@@ -243,53 +339,116 @@ export function ProfileActionBar({
         await navigator.share(payload);
         return;
       } catch {
-        /* user cancelled */
+        /* user cancelled — fall through to clipboard */
       }
     }
-    await copyLink();
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      /* clipboard unavailable */
+    }
   }
 
+  // When there's nothing bookable, surface Enquire as the primary conversion action.
+  const enquirePrimary = !bookHref;
+
   return (
-    <div className="mt-4 flex w-full max-w-full gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
-      <button
-        type="button"
-        onClick={onFollow}
-        className={following ? actionActive : actionPrimary}
-        aria-pressed={following}
-      >
-        {following ? <CheckIcon className="h-4 w-4" /> : <PlusIcon className="h-4 w-4" />}
-        {following ? "Following" : "Follow"}
-      </button>
-      <button
-        type="button"
-        onClick={onLike}
-        className={liked ? actionLikeActive : actionOutline}
-        aria-pressed={liked}
-      >
-        <HeartIcon className="h-4 w-4" filled={liked} />
-        {liked ? "Liked" : "Like"}
-      </button>
-      <button
-        type="button"
-        onClick={onEnquire}
-        disabled={enquireDisabled}
-        className={`${actionOutline} disabled:opacity-50`}
-      >
-        Enquire
-      </button>
-      {bookHref ? (
-        <Link href={bookHref} className={actionOutline}>
-          Book
-        </Link>
-      ) : null}
-      <button type="button" onClick={() => void share()} className={actionOutline}>
-        <ShareIcon className="h-4 w-4" />
-        Share
-      </button>
-      <button type="button" onClick={() => void copyLink()} className={actionOutline}>
-        <LinkIcon className="h-4 w-4" />
-        {copyState === "copied" ? "Copied" : "Copy"}
-      </button>
+    <div className="mt-4 space-y-2.5">
+      {(rating > 0 || reviewCount > 0) && (
+        <button
+          type="button"
+          onClick={onOpenReviews}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-secondary hover:text-forest"
+        >
+          <span className="text-gold">★</span>
+          <span className="tabular-nums">{rating > 0 ? Number(rating).toFixed(1) : "—"}</span>
+          <span className="font-medium text-ink-muted">
+            ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
+          </span>
+          {onOpenReviews ? (
+            <span className="text-xs font-bold text-[var(--system-blue)]">Rate · Review</span>
+          ) : null}
+        </button>
+      )}
+      <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
+          onClick={onEnquire}
+          disabled={enquireDisabled}
+          className={`${enquirePrimary ? actionPrimary : actionOutline} disabled:opacity-50`}
+        >
+          <MailIcon className="h-4 w-4" />
+          Enquire
+        </button>
+        {bookHref ? (
+          bookHref.startsWith("http") ? (
+            <a
+              href={bookHref}
+              target="_blank"
+              rel="noreferrer"
+              className={actionPrimary}
+            >
+              <CalendarIcon className="h-4 w-4" />
+              Book
+            </a>
+          ) : (
+            <Link href={bookHref} className={actionPrimary}>
+              <CalendarIcon className="h-4 w-4" />
+              Book
+            </Link>
+          )
+        ) : null}
+        <button
+          type="button"
+          onClick={onFollow}
+          className={following ? actionActive : actionOutline}
+          aria-pressed={following}
+          title={canEngage ? undefined : "Sign in to follow"}
+        >
+          {following ? <CheckIcon className="h-4 w-4" /> : <PlusIcon className="h-4 w-4" />}
+          {following ? "Following" : "Follow"}
+        </button>
+        <button
+          type="button"
+          disabled={qualityBusy}
+          onClick={() => void setReaction("like")}
+          className={liked ? actionLikeActive : actionOutline}
+          aria-pressed={liked}
+          title={canEngage ? "Like" : "Sign in to like"}
+          aria-label={canEngage ? `Like${likeCount ? ` (${likeCount})` : ""}` : "Sign in to like"}
+        >
+          <HeartIcon className="h-4 w-4" filled={liked} />
+          {likeCount > 0 ? (
+            <span className="tabular-nums text-xs font-bold">{likeCount}</span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          disabled={qualityBusy}
+          onClick={() => void setReaction("dislike")}
+          className={
+            disliked
+              ? `${actionBtn} !gap-0 !px-3 border-transparent bg-red-50 text-red-700`
+              : `${actionOutline} !gap-0 !px-3`
+          }
+          aria-pressed={disliked}
+          title={canEngage ? "Dislike" : "Sign in to dislike"}
+          aria-label={
+            canEngage ? `Dislike${dislikeCount ? ` (${dislikeCount})` : ""}` : "Sign in to dislike"
+          }
+        >
+          <DislikeIcon className="h-4 w-4" filled={disliked} />
+        </button>
+        {onOpenReviews ? (
+          <button type="button" onClick={onOpenReviews} className={actionOutline}>
+            ★ Rate
+          </button>
+        ) : null}
+        <button type="button" onClick={() => void share()} className={actionOutline}>
+          <ShareIcon className="h-4 w-4" />
+          Share
+        </button>
+      </div>
     </div>
   );
 }
@@ -434,7 +593,7 @@ export function ProfileAvatar({
             status === "online" ? "profile-status-ring--live" : ""
           }`}
           style={{
-            background: `conic-gradient(from 210deg, var(--profile-accent, #1e3228), var(--gold-soft), var(--profile-accent, #1e3228))`,
+            background: `conic-gradient(from 210deg, var(--profile-accent, #22a06b), #ffe08a, var(--profile-accent, #22a06b))`,
             padding: ringPad,
           }}
         >
@@ -489,6 +648,25 @@ export function ProfileMetaRow({ children }: { children: ReactNode }) {
     <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 md:justify-start">
       {children}
     </div>
+  );
+}
+
+/**
+ * Single compact meta line — e.g.
+ * Ayurveda Clinic · Australia · Member since 2026 · 1 practitioner
+ */
+export function ProfileMetaLine({ parts }: { parts: (string | null | undefined | false)[] }) {
+  const clean = parts.map((p) => (typeof p === "string" ? p.trim() : "")).filter(Boolean);
+  if (!clean.length) return null;
+  return (
+    <p className="mt-1.5 max-w-xl text-sm font-medium leading-relaxed text-ink-secondary md:text-[0.9375rem]">
+      {clean.map((part, i) => (
+        <span key={`${part}-${i}`}>
+          {i > 0 ? <span className="mx-1.5 text-ink-muted/50" aria-hidden>·</span> : null}
+          <span className="text-ink-secondary">{part}</span>
+        </span>
+      ))}
+    </p>
   );
 }
 
@@ -600,7 +778,7 @@ export function ProfileTabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div className="profile-tabs-sticky sticky top-[calc(3.5rem+var(--safe-top))] z-30 -mx-1 px-1 py-1 sm:top-[calc(4rem+var(--safe-top))]">
+    <div className="profile-tabs-sticky sticky top-[calc(3.5rem+var(--safe-top)+0.25rem)] z-30 -mx-1 px-1 py-1 sm:top-[calc(4rem+var(--safe-top)+0.25rem)]">
       <div
         className="chip-scroll flex gap-1 overflow-x-auto rounded-full border border-[var(--separator)] bg-surface/90 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl"
         role="tablist"
@@ -668,7 +846,7 @@ export function ProfileThemePicker({
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
         Theme accent
       </p>
-      <div className="flex flex-wrap gap-2.5" role="listbox" aria-label="Profile accent">
+      <div className="flex flex-wrap gap-2" role="listbox" aria-label="Profile accent">
         {PROFILE_ACCENTS.map((a) => {
           const selected = a.id === value;
           return (
@@ -679,12 +857,29 @@ export function ProfileThemePicker({
               aria-selected={selected}
               title={a.label}
               onClick={() => onChange(a.id)}
-              className={`profile-spring h-9 w-9 rounded-full shadow-inner ring-offset-2 ring-offset-surface transition-transform ${
-                selected ? "scale-110 ring-2 ring-[var(--system-blue)]" : "hover:scale-105"
+              className={`profile-spring flex flex-col items-center gap-1 rounded-2xl px-1.5 py-1 transition-transform ${
+                selected ? "scale-[1.02]" : "hover:scale-[1.03]"
               }`}
-              style={{ background: a.gradient }}
             >
-              <span className="sr-only">{a.label}</span>
+              <span
+                className={`flex h-10 w-10 items-center justify-center rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.12)] ring-offset-2 ring-offset-surface ${
+                  selected ? "ring-2 ring-[var(--system-blue)]" : "ring-1 ring-black/5"
+                }`}
+                style={{ background: a.gradient }}
+              >
+                <span
+                  className="h-3.5 w-3.5 rounded-full shadow-sm ring-2 ring-white/80"
+                  style={{ background: a.primary }}
+                  aria-hidden
+                />
+              </span>
+              <span
+                className={`text-[10px] font-bold ${
+                  selected ? "text-foreground" : "text-ink-muted"
+                }`}
+              >
+                {a.label}
+              </span>
             </button>
           );
         })}
@@ -806,7 +1001,19 @@ export function ProfileCoverBand({
   );
 }
 
-export function ProfilePageFrame({ coverUrl, children }: { coverUrl?: string | null; children: ReactNode }) {
+export function ProfilePageFrame({
+  coverUrl,
+  children,
+  /**
+   * Optional breadcrumb / status strip. Renders over the top of the cover band
+   * (not under the bottom curve fade) so it stays readable.
+   */
+  topBar,
+}: {
+  coverUrl?: string | null;
+  children: ReactNode;
+  topBar?: ReactNode;
+}) {
   const [parallaxY, setParallaxY] = useState(0);
 
   useEffect(() => {
@@ -828,9 +1035,16 @@ export function ProfilePageFrame({ coverUrl, children }: { coverUrl?: string | n
   return (
     <div className="relative">
       <ProfileCoverBand imageUrl={coverUrl} parallaxY={parallaxY} />
+      {topBar ? (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 pt-3 sm:px-6 sm:pt-4">
+          <div className="pointer-events-auto max-w-full rounded-2xl bg-black/35 px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.18)] backdrop-blur-md sm:px-3.5 sm:py-2.5">
+            {topBar}
+          </div>
+        </div>
+      ) : null}
       {/* Spacer so avatar sits half over the cover */}
       <div className="h-28 sm:h-36" aria-hidden />
-      <div className="relative">{children}</div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 }

@@ -66,7 +66,7 @@ export default async function RetreatCategoryPage({
 
   return (
     <LayoutWrapper>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-12">
+      <div className="flex-1 pb-8">
         <JsonLd
           data={[
             itemListJsonLd(retreats),
@@ -77,57 +77,65 @@ export default async function RetreatCategoryPage({
           ]}
         />
 
-        <nav className="text-sm text-ink-muted">
-          <Link href="/retreats" className="hover:text-forest">
-            Retreats
-          </Link>{" "}
-          / <span className="text-ink-secondary">{label}</span>
-        </nav>
+        <section className="relative overflow-hidden border-b border-[var(--separator)]">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(47,90,68,0.12),_transparent_55%),linear-gradient(180deg,var(--clay)_0%,var(--background)_72%)]"
+          />
+          <div className="page-shell relative !pb-8 !pt-8 sm:!pt-10">
+            <nav className="text-sm font-semibold text-ink-muted">
+              <Link href="/retreats" className="hover:text-forest">
+                Retreats
+              </Link>
+              <span className="mx-1.5 text-ink-muted/60">/</span>
+              <span className="text-ink-secondary">{label}</span>
+            </nav>
+            <h1 className="type-display mt-3 max-w-2xl">{label} retreats &amp; trainings</h1>
+            <p className="type-body mt-2.5 max-w-xl font-medium">{INTRO[cat]}</p>
+            <p className="mt-4 text-sm font-semibold text-ink-muted">
+              {retreats.length} {retreats.length === 1 ? "retreat" : "retreats"} in this collection
+            </p>
+          </div>
+        </section>
 
-        <h1 className="mt-3 font-display text-3xl text-forest sm:text-4xl">
-          {label} retreats &amp; trainings
-        </h1>
-        <p className="mt-2 max-w-2xl text-ink-secondary">{INTRO[cat]}</p>
-
-        <div className="mt-8">
+        <div className="page-shell !pt-6">
           {retreats.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {retreats.map((r) => (
                 <RetreatCard key={r.id} retreat={r} />
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-hairline bg-surface/60 px-6 py-12 text-center">
-              <p className="font-display text-lg text-forest">
+            <div className="rounded-[1.25rem] border border-dashed border-[var(--separator)] bg-surface/70 px-6 py-14 text-center">
+              <p className="font-display text-xl text-forest">
                 No {label.toLowerCase()} retreats listed yet
               </p>
-              <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
+              <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-muted">
                 New retreats are added regularly.{" "}
-                <Link href="/retreats" className="font-medium text-forest hover:underline">
+                <Link href="/retreats" className="font-bold text-[var(--system-blue)] hover:underline">
                   Browse all retreats
                 </Link>
                 .
               </p>
             </div>
           )}
-        </div>
 
-        {/* Internal linking to sibling collections — spreads crawl equity. */}
-        <section className="mt-12 border-t border-hairline pt-8">
-          <h2 className="font-display text-xl text-forest">Explore by discipline</h2>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {RETREAT_CATEGORIES.filter((c) => c !== cat).map((c) => (
-              <Link
-                key={c}
-                href={`/retreats/collection/${c.toLowerCase()}`}
-                className="rounded-full border border-hairline bg-surface px-4 py-2 text-sm font-medium text-ink-secondary hover:border-leaf hover:text-forest"
-              >
-                {RETREAT_CATEGORY_LABEL[c]}
-              </Link>
-            ))}
-          </div>
-        </section>
-      </main>
+          <section className="mt-12 border-t border-[var(--separator)] pt-8">
+            <h2 className="type-title text-xl">Explore by discipline</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {RETREAT_CATEGORIES.filter((c) => c !== cat).map((c) => (
+                <Link
+                  key={c}
+                  href={`/retreats/collection/${c.toLowerCase()}`}
+                  className="profile-spring inline-flex min-h-10 items-center rounded-full border border-[var(--separator)] bg-surface px-4 py-2 text-sm font-semibold text-ink-secondary transition-colors hover:border-[var(--system-blue)]/40 hover:text-foreground"
+                >
+                  {RETREAT_CATEGORY_LABEL[c]}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
     </LayoutWrapper>
   );
 }

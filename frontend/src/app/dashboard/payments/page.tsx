@@ -86,7 +86,10 @@ export default function PaymentsPage() {
         <SparkleIcon className="h-3.5 w-3.5" />
         Stripe Connect
       </span>
-      <h1 className="mt-3 font-display text-3xl text-forest">Payments &amp; payouts</h1>
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+        Sales
+      </p>
+      <h1 className="mt-1 font-display text-3xl text-forest">Payments &amp; payouts</h1>
       <p className="mt-1 max-w-2xl text-ink-muted">
         Accept card payments on AyurPass. Platform commission is collected automatically; the rest
         pays out to your connected Stripe account.

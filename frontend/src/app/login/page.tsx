@@ -7,12 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, Input } from "@/components/ui";
 import { ApiError } from "@/lib/api";
+import { registerUrl, safeNextPath } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") || "/dashboard";
+  const next = safeNextPath(search.get("next"), "/dashboard");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,8 +26,7 @@ function LoginForm() {
     setBusy(true);
     try {
       await login(email.trim(), password);
-      const dest = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-      router.push(dest);
+      router.push(next);
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       setError(
@@ -76,7 +76,7 @@ function LoginForm() {
         </div>
         <p className="mt-5 text-center text-sm text-ink-muted">
           New to AyurPass?{" "}
-          <Link href="/register" className="font-medium text-forest hover:underline">
+          <Link href={registerUrl(next)} className="font-medium text-forest hover:underline">
             Create an account
           </Link>
         </p>

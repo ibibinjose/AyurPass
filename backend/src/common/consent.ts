@@ -37,6 +37,7 @@ export async function hasActiveHealthConsent(
   prisma: PrismaService,
   consumerId: string,
   granteeIds: string[],
+  permissionTypes: readonly string[] = HEALTH_CONSENT_TYPES,
 ): Promise<boolean> {
   if (!granteeIds.length) return false;
   const now = new Date();
@@ -44,7 +45,7 @@ export async function hasActiveHealthConsent(
     where: {
       consumerId,
       granteeId: { in: granteeIds },
-      permissionType: { in: [...HEALTH_CONSENT_TYPES] },
+      permissionType: { in: [...permissionTypes] },
       status: 'active',
       OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
     },
@@ -52,6 +53,13 @@ export async function hasActiveHealthConsent(
   });
   return Boolean(consent);
 }
+
+/** Consents that allow reading treatment plans (explicit plan grant or full access). */
+export const TREATMENT_PLAN_CONSENT_TYPES = [
+  'view_treatment_plans',
+  'full_health_access',
+  ...HEALTH_CONSENT_TYPES,
+] as const;
 
 /**
  * Consumer, platform admin, or grantee with active health consent may read a profile.

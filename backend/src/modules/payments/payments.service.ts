@@ -64,7 +64,9 @@ export class PaymentsService {
     }
 
     if (!booking.provider?.stripeAccountId) {
-      throw new BadRequestException('This provider has not finished Stripe onboarding yet');
+      throw new BadRequestException(
+        'This practice has not finished payment setup yet. Card checkout is unavailable — pay at the venue or contact them to complete Stripe onboarding. (In local dev, run payments in mock mode without live Stripe keys.)',
+      );
     }
 
     const payment = await this.settlement.createStripeCharge({
@@ -191,7 +193,9 @@ export class PaymentsService {
     }
 
     if (!order.provider?.stripeAccountId) {
-      throw new BadRequestException('This provider has not finished Stripe onboarding yet');
+      throw new BadRequestException(
+        'This practice has not finished payment setup yet. Card checkout is unavailable — pay at the venue or contact them. (In local dev, use mock payments without live Stripe keys.)',
+      );
     }
 
     const platformCommission = Math.round(Number(order.subtotal) * 0.12 * 100) / 100;

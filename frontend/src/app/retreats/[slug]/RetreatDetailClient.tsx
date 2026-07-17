@@ -39,7 +39,20 @@ export default function RetreatDetailPage() {
     if (!slug) return;
     api
       .retreatBySlug(slug)
-      .then(setRetreat)
+      .then((r) => {
+        setRetreat(r);
+        if (r) {
+          void import("@/hooks/useRecentViews").then(({ trackRecentView }) =>
+            trackRecentView({
+              kind: "retreat",
+              id: r.id,
+              title: r.title,
+              href: `/retreats/${r.slug}`,
+              subtitle: [r.city, r.country].filter(Boolean).join(", ") || undefined,
+            }),
+          );
+        }
+      })
       .catch(() => setRetreat(null));
   }, [slug]);
 

@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, Input, Select } from "@/components/ui";
+import { loginUrl, safeNextPath } from "@/lib/auth-redirect";
 import type { ProviderType } from "@/lib/types";
 
 const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
@@ -24,7 +25,9 @@ const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
 function RegisterForm() {
   const { register } = useAuth();
   const router = useRouter();
-  const asProvider = useSearchParams().get("as") === "provider";
+  const search = useSearchParams();
+  const asProvider = search.get("as") === "provider";
+  const nextParam = search.get("next");
 
   const [kind, setKind] = useState<"consumer" | "provider">(asProvider ? "provider" : "consumer");
   const [fullName, setFullName] = useState("");
@@ -47,7 +50,8 @@ function RegisterForm() {
         role: kind === "provider" ? "PROVIDER_ADMIN" : "CONSUMER",
         ...(kind === "provider" ? { businessName, providerType } : {}),
       });
-      router.push(kind === "consumer" ? "/dashboard/assessment" : "/dashboard");
+      const fallback = kind === "consumer" ? "/dashboard/assessment" : "/dashboard";
+      router.push(safeNextPath(nextParam, fallback));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       const status = err && typeof err === "object" && "status" in err ? Number((err as { status: number }).status) : 0;
@@ -161,7 +165,10 @@ function RegisterForm() {
         </div>
         <p className="mt-5 text-center text-sm text-ink-muted">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-forest hover:underline">
+          <Link
+            href={loginUrl(nextParam || undefined)}
+            className="font-medium text-forest hover:underline"
+          >
             Sign in
           </Link>
         </p>

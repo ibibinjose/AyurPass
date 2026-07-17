@@ -27,6 +27,8 @@ import { HealthProfilesModule } from './modules/health-profiles/health-profiles.
 import { EnquiriesModule } from './modules/enquiries/enquiries.module';
 import { RetreatsModule } from './modules/retreats/retreats.module';
 import { OffersModule } from './modules/offers/offers.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { QualityModule } from './modules/quality/quality.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -70,6 +72,8 @@ import { HealthModule } from './health/health.module';
     EnquiriesModule,
     RetreatsModule,
     OffersModule,
+    UploadsModule,
+    QualityModule,
     HealthModule,
   ],
   providers: [

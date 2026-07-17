@@ -7,6 +7,9 @@ export type {
   User,
   Consumer,
   BrandProfile,
+  BrandSocialLinks,
+  SocialPlatform,
+  SocialCustomLink,
   BusinessAddress,
   Provider,
   HealthAuthorityBadge,
@@ -74,6 +77,20 @@ export interface WellnessPackage extends SharedWellnessPackage {
   doshaFocus?: Record<string, unknown> | null;
 }
 
+export interface TreatmentPlanPhase {
+  id?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  durationDays?: number;
+  focus?: string;
+  therapies?: string[];
+  lifestyle?: string[];
+  diet?: string[];
+  notes?: string;
+  [key: string]: unknown;
+}
+
 export interface TreatmentPlan {
   id: string;
   consumerId: string;
@@ -83,10 +100,35 @@ export interface TreatmentPlan {
   description?: string | null;
   startDate?: string | null;
   endDate?: string | null;
-  phases?: unknown;
+  phases?: TreatmentPlanPhase[] | unknown;
   status: string;
   aiGenerated: boolean;
   createdAt: string;
+  provider?: {
+    id: string;
+    businessName: string;
+    type?: string;
+    slug?: string | null;
+    brandProfile?: { logoUrl?: string } | null;
+  } | null;
+  professional?: {
+    id: string;
+    title?: string | null;
+    titleKind?: string | null;
+    slug?: string | null;
+    handle?: string | null;
+    handleNamespace?: string | null;
+    user?: { id: string; fullName?: string | null; avatarUrl?: string | null } | null;
+  } | null;
+  consumer?: {
+    userId: string;
+    user?: {
+      id: string;
+      fullName?: string | null;
+      email?: string | null;
+      avatarUrl?: string | null;
+    } | null;
+  } | null;
 }
 
 export interface HealthProfile extends SharedHealthProfile {

@@ -8,6 +8,7 @@ import type { Booking, BookingStatus } from "@/lib/types";
 import { BookingStatusBadge } from "@/components/BookingStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { StatTile } from "@/components/StatTile";
+import { DashHeader, DashTabs } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
 
 export default function SchedulePage() {
@@ -15,6 +16,7 @@ export default function SchedulePage() {
   const provider = user?.provider ?? user?.professional?.provider ?? null;
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [acting, setActing] = useState<string | null>(null);
+  const [tab, setTab] = useState<"upcoming" | "pending" | "past">("upcoming");
 
   const reload = useCallback(() => {
     if (!provider) return;
@@ -52,27 +54,29 @@ export default function SchedulePage() {
     .filter((b) => b.status !== "CANCELLED" && b.status !== "NO_SHOW")
     .reduce((sum, b) => sum + Number(b.providerPayout ?? 0), 0);
 
-  return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl text-forest">Schedule</h1>
-          <p className="mt-1 text-ink-muted">Incoming bookings for {provider.businessName}.</p>
-        </div>
-        <Link
-          href="/dashboard/calendar"
-          className="rounded-full border border-hairline bg-surface px-5 py-2.5 text-sm font-medium text-forest hover:border-leaf"
-        >
-          Open calendar view
-        </Link>
-      </div>
+  const pending = all.filter((b) => b.status === "PENDING");
+  const list =
+    tab === "upcoming" ? upcoming : tab === "pending" ? pending : past;
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+  return (
+    <div className="space-y-6">
+      <DashHeader
+        eyebrow="Organiser"
+        title="Schedule"
+        description={`List view of bookings for ${provider.businessName}. Confirm leads, complete sessions, or open the multi-therapist calendar.`}
+        action={
+          <Link
+            href="/dashboard/calendar"
+            className="inline-flex min-h-10 items-center rounded-full border border-hairline bg-surface px-5 text-sm font-semibold text-forest hover:border-leaf"
+          >
+            Open calendar
+          </Link>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatTile label="Upcoming sessions" value={upcoming.length} />
-        <StatTile
-          label="Awaiting confirmation"
-          value={all.filter((b) => b.status === "PENDING").length}
-        />
+        <StatTile label="Awaiting confirmation" value={pending.length} />
         <StatTile
           label="Expected payout"
           value={formatMoney(expectedPayout)}
@@ -80,11 +84,27 @@ export default function SchedulePage() {
         />
       </div>
 
-      <div className="mt-8 space-y-8">
+      <DashTabs
+        value={tab}
+        onChange={(id) => setTab(id as typeof tab)}
+        tabs={[
+          { id: "upcoming", label: "Upcoming", count: upcoming.length },
+          { id: "pending", label: "Pending", count: pending.length },
+          { id: "past", label: "Past", count: past.length },
+        ]}
+      />
+
+      <div className="space-y-8">
         <BookingGroup
-          title="Upcoming"
-          bookings={upcoming}
-          empty="No upcoming sessions — bookings made by clients will appear here."
+          title={tab === "upcoming" ? "Upcoming" : tab === "pending" ? "Pending" : "Past"}
+          bookings={list}
+          empty={
+            tab === "pending"
+              ? "No bookings waiting for confirmation."
+              : tab === "past"
+                ? "No past sessions yet."
+                : "No upcoming sessions — client bookings appear here."
+          }
           renderActions={(b) => (
             <>
               {b.status === "PENDING" && (
@@ -128,24 +148,6 @@ export default function SchedulePage() {
               )}
             </>
           )}
-        />
-
-        <BookingGroup
-          title="Past & closed"
-          bookings={past}
-          empty="Completed and cancelled sessions will appear here."
-          renderActions={(b) =>
-            b.status === "CONFIRMED" ? (
-              <Button
-                variant="ghost"
-                disabled={acting === b.id}
-                onClick={() => setStatus(b, "COMPLETED")}
-                className="!px-3.5 !py-1.5"
-              >
-                Mark completed
-              </Button>
-            ) : null
-          }
         />
       </div>
     </div>

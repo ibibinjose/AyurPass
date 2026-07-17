@@ -86,7 +86,10 @@ export default function VirtualTerminalPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-forest">Virtual terminal</h1>
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+        Sales
+      </p>
+      <h1 className="mt-1 font-display text-3xl text-forest">Virtual terminal</h1>
       <p className="mt-1 text-ink-muted">
         Ring up an in-person product sale — charge a client and record it as a fulfilled, paid order.
       </p>
@@ -136,7 +139,9 @@ export default function VirtualTerminalPage() {
           )}
         </div>
 
-        <aside className="h-fit rounded-2xl border border-hairline bg-surface p-6 lg:sticky lg:top-24">
+        <aside
+          className={`h-fit rounded-2xl border border-hairline bg-surface p-6 lg:sticky lg:self-start top-[calc(3.5rem+var(--safe-top)+0.5rem)] sm:top-[calc(4rem+var(--safe-top)+0.5rem)]`}
+        >
           <h2 className="font-display text-lg text-forest">Current sale</h2>
           {Object.keys(cart).length === 0 ? (
             <p className="mt-3 text-sm text-ink-muted">No items yet — tap products to add them.</p>

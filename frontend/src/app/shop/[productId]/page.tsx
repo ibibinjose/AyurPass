@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { loginUrl } from "@/lib/auth-redirect";
+import { STICKY_BELOW_NAV } from "@/components/DirectoryLayout";
 import { api, formatMoney } from "@/lib/api";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { Order, PaymentCheckout, Product } from "@/lib/types";
@@ -11,7 +13,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
-import { LotusIcon, ShieldIcon } from "@/components/icons";
+import { CheckIcon, LotusIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
 
@@ -101,8 +103,11 @@ export default function BuyProductPage() {
 
           {order.paymentStatus === "paid" ? (
             <div className="mt-5 space-y-1.5">
-              <p className="mx-auto w-fit rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
-                Paid {formatMoney(order.subtotal)} ✓
+              <p className="mx-auto inline-flex w-fit items-center gap-1.5 rounded-full bg-forest px-4 py-1.5 text-sm font-medium text-white">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
+                  <CheckIcon className="h-2.5 w-2.5" strokeWidth={3} />
+                </span>
+                Paid {formatMoney(order.subtotal)}
               </p>
               {(order.pointsEarned ?? 0) > 0 && (
                 <p className="text-sm text-gold">You earned {order.pointsEarned} reward points 🌿</p>
@@ -219,7 +224,9 @@ export default function BuyProductPage() {
           </div>
         </div>
 
-        <aside className="h-fit rounded-2xl border border-hairline bg-surface p-6 lg:sticky lg:top-24">
+        <aside
+          className={`h-fit rounded-2xl border border-hairline bg-surface p-6 lg:sticky lg:self-start ${STICKY_BELOW_NAV}`}
+        >
           <h2 className="font-display text-lg text-forest">Summary</h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex justify-between gap-3">
@@ -244,7 +251,7 @@ export default function BuyProductPage() {
             <div className="mt-5">
               <p className="text-sm text-ink-secondary">Sign in to complete your purchase.</p>
               <Link
-                href="/login"
+                href={loginUrl(`/shop/${productId}`)}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white hover:bg-forest-deep"
               >
                 Sign in to buy

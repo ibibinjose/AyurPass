@@ -8,6 +8,7 @@ import {
   organizationJsonLd,
   SITE_NAME,
   SITE_TAGLINE,
+  SITE_TITLE_DEFAULT,
   SITE_URL,
   websiteJsonLd,
 } from "@/lib/seo";
@@ -45,7 +46,7 @@ const OG_IMAGE = `/og-wellness.jpg?v=${BRAND_ASSET_VERSION}`;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "AyurPass — Ayurveda, Yoga, Spa, Meditation & Retreat Finder",
+    default: SITE_TITLE_DEFAULT,
     template: "%s | AyurPass",
   },
   description: SITE_TAGLINE,
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     apple: [{ url: `/apple-icon.png?v=${BRAND_ASSET_VERSION}`, sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
-    title: "AyurPass — Ayurveda, Yoga, Spa, Meditation & Retreat Finder",
+    title: SITE_TITLE_DEFAULT,
     description: SITE_TAGLINE,
     url: SITE_URL,
     siteName: SITE_NAME,
@@ -72,13 +73,13 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "AyurPass — find Ayurveda, yoga, spa and retreat places worldwide",
+        alt: SITE_TITLE_DEFAULT,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AyurPass — Ayurveda, Yoga, Spa, Meditation & Retreat Finder",
+    title: SITE_TITLE_DEFAULT,
     description: SITE_TAGLINE,
     images: [OG_IMAGE],
   },

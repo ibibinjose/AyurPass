@@ -38,6 +38,20 @@ const sections: DocSection[] = [
     ],
   },
   {
+    id: "public-urls",
+    heading: "Public URLs & custom handles",
+    blocks: [
+      "Every practice receives a standard public page (for example /practice/your-slug). You may request a short root brand URL such as www.ayurpass.com/yourhandle from Dashboard → Business → Public URL.",
+      [
+        "Root handles are not live until a platform administrator approves them.",
+        "Choose a handle you have a legitimate right to use — do not impersonate other brands, clinics or people.",
+        "Admin may approve, deny or revoke handles to protect trademarks, celebrities and reserved platform paths.",
+        "Until approval, share your standard practice URL with seekers.",
+        "If a request is denied, pick another handle and re-submit; do not attempt to circumvent moderation.",
+      ],
+    ],
+  },
+  {
     id: "client-care",
     heading: "Client care & safety",
     blocks: [

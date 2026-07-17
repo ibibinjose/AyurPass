@@ -76,9 +76,13 @@ export default function RoomsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-forest">Rooms & spaces</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+            Organiser
+          </p>
+          <h1 className="mt-1 font-display text-3xl text-forest">Rooms & spaces</h1>
           <p className="mt-1 text-ink-muted">
-            Treatment rooms, studios and halls — assign them to appointments from the calendar.
+            Treatment rooms for concurrent care — use calendar “By room” view to see who is in each
+            space at the same time. Double-booking a room is blocked automatically.
           </p>
         </div>
         {!form && (

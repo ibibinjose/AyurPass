@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductCard";
+import { MediaGalleryField } from "@/components/MediaField";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
 
@@ -15,9 +16,17 @@ interface FormState {
   description: string;
   price: string;
   inventoryQuantity: string;
+  images: string[];
 }
 
-const BLANK: FormState = { name: "", category: "", description: "", price: "", inventoryQuantity: "" };
+const BLANK: FormState = {
+  name: "",
+  category: "",
+  description: "",
+  price: "",
+  inventoryQuantity: "",
+  images: [],
+};
 
 export default function ProviderProductsPage() {
   const { user } = useAuth();
@@ -53,6 +62,7 @@ export default function ProviderProductsPage() {
       description: form.description || undefined,
       price: Number(form.price),
       inventoryQuantity: form.inventoryQuantity ? Number(form.inventoryQuantity) : undefined,
+      images: form.images.length ? form.images : undefined,
     };
     try {
       if (form.id) {
@@ -83,7 +93,10 @@ export default function ProviderProductsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-forest">Products</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+            Catalogue
+          </p>
+          <h1 className="mt-1 font-display text-3xl text-forest">Products</h1>
           <p className="mt-1 text-ink-muted">
             Physical goods you sell — herbal formulations, oils, teas and wellness items.
           </p>
@@ -118,6 +131,13 @@ export default function ProviderProductsPage() {
               <Input type="number" min="0" value={form.inventoryQuantity} onChange={(e) => setForm({ ...form, inventoryQuantity: e.target.value })} placeholder="50" />
             </Field>
           </div>
+          <MediaGalleryField
+            label="Product photos"
+            values={form.images}
+            onChange={(images) => setForm({ ...form, images })}
+            hint="Upload or paste URLs. First image is the shop cover."
+            max={8}
+          />
           <ErrorNote message={error} />
           <div className="flex gap-3">
             <Button type="submit" disabled={busy}>
@@ -159,7 +179,9 @@ export default function ProviderProductsPage() {
                           category: p.category ?? "",
                           description: p.description ?? "",
                           price: String(Number(p.price ?? 0)),
-                          inventoryQuantity: p.inventoryQuantity != null ? String(p.inventoryQuantity) : "",
+                          inventoryQuantity:
+                            p.inventoryQuantity != null ? String(p.inventoryQuantity) : "",
+                          images: p.images?.filter(Boolean) ?? [],
                         })
                       }
                       className="rounded-full border border-hairline p-2 text-ink-secondary hover:border-leaf hover:text-forest"

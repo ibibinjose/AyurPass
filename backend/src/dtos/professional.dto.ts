@@ -7,6 +7,7 @@ import {
   IsDateString,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class Professional {
   @IsString()
@@ -167,6 +168,42 @@ export class UpdateProfessionalDto {
   @IsString()
   @IsOptional()
   title?: string;
+
+  /** Structured title kind — AYURVEDA_DOCTOR, YOGA_INSTRUCTOR, … */
+  @IsString()
+  @IsOptional()
+  @MaxLength(40)
+  titleKind?: string | null;
+
+  /**
+   * Public username for /:namespace/:handle paths.
+   * Empty string clears the handle.
+   */
+  @IsString()
+  @IsOptional()
+  @MaxLength(32)
+  handle?: string | null;
+
+  /** pro | ayur | yoga | spa | meditation | fitness | nutrition | coach */
+  @IsString()
+  @IsOptional()
+  @MaxLength(20)
+  handleNamespace?: string | null;
+
+  /**
+   * Request a root vanity URL (ayurpass.com/:handle).
+   * Requires platform admin approval before it goes live.
+   */
+  @IsString()
+  @IsOptional()
+  @MaxLength(32)
+  vanityHandle?: string | null;
+
+  /** When true with vanityHandle, sets vanityStatus to pending. */
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true')
+  requestVanity?: boolean;
 
   @IsArray()
   @IsOptional()

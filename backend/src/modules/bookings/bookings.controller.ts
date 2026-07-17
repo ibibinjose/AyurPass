@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Query, Req } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
@@ -29,9 +29,21 @@ export class BookingsController {
   }
 
   @Get('provider/:id')
-  async findByProvider(@Param('id') providerId: string, @Req() req: AuthedRequest) {
+  async findByProvider(
+    @Param('id') providerId: string,
+    @Req() req: AuthedRequest,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('professionalId') professionalId?: string,
+    @Query('roomId') roomId?: string,
+  ) {
     await assertProviderAccess(this.prisma, req.user, providerId);
-    return this.bookingsService.findByProvider(providerId);
+    return this.bookingsService.findByProvider(providerId, {
+      from,
+      to,
+      professionalId,
+      roomId,
+    });
   }
 
   @Get(':id')

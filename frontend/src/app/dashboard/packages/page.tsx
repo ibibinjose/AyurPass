@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import type { WellnessPackage } from "@/lib/types";
 import { PackageCard } from "@/components/PackageCard";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
 
 interface FormState {
@@ -88,7 +89,10 @@ export default function ProviderPackagesPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl text-forest">Packages</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+            Catalogue
+          </p>
+          <h1 className="mt-1 font-display text-3xl text-forest">Packages</h1>
           <p className="mt-1 text-ink-muted">The wellness programs your practice offers.</p>
         </div>
         {!form && (

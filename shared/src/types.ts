@@ -73,18 +73,58 @@ export interface HealthAuthorityBadge {
   verified?: boolean;
 }
 
+/** Named social / web profile on a practice brand. */
+export type SocialPlatform =
+  | "instagram"
+  | "facebook"
+  | "youtube"
+  | "x"
+  | "linkedin"
+  | "tiktok"
+  | "threads"
+  | "whatsapp"
+  | "pinterest"
+  | "google"
+  | "tripadvisor"
+  | "yelp"
+  | "other";
+
+export interface SocialCustomLink {
+  label: string;
+  url: string;
+}
+
+export interface BrandSocialLinks {
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  x?: string;
+  linkedin?: string;
+  tiktok?: string;
+  threads?: string;
+  whatsapp?: string;
+  pinterest?: string;
+  google?: string;
+  tripadvisor?: string;
+  yelp?: string;
+  /** Free-form extra links (label + url). */
+  custom?: SocialCustomLink[];
+}
+
 export interface BrandProfile {
   about?: string;
   contactEmail?: string;
   contactPhone?: string;
   website?: string;
   openingHours?: string;
-  logoUrl?: string;
-  coverImageUrl?: string;
+  /** Practice brand mark / logo — cards, profile header, share cards */
+  logoUrl?: string | null;
+  /** Wide cover / hero banner on the public practice page */
+  coverImageUrl?: string | null;
   gallery?: string[];
   tags?: string[];
   amenities?: string[];
-  socialLinks?: { instagram?: string; facebook?: string; youtube?: string; x?: string };
+  socialLinks?: BrandSocialLinks;
   externalBookingUrl?: string;
   priceBand?: "$" | "$$" | "$$$" | "$$$$";
 }
@@ -102,6 +142,15 @@ export interface Provider {
   code?: string;
   /** Public vanity URL — /practice/:slug */
   slug?: string | null;
+  /**
+   * Root vanity handle (ayurpass.com/:handle) — only live when vanityStatus === "approved".
+   * Requires platform admin approval to protect brands & celebrities.
+   */
+  vanityHandle?: string | null;
+  vanityStatus?: "none" | "pending" | "approved" | "rejected" | string | null;
+  vanityRequestedAt?: string | null;
+  vanityReviewedAt?: string | null;
+  vanityReviewNote?: string | null;
   userId?: string | null;
   businessName: string;
   type: ProviderType;
@@ -117,6 +166,11 @@ export interface Provider {
   licenceNumber?: string | null;
   /** Local health-authority approval marks */
   healthAuthorities?: HealthAuthorityBadge[] | null;
+  /** Aggregated 1–5 star average */
+  rating?: string | number | null;
+  reviewCount?: number | null;
+  likeCount?: number | null;
+  dislikeCount?: number | null;
   createdAt: string;
   _count?: {
     professionals: number;
@@ -130,17 +184,34 @@ export interface Provider {
 export interface Professional {
   id: string;
   code?: string;
-  /** Public vanity URL — /me/:slug */
+  /** Legacy public URL — /me/:slug */
   slug?: string | null;
+  /** Username segment for namespaced URLs — /ayur/:handle, /yoga/:handle, /pro/:handle */
+  handle?: string | null;
+  /** Namespace for handle path (ayur | yoga | pro | …) */
+  handleNamespace?: string | null;
+  /**
+   * Root vanity (ayurpass.com/:handle) — admin-approved only.
+   */
+  vanityHandle?: string | null;
+  vanityStatus?: "none" | "pending" | "approved" | "rejected" | string | null;
+  vanityRequestedAt?: string | null;
+  vanityReviewedAt?: string | null;
+  vanityReviewNote?: string | null;
   userId: string;
   providerId: string;
+  /** Free-text professional title (display) */
   title?: string | null;
+  /** Structured title kind — Ayurvedic Doctor, Yoga Instructor, etc. */
+  titleKind?: string | null;
   specializations: string[];
   bio?: string | null;
   yearsExperience?: number | null;
   hourlyRate?: string | number | null;
   rating: string | number;
   reviewCount: number;
+  likeCount?: number | null;
+  dislikeCount?: number | null;
   createdAt: string;
   registrationNumber?: string | null;
   licenceNumber?: string | null;
@@ -162,6 +233,9 @@ export interface Professional {
     | "licenceNumber"
     | "healthAuthorities"
     | "slug"
+    | "vanityHandle"
+    | "vanityStatus"
+    | "brandProfile"
   >;
   user?: Pick<User, "id" | "fullName" | "email" | "avatarUrl">;
 }
@@ -186,6 +260,11 @@ export interface Service {
   imageUrl?: string | null;
   isVirtual: boolean;
   maxParticipants: number;
+  /** Denormalized service-level quality (not the practitioner's). */
+  rating?: string | number | null;
+  reviewCount?: number | null;
+  likeCount?: number | null;
+  dislikeCount?: number | null;
   createdAt: string;
   provider?: Pick<
     Provider,

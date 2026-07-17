@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -7,9 +8,11 @@ import {
   DOSHA_INFO,
   DOSHA_QUESTIONS,
   scoreAssessment,
+  type Dosha,
   type DoshaScores,
 } from "@/lib/dosha";
 import { DoshaMeterGroup } from "@/components/DoshaMeter";
+import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState, ErrorNote } from "@/components/ui";
 
 type Stage = "intro" | "quiz" | "result";
@@ -20,6 +23,7 @@ export default function AssessmentPage() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<DoshaScores | null>(null);
+  const [existingScores, setExistingScores] = useState<DoshaScores | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasExisting, setHasExisting] = useState(false);
@@ -30,7 +34,20 @@ export default function AssessmentPage() {
     if (!user || !isConsumer) return;
     api
       .healthProfile(user.id)
-      .then((p) => setHasExisting(Boolean(p)))
+      .then((p) => {
+        setHasExisting(Boolean(p));
+        if (p) {
+          const scores = {
+            vata: Math.round(Number(p.vataScore ?? 0)),
+            pitta: Math.round(Number(p.pittaScore ?? 0)),
+            kapha: Math.round(Number(p.kaphaScore ?? 0)),
+          };
+          const primary = (
+            Object.entries(scores) as [Dosha, number][]
+          ).sort((a, b) => b[1] - a[1])[0][0];
+          setExistingScores({ ...scores, primary });
+        }
+      })
       .catch(() => {});
   }, [user, isConsumer]);
 
@@ -59,6 +76,8 @@ export default function AssessmentPage() {
         questionnaireResponses: finalAnswers,
         lastAssessment: new Date().toISOString(),
       });
+      setHasExisting(true);
+      setExistingScores(scores);
     } catch {
       setError("Your result couldn't be saved — it will still show below, but please retake later.");
     } finally {
@@ -78,21 +97,49 @@ export default function AssessmentPage() {
   }
 
   if (stage === "intro") {
+    const primary =
+      existingScores &&
+      ((Object.entries(existingScores) as [Dosha, number][]).sort((a, b) => b[1] - a[1])[0][0] as Dosha);
+
     return (
-      <div className="mx-auto max-w-xl">
-        <h1 className="font-display text-3xl text-forest">Prakriti assessment</h1>
-        <p className="mt-3 leading-relaxed text-ink-secondary">
-          In Ayurveda, your <em>prakriti</em> is your innate constitution — a unique balance of
-          three doshas: <strong>Vata</strong> (air & ether), <strong>Pitta</strong> (fire & water)
-          and <strong>Kapha</strong> (earth & water). Twelve gentle questions reveal yours, and
-          everything on AyurPass is personalised from it.
-        </p>
-        <p className="mt-3 text-sm text-ink-muted">
-          Answer instinctively — how you&apos;ve been for most of your life, not just this week.
-        </p>
-        <Button className="mt-7" onClick={() => setStage("quiz")}>
-          {hasExisting ? "Retake the assessment" : "Begin the assessment"}
-        </Button>
+      <div className="mx-auto max-w-xl space-y-6">
+        <DashHeader
+          eyebrow="My wellness"
+          title="Prakriti assessment"
+          description="Map your innate Vata · Pitta · Kapha balance. Answers personalise Discover and care tips across AyurPass."
+        />
+        <div className="rounded-2xl border border-hairline bg-surface p-5 sm:p-6">
+          <p className="leading-relaxed text-ink-secondary">
+            In Ayurveda, your <em>prakriti</em> is your innate constitution — a unique balance of
+            three doshas: <strong>Vata</strong> (air & ether), <strong>Pitta</strong> (fire & water)
+            and <strong>Kapha</strong> (earth & water). Twelve gentle questions reveal yours.
+          </p>
+          <p className="mt-3 text-sm text-ink-muted">
+            Answer instinctively — how you&apos;ve been for most of your life, not just this week.
+          </p>
+          {existingScores ? (
+            <div className="mt-5 rounded-xl bg-clay/30 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">
+                Your last result
+                {primary ? ` · ${DOSHA_INFO[primary].name} primary` : ""}
+              </p>
+              <div className="mt-3">
+                <DoshaMeterGroup {...existingScores} primary={primary ?? undefined} />
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Button onClick={() => setStage("quiz")}>
+              {hasExisting ? "Retake the assessment" : "Begin the assessment"}
+            </Button>
+            <Link
+              href="/dashboard"
+              className="inline-flex min-h-10 items-center rounded-full border border-hairline px-4 text-sm font-semibold text-forest hover:border-leaf"
+            >
+              Back to overview
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -166,7 +213,7 @@ export default function AssessmentPage() {
       {saving && <p className="text-sm text-ink-muted">Saving your profile…</p>}
       <ErrorNote message={error} />
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           variant="ghost"
           onClick={() => {
@@ -177,9 +224,18 @@ export default function AssessmentPage() {
         >
           Retake
         </Button>
-        <Button onClick={() => (window.location.href = "/packages")}>
-          Explore packages for your dosha
+        <Button onClick={() => (window.location.href = "/explore")}>
+          Book a session
         </Button>
+        <Button variant="soft" onClick={() => (window.location.href = "/discover")}>
+          Discover practices
+        </Button>
+        <Link
+          href="/dashboard"
+          className="inline-flex min-h-10 items-center rounded-full border border-hairline px-4 text-sm font-semibold text-forest hover:border-leaf"
+        >
+          Dashboard home
+        </Link>
       </div>
     </div>
   );

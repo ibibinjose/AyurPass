@@ -58,7 +58,7 @@ export function BrandMark({
       <img
         src={logo}
         alt={`${provider.businessName} brand mark`}
-        className={`${dims.box} shrink-0 rounded-full object-cover ring-1 ring-hairline ${className}`}
+        className={`relative z-[1] ${dims.box} shrink-0 rounded-full object-cover ring-1 ring-hairline ${className}`}
       />
     );
   }
@@ -66,7 +66,7 @@ export function BrandMark({
   const Icon = PROVIDER_TYPE_ICON[provider.type] ?? SparkleIcon;
   return (
     <span
-      className={`flex ${dims.box} shrink-0 items-center justify-center rounded-full bg-forest text-gold-soft ${className}`}
+      className={`relative z-[1] flex ${dims.box} shrink-0 items-center justify-center rounded-full bg-forest text-gold-soft ${className}`}
     >
       <Icon className={dims.icon} />
     </span>

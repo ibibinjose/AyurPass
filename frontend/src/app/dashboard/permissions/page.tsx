@@ -117,10 +117,13 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-8">
       <header>
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+          Account
+        </p>
         <h1 className="font-display text-3xl text-forest">Privacy & permissions</h1>
-        <p className="mt-1 max-w-2xl text-ink-muted">
-          Control who can see your dosha profile and health history. Grants are created when
-          you book a session and can be revoked at any time.
+        <p className="mt-1.5 max-w-2xl text-sm font-medium leading-relaxed text-ink-muted">
+          Control who can see your dosha profile, health history and treatment plans. Grants are
+          created when you book a session and can be revoked at any time.
         </p>
       </header>
 

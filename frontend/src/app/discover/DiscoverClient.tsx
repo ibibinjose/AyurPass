@@ -1,28 +1,63 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
-import type { Product, Provider, Service, ServiceCategory, ProviderType, Professional } from "@/lib/types";
-import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { matchesDoshaText, type ActiveFilterChip } from "@/lib/directory";
+import type {
+  Product,
+  Provider,
+  Service,
+  ServiceCategory,
+  ProviderType,
+  Professional,
+} from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
+import { useDirectoryUrlState } from "@/hooks/useDirectoryUrlState";
+import { useNearMe } from "@/hooks/useNearMe";
+import {
+  DirectoryLayout,
+  DirectoryResultGrid,
+  FilterOption,
+  FilterSearch,
+  FilterSection,
+  FilterStack,
+} from "@/components/DirectoryLayout";
 import { ProviderCard } from "@/components/ProviderCard";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { Button, EmptyState, Input } from "@/components/ui";
-import { MapPinIcon, SearchIcon } from "@/components/icons";
+import {
+  CompassIcon,
+  LeafIcon,
+  LotusIcon,
+  MapPinIcon,
+  MoonIcon,
+  SearchIcon,
+  SparkleIcon,
+  UsersIcon,
+} from "@/components/icons";
 
 type Tab = "providers" | "services" | "products" | "professionals";
+type ProSortKey = "recommended" | "rating" | "experience" | "name";
 
-const PROVIDER_GROUPS: { label: string; types: ProviderType[] }[] = [
-  { label: "Ayurveda", types: ["AYURVEDA_CLINIC", "AYURVEDA_RESORT", "PANCHAKARMA_CENTER"] },
-  { label: "Yoga", types: ["YOGA_STUDIO"] },
-  { label: "Spa", types: ["LUXURY_SPA"] },
-  { label: "Meditation", types: ["MEDITATION_CENTER"] },
-  { label: "Health Club", types: ["HEALTH_CLUB"] },
-  { label: "Nutrition", types: ["NUTRITIONIST"] },
-  { label: "Retreats", types: ["WELLNESS_RETREAT"] },
+const PRO_SORT: { key: ProSortKey; label: string }[] = [
+  { key: "recommended", label: "Recommended" },
+  { key: "rating", label: "Top rated" },
+  { key: "experience", label: "Most experience" },
+  { key: "name", label: "Name A–Z" },
+];
+
+const PROVIDER_GROUPS: { label: string; types: ProviderType[]; icon: typeof LeafIcon }[] = [
+  { label: "Ayurveda", types: ["AYURVEDA_CLINIC", "AYURVEDA_RESORT", "PANCHAKARMA_CENTER"], icon: LeafIcon },
+  { label: "Yoga", types: ["YOGA_STUDIO"], icon: LotusIcon },
+  { label: "Spa", types: ["LUXURY_SPA"], icon: MoonIcon },
+  { label: "Meditation", types: ["MEDITATION_CENTER"], icon: MoonIcon },
+  { label: "Health Club", types: ["HEALTH_CLUB"], icon: UsersIcon },
+  { label: "Nutrition", types: ["NUTRITIONIST"], icon: LeafIcon },
+  { label: "Retreats", types: ["WELLNESS_RETREAT"], icon: CompassIcon },
 ];
 
 const SERVICE_CATEGORIES: ServiceCategory[] = [
@@ -37,62 +72,132 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   "PACKAGE",
 ];
 
+const TABS: { key: Tab; label: string }[] = [
+  { key: "providers", label: "Practices" },
+  { key: "professionals", label: "Practitioners" },
+  { key: "services", label: "Sessions" },
+  { key: "products", label: "Products" },
+];
+
+const URL_DEFAULTS = {
+  tab: "providers",
+  q: "",
+  loc: "",
+  group: "",
+  cat: "ALL",
+  pcat: "ALL",
+  verified: "",
+  dosha: "",
+  sort: "recommended",
+};
+
+function sortProfessionals(list: Professional[], sort: ProSortKey): Professional[] {
+  const copy = [...list];
+  copy.sort((a, b) => {
+    if (sort === "name") {
+      const an = (a.user?.fullName || a.title || "").toLowerCase();
+      const bn = (b.user?.fullName || b.title || "").toLowerCase();
+      return an.localeCompare(bn);
+    }
+    if (sort === "experience") {
+      return (b.yearsExperience ?? 0) - (a.yearsExperience ?? 0);
+    }
+    if (sort === "rating") {
+      const rd = Number(b.rating ?? 0) - Number(a.rating ?? 0);
+      if (rd !== 0) return rd;
+      return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+    }
+    // recommended: verified first, then rating, then reviews, then experience
+    const av =
+      a.provider?.verificationStatus === "verified" ||
+      (a.healthAuthorities ?? []).some((x) => x.code?.toUpperCase() === "AAA")
+        ? 0
+        : 1;
+    const bv =
+      b.provider?.verificationStatus === "verified" ||
+      (b.healthAuthorities ?? []).some((x) => x.code?.toUpperCase() === "AAA")
+        ? 0
+        : 1;
+    if (av !== bv) return av - bv;
+    const rd = Number(b.rating ?? 0) - Number(a.rating ?? 0);
+    if (rd !== 0) return rd;
+    const rc = (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+    if (rc !== 0) return rc;
+    return (b.yearsExperience ?? 0) - (a.yearsExperience ?? 0);
+  });
+  return copy;
+}
+
 function includesText(haystack: string, needle: string) {
   return haystack.toLowerCase().includes(needle.toLowerCase());
 }
 
-/** Chip button — optional count badge (e.g. Providers 84). */
-function Chip({
-  active,
-  onClick,
-  children,
-  count,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  count?: number;
-}) {
+function ResultSkeleton() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
-        active
-          ? "bg-forest text-white shadow-[0_2px_8px_rgba(36,56,46,0.12)]"
-          : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-      }`}
-    >
-      <span>{children}</span>
-      {count !== undefined ? (
-        <span
-          className={`min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none ${
-            active ? "bg-white/20 text-white" : "bg-clay text-ink-muted"
-          }`}
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="overflow-hidden rounded-[1.125rem] border border-[var(--separator)] bg-surface"
         >
-          {count}
-        </span>
-      ) : null}
-    </button>
+          <div className="aspect-[16/10] animate-pulse bg-clay/80" />
+          <div className="space-y-3 p-4">
+            <div className="h-4 w-2/3 animate-pulse rounded bg-clay/90" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-clay/70" />
+            <div className="h-3 w-full animate-pulse rounded bg-clay/60" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
-export default function DiscoverPage() {
+function primaryDoshaName(scores: {
+  vataScore?: string | number | null;
+  pittaScore?: string | number | null;
+  kaphaScore?: string | number | null;
+}): string | null {
+  const pairs: [string, number][] = [
+    ["vata", Number(scores.vataScore ?? 0)],
+    ["pitta", Number(scores.pittaScore ?? 0)],
+    ["kapha", Number(scores.kaphaScore ?? 0)],
+  ];
+  pairs.sort((a, b) => b[1] - a[1]);
+  if (!pairs[0][1]) return null;
+  return pairs[0][0];
+}
+
+function DiscoverInner() {
+  const { user } = useAuth();
+  const { values, set, clear, sharePath } = useDirectoryUrlState(URL_DEFAULTS);
+
+  const tab = (["providers", "services", "products", "professionals"].includes(values.tab)
+    ? values.tab
+    : "providers") as Tab;
+  const query = values.q;
+  const location = values.loc;
+  const providerGroup = values.group || null;
+  const professionalGroup = values.group || null;
+  const serviceCategory = (values.cat || "ALL") as ServiceCategory | "ALL";
+  const productCategory = values.pcat || "ALL";
+  const verifiedOnly = values.verified === "1";
+  const doshaOnly = values.dosha === "1";
+  const proSort = (
+    ["recommended", "rating", "experience", "name"].includes(values.sort)
+      ? values.sort
+      : "recommended"
+  ) as ProSortKey;
+
   const [providers, setProviders] = useState<Provider[] | null>(null);
   const [services, setServices] = useState<Service[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [professionals, setProfessionals] = useState<Professional[] | null>(null);
   const [error, setError] = useState(false);
+  const [myDosha, setMyDosha] = useState<string | null>(null);
 
-  const [tab, setTab] = useState<Tab>("providers");
-  const [query, setQuery] = useState("");
-  const [location, setLocation] = useState("");
-  const [providerGroup, setProviderGroup] = useState<string | null>(null);
-  const [professionalGroup, setProfessionalGroup] = useState<string | null>(null);
-  const [serviceCategory, setServiceCategory] = useState<ServiceCategory | "ALL">("ALL");
-  const [productCategory, setProductCategory] = useState<string>("ALL");
+  const nearMe = useNearMe((label) => set("loc", label));
 
-  const load = () => {
+  const load = useCallback(() => {
     setError(false);
     setProviders(null);
     setServices(null);
@@ -112,16 +217,27 @@ export default function DiscoverPage() {
         setProducts([]);
         setProfessionals([]);
       });
-  };
+  }, []);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
-  }, []);
+  }, [load]);
 
-  const loading = !error && (providers === null || services === null || products === null || professionals === null);
+  useEffect(() => {
+    if (!user || user.role !== "CONSUMER") {
+      setMyDosha(null);
+      return;
+    }
+    api
+      .healthProfile(user.id)
+      .then((h) => setMyDosha(h ? primaryDoshaName(h) : null))
+      .catch(() => setMyDosha(null));
+  }, [user]);
 
-  // Provider address by id — lets services, products and professionals inherit their venue's location.
+  const loading =
+    !error &&
+    (providers === null || services === null || products === null || professionals === null);
+
   const providersById = useMemo(() => {
     const map = new Map<string, Provider>();
     (providers ?? []).forEach((p) => map.set(p.id, p));
@@ -134,13 +250,21 @@ export default function DiscoverPage() {
   const q = query.trim();
   const loc = location.trim();
 
-  // Base lists filtered by the shared name + location search (category applied later).
-  // These drive the per-tab result counts so the search spans all four catalogues.
   const base = useMemo(() => {
     const filterProviders = (list: Provider[]) =>
       list.filter((p) => {
         if (q && !includesText(p.businessName, q)) return false;
         if (loc && !includesText(formatAddress(p.address), loc)) return false;
+        if (verifiedOnly && p.verificationStatus !== "verified") return false;
+        if (
+          doshaOnly &&
+          myDosha &&
+          !matchesDoshaText(
+            `${p.businessName} ${p.brandProfile?.about ?? ""} ${(p.brandProfile?.tags ?? []).join(" ")}`,
+            myDosha,
+          )
+        )
+          return false;
         return true;
       });
 
@@ -154,6 +278,13 @@ export default function DiscoverPage() {
         )
           return false;
         if (loc && !includesText(providerLocation(s.providerId), loc)) return false;
+        if (verifiedOnly && s.provider?.verificationStatus !== "verified") return false;
+        if (
+          doshaOnly &&
+          myDosha &&
+          !matchesDoshaText(`${s.name} ${s.description ?? ""} ${s.category}`, myDosha)
+        )
+          return false;
         return true;
       });
 
@@ -167,6 +298,13 @@ export default function DiscoverPage() {
         )
           return false;
         if (loc && !includesText(providerLocation(p.providerId), loc)) return false;
+        if (verifiedOnly && p.provider?.verificationStatus !== "verified") return false;
+        if (
+          doshaOnly &&
+          myDosha &&
+          !matchesDoshaText(`${p.name} ${p.description ?? ""} ${p.category ?? ""}`, myDosha)
+        )
+          return false;
         return true;
       });
 
@@ -181,6 +319,16 @@ export default function DiscoverPage() {
         )
           return false;
         if (loc && !includesText(providerLocation(prof.providerId), loc)) return false;
+        if (verifiedOnly && prof.provider?.verificationStatus !== "verified") return false;
+        if (
+          doshaOnly &&
+          myDosha &&
+          !matchesDoshaText(
+            `${prof.title ?? ""} ${prof.specializations.join(" ")}`,
+            myDosha,
+          )
+        )
+          return false;
         return true;
       });
 
@@ -190,12 +338,11 @@ export default function DiscoverPage() {
       products: products ? filterProducts(products) : null,
       professionals: professionals ? filterProfessionals(professionals) : null,
     };
-    // providersById is derived from providers; listed deps cover it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providers, services, products, professionals, q, loc]);
+  }, [providers, services, products, professionals, q, loc, verifiedOnly, doshaOnly, myDosha]);
 
   const activeTypes = providerGroup
-    ? PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? []
+    ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
     : null;
 
   const shownProviders = base.providers?.filter(
@@ -208,17 +355,20 @@ export default function DiscoverPage() {
     (p) => productCategory === "ALL" || p.category === productCategory,
   );
   const professionalGroupTypes = professionalGroup
-    ? PROVIDER_GROUPS.find((g) => g.label === professionalGroup)?.types ?? []
+    ? (PROVIDER_GROUPS.find((g) => g.label === professionalGroup)?.types ?? [])
     : null;
 
-  const shownProfessionals = base.professionals?.filter((prof) => {
-    if (!professionalGroupTypes) return true;
-    if (prof.provider?.type && professionalGroupTypes.includes(prof.provider.type)) return true;
-    const needle = professionalGroup!.toLowerCase();
-    return prof.specializations.some(
-      (s) => s.toLowerCase().includes(needle) || needle.includes(s.toLowerCase()),
-    );
-  });
+  const shownProfessionals = useMemo(() => {
+    const filtered = (base.professionals ?? []).filter((prof) => {
+      if (!professionalGroupTypes) return true;
+      if (prof.provider?.type && professionalGroupTypes.includes(prof.provider.type)) return true;
+      const needle = professionalGroup!.toLowerCase();
+      return prof.specializations.some(
+        (s) => s.toLowerCase().includes(needle) || needle.includes(s.toLowerCase()),
+      );
+    });
+    return sortProfessionals(filtered, proSort);
+  }, [base.professionals, professionalGroupTypes, professionalGroup, proSort]);
 
   const productCategories = useMemo(() => {
     const set = new Set<string>();
@@ -227,10 +377,10 @@ export default function DiscoverPage() {
   }, [products]);
 
   const counts = {
-    providers: shownProviders?.length ?? base.providers?.length ?? 0,
-    services: shownServices?.length ?? base.services?.length ?? 0,
-    products: shownProducts?.length ?? base.products?.length ?? 0,
-    professionals: shownProfessionals?.length ?? base.professionals?.length ?? 0,
+    providers: shownProviders?.length ?? 0,
+    services: shownServices?.length ?? 0,
+    products: shownProducts?.length ?? 0,
+    professionals: shownProfessionals.length,
   };
 
   const tabTotals = {
@@ -289,252 +439,389 @@ export default function DiscoverPage() {
     return map;
   }, [base.products, productCategories]);
 
-  const TABS: { key: Tab; label: string }[] = [
-    { key: "providers", label: "Providers" },
-    { key: "services", label: "Services" },
-    { key: "products", label: "Products" },
-    { key: "professionals", label: "Practitioners" },
-  ];
+  const filterActive =
+    Boolean(q || loc) ||
+    Boolean(providerGroup) ||
+    serviceCategory !== "ALL" ||
+    productCategory !== "ALL" ||
+    verifiedOnly ||
+    doshaOnly;
 
-  const skeleton = (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-52 animate-pulse rounded-2xl bg-clay/70" />
-      ))}
-    </div>
-  );
+  const resultLabel =
+    tab === "providers"
+      ? "practices"
+      : tab === "professionals"
+        ? "practitioners"
+        : tab === "services"
+          ? "sessions"
+          : "products";
 
-  const searchActive = Boolean(q || loc);
+  const activeFilters: ActiveFilterChip[] = [];
+  if (q)
+    activeFilters.push({ id: "q", label: `“${q}”`, onRemove: () => set("q", "") });
+  if (loc)
+    activeFilters.push({ id: "loc", label: loc, onRemove: () => set("loc", "") });
+  if (values.group)
+    activeFilters.push({
+      id: "group",
+      label: values.group,
+      onRemove: () => set("group", ""),
+    });
+  if (tab === "services" && serviceCategory !== "ALL")
+    activeFilters.push({
+      id: "cat",
+      label: CATEGORY_LABEL[serviceCategory as ServiceCategory] ?? serviceCategory,
+      onRemove: () => set("cat", "ALL"),
+    });
+  if (tab === "products" && productCategory !== "ALL")
+    activeFilters.push({
+      id: "pcat",
+      label: productCategory,
+      onRemove: () => set("pcat", "ALL"),
+    });
+  if (verifiedOnly)
+    activeFilters.push({
+      id: "verified",
+      label: "Verified only",
+      onRemove: () => set("verified", ""),
+    });
+  if (doshaOnly && myDosha)
+    activeFilters.push({
+      id: "dosha",
+      label: `My dosha · ${myDosha}`,
+      onRemove: () => set("dosha", ""),
+    });
+
+  const heroTitle =
+    tab === "professionals"
+      ? "Find practitioners"
+      : tab === "services"
+        ? "Find sessions"
+        : tab === "products"
+          ? "Shop wellness"
+          : "Discover wellness near you";
+
+  const heroDescription =
+    tab === "professionals"
+      ? "Ayurvedic doctors, yoga teachers, therapists and coaches — verified credentials, specialisations and ratings in one place."
+      : "Ayurveda, yoga, spa, meditation, health clubs and retreats — practices, practitioners, sessions and products in one place.";
 
   return (
-    <LayoutWrapper>
-      <div className="page-shell flex-1">
-        <h1 className="type-display">Discover wellness near you</h1>
-        <p className="type-body mt-2 max-w-2xl font-medium">
-          The dedicated finder for Ayurveda, yoga, luxury spa, meditation, health-club and retreat
-          places — search every clinic, studio and sanctuary, plus the treatments, practitioners and
-          products they offer. Filter by name, location and discipline.
-        </p>
-        <p className="mt-3 text-sm font-semibold text-ink-muted">
-          Run a wellness business?{" "}
-          <Link href="/list-your-business" className="font-bold text-forest hover:underline">
-            List it free →
-          </Link>
-        </p>
-
-        {/* Search: name + location */}
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          <div className="relative">
-            <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-ink-muted" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, treatment, practitioner or product…"
-              aria-label="Search by name"
-              className="pl-10"
-            />
-          </div>
-          <div className="relative">
-            <MapPinIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-ink-muted" />
-            <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, state or country…"
-              aria-label="Search by location"
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Tabs + discipline filters — one chip bar */}
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          {TABS.map((t) => (
-            <Chip
-              key={t.key}
-              active={tab === t.key}
-              count={loading ? undefined : tabTotals[t.key]}
-              onClick={() => setTab(t.key)}
+    <DirectoryLayout
+      eyebrow="Directory"
+      title={heroTitle}
+      description={heroDescription}
+      heroExtra={
+        tab === "professionals" ? (
+          <p className="text-sm font-semibold text-ink-muted">
+            Looking for a clinic or studio instead?{" "}
+            <button
+              type="button"
+              onClick={() => set("tab", "providers")}
+              className="font-bold text-[var(--system-blue)] hover:underline"
             >
-              {t.label}
-            </Chip>
-          ))}
-
-          <span className="mx-0.5 hidden h-7 w-px shrink-0 bg-hairline sm:inline" aria-hidden />
-
-          {tab === "providers" && (
-            <>
-              <Chip
-                active={!providerGroup}
-                count={loading ? undefined : providerGroupCounts.get("All")}
-                onClick={() => setProviderGroup(null)}
-              >
-                All
-              </Chip>
-              {PROVIDER_GROUPS.map((g) => (
-                <Chip
-                  key={g.label}
-                  active={providerGroup === g.label}
-                  count={loading ? undefined : providerGroupCounts.get(g.label)}
-                  onClick={() => setProviderGroup(g.label)}
-                >
-                  {g.label}
-                </Chip>
-              ))}
-            </>
-          )}
-
-          {tab === "services" && (
-            <>
-              <Chip
-                active={serviceCategory === "ALL"}
-                count={loading ? undefined : serviceCategoryCounts.get("ALL")}
-                onClick={() => setServiceCategory("ALL")}
-              >
-                All
-              </Chip>
-              {SERVICE_CATEGORIES.map((c) => (
-                <Chip
-                  key={c}
-                  active={serviceCategory === c}
-                  count={loading ? undefined : serviceCategoryCounts.get(c)}
-                  onClick={() => setServiceCategory(c)}
-                >
-                  {CATEGORY_LABEL[c]}
-                </Chip>
-              ))}
-            </>
-          )}
-
-          {tab === "products" && (
-            <>
-              <Chip
-                active={productCategory === "ALL"}
-                onClick={() => setProductCategory("ALL")}
-                count={loading ? undefined : productCategoryCounts.get("ALL")}
-              >
-                All
-              </Chip>
-              {productCategories.map((c) => (
-                <Chip
-                  key={c}
-                  active={productCategory === c}
-                  count={loading ? undefined : productCategoryCounts.get(c)}
-                  onClick={() => setProductCategory(c)}
-                >
-                  {c}
-                </Chip>
-              ))}
-            </>
-          )}
-
-          {tab === "professionals" && (
-            <>
-              <Chip
-                active={!professionalGroup}
-                count={loading ? undefined : professionalGroupCounts.get("All")}
-                onClick={() => setProfessionalGroup(null)}
-              >
-                All
-              </Chip>
-              {PROVIDER_GROUPS.map((g) => (
-                <Chip
-                  key={g.label}
-                  active={professionalGroup === g.label}
-                  count={loading ? undefined : professionalGroupCounts.get(g.label)}
-                  onClick={() => setProfessionalGroup(g.label)}
-                >
-                  {g.label}
-                </Chip>
-              ))}
-            </>
-          )}
-        </div>
-
-        {!loading && (
-          <p className="mt-3 text-sm text-ink-muted">
-            Showing{" "}
-            <span className="font-medium text-foreground">{counts[tab]}</span>{" "}
-            {tab === "professionals" ? "practitioners" : tab}
-            {tab === "providers" && providerGroup ? ` · ${providerGroup}` : ""}
-            {tab === "professionals" && professionalGroup ? ` · ${professionalGroup}` : ""}
-            {tab === "services" && serviceCategory !== "ALL"
-              ? ` · ${CATEGORY_LABEL[serviceCategory]}`
-              : ""}
-            {tab === "products" && productCategory !== "ALL" ? ` · ${productCategory}` : ""}
+              Browse practices →
+            </button>
           </p>
-        )}
-
-        {/* Results */}
-        <div className="mt-8">
-          {error ? (
-            <EmptyState
-              title="We couldn't load the directory"
-              body="The wellness network is unreachable right now. Please try again shortly."
-              action={
-                <Button type="button" variant="ghost" onClick={load}>
-                  Try again
-                </Button>
-              }
-            />
-          ) : loading ? (
-            skeleton
-          ) : tab === "providers" ? (
-            shownProviders && shownProviders.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {shownProviders.map((p) => (
-                  <ProviderCard key={p.id} provider={p} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title={searchActive || providerGroup ? "No practices match those filters" : "No practices yet"}
-                body="Try a broader search, a different discipline, or clear your location filter."
-              />
-            )
-          ) : tab === "services" ? (
-            shownServices && shownServices.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {shownServices.map((s) => (
-                  <ServiceCard key={s.id} service={s} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title={searchActive || serviceCategory !== "ALL" ? "No sessions match those filters" : "No sessions yet"}
-                body="Try a broader search, a different discipline, or clear your location filter."
-              />
-            )
-          ) : tab === "products" ? (
-            shownProducts && shownProducts.length > 0 ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {shownProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title={searchActive || productCategory !== "ALL" ? "No products match those filters" : "No products yet"}
-                body="Try a broader search, a different category, or clear your location filter."
-              />
-            )
-          ) : shownProfessionals && shownProfessionals.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {shownProfessionals.map((prof) => (
-                <ProfessionalCard key={prof.id} professional={prof} />
-              ))}
+        ) : (
+          <p className="text-sm font-semibold text-ink-muted">
+            Run a wellness practice?{" "}
+            <Link
+              href="/list-your-business"
+              className="font-bold text-[var(--system-blue)] hover:underline"
+            >
+              List it free →
+            </Link>
+          </p>
+        )
+      }
+      filterActive={filterActive}
+      onClearFilters={clear}
+      filterSummary={`${activeFilters.length || ""}`.trim() || undefined}
+      activeFilters={activeFilters}
+      resultCount={loading ? null : counts[tab]}
+      resultLabel={resultLabel}
+      sharePath={sharePath}
+      sort={tab === "professionals" ? PRO_SORT : undefined}
+      sortValue={tab === "professionals" ? proSort : undefined}
+      onSortChange={
+        tab === "professionals" ? (k) => set("sort", k) : undefined
+      }
+      nearMe={{
+        onLocate: nearMe.locate,
+        busy: nearMe.busy,
+        error: nearMe.error,
+      }}
+      sidebar={
+        <>
+          <FilterSection title="Search">
+            <div className="space-y-2">
+              <FilterSearch icon={<SearchIcon className="h-4 w-4" />}>
+                <Input
+                  value={query}
+                  onChange={(e) => set("q", e.target.value)}
+                  placeholder={
+                    tab === "professionals"
+                      ? "Name, title, specialisation…"
+                      : "Name, treatment…"
+                  }
+                  aria-label="Search by name"
+                />
+              </FilterSearch>
+              <FilterSearch icon={<MapPinIcon className="h-4 w-4" />}>
+                <Input
+                  value={location}
+                  onChange={(e) => set("loc", e.target.value)}
+                  placeholder="City or country"
+                  aria-label="Search by location"
+                />
+              </FilterSearch>
             </div>
-          ) : (
-            <EmptyState
-              title={
-                searchActive || professionalGroup
-                  ? "No practitioners match those filters"
-                  : "No practitioners yet"
-              }
-              body="Try a broader search, a different discipline, or clear your location filter."
-            />
-          )}
-        </div>
-      </div>
-    </LayoutWrapper>
+          </FilterSection>
+
+          <FilterSection title="Browse">
+            <FilterStack>
+              {TABS.map((t) => (
+                <FilterOption
+                  key={t.key}
+                  active={tab === t.key}
+                  count={loading ? undefined : tabTotals[t.key]}
+                  onClick={() => set("tab", t.key)}
+                >
+                  {t.label}
+                </FilterOption>
+              ))}
+            </FilterStack>
+          </FilterSection>
+
+          <FilterSection title="Quality">
+            <FilterStack>
+              <FilterOption
+                active={verifiedOnly}
+                onClick={() => set("verified", verifiedOnly ? "" : "1")}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <SparkleIcon className="h-3.5 w-3.5" />
+                  Verified only
+                </span>
+              </FilterOption>
+              {myDosha ? (
+                <FilterOption
+                  active={doshaOnly}
+                  onClick={() => set("dosha", doshaOnly ? "" : "1")}
+                >
+                  Matches my dosha ({myDosha})
+                </FilterOption>
+              ) : user?.role === "CONSUMER" ? (
+                <Link
+                  href="/dashboard/assessment"
+                  className="px-2.5 py-1.5 text-[11px] font-semibold text-[var(--system-blue)] hover:underline"
+                >
+                  Take dosha assessment →
+                </Link>
+              ) : null}
+            </FilterStack>
+          </FilterSection>
+
+          {tab === "providers" || tab === "professionals" ? (
+            <FilterSection title="Discipline">
+              <FilterStack>
+                <FilterOption
+                  active={!values.group}
+                  count={
+                    loading
+                      ? undefined
+                      : tab === "providers"
+                        ? providerGroupCounts.get("All")
+                        : professionalGroupCounts.get("All")
+                  }
+                  onClick={() => set("group", "")}
+                >
+                  All disciplines
+                </FilterOption>
+                {PROVIDER_GROUPS.map((g) => {
+                  const Icon = g.icon;
+                  const n =
+                    tab === "providers"
+                      ? providerGroupCounts.get(g.label)
+                      : professionalGroupCounts.get(g.label);
+                  return (
+                    <FilterOption
+                      key={g.label}
+                      active={values.group === g.label}
+                      count={loading ? undefined : n}
+                      onClick={() => set("group", g.label)}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Icon className="h-3.5 w-3.5 opacity-80" />
+                        {g.label}
+                      </span>
+                    </FilterOption>
+                  );
+                })}
+              </FilterStack>
+            </FilterSection>
+          ) : null}
+
+          {tab === "services" ? (
+            <FilterSection title="Session type">
+              <FilterStack>
+                <FilterOption
+                  active={serviceCategory === "ALL"}
+                  count={loading ? undefined : serviceCategoryCounts.get("ALL")}
+                  onClick={() => set("cat", "ALL")}
+                >
+                  All sessions
+                </FilterOption>
+                {SERVICE_CATEGORIES.map((c) => (
+                  <FilterOption
+                    key={c}
+                    active={serviceCategory === c}
+                    count={loading ? undefined : serviceCategoryCounts.get(c)}
+                    onClick={() => set("cat", c)}
+                  >
+                    {CATEGORY_LABEL[c]}
+                  </FilterOption>
+                ))}
+              </FilterStack>
+            </FilterSection>
+          ) : null}
+
+          {tab === "products" ? (
+            <FilterSection title="Product category">
+              <FilterStack>
+                <FilterOption
+                  active={productCategory === "ALL"}
+                  count={loading ? undefined : productCategoryCounts.get("ALL")}
+                  onClick={() => set("pcat", "ALL")}
+                >
+                  All products
+                </FilterOption>
+                {productCategories.map((c) => (
+                  <FilterOption
+                    key={c}
+                    active={productCategory === c}
+                    count={loading ? undefined : productCategoryCounts.get(c)}
+                    onClick={() => set("pcat", c)}
+                  >
+                    {c}
+                  </FilterOption>
+                ))}
+              </FilterStack>
+            </FilterSection>
+          ) : null}
+        </>
+      }
+    >
+      {error ? (
+        <EmptyState
+          title="We couldn't load the directory"
+          body="The wellness network is unreachable right now. Please try again shortly."
+          action={
+            <Button type="button" variant="ghost" onClick={load}>
+              Try again
+            </Button>
+          }
+        />
+      ) : loading ? (
+        <ResultSkeleton />
+      ) : tab === "providers" ? (
+        shownProviders && shownProviders.length > 0 ? (
+          <DirectoryResultGrid>
+            {shownProviders.map((p) => (
+              <ProviderCard key={p.id} provider={p} />
+            ))}
+          </DirectoryResultGrid>
+        ) : (
+          <EmptyState
+            title={filterActive ? "No practices match those filters" : "No practices yet"}
+            body="Try a broader search, a different discipline, or clear your location filter."
+            action={
+              filterActive ? (
+                <Button type="button" variant="ghost" onClick={clear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        )
+      ) : tab === "services" ? (
+        shownServices && shownServices.length > 0 ? (
+          <DirectoryResultGrid>
+            {shownServices.map((s) => (
+              <ServiceCard key={s.id} service={s} />
+            ))}
+          </DirectoryResultGrid>
+        ) : (
+          <EmptyState
+            title={filterActive ? "No sessions match those filters" : "No sessions yet"}
+            body="Try a broader search or clear filters."
+            action={
+              filterActive ? (
+                <Button type="button" variant="ghost" onClick={clear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        )
+      ) : tab === "products" ? (
+        shownProducts && shownProducts.length > 0 ? (
+          <DirectoryResultGrid>
+            {shownProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </DirectoryResultGrid>
+        ) : (
+          <EmptyState
+            title={filterActive ? "No products match those filters" : "No products yet"}
+            body="Try a broader search or clear filters."
+            action={
+              filterActive ? (
+                <Button type="button" variant="ghost" onClick={clear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        )
+      ) : shownProfessionals.length > 0 ? (
+        <DirectoryResultGrid>
+          {shownProfessionals.map((prof) => (
+            <ProfessionalCard key={prof.id} professional={prof} />
+          ))}
+        </DirectoryResultGrid>
+      ) : (
+        <EmptyState
+          title={
+            filterActive ? "No practitioners match those filters" : "No practitioners yet"
+          }
+          body={
+            filterActive
+              ? "Try another discipline, clear location, or turn off Verified only."
+              : "Practitioners appear here once practices add their team."
+          }
+          action={
+            filterActive ? (
+              <Button type="button" variant="ghost" onClick={clear}>
+                Clear filters
+              </Button>
+            ) : (
+              <Button type="button" variant="soft" onClick={() => set("tab", "providers")}>
+                Browse practices
+              </Button>
+            )
+          }
+        />
+      )}
+    </DirectoryLayout>
+  );
+}
+
+export default function DiscoverClient() {
+  return (
+    <Suspense fallback={<ResultSkeleton />}>
+      <DiscoverInner />
+    </Suspense>
   );
 }

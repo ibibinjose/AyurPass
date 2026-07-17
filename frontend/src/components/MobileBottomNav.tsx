@@ -9,6 +9,8 @@ import {
   CompassIcon,
   LotusIcon,
   MoonIcon,
+  SparkleIcon,
+  TrophyIcon,
   UsersIcon,
 } from "@/components/icons";
 
@@ -50,15 +52,65 @@ const PUBLIC_TABS: Tab[] = [
   },
 ];
 
+function TabBar({ tabs, ariaLabel }: { tabs: Tab[]; ariaLabel: string }) {
+  const pathname = usePathname() || "/";
+
+  return (
+    <nav
+      className="dash-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/92 backdrop-blur-xl md:hidden"
+      style={{
+        paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
+        paddingLeft: "env(safe-area-inset-left, 0px)",
+        paddingRight: "env(safe-area-inset-right, 0px)",
+      }}
+      aria-label={ariaLabel}
+    >
+      <ul className="mx-auto flex h-[3.35rem] max-w-lg items-stretch justify-between gap-0.5 px-1.5">
+        {tabs.map((tab) => {
+          const active = tab.match(pathname);
+          const Icon = tab.icon;
+          return (
+            <li key={tab.href + tab.label} className="flex min-w-0 flex-1">
+              <Link
+                href={tab.href}
+                className={`touch-manipulation flex min-h-[var(--tap-min)] w-full flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition-colors active:scale-[0.97] ${
+                  active
+                    ? "text-forest"
+                    : "text-ink-muted active:bg-clay/50"
+                }`}
+                aria-current={active ? "page" : undefined}
+              >
+                <span
+                  className={`flex h-7 w-10 items-center justify-center rounded-full transition-colors ${
+                    active ? "bg-forest/12 text-forest" : ""
+                  }`}
+                >
+                  <Icon className={`h-[22px] w-[22px] ${active ? "stroke-[1.9]" : ""}`} />
+                </span>
+                <span
+                  className={`max-w-full truncate text-[10px] leading-none tracking-tight ${
+                    active ? "font-bold" : "font-medium"
+                  }`}
+                >
+                  {tab.label}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 /**
- * Apple-style bottom tab bar — mobile only (hidden from `md` up).
+ * Public site bottom tabs — mobile only.
  * Fixed above the home indicator with blur + safe-area inset.
  */
 export function MobileBottomNav() {
   const pathname = usePathname() || "/";
   const { user } = useAuth();
 
-  // Auth screens keep a clean full-screen form.
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
@@ -74,52 +126,18 @@ export function MobileBottomNav() {
       href: accountHref,
       label: user ? "You" : "Sign in",
       icon: UsersIcon,
-      match: (p) => p.startsWith("/dashboard") || p.startsWith("/login") || p.startsWith("/register"),
+      match: (p) =>
+        p.startsWith("/dashboard") || p.startsWith("/login") || p.startsWith("/register"),
     },
   ];
 
-  return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/90 backdrop-blur-xl md:hidden"
-      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom, 0px))" }}
-      aria-label="Primary"
-    >
-      <ul className="mx-auto flex h-[3.25rem] max-w-lg items-stretch justify-between px-1">
-        {tabs.map((tab) => {
-          const active = tab.match(pathname);
-          const Icon = tab.icon;
-          return (
-            <li key={tab.href + tab.label} className="flex min-w-0 flex-1">
-              <Link
-                href={tab.href}
-                className={`flex min-h-[44px] w-full flex-col items-center justify-center gap-0.5 px-1 transition-colors ${
-                  active ? "text-[var(--system-blue)]" : "text-ink-muted"
-                }`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon className={`h-[22px] w-[22px] ${active ? "stroke-[1.9]" : ""}`} />
-                <span
-                  className={`max-w-full truncate text-[10px] leading-none ${
-                    active ? "font-semibold" : "font-medium"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
+  return <TabBar tabs={tabs} ariaLabel="Primary" />;
 }
 
 /**
- * Bottom tabs for the signed-in dashboard (mobile).
- * Keeps primary destinations one thumb-reach away.
+ * Dashboard bottom tabs — role-aware, thumb-zone native pattern (iOS / Android).
  */
 export function DashboardBottomNav() {
-  const pathname = usePathname() || "/";
   const { user } = useAuth();
   if (!user) return null;
 
@@ -189,17 +207,12 @@ export function DashboardBottomNav() {
           },
         ]
       : [
+          // Seeker — keep primary wellness actions in the thumb zone
           {
             href: "/dashboard",
             label: "Home",
             icon: LeafTabIcon,
             match: (p) => p === "/dashboard",
-          },
-          {
-            href: "/discover",
-            label: "Discover",
-            icon: CompassIcon,
-            match: (p) => p.startsWith("/discover"),
           },
           {
             href: "/dashboard/bookings",
@@ -208,54 +221,32 @@ export function DashboardBottomNav() {
             match: (p) => p.startsWith("/dashboard/bookings"),
           },
           {
-            href: "/dashboard/assessment",
-            label: "Dosha",
-            icon: CompassIcon,
-            match: (p) => p.startsWith("/dashboard/assessment"),
+            href: "/explore",
+            label: "Book",
+            icon: SparkleIcon,
+            match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
+          },
+          {
+            href: "/dashboard/rewards",
+            label: "Rewards",
+            icon: TrophyIcon,
+            match: (p) =>
+              p.startsWith("/dashboard/rewards") || p.startsWith("/dashboard/gift-cards"),
           },
           {
             href: "/dashboard/settings",
             label: "You",
             icon: UsersIcon,
             match: (p) =>
-              p.startsWith("/dashboard/settings") || p.startsWith("/dashboard/permissions"),
+              p.startsWith("/dashboard/settings") ||
+              p.startsWith("/dashboard/permissions") ||
+              p.startsWith("/dashboard/purchases") ||
+              p.startsWith("/dashboard/plans") ||
+              p.startsWith("/dashboard/assessment"),
           },
         ];
 
-  return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/90 backdrop-blur-xl md:hidden"
-      style={{ paddingBottom: "max(0.35rem, env(safe-area-inset-bottom, 0px))" }}
-      aria-label="Dashboard"
-    >
-      <ul className="mx-auto flex h-[3.25rem] max-w-lg items-stretch justify-between px-1">
-        {tabs.map((tab) => {
-          const active = tab.match(pathname);
-          const Icon = tab.icon;
-          return (
-            <li key={tab.href} className="flex min-w-0 flex-1">
-              <Link
-                href={tab.href}
-                className={`flex min-h-[44px] w-full flex-col items-center justify-center gap-0.5 px-1 transition-colors ${
-                  active ? "text-[var(--system-blue)]" : "text-ink-muted"
-                }`}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon className="h-[22px] w-[22px]" />
-                <span
-                  className={`max-w-full truncate text-[10px] leading-none ${
-                    active ? "font-semibold" : "font-medium"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
+  return <TabBar tabs={tabs} ariaLabel="Dashboard" />;
 }
 
 function LeafTabIcon({ className }: { className?: string }) {
@@ -277,3 +268,4 @@ function LeafTabIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+

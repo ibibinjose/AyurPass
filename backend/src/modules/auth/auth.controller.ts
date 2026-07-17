@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from '../../dtos/auth.dto';
+import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
 import { sanitizeUser } from '../../common/sanitize-user';
@@ -20,6 +21,16 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  /**
+   * Authenticated free listing — skip re-register when the user is already signed in.
+   * Returns provider + refreshed tokens (role may promote to PROVIDER_ADMIN).
+   */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('list-business')
+  async listBusiness(@Body() dto: CreateFreeListingDto, @Req() req: AuthedRequest) {
+    return this.authService.listBusiness(req.user.sub, dto);
   }
 
   @Public()

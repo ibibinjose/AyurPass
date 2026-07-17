@@ -29,9 +29,12 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
       >
         {children}
       </div>
-      {/* Footer stays desktop/tablet; mobile uses bottom tabs instead of a long footer scroll */}
+      {/* Full footer on tablet+; compact strip on mobile (above bottom tabs). */}
       <div className="hidden md:block">
         <Footer />
+      </div>
+      <div className="md:hidden">
+        <Footer compact />
       </div>
       <MobileBottomNav />
     </div>

@@ -1,4 +1,4 @@
-# AyurPass
+# AyurPass — Find & book Ayurveda, Yoga & Wellness
 
 Premium wellness marketplace for **Ayurveda, yoga, luxury spa, meditation, health clubs and retreats** — a dual-sided platform for consumers and practitioners.
 

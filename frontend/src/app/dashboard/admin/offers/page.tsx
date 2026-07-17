@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { OFFER_DISCIPLINES } from "@/lib/catalog";
 import type { Offer, OfferInput } from "@/lib/types";
+import { MediaField } from "@/components/MediaField";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
 
 const EMPTY = {
@@ -138,8 +139,15 @@ export default function AdminOffersPage() {
         <div>
           <h1 className="font-display text-3xl text-forest">Offers &amp; promotions</h1>
           <p className="mt-1 text-ink-muted">
-            Create and promote deals across every wellness discipline.
+            Create and promote deals across every wellness discipline. Feature deals for the public
+            spotlight strip.
           </p>
+          {offers && offers.length > 0 ? (
+            <p className="mt-2 text-sm font-semibold text-forest">
+              {offers.filter((o) => o.featured && o.active).length} featured ·{" "}
+              {offers.filter((o) => o.active).length} live · {offers.length} total
+            </p>
+          ) : null}
         </div>
         {!showForm && <Button onClick={startCreate}>Create offer</Button>}
       </div>
@@ -172,9 +180,13 @@ export default function AdminOffersPage() {
               <Input value={form.code} onChange={(e) => set("code", e.target.value)} placeholder="AYUR20" />
             </Field>
           </div>
-          <Field label="Image URL">
-            <Input type="url" value={form.imageUrl} onChange={(e) => set("imageUrl", e.target.value)} placeholder="https://…" />
-          </Field>
+          <MediaField
+            label="Offer image"
+            shape="cover"
+            value={form.imageUrl}
+            onChange={(url) => set("imageUrl", url)}
+            hint="Upload or paste a promotional image."
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Button label" hint="What the call-to-action says.">
               <Input value={form.ctaLabel} onChange={(e) => set("ctaLabel", e.target.value)} placeholder="Shop the deal" />

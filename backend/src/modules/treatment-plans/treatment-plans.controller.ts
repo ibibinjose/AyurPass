@@ -7,7 +7,12 @@ import {
   assertProviderAccess,
   assertTreatmentPlanParty,
 } from '../../common/ownership';
-import { assertHealthProfileAccess } from '../../common/consent';
+import {
+  assertHealthProfileAccess,
+  hasActiveHealthConsent,
+  TREATMENT_PLAN_CONSENT_TYPES,
+} from '../../common/consent';
+import { ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('treatment-plans')
@@ -32,8 +37,50 @@ export class TreatmentPlansController {
 
   @Get('consumer/:id')
   async findByConsumer(@Param('id') consumerId: string, @Req() req: AuthedRequest) {
-    await assertHealthProfileAccess(this.prisma, req.user, consumerId);
+    // Self / admin: full access.
+    // Care team: need view_treatment_plans, full_health_access, or basic health consents.
+    if (req.user.role === 'PLATFORM_ADMIN' || req.user.sub === consumerId) {
+      return this.service.getPlansForConsumer(consumerId);
+    }
+    try {
+      await assertHealthProfileAccess(this.prisma, req.user, consumerId);
+      return this.service.getPlansForConsumer(consumerId);
+    } catch {
+      // Fall through to plan-specific consent check
+    }
+
+    const granteeIds: string[] = [];
+    if (req.user.role === 'PROVIDER_ADMIN') {
+      const provider = await this.prisma.provider.findFirst({
+        where: { userId: req.user.sub },
+        select: { id: true },
+      });
+      if (provider) granteeIds.push(provider.id);
+    }
+    const professional = await this.prisma.professional.findFirst({
+      where: { userId: req.user.sub },
+      select: { id: true, providerId: true },
+    });
+    if (professional) granteeIds.push(professional.id, professional.providerId);
+
+    const ok = await hasActiveHealthConsent(
+      this.prisma,
+      consumerId,
+      granteeIds,
+      TREATMENT_PLAN_CONSENT_TYPES,
+    );
+    if (!ok) {
+      throw new ForbiddenException(
+        'Active treatment-plan or health consent is required to view these plans.',
+      );
+    }
     return this.service.getPlansForConsumer(consumerId);
+  }
+
+  @Get('provider/:id')
+  async findByProvider(@Param('id') providerId: string, @Req() req: AuthedRequest) {
+    await assertProviderAccess(this.prisma, req.user, providerId);
+    return this.service.getPlansForProvider(providerId);
   }
 
   @Get(':id')

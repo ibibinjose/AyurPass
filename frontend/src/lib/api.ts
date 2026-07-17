@@ -42,7 +42,65 @@ import type {
   WellnessPackage,
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+export type UploadedImage = {
+  url: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+};
+
+async function uploadImageRequest(file: File, retried = false): Promise<UploadedImage> {
+  const body = new FormData();
+  body.append("file", file);
+  const headers: Record<string, string> = {};
+  if (tokenStore.access) headers.Authorization = `Bearer ${tokenStore.access}`;
+  const res = await fetch(`${API_URL}/uploads`, { method: "POST", headers, body });
+  if (res.status === 401 && !retried) {
+    const ok = await tryRefreshAccessToken();
+    if (ok) return uploadImageRequest(file, true);
+  }
+  if (!res.ok) {
+    let message = `Upload failed (${res.status})`;
+    try {
+      const data = await res.json();
+      if (typeof data?.message === "string") message = data.message;
+      else if (Array.isArray(data?.message)) message = data.message.join(", ");
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(message, res.status);
+  }
+  return res.json() as Promise<UploadedImage>;
+}
+
+async function uploadImagesRequest(
+  files: File[],
+  retried = false,
+): Promise<{ urls: string[]; files: UploadedImage[] }> {
+  const body = new FormData();
+  for (const f of files) body.append("files", f);
+  const headers: Record<string, string> = {};
+  if (tokenStore.access) headers.Authorization = `Bearer ${tokenStore.access}`;
+  const res = await fetch(`${API_URL}/uploads/batch`, { method: "POST", headers, body });
+  if (res.status === 401 && !retried) {
+    const ok = await tryRefreshAccessToken();
+    if (ok) return uploadImagesRequest(files, true);
+  }
+  if (!res.ok) {
+    let message = `Upload failed (${res.status})`;
+    try {
+      const data = await res.json();
+      if (typeof data?.message === "string") message = data.message;
+      else if (Array.isArray(data?.message)) message = data.message.join(", ");
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(message, res.status);
+  }
+  return res.json() as Promise<{ urls: string[]; files: UploadedImage[] }>;
+}
 
 const ACCESS_KEY = "ayurpass.accessToken";
 const REFRESH_KEY = "ayurpass.refreshToken";
@@ -155,10 +213,32 @@ export const api = {
   refresh: (refreshToken: string) =>
     request<AuthTokens>("/auth/refresh", { method: "POST", body: { refreshToken } }),
   profile: () => request<UserProfile>("/auth/profile", { auth: true }),
+  /**
+   * Create a free directory listing for the currently signed-in user
+   * (no second account / password). Returns tokens when role is upgraded.
+   */
+  listBusiness: (data: {
+    businessName: string;
+    type: ProviderType;
+    listingTier?: string;
+    brandProfile?: BrandProfile;
+    address?: BusinessAddress;
+  }) =>
+    request<AuthResponse & { provider: Provider }>("/auth/list-business", {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
 
   // --- users ---
   userByEmail: (email: string) =>
     request<UserProfile | null>(`/users/email/${encodeURIComponent(email)}`, { auth: true }),
+  /** Authenticated image upload (JPEG/PNG/WebP/GIF, max 5 MB). */
+  uploadImage: (file: File) => uploadImageRequest(file),
+
+  /** Batch image upload (up to 8 files). */
+  uploadImages: (files: File[]) => uploadImagesRequest(files),
+
   updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
     request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
 
@@ -218,15 +298,30 @@ export const api = {
     serviceId: string;
     providerId: string;
     professionalId?: string;
+    roomId?: string;
     startTime: string;
     endTime: string;
     timezone?: string;
     notes?: string;
+    status?: BookingStatus;
   }) => request<Booking>("/bookings", { method: "POST", body: data, auth: true }),
   bookingsByConsumer: (consumerId: string) =>
     request<Booking[]>(`/bookings/consumer/${consumerId}`, { auth: true }),
-  bookingsByProvider: (providerId: string) =>
-    request<Booking[]>(`/bookings/provider/${providerId}`, { auth: true }),
+  bookingsByProvider: (
+    providerId: string,
+    opts?: { from?: string; to?: string; professionalId?: string; roomId?: string },
+  ) => {
+    const q = new URLSearchParams();
+    if (opts?.from) q.set("from", opts.from);
+    if (opts?.to) q.set("to", opts.to);
+    if (opts?.professionalId) q.set("professionalId", opts.professionalId);
+    if (opts?.roomId) q.set("roomId", opts.roomId);
+    const qs = q.toString();
+    return request<Booking[]>(
+      `/bookings/provider/${providerId}${qs ? `?${qs}` : ""}`,
+      { auth: true },
+    );
+  },
   updateBooking: (
     id: string,
     data: {
@@ -291,6 +386,9 @@ export const api = {
   provider: (id: string) => request<Provider>(`/providers/${id}`),
   providerBySlug: (slug: string) =>
     request<Provider>(`/providers/slug/${encodeURIComponent(slug)}`),
+  /** Root vanity practice — only when admin-approved. */
+  providerByVanity: (handle: string) =>
+    request<Provider>(`/providers/vanity/${encodeURIComponent(handle)}`),
   updateProvider: (
     id: string,
     data: {
@@ -303,6 +401,8 @@ export const api = {
       registrationNumber?: string | null;
       licenceNumber?: string | null;
       healthAuthorities?: HealthAuthorityBadge[];
+      vanityHandle?: string | null;
+      requestVanity?: boolean;
     },
   ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
 
@@ -465,6 +565,33 @@ export const api = {
   // --- treatment plans ---
   plansByConsumer: (consumerId: string) =>
     request<TreatmentPlan[]>(`/treatment-plans/consumer/${consumerId}`, { auth: true }),
+  plansByProvider: (providerId: string) =>
+    request<TreatmentPlan[]>(`/treatment-plans/provider/${providerId}`, { auth: true }),
+  createPlan: (data: {
+    consumerId: string;
+    providerId: string;
+    professionalId?: string;
+    name?: string;
+    description?: string;
+    startDate?: string;
+    endDate?: string;
+    phases?: unknown;
+    status?: string;
+    aiGenerated?: boolean;
+  }) => request<TreatmentPlan>("/treatment-plans", { method: "POST", body: data, auth: true }),
+  updatePlan: (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      startDate?: string;
+      endDate?: string;
+      phases?: unknown;
+      status?: string;
+    },
+  ) => request<TreatmentPlan>(`/treatment-plans/${id}`, { method: "PATCH", body: data, auth: true }),
+  deletePlan: (id: string) =>
+    request<void>(`/treatment-plans/${id}`, { method: "DELETE", auth: true }),
 
   // --- health profiles ---
   healthProfile: (consumerId: string) =>
@@ -487,9 +614,19 @@ export const api = {
     }),
 
   // --- professionals ---
-  professionals: () => request<Professional[]>('/professionals'),
+  professionals: () => request<Professional[]>("/professionals"),
+  professional: (id: string) =>
+    request<ProfessionalDetail>(`/professionals/${encodeURIComponent(id)}`),
   professionalBySlug: (slug: string) =>
     request<ProfessionalDetail>(`/professionals/slug/${encodeURIComponent(slug)}`),
+  /** Namespaced handle — /ayur/anita, /yoga/maya, /pro/dr-sharma */
+  professionalByHandle: (namespace: string, handle: string) =>
+    request<ProfessionalDetail>(
+      `/professionals/handle/${encodeURIComponent(namespace)}/${encodeURIComponent(handle)}`,
+    ),
+  /** Root vanity — only when admin-approved. */
+  professionalByVanity: (handle: string) =>
+    request<ProfessionalDetail>(`/professionals/vanity/${encodeURIComponent(handle)}`),
   professionalsByProvider: (providerId: string) =>
     request<Professional[]>(`/professionals/provider/${providerId}`, { auth: true }),
   publicProfessionalsByProvider: (providerId: string) =>
@@ -498,24 +635,210 @@ export const api = {
     userId: string;
     providerId: string;
     title?: string;
+    titleKind?: string;
     specializations?: string[];
     bio?: string;
     yearsExperience?: number;
     hourlyRate?: number;
-  }) => request<Professional>("/professionals", { method: "POST", body: data, auth: true }),
+  }) =>
+    request<Professional>("/professionals", { method: "POST", body: data, auth: true }),
   updateProfessional: (
     id: string,
     data: {
       title?: string;
+      titleKind?: string | null;
+      handle?: string | null;
+      handleNamespace?: string | null;
+      vanityHandle?: string | null;
+      requestVanity?: boolean;
       bio?: string;
       specializations?: string[];
       yearsExperience?: number;
+      hourlyRate?: number;
       registrationNumber?: string | null;
       licenceNumber?: string | null;
       healthAuthorities?: HealthAuthorityBadge[];
       verificationDocuments?: Professional["verificationDocuments"];
     },
   ) => request<Professional>(`/professionals/${id}`, { method: "PUT", body: data, auth: true }),
+  removeProfessional: (id: string) =>
+    request<{ id: string; removed: boolean }>(`/professionals/${id}`, {
+      method: "DELETE",
+      auth: true,
+    }),
+
+  // --- admin vanity ---
+  adminVanityRequests: () =>
+    request<
+      {
+        kind: "professional" | "provider";
+        id: string;
+        handle: string | null;
+        status: string;
+        requestedAt: string | null;
+        reviewedAt: string | null;
+        reviewNote: string | null;
+        displayName: string;
+        subtitle: string;
+        pathPreview: string | null;
+        namespacedPath: string | null;
+      }[]
+    >("/admin/vanity", { auth: true }),
+  adminReviewVanity: (
+    kind: "professional" | "provider",
+    id: string,
+    status: "approved" | "rejected" | "pending",
+    note?: string,
+  ) =>
+    request<unknown>(`/admin/vanity/${kind}/${id}`, {
+      method: "PUT",
+      body: { status, note },
+      auth: true,
+    }),
+
+  // --- quality control (rate / review / like / dislike) ---
+  qualitySummary: (targetType: QualityTargetType, targetId: string) =>
+    // Public route; send token when present so myReview / myReaction are included.
+    request<QualitySummary>(
+      `/quality/summary?targetType=${encodeURIComponent(targetType)}&targetId=${encodeURIComponent(targetId)}`,
+      { auth: Boolean(tokenStore.access) },
+    ),
+  qualityReviews: (targetType: QualityTargetType, targetId: string, take = 20) =>
+    request<QualityReview[]>(
+      `/quality/reviews?targetType=${encodeURIComponent(targetType)}&targetId=${encodeURIComponent(targetId)}&take=${take}`,
+    ),
+  upsertReview: (data: {
+    targetType: QualityTargetType;
+    targetId: string;
+    rating: number;
+    title?: string;
+    body?: string;
+  }) => request<QualityReview>("/quality/reviews", { method: "PUT", body: data, auth: true }),
+  deleteReview: (targetType: QualityTargetType, targetId: string) =>
+    request<{ deleted: boolean }>(
+      `/quality/reviews/${encodeURIComponent(targetType)}/${encodeURIComponent(targetId)}`,
+      { method: "DELETE", auth: true },
+    ),
+  setReaction: (data: {
+    targetType: QualityTargetType;
+    targetId: string;
+    value: "like" | "dislike" | "none";
+  }) => request<QualitySummary>("/quality/reactions", { method: "PUT", body: data, auth: true }),
+
+  /** Report abuse or send a product suggestion (guests OK with email). */
+  submitFeedback: (data: {
+    kind: "abuse" | "suggestion";
+    category: string;
+    message: string;
+    targetType?: string;
+    targetId?: string;
+    targetLabel?: string;
+    pageUrl?: string;
+    contactEmail?: string;
+    contactName?: string;
+  }) =>
+    request<{
+      id: string;
+      kind: string;
+      status: string;
+      category?: string;
+      createdAt?: string;
+      duplicate?: boolean;
+    }>("/quality/feedback", {
+      method: "POST",
+      body: data,
+      auth: Boolean(tokenStore.access),
+    }),
+
+  adminFeedback: (params?: { status?: string; kind?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.status) q.set("status", params.status);
+    if (params?.kind) q.set("kind", params.kind);
+    const qs = q.toString();
+    return request<FeedbackReportRow[]>(`/quality/feedback${qs ? `?${qs}` : ""}`, {
+      auth: true,
+    });
+  },
+
+  adminFeedbackCounts: () =>
+    request<FeedbackCounts>("/quality/feedback/counts", { auth: true }),
+
+  adminUpdateFeedback: (
+    id: string,
+    data: { status: "open" | "reviewing" | "resolved" | "dismissed"; adminNote?: string },
+  ) =>
+    request<FeedbackReportRow>(`/quality/feedback/${id}`, {
+      method: "PUT",
+      body: data,
+      auth: true,
+    }),
+};
+
+export type FeedbackCounts = {
+  open: number;
+  reviewing: number;
+  abuseOpen: number;
+  suggestionOpen: number;
+  total: number;
+};
+
+export type FeedbackReportRow = {
+  id: string;
+  kind: string;
+  category: string;
+  message: string;
+  targetType?: string | null;
+  targetId?: string | null;
+  targetLabel?: string | null;
+  pageUrl?: string | null;
+  userId?: string | null;
+  contactEmail?: string | null;
+  contactName?: string | null;
+  status: string;
+  adminNote?: string | null;
+  createdAt: string;
+  reporter?: { id: string; fullName: string | null; email: string } | null;
+};
+
+export type QualityTargetType =
+  | "provider"
+  | "professional"
+  | "service"
+  | "product"
+  | "retreat"
+  | "offer";
+
+export type QualitySummary = {
+  targetType: string;
+  targetId: string;
+  rating: number;
+  reviewCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  stars: Record<string, number>;
+  myReview: {
+    id: string;
+    rating: number;
+    title?: string | null;
+    body?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+  myReaction: "like" | "dislike" | null;
+};
+
+export type QualityReview = {
+  id: string;
+  rating: number;
+  title?: string | null;
+  body?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: {
+    id: string;
+    fullName?: string | null;
+    avatarUrl?: string | null;
+  };
 };
 
 export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {

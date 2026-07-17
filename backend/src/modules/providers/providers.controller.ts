@@ -31,6 +31,13 @@ export class ProvidersController {
     return this.service.findBySlug(slug);
   }
 
+  /** Root vanity — ayurpass.com/:handle for approved practices. */
+  @Public()
+  @Get('vanity/:handle')
+  byVanity(@Param('handle') handle: string) {
+    return this.service.findByVanity(handle);
+  }
+
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {

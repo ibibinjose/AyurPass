@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { Channel, SyncReport } from "@/lib/types";
 import { CompassIcon, LeafIcon, MoonIcon, SparkleIcon } from "@/components/icons";
+import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
 
 const CHANNEL_ICON: Record<string, typeof LeafIcon> = {
@@ -76,12 +77,12 @@ export default function ChannelsPage() {
   }
 
   return (
-    <div>
-      <h1 className="font-display text-3xl text-forest">Online channels</h1>
-      <p className="mt-1 text-ink-muted">
-        Connect AyurPass to your POS and calendar so your catalog, inventory and appointments stay
-        in sync everywhere you sell.
-      </p>
+    <div className="space-y-6">
+      <DashHeader
+        eyebrow="Practice"
+        title="Online channels"
+        description="Connect POS, payments and calendars so AyurPass stays in sync with your stack."
+      />
 
       {channels?.[0]?.mock && (
         <p className="mt-4 rounded-xl border border-gold-soft bg-clay/50 px-4 py-3 text-sm text-ink-secondary">

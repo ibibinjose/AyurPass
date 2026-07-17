@@ -1,50 +1,188 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
-import { formatMoney } from "@/lib/api";
+import { api, formatMoney } from "@/lib/api";
 import type {
   AdminOverview,
   Booking,
   Enquiry,
   HealthProfile,
   LoyaltySummary,
+  Order,
   Professional,
+  Provider,
   Service,
   TreatmentPlan,
   WellnessPackage,
 } from "@/lib/types";
 import type { Dosha } from "@/lib/dosha";
+import { DOSHA_INFO } from "@/lib/dosha";
+import {
+  followCount,
+  listFollows,
+  subscribeEngagement,
+  type EngagementTarget,
+} from "@/lib/engagement";
+import { practicePath, practitionerPath } from "@/lib/paths";
 import { BookingStatusBadge } from "@/components/BookingStatusBadge";
 import { DoshaMeterGroup } from "@/components/DoshaMeter";
+import { PaymentBadge } from "@/components/PaymentBadge";
 import { StatTile } from "@/components/StatTile";
-import { ArrowRightIcon } from "@/components/icons";
-import { EmptyState } from "@/components/ui";
+import {
+  DashCard,
+  DashHeader,
+  DashQuickLinks,
+} from "@/components/dashboard/DashboardKit";
+import {
+  ArrowRightIcon,
+  CalendarIcon,
+  CheckIcon,
+  CompassIcon,
+  GiftIcon,
+  HeartIcon,
+  LotusIcon,
+  SparkleIcon,
+  TrophyIcon,
+} from "@/components/icons";
+import { EmptyState, InlineSpinner } from "@/components/ui";
 
 function firstName(full?: string | null) {
   return full?.split(" ")[0] ?? "there";
 }
 
+function greetingForHour(h: number) {
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 function ConsumerOverview() {
   const { user } = useAuth();
   const [health, setHealth] = useState<HealthProfile | null | undefined>(undefined);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [plans, setPlans] = useState<TreatmentPlan[]>([]);
-  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [bookings, setBookings] = useState<Booking[] | null>(null);
+  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [plans, setPlans] = useState<TreatmentPlan[] | null>(null);
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null | undefined>(undefined);
+  const [giftBalance, setGiftBalance] = useState<number | null>(null);
+  const [follows, setFollows] = useState<EngagementTarget[]>([]);
+  const [followedProviders, setFollowedProviders] = useState<
+    Map<string, Pick<Provider, "id" | "businessName" | "slug" | "type">>
+  >(new Map());
+  const [followedPros, setFollowedPros] = useState<
+    Map<string, { id: string; name: string; href: string }>
+  >(new Map());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const sync = () => setFollows(listFollows());
+    sync();
+    return subscribeEngagement(sync);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
-    api.healthProfile(user.id).then(setHealth).catch(() => setHealth(null));
-    api.bookingsByConsumer(user.id).then(setBookings).catch(() => {});
-    api.plansByConsumer(user.id).then(setPlans).catch(() => {});
-    api.loyalty().then(setLoyalty).catch(() => {});
+    let cancelled = false;
+    setLoading(true);
+    Promise.allSettled([
+      api.healthProfile(user.id),
+      api.bookingsByConsumer(user.id),
+      api.ordersByConsumer(user.id),
+      api.plansByConsumer(user.id),
+      api.loyalty(),
+      api.myGiftCards(),
+    ]).then((results) => {
+      if (cancelled) return;
+      const [h, b, o, p, l, g] = results;
+      setHealth(h.status === "fulfilled" ? h.value : null);
+      setBookings(b.status === "fulfilled" ? b.value : []);
+      setOrders(o.status === "fulfilled" ? o.value : []);
+      setPlans(p.status === "fulfilled" ? p.value : []);
+      setLoyalty(l.status === "fulfilled" ? l.value : null);
+      if (g.status === "fulfilled") {
+        const sum = g.value
+          .filter((c) => c.status === "active")
+          .reduce((acc, c) => acc + Number(c.balance || 0), 0);
+        setGiftBalance(sum);
+      } else {
+        setGiftBalance(null);
+      }
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  const upcoming = bookings.filter(
-    (b) => new Date(b.startTime) > new Date() && b.status !== "CANCELLED",
+  // Resolve followed practice / pro names for the “Following” strip
+  useEffect(() => {
+    const providers = follows.filter((f) => f.kind === "provider");
+    const pros = follows.filter((f) => f.kind === "professional");
+    let cancelled = false;
+
+    if (providers.length) {
+      Promise.all(
+        providers.slice(0, 8).map((f) =>
+          api.provider(f.id).catch(() => null),
+        ),
+      ).then((rows) => {
+        if (cancelled) return;
+        const map = new Map<string, Pick<Provider, "id" | "businessName" | "slug" | "type">>();
+        for (const row of rows) {
+          if (row) map.set(row.id, row);
+        }
+        setFollowedProviders(map);
+      });
+    } else {
+      setFollowedProviders(new Map());
+    }
+
+    if (pros.length) {
+      Promise.all(
+        pros.slice(0, 8).map((f) =>
+          api.professional(f.id).catch(() => null),
+        ),
+      ).then((rows) => {
+        if (cancelled) return;
+        const map = new Map<string, { id: string; name: string; href: string }>();
+        for (const row of rows) {
+          if (!row) continue;
+          map.set(row.id, {
+            id: row.id,
+            name: row.user?.fullName || row.title || "Practitioner",
+            href: practitionerPath(row),
+          });
+        }
+        setFollowedPros(map);
+      });
+    } else {
+      setFollowedPros(new Map());
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [follows]);
+
+  const now = useMemo(() => new Date(), []);
+  const bookingList = bookings ?? [];
+  const orderList = orders ?? [];
+  const planList = plans ?? [];
+
+  const upcoming = bookingList
+    .filter((b) => new Date(b.startTime) > now && b.status !== "CANCELLED")
+    .sort((a, b) => +new Date(a.startTime) - +new Date(b.startTime));
+  const unpaidBookings = bookingList.filter(
+    (b) => b.paymentStatus === "unpaid" && b.status !== "CANCELLED",
   );
+  const unpaidOrders = orderList.filter(
+    (o) => o.paymentStatus === "unpaid" && o.status !== "CANCELLED",
+  );
+  const activePlans = planList.filter((p) => (p.status || "").toLowerCase() === "active");
+  const recentOrders = [...orderList]
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, 3);
 
   const scores = health
     ? {
@@ -57,152 +195,540 @@ function ConsumerOverview() {
     scores &&
     ((Object.entries(scores) as [Dosha, number][]).sort((a, b) => b[1] - a[1])[0][0] as Dosha);
 
+  const checklist = [
+    {
+      id: "dosha",
+      done: Boolean(health),
+      title: "Complete your dosha assessment",
+      body: "Personalise Discover and care recommendations.",
+      href: "/dashboard/assessment",
+      cta: health ? "View result" : "Start",
+    },
+    {
+      id: "book",
+      done: bookingList.length > 0,
+      title: "Book your first session",
+      body: "Consultation, yoga, spa or therapy near you.",
+      href: "/explore",
+      cta: bookingList.length ? "Book again" : "Explore",
+    },
+    {
+      id: "privacy",
+      done: false, // soft nudge — always linkable
+      title: "Review privacy & sharing",
+      body: "Control who can see your health profile.",
+      href: "/dashboard/permissions",
+      cta: "Open",
+      soft: true,
+    },
+  ];
+  const checklistOpen = checklist.filter((c) => !c.done && !("soft" in c && c.soft));
+  const profileStrength = Math.round(
+    ([Boolean(health), bookingList.length > 0, Boolean(user?.fullName), Boolean(loyalty)]
+      .filter(Boolean).length /
+      4) *
+      100,
+  );
+
+  const hour = new Date().getHours();
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl text-forest">
-          Namaste, {firstName(user?.fullName)}
-        </h1>
-        <p className="mt-1 text-ink-muted">Your wellness sanctuary at a glance.</p>
+      <DashHeader
+        eyebrow="Wellness seeker"
+        title={`${greetingForHour(hour)}, ${firstName(user?.fullName)}`}
+        description="Your bookings, constitution, rewards and care plans — one sanctuary."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/explore"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
+            >
+              <CalendarIcon className="h-4 w-4" />
+              Book a session
+            </Link>
+            <Link
+              href="/discover"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest hover:border-leaf"
+            >
+              <CompassIcon className="h-4 w-4" />
+              Discover
+            </Link>
+          </div>
+        }
+      />
+
+      {loading ? (
+        <div className="flex min-h-[12rem] items-center justify-center rounded-2xl border border-hairline bg-surface">
+          <InlineSpinner label="Loading your wellness home…" />
+        </div>
+      ) : null}
+
+      {/* Needs attention */}
+      {(unpaidBookings.length > 0 || unpaidOrders.length > 0) && !loading ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-5 py-4">
+          <p className="text-sm font-bold text-amber-950">Needs attention</p>
+          <ul className="mt-2 space-y-1.5 text-sm font-medium text-amber-900/90">
+            {unpaidBookings.length > 0 ? (
+              <li>
+                <Link href="/dashboard/bookings" className="underline-offset-2 hover:underline">
+                  {unpaidBookings.length} unpaid booking
+                  {unpaidBookings.length === 1 ? "" : "s"} — pay to confirm
+                </Link>
+              </li>
+            ) : null}
+            {unpaidOrders.length > 0 ? (
+              <li>
+                <Link href="/dashboard/purchases" className="underline-offset-2 hover:underline">
+                  {unpaidOrders.length} unpaid order
+                  {unpaidOrders.length === 1 ? "" : "s"} in the shop
+                </Link>
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href="/dashboard/bookings" className="block transition-opacity hover:opacity-90">
+          <StatTile
+            label="Upcoming sessions"
+            value={upcoming.length}
+            hint={
+              unpaidBookings.length
+                ? `${unpaidBookings.length} unpaid`
+                : bookingList.length
+                  ? `${bookingList.length} total`
+                  : "Book your first"
+            }
+          />
+        </Link>
+        <Link href="/dashboard/plans" className="block transition-opacity hover:opacity-90">
+          <StatTile
+            label="Active plans"
+            value={activePlans.length}
+            hint={planList.length ? `${planList.length} total plans` : "Shared by your care team"}
+          />
+        </Link>
+        <Link href="/dashboard/rewards" className="block transition-opacity hover:opacity-90">
+          <StatTile
+            label="Reward points"
+            value={loyalty ? loyalty.pointsBalance.toLocaleString() : "—"}
+            hint={loyalty ? `${loyalty.tier} · worth ${formatMoney(loyalty.pointsValue)}` : undefined}
+          />
+        </Link>
+        <Link href="/dashboard/gift-cards" className="block transition-opacity hover:opacity-90">
+          <StatTile
+            label="Gift card balance"
+            value={giftBalance != null ? formatMoney(giftBalance) : "—"}
+            hint={followCount() ? `Following ${followCount()}` : "Give or redeem wellness"}
+          />
+        </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Upcoming sessions" value={upcoming.length} />
-        <StatTile
-          label="Active treatment plans"
-          value={plans.filter((p) => p.status === "active").length}
-        />
-        <StatTile label="Total bookings" value={bookings.length} />
-        <StatTile
-          label="Reward points"
-          value={loyalty ? loyalty.pointsBalance.toLocaleString() : "—"}
-          hint={loyalty ? `${loyalty.tier} member` : undefined}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Primary CTAs */}
+      <div className="grid gap-3 sm:grid-cols-2">
         <Link
           href="/explore"
-          className="group flex items-center justify-between rounded-2xl bg-forest p-6 text-white hover:bg-forest-deep"
+          className="group relative overflow-hidden rounded-2xl bg-forest p-6 text-white shadow-[0_8px_28px_rgba(36,56,46,0.18)] hover:bg-forest-deep"
         >
-          <div>
-            <h2 className="font-display text-xl">Book your next session</h2>
-            <p className="mt-1 text-sm text-white/70">
-              Ayurveda, yoga, spa and meditation, matched to your constitution.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold-soft/90">
+                Book
+              </p>
+              <h2 className="mt-1 font-display text-xl">Your next session</h2>
+              <p className="mt-1.5 text-sm text-white/75">
+                Ayurveda, yoga, spa and meditation
+                {primary ? ` · suited to ${DOSHA_INFO[primary].name}` : ""}.
+              </p>
+            </div>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+              <CalendarIcon className="h-5 w-5" />
+            </span>
           </div>
-          <ArrowRightIcon className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1" />
+          <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-soft">
+            Browse sessions
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
         </Link>
         <Link
           href="/shop"
-          className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
+          className="group rounded-2xl border border-hairline bg-surface p-6 shadow-[0_4px_20px_rgba(36,56,46,0.04)] hover:border-leaf"
         >
-          <div>
-            <h2 className="font-display text-xl text-forest">Visit the wellness shop</h2>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Herbal formulations, oils and goods for your dosha.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">Shop</p>
+              <h2 className="mt-1 font-display text-xl text-forest">Wellness shop</h2>
+              <p className="mt-1.5 text-sm text-ink-secondary">
+                Herbs, oils and goods from verified practices.
+              </p>
+            </div>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-leaf/15 text-forest">
+              <LotusIcon className="h-5 w-5" />
+            </span>
           </div>
-          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
+          <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-forest">
+            Visit shop
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
         </Link>
       </div>
 
-      {/* Everything in one place: find wellness, explore retreats, or become a provider. */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Link
-          href="/discover"
-          className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
-        >
-          <div>
-            <h2 className="font-display text-lg text-forest">Discover places</h2>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Ayurveda, yoga, spa, meditation & health clubs near you.
-            </p>
-          </div>
-          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
-        </Link>
-        <Link
-          href="/retreats"
-          className="group flex items-center justify-between rounded-2xl border border-hairline bg-surface p-6 hover:border-leaf"
-        >
-          <div>
-            <h2 className="font-display text-lg text-forest">Explore retreats</h2>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Handpicked retreats & trainings around the world.
-            </p>
-          </div>
-          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
-        </Link>
-        <Link
-          href="/list-your-business"
-          className="group flex items-center justify-between rounded-2xl border border-dashed border-hairline bg-surface p-6 hover:border-leaf"
-        >
-          <div>
-            <h2 className="font-display text-lg text-forest">Own a business?</h2>
-            <p className="mt-1 text-sm text-ink-secondary">
-              List it free and get discovered — no booking platform required.
-            </p>
-          </div>
-          <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
-        </Link>
-      </div>
+      <DashQuickLinks
+        items={[
+          {
+            href: "/discover",
+            title: "Discover practices",
+            body: "Clinics, studios, spas & health clubs",
+          },
+          {
+            href: "/retreats",
+            title: "Retreats",
+            body: "Immersive programmes worldwide",
+          },
+          {
+            href: "/offers",
+            title: "Offers",
+            body: "Seasonal packages & specials",
+          },
+          {
+            href: "/dashboard/assessment",
+            title: scores ? "Your dosha" : "Dosha assessment",
+            body: scores && primary ? `${DOSHA_INFO[primary].name} primary` : "Map Vata · Pitta · Kapha",
+          },
+          {
+            href: "/dashboard/rewards",
+            title: "Rewards",
+            body: loyalty
+              ? `${loyalty.pointsBalance.toLocaleString()} pts · ${loyalty.tier}`
+              : "Earn on every booking",
+          },
+          {
+            href: "/dashboard/gift-cards",
+            title: "Gift cards",
+            body: "Give wellness to someone you love",
+          },
+        ]}
+      />
 
-      <section className="rounded-2xl border border-hairline bg-surface p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl text-forest">Your constitution</h2>
-          <Link
-            href="/dashboard/assessment"
-            className="flex items-center gap-1.5 text-sm font-medium text-forest hover:underline"
-          >
-            {health ? "Retake assessment" : "Take assessment"}
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
-        </div>
-        <div className="mt-5">
-          {health === undefined ? (
-            <div className="h-32 animate-pulse rounded-xl bg-clay/70" />
-          ) : scores ? (
-            <DoshaMeterGroup {...scores} primary={primary ?? undefined} />
-          ) : (
-            <EmptyState
-              title="Your dosha profile awaits"
-              body="Answer twelve gentle questions to map your Vata, Pitta and Kapha balance — everything on AyurPass is personalised from it."
+      {/* Getting started */}
+      {checklistOpen.length > 0 ? (
+        <DashCard
+          title="Getting started"
+          description={`Profile strength ${profileStrength}% — complete these steps for a personalised experience.`}
+        >
+          <div className="mb-4 h-2 overflow-hidden rounded-full bg-clay">
+            <div
+              className="h-full rounded-full bg-forest transition-all"
+              style={{ width: `${profileStrength}%` }}
             />
-          )}
-        </div>
-      </section>
+          </div>
+          <ul className="space-y-2">
+            {checklist.map((item) => (
+              <li
+                key={item.id}
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+                  item.done
+                    ? "border-leaf/30 bg-leaf/5"
+                    : "border-hairline bg-clay/20"
+                }`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-forest">
+                    {item.done ? (
+                      <span className="mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-leaf text-white align-[-0.15em]">
+                        <CheckIcon className="h-2.5 w-2.5" strokeWidth={3} />
+                      </span>
+                    ) : null}
+                    {item.title}
+                  </p>
+                  <p className="text-xs font-medium text-ink-muted">{item.body}</p>
+                </div>
+                <Link
+                  href={item.href}
+                  className="shrink-0 rounded-full bg-forest px-3.5 py-1.5 text-xs font-bold text-white hover:bg-forest-deep"
+                >
+                  {item.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </DashCard>
+      ) : null}
 
-      <section>
-        <h2 className="font-display text-xl text-forest">Recent bookings</h2>
-        <div className="mt-4">
-          {bookings.length === 0 ? (
+      {/* Upcoming + constitution */}
+      <div className="grid gap-4 lg:grid-cols-5">
+        <section className="space-y-3 lg:col-span-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-display text-xl text-forest">Upcoming sessions</h2>
+            <Link
+              href="/dashboard/bookings"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-forest hover:underline"
+            >
+              All bookings
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {bookings === null ? (
+            <div className="h-28 animate-pulse rounded-2xl bg-clay/70" />
+          ) : upcoming.length === 0 ? (
             <EmptyState
-              title="No bookings yet"
-              body="When you book a consultation, class or treatment, it will appear here."
+              title="Nothing scheduled"
+              body="Book a consultation, class or treatment — it will show here with pay and calendar options."
+              action={
+                <Link
+                  href="/explore"
+                  className="inline-flex min-h-10 items-center rounded-full bg-forest px-4 text-sm font-semibold text-white"
+                >
+                  Explore sessions
+                </Link>
+              }
             />
           ) : (
-            <ul className="space-y-3">
-              {bookings.slice(0, 3).map((b) => (
+            <ul className="space-y-2.5">
+              {upcoming.slice(0, 4).map((b) => (
                 <li
                   key={b.id}
-                  className="flex items-center justify-between rounded-2xl border border-hairline bg-surface px-5 py-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3.5 sm:px-5"
                 >
-                  <div>
-                    <p className="font-medium text-foreground">{b.service?.name ?? "Session"}</p>
-                    <p className="text-sm text-ink-muted">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground">
+                      {b.service?.name ?? "Session"}
+                    </p>
+                    <p className="mt-0.5 text-sm text-ink-muted">
+                      {b.provider?.businessName ? `${b.provider.businessName} · ` : ""}
                       {new Date(b.startTime).toLocaleString(undefined, {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
                     </p>
                   </div>
-                  <BookingStatusBadge status={b.status} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <BookingStatusBadge status={b.status} />
+                    <PaymentBadge status={b.paymentStatus} />
+                    {b.paymentStatus === "unpaid" ? (
+                      <Link
+                        href="/dashboard/bookings"
+                        className="rounded-full bg-forest px-3 py-1 text-xs font-bold text-white"
+                      >
+                        Pay
+                      </Link>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
+        </section>
+
+        <section className="lg:col-span-2">
+          <DashCard
+            title="Your constitution"
+            description={
+              primary
+                ? `Primary dosha: ${DOSHA_INFO[primary].name}`
+                : "Map your prakriti in a few minutes."
+            }
+            footer={
+              <Link
+                href="/dashboard/assessment"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-forest hover:underline"
+              >
+                {health ? "Retake assessment" : "Take assessment"}
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            }
+          >
+            {health === undefined ? (
+              <div className="h-28 animate-pulse rounded-xl bg-clay/70" />
+            ) : scores ? (
+              <DoshaMeterGroup {...scores} primary={primary ?? undefined} />
+            ) : (
+              <p className="text-sm font-medium leading-relaxed text-ink-muted">
+                Answer twelve gentle questions to map Vata, Pitta and Kapha — then
+                recommendations on AyurPass personalise to you.
+              </p>
+            )}
+          </DashCard>
+        </section>
+      </div>
+
+      {/* Plans + orders */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DashCard
+          title="Treatment plans"
+          description="Care plans shared with you by practitioners (with your consent)."
+          footer={
+            <Link
+              href="/dashboard/plans"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-forest hover:underline"
+            >
+              View all plans
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+          }
+        >
+          {plans === null ? (
+            <div className="h-20 animate-pulse rounded-xl bg-clay/70" />
+          ) : planList.length === 0 ? (
+            <p className="text-sm font-medium text-ink-muted">
+              When a practitioner shares a plan and you grant access, it appears here.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {planList.slice(0, 3).map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-hairline px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-forest">
+                      {p.name?.trim() || "Personalised plan"}
+                    </p>
+                    <p className="truncate text-xs text-ink-muted">
+                      {p.provider?.businessName ?? "Practice"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase text-ink-muted">
+                    {p.status || "draft"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </DashCard>
+
+        <DashCard
+          title="Recent orders"
+          description="Shop purchases from AyurPass providers."
+          footer={
+            <Link
+              href="/dashboard/purchases"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-forest hover:underline"
+            >
+              All orders
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </Link>
+          }
+        >
+          {orders === null ? (
+            <div className="h-20 animate-pulse rounded-xl bg-clay/70" />
+          ) : recentOrders.length === 0 ? (
+            <p className="text-sm font-medium text-ink-muted">
+              No shop orders yet.{" "}
+              <Link href="/shop" className="font-semibold text-forest hover:underline">
+                Browse the shop
+              </Link>
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {recentOrders.map((o) => (
+                <li
+                  key={o.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-hairline px-3 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {o.items
+                        .map((i) => `${i.quantity}× ${i.product?.name ?? "item"}`)
+                        .join(", ")}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {formatMoney(o.subtotal)} ·{" "}
+                      {new Date(o.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <PaymentBadge status={o.paymentStatus} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </DashCard>
+      </div>
+
+      {/* Following */}
+      {follows.length > 0 ? (
+        <DashCard
+          title="Following"
+          description="Practices and practitioners you follow — open their page anytime."
+        >
+          <ul className="flex flex-wrap gap-2">
+            {[...followedProviders.values()].map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={practicePath(p)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-clay/30 px-3 py-1.5 text-xs font-semibold text-forest hover:border-leaf"
+                >
+                  <HeartIcon className="h-3 w-3" filled />
+                  {p.businessName}
+                </Link>
+              </li>
+            ))}
+            {[...followedPros.values()].map((p) => (
+              <li key={p.id}>
+                <Link
+                  href={p.href}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-clay/30 px-3 py-1.5 text-xs font-semibold text-forest hover:border-leaf"
+                >
+                  <SparkleIcon className="h-3 w-3" />
+                  {p.name}
+                </Link>
+              </li>
+            ))}
+            {followedProviders.size === 0 && followedPros.size === 0 ? (
+              <li className="text-xs font-medium text-ink-muted">Loading names…</li>
+            ) : null}
+          </ul>
+        </DashCard>
+      ) : null}
+
+      {/* Rewards strip */}
+      {loyalty ? (
+        <Link
+          href="/dashboard/rewards"
+          className="group flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-hairline bg-gradient-to-br from-gold-soft/40 to-surface p-5 hover:border-leaf"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-forest text-gold-soft">
+              <TrophyIcon className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-forest">
+                {loyalty.tier} · {loyalty.pointsBalance.toLocaleString()} points
+              </p>
+              <p className="text-xs font-medium text-ink-muted">
+                Worth {formatMoney(loyalty.pointsValue)} at checkout
+                {loyalty.nextTier
+                  ? ` · ${loyalty.pointsToNextTier.toLocaleString()} to ${loyalty.nextTier}`
+                  : ""}
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-forest">
+            View rewards
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      ) : null}
+
+      <div className="rounded-2xl border border-dashed border-hairline bg-clay/20 px-5 py-4 text-center sm:text-left">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-bold text-forest">Own a wellness practice?</p>
+            <p className="text-xs font-medium text-ink-muted">
+              List free on Discover — enquiries land in your dashboard.
+            </p>
+          </div>
+          <Link
+            href="/list-your-business"
+            className="inline-flex items-center justify-center gap-1 rounded-full border border-hairline bg-surface px-4 py-2 text-xs font-bold text-forest hover:border-leaf"
+          >
+            <GiftIcon className="h-3.5 w-3.5" />
+            List your business
+          </Link>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -269,10 +795,9 @@ function ProviderOverview() {
           label="Bookable sessions"
           value={services.filter((s) => s.category !== "PACKAGE").length}
         />
-        <StatTile label="Packages" value={packages.length} />
+        <StatTile label="Team" value={team.length} hint="Practitioners" />
       </div>
 
-      {/* Listing-only practices: nudge toward the booking upgrade. */}
       {isListing && (
         <Link
           href="/dashboard/services"
@@ -281,13 +806,58 @@ function ProviderOverview() {
           <div>
             <h2 className="font-display text-xl text-forest">Start accepting online bookings</h2>
             <p className="mt-1 text-sm text-ink-secondary">
-              You&apos;re on a free listing. Add a bookable session to take bookings &amp; payments
-              through AyurPass — clients can book you directly.
+              Add a bookable session to take bookings &amp; payments through AyurPass —
+              clients can book you directly.
             </p>
           </div>
           <ArrowRightIcon className="h-5 w-5 shrink-0 text-forest transition-transform group-hover:translate-x-1" />
         </Link>
       )}
+
+      {/* Multi-resource ops */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Link
+          href="/dashboard/calendar"
+          className="group rounded-2xl border border-hairline bg-surface p-5 hover:border-leaf"
+        >
+          <h2 className="font-display text-lg text-forest">Staff calendar</h2>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Multiple therapists · different rooms · same time
+          </p>
+          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-forest">
+            Open calendar
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+        <Link
+          href="/dashboard/team"
+          className="group rounded-2xl border border-hairline bg-surface p-5 hover:border-leaf"
+        >
+          <h2 className="font-display text-lg text-forest">Team</h2>
+          <p className="mt-1 text-sm text-ink-secondary">
+            {team.length
+              ? `${team.length} practitioner${team.length === 1 ? "" : "s"} on roster`
+              : "Add practitioners for parallel sessions"}
+          </p>
+          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-forest">
+            Manage team
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+        <Link
+          href="/dashboard/rooms"
+          className="group rounded-2xl border border-hairline bg-surface p-5 hover:border-leaf"
+        >
+          <h2 className="font-display text-lg text-forest">Rooms</h2>
+          <p className="mt-1 text-sm text-ink-secondary">
+            Assign spaces so concurrent treatments don&apos;t clash
+          </p>
+          <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-forest">
+            Manage rooms
+            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Link
@@ -297,7 +867,7 @@ function ProviderOverview() {
           <h2 className="font-display text-xl text-forest">Your public page</h2>
           <p className="mt-2 text-sm text-ink-secondary">See exactly how visitors discover you.</p>
           <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest">
-            View listing
+            View practice
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </Link>
@@ -313,7 +883,7 @@ function ProviderOverview() {
               </span>
             )}
           </h2>
-          <p className="mt-2 text-sm text-ink-secondary">Leads sent from your listing page.</p>
+          <p className="mt-2 text-sm text-ink-secondary">Leads from your public practice page.</p>
           <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest">
             View leads
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

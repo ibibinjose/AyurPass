@@ -85,6 +85,24 @@ export function isLiked(target: EngagementTarget): boolean {
   return likes.has(storageKey(target));
 }
 
+/** All currently followed practices / practitioners (local storage). */
+export function listFollows(): EngagementTarget[] {
+  return [...follows]
+    .map((k) => {
+      const i = k.indexOf(":");
+      if (i <= 0) return null;
+      const kind = k.slice(0, i) as EngagementKind;
+      const id = k.slice(i + 1);
+      if ((kind !== "provider" && kind !== "professional") || !id) return null;
+      return { kind, id };
+    })
+    .filter((t): t is EngagementTarget => Boolean(t));
+}
+
+export function followCount(): number {
+  return follows.size;
+}
+
 export function toggleFollow(target: EngagementTarget): boolean {
   const k = storageKey(target);
   if (follows.has(k)) follows.delete(k);

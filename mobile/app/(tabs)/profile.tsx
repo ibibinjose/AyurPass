@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   Alert,
+  Image,
   Pressable,
   ScrollView,
   Text,
@@ -12,13 +14,13 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Body, Card, VerifiedTick } from "../../src/components/ui";
+import { Card, VerifiedTick } from "../../src/components/ui";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
-import { api } from "../../src/api";
+import { api, ApiError } from "../../src/api";
 import type { Dosha } from "../../src/dosha";
 import type { HealthProfile, LoyaltySummary } from "../../src/types";
-import { colors, fonts, radius, spacing } from "../../src/theme";
+import { colors, fonts, radius } from "../../src/theme";
 
 function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: number; primary: Dosha } {
   const vata = Number(p.vataScore ?? 0);
@@ -61,12 +63,13 @@ function Row({
  * soft cards, springy rows (mirrors web ProfileThemeScope vibe).
  */
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const pad = width >= 400 ? 20 : 16;
   const [health, setHealth] = useState<HealthProfile | null>(null);
   const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -84,6 +87,95 @@ export default function Profile() {
       .slice(0, 2)
       .join("")
       .toUpperCase() ?? "AP";
+
+  async function saveAvatarUrl(url: string | null) {
+    if (!user) return;
+    setAvatarBusy(true);
+    try {
+      await api.updateUser(user.id, { avatarUrl: url || undefined });
+      await refreshProfile();
+    } catch (e) {
+      Alert.alert(
+        "Couldn't save photo",
+        e instanceof ApiError ? e.message : "Please try again.",
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function pickAvatarFromLibrary() {
+    if (!user || avatarBusy) return;
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission needed", "Allow photo library access to set your avatar.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setAvatarBusy(true);
+    try {
+      const uploaded = await api.uploadImage({
+        uri: asset.uri,
+        name: asset.fileName ?? "avatar.jpg",
+        type: asset.mimeType ?? "image/jpeg",
+      });
+      await api.updateUser(user.id, { avatarUrl: uploaded.url });
+      await refreshProfile();
+    } catch (e) {
+      Alert.alert(
+        "Upload failed",
+        e instanceof ApiError ? e.message : "Try again or paste an image link.",
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  function promptAvatarLink() {
+    // Alert.prompt is iOS-only.
+    if (typeof Alert.prompt === "function") {
+      Alert.prompt(
+        "Profile photo link",
+        "Paste an image URL (https://…)",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Save",
+            onPress: (value?: string) => {
+              const url = value?.trim();
+              if (url) void saveAvatarUrl(url);
+            },
+          },
+        ],
+        "plain-text",
+        user?.avatarUrl ?? "",
+      );
+      return;
+    }
+    Alert.alert(
+      "Paste image link",
+      "On Android, use Upload from library, or set your photo from the web app Settings.",
+    );
+  }
+
+  function openAvatarOptions() {
+    if (!user || avatarBusy) return;
+    Alert.alert("Profile photo", "Upload from your device or paste an image link.", [
+      { text: "Upload from library", onPress: () => void pickAvatarFromLibrary() },
+      { text: "Paste image link", onPress: promptAvatarLink },
+      ...(user.avatarUrl
+        ? [{ text: "Remove photo", style: "destructive" as const, onPress: () => void saveAvatarUrl(null) }]
+        : []),
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }
 
   function confirmLogout() {
     Alert.alert("Sign out", "Are you sure you want to sign out?", [
@@ -107,11 +199,25 @@ export default function Profile() {
             style={styles.heroGradient}
           />
           <View style={[styles.heroContent, { paddingHorizontal: pad }]}>
-            <View style={styles.avatarRing}>
+            <Pressable
+              onPress={openAvatarOptions}
+              disabled={avatarBusy}
+              accessibilityRole="button"
+              accessibilityLabel="Change profile photo"
+              style={({ pressed }) => [styles.avatarRing, pressed && { opacity: 0.9 }]}
+            >
               <View style={styles.avatarInner}>
-                <Text style={styles.avatarText}>{initials}</Text>
+                {user?.avatarUrl ? (
+                  <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>{initials}</Text>
+                )}
               </View>
-            </View>
+              <View style={styles.avatarBadge}>
+                <Ionicons name={avatarBusy ? "hourglass-outline" : "camera"} size={14} color={colors.forest} />
+              </View>
+            </Pressable>
+            <Text style={styles.avatarHint}>{avatarBusy ? "Saving…" : "Tap to change photo"}</Text>
             <View style={styles.nameRow}>
               <Text style={styles.name} numberOfLines={1}>
                 {user?.fullName ?? "Wellness seeker"}
@@ -215,7 +321,7 @@ const styles = StyleSheet.create({
     borderRadius: 52,
     padding: 4,
     backgroundColor: "rgba(255,255,255,0.35)",
-    marginBottom: 14,
+    marginBottom: 6,
   },
   avatarInner: {
     flex: 1,
@@ -225,6 +331,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: colors.surface,
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarBadge: {
+    position: "absolute",
+    right: 2,
+    bottom: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+  },
+  avatarHint: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 10,
   },
   avatarText: {
     fontFamily: fonts.display,

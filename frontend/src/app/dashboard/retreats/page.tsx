@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { formatRetreatDates, RETREAT_CATEGORIES, RETREAT_CATEGORY_LABEL } from "@/lib/catalog";
 import type { Retreat, RetreatCategory, RetreatInput } from "@/lib/types";
+import { MediaGalleryField } from "@/components/MediaField";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
 
 const SKILL_LEVELS = ["All levels", "Beginner", "Intermediate", "Advanced"];
@@ -142,7 +143,10 @@ export default function DashboardRetreatsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl text-forest">Retreats &amp; trainings</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+            Catalogue
+          </p>
+          <h1 className="mt-1 font-display text-3xl text-forest">Retreats &amp; trainings</h1>
           <p className="mt-1 text-ink-muted">
             Publish multi-day programs to the AyurPass retreat directory.
           </p>
@@ -200,9 +204,16 @@ export default function DashboardRetreatsPage() {
               </Select>
             </Field>
           </div>
-          <Field label="Image URLs" hint="One per line — first is the cover.">
-            <Textarea rows={3} value={form.images} onChange={(e) => set("images", e.target.value)} placeholder={"https://…\nhttps://…"} />
-          </Field>
+          <MediaGalleryField
+            label="Retreat photos"
+            values={form.images
+              .split(/[\n,]/)
+              .map((s) => s.trim())
+              .filter(Boolean)}
+            onChange={(urls) => set("images", urls.join("\n"))}
+            hint="Upload or paste URLs — first image is the cover."
+            max={12}
+          />
           <Field label="Highlights" hint="Comma separated.">
             <Input value={form.highlights} onChange={(e) => set("highlights", e.target.value)} placeholder="Daily yoga, Ocean-view rooms, Ayurvedic meals" />
           </Field>

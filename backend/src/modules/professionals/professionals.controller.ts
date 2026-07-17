@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Body, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Req } from '@nestjs/common';
 import { ProfessionalsService } from './professionals.service';
 import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
 import { Public } from '../../common/public.decorator';
@@ -43,6 +43,23 @@ export class ProfessionalsController {
     return this.professionalsService.findBySlug(slug);
   }
 
+  /** /professionals/handle/ayur/anita */
+  @Public()
+  @Get('handle/:namespace/:handle')
+  byHandle(
+    @Param('namespace') namespace: string,
+    @Param('handle') handle: string,
+  ) {
+    return this.professionalsService.findByHandle(namespace, handle);
+  }
+
+  /** /professionals/vanity/deepak — root vanity (admin-approved) */
+  @Public()
+  @Get('vanity/:handle')
+  byVanity(@Param('handle') handle: string) {
+    return this.professionalsService.findByVanity(handle);
+  }
+
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -57,5 +74,11 @@ export class ProfessionalsController {
   ) {
     await assertProfessionalProviderAccess(this.prisma, req.user, id);
     return this.professionalsService.updateProfessional(id, updateProfessionalDto);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Req() req: AuthedRequest) {
+    await assertProfessionalProviderAccess(this.prisma, req.user, id);
+    return this.professionalsService.removeFromPractice(id);
   }
 }

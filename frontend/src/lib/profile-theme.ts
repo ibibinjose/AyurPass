@@ -1,51 +1,61 @@
-/** Profile accent themes — neo-minimal personalization. */
+/** Profile accent themes — vibrant, lively personalization (not muted/dark). */
 
 export type ProfileAccentId = "forest" | "gold" | "ocean" | "plum" | "clay";
 
 export interface ProfileAccent {
   id: ProfileAccentId;
   label: string;
-  /** CSS color for rings / primary actions */
+  /** CSS color for rings / primary actions — saturated mid-tones */
   primary: string;
   soft: string;
   gradient: string;
 }
 
+/**
+ * Vibrant accents: bright enough for energy, still strong enough for white CTAs.
+ * Soft fills use higher alpha so chips/buttons feel present, not washed out.
+ */
 export const PROFILE_ACCENTS: ProfileAccent[] = [
   {
     id: "forest",
     label: "Forest",
-    primary: "#1e3228",
-    soft: "rgba(47, 90, 68, 0.14)",
-    gradient: "linear-gradient(145deg, #1e3228 0%, #3d6650 55%, #e9d9b8 100%)",
+    primary: "#22a06b",
+    soft: "rgba(34, 160, 107, 0.18)",
+    gradient:
+      "linear-gradient(145deg, #2dd4a0 0%, #22a06b 42%, #8fd9b5 78%, #fff8e8 100%)",
   },
   {
     id: "gold",
     label: "Gold",
-    primary: "#a67a24",
-    soft: "rgba(166, 122, 36, 0.16)",
-    gradient: "linear-gradient(145deg, #5c3d0e 0%, #a67a24 50%, #e9d9b8 100%)",
+    /** Deep enough for white CTAs, still bright saffron-gold */
+    primary: "#d4940a",
+    soft: "rgba(212, 148, 10, 0.2)",
+    gradient:
+      "linear-gradient(145deg, #ffc83d 0%, #d4940a 45%, #f5d76e 75%, #fff9ec 100%)",
   },
   {
     id: "ocean",
     label: "Ocean",
-    primary: "#0a6b6b",
-    soft: "rgba(10, 107, 107, 0.14)",
-    gradient: "linear-gradient(145deg, #0a3d4a 0%, #0a6b6b 50%, #c5e8e4 100%)",
+    primary: "#0db4c4",
+    soft: "rgba(13, 180, 196, 0.18)",
+    gradient:
+      "linear-gradient(145deg, #2dd4e0 0%, #0db4c4 42%, #7ee0ea 78%, #e8fafc 100%)",
   },
   {
     id: "plum",
     label: "Plum",
-    primary: "#5c3d6e",
-    soft: "rgba(92, 61, 110, 0.14)",
-    gradient: "linear-gradient(145deg, #3a2548 0%, #7a5590 55%, #e8d9f0 100%)",
+    primary: "#b44fd4",
+    soft: "rgba(180, 79, 212, 0.18)",
+    gradient:
+      "linear-gradient(145deg, #d478f0 0%, #b44fd4 42%, #e0a8f5 78%, #faf0ff 100%)",
   },
   {
     id: "clay",
     label: "Clay",
-    primary: "#8b5e3c",
-    soft: "rgba(139, 94, 60, 0.14)",
-    gradient: "linear-gradient(145deg, #4a3220 0%, #8b5e3c 50%, #efe8d9 100%)",
+    primary: "#e07a3d",
+    soft: "rgba(224, 122, 61, 0.18)",
+    gradient:
+      "linear-gradient(145deg, #f0a06a 0%, #e07a3d 45%, #f5c4a0 78%, #fff6ef 100%)",
   },
 ];
 

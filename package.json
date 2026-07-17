@@ -2,7 +2,7 @@
   "name": "ayurpass",
   "version": "1.0.0",
   "private": true,
-  "description": "AyurPass - Premium Global Wellness Ecosystem",
+  "description": "AyurPass — Find & book Ayurveda, Yoga & Wellness",
   "scripts": {
     "start": "concurrently -k -n api,web -c green,yellow \"npm run dev:backend\" \"npm run dev:frontend\"",
     "start:dev": "npm run start:dev --workspace @ayurpass/backend",
@@ -19,7 +19,8 @@
     "stripe:listen": "bash scripts/stripe-listen.sh",
     "seed:aaa-scrape": "node backend/scripts/scrape-aaa-practitioners.mjs",
     "seed:aaa": "node backend/scripts/seed-aaa-practitioners.mjs",
-    "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa"
+    "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa",
+    "e2e:smoke": "node scripts/e2e-smoke.mjs"
   },
   "workspaces": [
     "backend",

@@ -1,37 +1,142 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { CATEGORY_LABEL } from "@/lib/catalog";
 import type { Service, ServiceCategory } from "@/lib/types";
-import { LayoutWrapper } from "@/components/LayoutWrapper";
-import { ServiceCard } from "@/components/ServiceCard";
 import {
-  Button,
-  CardSkeletonGrid,
-  EmptyState,
-  FilterChip,
-  Input,
-  PageHeader,
-} from "@/components/ui";
+  DirectoryLayout,
+  DirectoryResultGrid,
+  FilterOption,
+  FilterSearch,
+  FilterSection,
+  FilterStack,
+} from "@/components/DirectoryLayout";
+import { ServiceCard } from "@/components/ServiceCard";
+import { Button, EmptyState, Input } from "@/components/ui";
+import {
+  CalendarIcon,
+  CompassIcon,
+  DumbbellIcon,
+  FlameIcon,
+  LeafIcon,
+  LotusIcon,
+  MapPinIcon,
+  MoonIcon,
+  SearchIcon,
+  SparkleIcon,
+  UsersIcon,
+} from "@/components/icons";
 
-const FILTERS: { value: ServiceCategory | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "AYURVEDA", label: "Ayurveda" },
-  { value: "YOGA", label: "Yoga" },
-  { value: "SPA", label: "Spa" },
-  { value: "MEDITATION", label: "Meditation" },
-  { value: "FITNESS", label: "Fitness" },
-  { value: "NUTRITION", label: "Nutrition" },
-  { value: "CONSULTATION", label: "Consultations" },
-  { value: "PACKAGE", label: "Packages" },
+type CategoryFilter = ServiceCategory | "ALL";
+type SortKey = "recommended" | "rating" | "price_asc" | "price_desc" | "duration";
+type ModeFilter = "ALL" | "IN_PERSON" | "VIRTUAL";
+
+const CATEGORIES: CategoryFilter[] = [
+  "ALL",
+  "AYURVEDA",
+  "YOGA",
+  "SPA",
+  "MEDITATION",
+  "FITNESS",
+  "NUTRITION",
+  "COACHING",
+  "CONSULTATION",
+  "PACKAGE",
 ];
+
+const CATEGORY_ICON: Partial<Record<ServiceCategory, typeof LeafIcon>> = {
+  AYURVEDA: LeafIcon,
+  YOGA: LotusIcon,
+  SPA: MoonIcon,
+  MEDITATION: MoonIcon,
+  FITNESS: DumbbellIcon,
+  NUTRITION: LeafIcon,
+  COACHING: UsersIcon,
+  CONSULTATION: CompassIcon,
+  PACKAGE: SparkleIcon,
+};
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "recommended", label: "Recommended" },
+  { key: "rating", label: "Top rated" },
+  { key: "price_asc", label: "Price · low to high" },
+  { key: "price_desc", label: "Price · high to low" },
+  { key: "duration", label: "Duration" },
+];
+
+function includesText(haystack: string, needle: string) {
+  return haystack.toLowerCase().includes(needle.toLowerCase());
+}
+
+function priceNum(s: Service): number {
+  const n = Number(s.price);
+  return Number.isFinite(n) ? n : 0;
+}
+
+
+function ResultSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="overflow-hidden rounded-[1.125rem] border border-[var(--separator)] bg-surface"
+        >
+          <div className="aspect-[16/10] animate-pulse bg-clay/80" />
+          <div className="space-y-3 p-4">
+            <div className="h-4 w-3/4 animate-pulse rounded bg-clay/90" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-clay/70" />
+            <div className="h-3 w-full animate-pulse rounded bg-clay/60" />
+            <div className="mt-4 flex justify-between">
+              <div className="h-6 w-20 animate-pulse rounded bg-clay/70" />
+              <div className="h-10 w-20 animate-pulse rounded-full bg-clay/80" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ratingNum(s: Service): number {
+  const n = Number(s.rating ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function sortServices(list: Service[], sort: SortKey): Service[] {
+  const copy = [...list];
+  copy.sort((a, b) => {
+    if (sort === "price_asc") return priceNum(a) - priceNum(b);
+    if (sort === "price_desc") return priceNum(b) - priceNum(a);
+    if (sort === "duration") return a.durationMinutes - b.durationMinutes;
+    if (sort === "rating") {
+      const rd = ratingNum(b) - ratingNum(a);
+      if (rd !== 0) return rd;
+      return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+    }
+    // recommended: verified hosts first, then higher service rating, then packages mildly demoted
+    const av = a.provider?.verificationStatus === "verified" ? 0 : 1;
+    const bv = b.provider?.verificationStatus === "verified" ? 0 : 1;
+    if (av !== bv) return av - bv;
+    const rd = ratingNum(b) - ratingNum(a);
+    if (rd !== 0) return rd;
+    const ap = a.category === "PACKAGE" ? 1 : 0;
+    const bp = b.category === "PACKAGE" ? 1 : 0;
+    if (ap !== bp) return ap - bp;
+    return a.name.localeCompare(b.name);
+  });
+  return copy;
+}
 
 export default function ExploreClient() {
   const [services, setServices] = useState<Service[] | null>(null);
   const [error, setError] = useState(false);
-  const [category, setCategory] = useState<ServiceCategory | "ALL">("ALL");
+  const [category, setCategory] = useState<CategoryFilter>("ALL");
   const [query, setQuery] = useState("");
+  const [mode, setMode] = useState<ModeFilter>("ALL");
+  const [sort, setSort] = useState<SortKey>("recommended");
 
   const load = useCallback(() => {
     setError(false);
@@ -49,90 +154,264 @@ export default function ExploreClient() {
     load();
   }, [load]);
 
+  const loading = !error && services === null;
+  const all = services ?? [];
+  const q = query.trim();
+
+  const categoryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    map.set("ALL", all.length);
+    for (const c of CATEGORIES) {
+      if (c === "ALL") continue;
+      map.set(c, all.filter((s) => s.category === c).length);
+    }
+    map.set("IN_PERSON", all.filter((s) => !s.isVirtual).length);
+    map.set("VIRTUAL", all.filter((s) => s.isVirtual).length);
+    return map;
+  }, [all]);
+
   const visible = useMemo(() => {
-    if (!services) return null;
-    const q = query.trim().toLowerCase();
-    return services.filter((s) => {
+    const filtered = all.filter((s) => {
       if (category !== "ALL" && s.category !== category) return false;
-      if (!q) return true;
-      return (
-        s.name.toLowerCase().includes(q) ||
-        (s.provider?.businessName ?? "").toLowerCase().includes(q) ||
-        (s.professional?.user?.fullName ?? "").toLowerCase().includes(q)
-      );
+      if (mode === "VIRTUAL" && !s.isVirtual) return false;
+      if (mode === "IN_PERSON" && s.isVirtual) return false;
+      if (
+        q &&
+        !includesText(s.name, q) &&
+        !includesText(s.description ?? "", q) &&
+        !includesText(s.provider?.businessName ?? "", q) &&
+        !includesText(s.professional?.user?.fullName ?? "", q) &&
+        !includesText(CATEGORY_LABEL[s.category] ?? "", q)
+      )
+        return false;
+      return true;
     });
-  }, [services, category, query]);
+    return sortServices(filtered, sort);
+  }, [all, category, mode, q, sort]);
+
+  const filterActive = Boolean(q || category !== "ALL" || mode !== "ALL");
+
+  function clearFilters() {
+    setQuery("");
+    setCategory("ALL");
+    setMode("ALL");
+  }
+
+  const activeFilters = [
+    category !== "ALL"
+      ? {
+          id: "cat",
+          label: CATEGORY_LABEL[category] ?? category,
+          onRemove: () => setCategory("ALL"),
+        }
+      : null,
+    mode !== "ALL"
+      ? {
+          id: "mode",
+          label: mode === "VIRTUAL" ? "Virtual" : "In person",
+          onRemove: () => setMode("ALL"),
+        }
+      : null,
+    q
+      ? {
+          id: "q",
+          label: `“${q}”`,
+          onRemove: () => setQuery(""),
+        }
+      : null,
+  ].filter(Boolean) as { id: string; label: string; onRemove: () => void }[];
 
   return (
-    <LayoutWrapper>
-      <div className="page-shell flex-1">
-        <PageHeader
-          title="Book a session"
-          description="Consultations, classes, treatments and programs — book directly with verified practitioners. Free cancellation until 24 hours before your session."
-        />
+    <DirectoryLayout
+      eyebrow="Book online"
+      title="Book a session"
+      description="Consultations, classes, treatments and programs — book directly with verified practitioners. Free cancellation until 24 hours before."
+      heroExtra={
+        <p className="text-sm font-semibold text-ink-muted">
+          Prefer to browse practices first?{" "}
+          <Link href="/discover" className="font-bold text-[var(--system-blue)] hover:underline">
+            Open Discover →
+          </Link>
+        </p>
+      }
+      filterActive={filterActive}
+      activeFilters={activeFilters}
+      resultCount={loading ? null : visible.length}
+      resultLabel="sessions"
+      sort={SORT_OPTIONS}
+      sortValue={sort}
+      onSortChange={(k) => setSort(k as SortKey)}
+      onClearFilters={clearFilters}
+      sharePath={
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/explore"
+      }
+      sidebar={
+        <>
+          <FilterSection title="Search">
+            <FilterSearch icon={<SearchIcon className="h-4 w-4" />}>
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Treatments, hosts…"
+                aria-label="Search sessions"
+                className="border-0 bg-transparent px-0 py-0.5 shadow-none focus:ring-0"
+              />
+            </FilterSearch>
+          </FilterSection>
 
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="chip-scroll flex gap-2 overflow-x-auto pb-1">
-            {FILTERS.map((f) => (
-              <FilterChip
-                key={f.value}
-                active={category === f.value}
-                onClick={() => setCategory(f.value)}
+          <FilterSection title="Mode">
+            <FilterStack>
+              <FilterOption
+                active={mode === "ALL"}
+                count={categoryCounts.get("ALL")}
+                onClick={() => setMode("ALL")}
               >
-                {f.label}
-              </FilterChip>
-            ))}
-          </div>
-          <div className="sm:w-64">
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search treatments, studios…"
-              aria-label="Search services"
-            />
-          </div>
-        </div>
+                All modes
+              </FilterOption>
+              <FilterOption
+                active={mode === "IN_PERSON"}
+                count={categoryCounts.get("IN_PERSON")}
+                onClick={() => setMode(mode === "IN_PERSON" ? "ALL" : "IN_PERSON")}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <MapPinIcon className="h-3.5 w-3.5" />
+                  In person
+                </span>
+              </FilterOption>
+              <FilterOption
+                active={mode === "VIRTUAL"}
+                count={categoryCounts.get("VIRTUAL")}
+                onClick={() => setMode(mode === "VIRTUAL" ? "ALL" : "VIRTUAL")}
+              >
+                Virtual
+              </FilterOption>
+            </FilterStack>
+          </FilterSection>
 
-        <div className="mt-8">
-          {error ? (
-            <EmptyState
-              title="We couldn't load the catalog"
-              body="The wellness network is unreachable right now. Please try again shortly."
-              action={
-                <Button type="button" variant="ghost" onClick={load}>
-                  Try again
-                </Button>
-              }
-            />
-          ) : visible === null ? (
-            <CardSkeletonGrid count={6} />
-          ) : visible.length === 0 ? (
-            <EmptyState
-              title={
-                query || category !== "ALL"
-                  ? "Nothing matches those filters"
-                  : "The catalog is being curated"
-              }
-              body={
-                query || category !== "ALL"
-                  ? `No ${category === "ALL" ? "sessions" : CATEGORY_LABEL[category as ServiceCategory].toLowerCase() + " sessions"} found${query ? ` for “${query}”` : ""}. Try a different filter.`
-                  : "Providers are publishing their first sessions. Check back soon."
-              }
-            />
-          ) : (
-            <>
-              <p className="mb-4 text-sm text-ink-muted" aria-live="polite">
-                {visible.length} {visible.length === 1 ? "session" : "sessions"}
-              </p>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {visible.map((s) => (
-                  <ServiceCard key={s.id} service={s} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+          <FilterSection title="Category">
+            <FilterStack>
+              {CATEGORIES.map((c) => {
+                const n = c === "ALL" ? categoryCounts.get("ALL") : categoryCounts.get(c);
+                if (c !== "ALL" && !loading && (n ?? 0) === 0) return null;
+                const Icon = c === "ALL" ? null : CATEGORY_ICON[c];
+                const label = c === "ALL" ? "All categories" : CATEGORY_LABEL[c];
+                return (
+                  <FilterOption
+                    key={c}
+                    active={category === c}
+                    count={loading ? undefined : n}
+                    onClick={() => setCategory(c)}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      {Icon ? <Icon className="h-3.5 w-3.5 opacity-80" /> : null}
+                      {label}
+                    </span>
+                  </FilterOption>
+                );
+              })}
+            </FilterStack>
+          </FilterSection>
+
+          <FilterSection title="Sort">
+            <FilterStack>
+              {SORT_OPTIONS.map((o) => (
+                <FilterOption key={o.key} active={sort === o.key} onClick={() => setSort(o.key)}>
+                  {o.label}
+                </FilterOption>
+              ))}
+            </FilterStack>
+          </FilterSection>
+        </>
+      }
+    >
+      <div className="mb-6 grid gap-2 sm:grid-cols-3">
+        {[
+          { t: "Verified hosts", d: "Practices reviewed before going live" },
+          { t: "Instant booking", d: "Pick a time and confirm online" },
+          { t: "Free cancel", d: "Until 24 hours before your session" },
+        ].map((item) => (
+          <div
+            key={item.t}
+            className="rounded-2xl border border-[var(--separator)] bg-surface/80 px-4 py-3"
+          >
+            <p className="text-sm font-bold text-forest">{item.t}</p>
+            <p className="mt-0.5 text-xs font-medium text-ink-muted">{item.d}</p>
+          </div>
+        ))}
       </div>
-    </LayoutWrapper>
+
+      <div className="min-h-[16rem]">
+        {error ? (
+          <EmptyState
+            title="We couldn't load the catalog"
+            body="The wellness network is unreachable right now. Please try again shortly."
+            action={
+              <Button type="button" variant="ghost" onClick={load}>
+                Try again
+              </Button>
+            }
+          />
+        ) : loading ? (
+          <ResultSkeleton />
+        ) : visible.length > 0 ? (
+          <DirectoryResultGrid>
+            {visible.map((s) => (
+              <ServiceCard key={s.id} service={s} compact />
+            ))}
+          </DirectoryResultGrid>
+        ) : (
+          <div className="rounded-[1.25rem] border border-dashed border-[var(--separator)] bg-surface/70 px-6 py-14 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-clay text-forest">
+              <CompassIcon className="h-6 w-6" />
+            </div>
+            <h2 className="mt-4 font-display text-xl text-forest">
+              {filterActive ? "Nothing matches those filters" : "The catalog is being curated"}
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-ink-secondary">
+              {filterActive
+                ? `No ${category === "ALL" ? "sessions" : CATEGORY_LABEL[category].toLowerCase() + " sessions"} found${q ? ` for “${q}”` : ""}. Try a different filter.`
+                : "Providers are publishing their first sessions. Check back soon, or browse practices."}
+            </p>
+            {filterActive ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="profile-spring mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
+              >
+                Clear filters
+              </button>
+            ) : (
+              <Link
+                href="/discover"
+                className="profile-spring mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
+              >
+                Browse practices
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {!loading && !error ? (
+        <section className="mt-12 grid gap-3 border-t border-[var(--separator)] pt-8 sm:grid-cols-3">
+          {[
+            { href: "/discover", title: "Discover practices", body: "Clinics, studios and spas near you" },
+            { href: "/retreats", title: "Retreats & trainings", body: "Multi-day immersions worldwide" },
+            { href: "/offers", title: "Offers & deals", body: "Limited-time promotions" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="profile-spring rounded-2xl border border-[var(--separator)] bg-surface px-4 py-4 transition-colors hover:border-[var(--system-blue)]/35"
+            >
+              <p className="text-sm font-bold text-forest">{item.title}</p>
+              <p className="mt-0.5 text-xs font-medium text-ink-muted">{item.body}</p>
+            </Link>
+          ))}
+        </section>
+      ) : null}
+    </DirectoryLayout>
   );
 }
