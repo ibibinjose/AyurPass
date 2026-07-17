@@ -28,7 +28,6 @@ import {
   ProfileBackgroundRow,
   ProfileActionBar,
   ProfileBodyGrid,
-  ProfileChip,
   ProfileEmptyState,
   ProfileHeroInfo,
   ProfileHeroShell,
@@ -43,7 +42,7 @@ import {
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
-import { AuthorityBadgeRow } from "@/components/AuthorityBadge";
+import { TagAuthorityRow } from "@/components/AuthorityBadge";
 import { QualityPanel } from "@/components/QualityControls";
 import { authoritiesForProvider } from "@/lib/credentials";
 import { brandSocialToDisplay } from "@/lib/social";
@@ -379,9 +378,16 @@ export default function ProviderProfilePage({
               ]}
             />
 
-            {authorities.length > 0 ? (
-              <div className="mt-2 flex justify-center md:justify-start">
-                <AuthorityBadgeRow authorities={authorities} />
+            {tags.length > 0 || authorities.length > 0 ? (
+              <div className="mt-2.5 flex justify-center md:justify-start">
+                <TagAuthorityRow
+                  tags={tags}
+                  authorities={authorities}
+                  size="md"
+                  maxTags={4}
+                  maxAuthorities={3}
+                  linkable
+                />
               </div>
             ) : null}
 
@@ -439,13 +445,16 @@ export default function ProviderProfilePage({
                     </ProfileSection>
                   )}
 
-                  {tags.length > 0 ? (
-                    <ProfileSection label="Focus">
-                      <div className="flex flex-wrap gap-2">
-                        {tags.map((t) => (
-                          <ProfileChip key={t} label={t} />
-                        ))}
-                      </div>
+                  {tags.length > 0 || authorities.length > 0 ? (
+                    <ProfileSection label="Focus & credentials">
+                      <TagAuthorityRow
+                        tags={tags}
+                        authorities={authorities}
+                        size="md"
+                        maxTags={12}
+                        maxAuthorities={6}
+                        linkable
+                      />
                     </ProfileSection>
                   ) : null}
 

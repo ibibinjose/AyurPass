@@ -1,5 +1,17 @@
 # AyurPass Build Log
 
+## 2026-07-17 — Tags + AAA AU row, profiles, discover, link-in-bio
+- **TagAuthorityRow**: discipline/focus tags (e.g. Ayurveda) sit beside authority chips (**AAA AU**) on one row
+- Used on Discover **Practitioners** & **Practices** cards, practice & practitioner public profiles
+- AAA import always surfaces `AAA` + region `AU` (from `verificationDocuments.source = aaa`)
+- Professional list/detail APIs no longer return `passwordHash` (public user select)
+- Practitioner & practice profiles: high-end layout, no duplicate contact/share blocks
+- Discover practitioners: polished cards, verified chip filter, sort hint
+- Link-in-bio pages: `/practice/:slug/bio` and `/providers/:id/bio` for social bios
+- Profile tabs include Services & Shop; dashboard Public URL shows bio share link
+- Vanity root handles: request from Business → Public URL; admin approve/deny
+- Social links: handle-only entry with platform prefix; brand logos on public profiles
+
 ## 2026-07-17 — Credentials, health authorities, blue tick, Apple HIG
 - Provider + Professional: `registrationNumber`, `licenceNumber`, `healthAuthorities` (JSON badges)
 - Presets: AAA (AU), AHPRA, CMBA, ATMS, Yoga Aus, NMC/CCIM (IN), CQC/GMC/CNHC (UK), NCCAOM (US)

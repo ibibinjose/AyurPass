@@ -44,8 +44,8 @@ export function authoritiesForProfessional(
   const list = normalizeAuthorities(pro.healthAuthorities);
   const docs = pro.verificationDocuments;
   if (docs?.source === "aaa") {
-    const hasAaa = list.some((a) => a.code.toUpperCase() === "AAA");
-    if (!hasAaa) {
+    const existing = list.find((a) => a.code.toUpperCase() === "AAA");
+    if (!existing) {
       list.unshift({
         code: "AAA",
         name: "Australian Association of Ayurveda",
@@ -54,8 +54,22 @@ export function authoritiesForProfessional(
         registrationNumber: docs.membership ?? undefined,
         verified: true,
       });
+    } else {
+      // Ensure region / verified / profile URL are populated for AAA imports
+      if (!existing.region) existing.region = "AU";
+      if (existing.verified == null) existing.verified = true;
+      if (!existing.profileUrl && docs.profileUrl) existing.profileUrl = docs.profileUrl;
+      if (!existing.registrationNumber && docs.membership) {
+        existing.registrationNumber = docs.membership;
+      }
     }
   }
+  // Prefer AAA first when mixed with other marks
+  list.sort((a, b) => {
+    const ap = a.code.toUpperCase() === "AAA" ? 0 : 1;
+    const bp = b.code.toUpperCase() === "AAA" ? 0 : 1;
+    return ap - bp;
+  });
   return list;
 }
 

@@ -10,14 +10,14 @@
 ## 1. Current status
 
 ### Built ✅
-- **Backend (NestJS + Prisma + PostgreSQL):** auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin.
-- **Security (2026-07-17):** payment payer ownership, production secret/CORS hard-fail, password min length, auth rate limits, mock pay blocked in production/strict mode.
-- **Web (Next.js 16 / React 19 / Tailwind v4):** marketing site, discover/explore/shop/packages/retreats/offers, book + pay, provider/admin dashboard, privacy & permissions, legal pages. UX polish: skip links, focus rings, simplified nav, retryable catalogs.
+- **Backend (NestJS + Prisma + PostgreSQL):** auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin, quality (reviews/reactions/reports), free listings, vanity handles.
+- **Security (2026-07-17):** payment payer ownership, production secret/CORS hard-fail, password min length, auth rate limits, mock pay blocked in production/strict mode; professionals public list strips password hashes.
+- **Web (Next.js 16 / React 19 / Tailwind v4):** marketing site, discover/explore/shop/packages/retreats/offers, book + pay, provider/admin dashboard, privacy & permissions, legal pages. Profiles (practice + practitioner) high-end layout; Discover cards with **tags + AAA AU** on one row; link-in-bio share pages; vanity request + admin approval.
 - **Mobile (Expo / React Native):** consumer app — auth → dosha → discover → book → pay → profile. Typechecks clean.
 
 ### Known gaps / debt
 - Stripe Connect live path still needs provider onboarding + webhook ops in each env.
-- **No Redis**, no object storage/CDN for media.
+- **No Redis**, no object storage/CDN for media (uploads still local disk).
 - ~~Auth guard not applied uniformly~~ ✅ **Fixed (2.1)**
 - ~~Payment money-route IDOR~~ ✅ **Fixed (2026-07-17)**
 - ~~Consent UI missing~~ ✅ **Consumer privacy page**
@@ -25,6 +25,7 @@
 - `shared/` package has types; full shared API client still incomplete.
 - Telehealth + AI treatment engine schema-only.
 - Web JWT still in `localStorage` (prefer httpOnly cookies later).
+- **Not production-hosting ready** until staging deploy + S3 media + live Stripe + observability (see Phase 2–3).
 
 ---
 

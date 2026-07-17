@@ -494,7 +494,7 @@ function DiscoverInner() {
 
   const heroTitle =
     tab === "professionals"
-      ? "Find practitioners"
+      ? "Find your practitioner"
       : tab === "services"
         ? "Find sessions"
         : tab === "products"
@@ -503,26 +503,59 @@ function DiscoverInner() {
 
   const heroDescription =
     tab === "professionals"
-      ? "Ayurvedic doctors, yoga teachers, therapists and coaches — verified credentials, specialisations and ratings in one place."
+      ? "Ayurvedic doctors, yoga teachers, spa therapists and coaches — filter by discipline, credentials and ratings."
       : "Ayurveda, yoga, spa, meditation, health clubs and retreats — practices, practitioners, sessions and products in one place.";
+
+  const verifiedProCount = useMemo(
+    () =>
+      (base.professionals ?? []).filter(
+        (p) =>
+          p.provider?.verificationStatus === "verified" ||
+          (p.healthAuthorities ?? []).some((a) => a.code?.toUpperCase() === "AAA"),
+      ).length,
+    [base.professionals],
+  );
 
   return (
     <DirectoryLayout
-      eyebrow="Directory"
+      eyebrow={tab === "professionals" ? "Practitioners" : "Directory"}
       title={heroTitle}
       description={heroDescription}
       heroExtra={
         tab === "professionals" ? (
-          <p className="text-sm font-semibold text-ink-muted">
-            Looking for a clinic or studio instead?{" "}
-            <button
-              type="button"
-              onClick={() => set("tab", "providers")}
-              className="font-bold text-[var(--system-blue)] hover:underline"
-            >
-              Browse practices →
-            </button>
-          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <p className="text-sm font-semibold text-ink-muted">
+              Looking for a clinic or studio?{" "}
+              <button
+                type="button"
+                onClick={() => set("tab", "providers")}
+                className="font-bold text-[var(--system-blue)] hover:underline"
+              >
+                Browse practices →
+              </button>
+            </p>
+            {!loading && tabTotals.professionals > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full border border-hairline bg-surface px-3 py-1 text-xs font-bold text-forest shadow-sm">
+                  {tabTotals.professionals} practitioners
+                </span>
+                {verifiedProCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => set("verified", verifiedOnly ? "" : "1")}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold shadow-sm transition-colors ${
+                      verifiedOnly
+                        ? "bg-forest text-white"
+                        : "border border-hairline bg-surface text-forest hover:border-leaf"
+                    }`}
+                  >
+                    <SparkleIcon className="h-3 w-3" />
+                    {verifiedProCount} verified
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         ) : (
           <p className="text-sm font-semibold text-ink-muted">
             Run a wellness practice?{" "}
@@ -786,11 +819,23 @@ function DiscoverInner() {
           />
         )
       ) : shownProfessionals.length > 0 ? (
-        <DirectoryResultGrid>
-          {shownProfessionals.map((prof) => (
-            <ProfessionalCard key={prof.id} professional={prof} />
-          ))}
-        </DirectoryResultGrid>
+        <>
+          {tab === "professionals" && !filterActive && shownProfessionals.length >= 4 ? (
+            <p className="mb-1 text-sm font-medium text-ink-muted">
+              Sorted by{" "}
+              <span className="font-semibold text-forest">
+                {PRO_SORT.find((s) => s.key === proSort)?.label ?? "Recommended"}
+              </span>
+              {" · "}
+              change sort above to prioritise ratings or experience.
+            </p>
+          ) : null}
+          <DirectoryResultGrid>
+            {shownProfessionals.map((prof) => (
+              <ProfessionalCard key={prof.id} professional={prof} />
+            ))}
+          </DirectoryResultGrid>
+        </>
       ) : (
         <EmptyState
           title={

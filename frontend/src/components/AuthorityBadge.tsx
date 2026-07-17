@@ -83,6 +83,72 @@ export function AuthorityBadgeRow({
   );
 }
 
+/**
+ * Discipline / focus tags + authority chips on one row
+ * (e.g. Ayurveda · AAA AU) for cards and profiles.
+ */
+export function TagAuthorityRow({
+  tags = [],
+  authorities = [],
+  size = "sm",
+  maxTags = 4,
+  maxAuthorities = 3,
+  linkable = false,
+  className = "",
+}: {
+  tags?: string[];
+  authorities?: HealthAuthorityBadge[];
+  size?: "sm" | "md";
+  maxTags?: number;
+  maxAuthorities?: number;
+  linkable?: boolean;
+  className?: string;
+}) {
+  const cleanTags = tags.map((t) => t.trim()).filter(Boolean);
+  const auth = authorities.slice(0, maxAuthorities);
+  // Avoid repeating a tag that is already an authority code (e.g. "AAA")
+  const authCodes = new Set(auth.map((a) => a.code.toUpperCase()));
+  const visibleTags = cleanTags
+    .filter((t) => !authCodes.has(t.toUpperCase()))
+    .slice(0, maxTags);
+  const extraTags = Math.max(0, cleanTags.length - visibleTags.length);
+
+  if (!visibleTags.length && !auth.length) return null;
+
+  const tagPad =
+    size === "sm"
+      ? "px-2 py-0.5 text-[10px]"
+      : "px-2.5 py-1 text-[11px]";
+
+  return (
+    <div className={`flex flex-wrap items-center gap-1.5 ${className}`}>
+      {visibleTags.map((t) => (
+        <span
+          key={t}
+          className={`inline-flex items-center rounded-full border border-leaf/25 bg-leaf/10 font-semibold text-forest ${tagPad}`}
+        >
+          {t}
+        </span>
+      ))}
+      {extraTags > 0 ? (
+        <span
+          className={`inline-flex items-center rounded-full bg-clay font-semibold text-ink-muted ${tagPad}`}
+        >
+          +{extraTags}
+        </span>
+      ) : null}
+      {auth.map((a) => (
+        <AuthorityBadge
+          key={`${a.code}-${a.region ?? ""}-${a.registrationNumber ?? ""}`}
+          authority={a}
+          size={size}
+          linkable={linkable}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Compact credential lines — registration & licence. */
 export function CredentialLines({
   registrationNumber,

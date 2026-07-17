@@ -65,25 +65,43 @@ export class ProfessionalsService {
     const slug = await this.uniqueSlug(user?.fullName ?? data.title ?? 'practitioner');
     return this.prisma.professional.create({
       data: { ...data, slug },
-      include: { user: true },
+      include: { user: this.publicUser },
     });
   }
+
+  /** Public user fields only — never expose passwordHash. */
+  private readonly publicUser = {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+    },
+  } as const;
 
   async findAll() {
     return this.prisma.professional.findMany({
       include: {
-        user: true,
+        user: this.publicUser,
         provider: {
           select: {
             id: true,
+            code: true,
+            slug: true,
+            vanityHandle: true,
+            vanityStatus: true,
             businessName: true,
             type: true,
             verificationStatus: true,
+            listingTier: true,
             brandProfile: true,
-            address: true
-          }
+            address: true,
+            healthAuthorities: true,
+          },
         },
       },
+      orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
     });
   }
 
@@ -91,7 +109,7 @@ export class ProfessionalsService {
     return this.prisma.professional.findMany({
       where: { providerId },
       include: {
-        user: true,
+        user: this.publicUser,
         provider: PROVIDER_PUBLIC,
       },
     });
@@ -101,10 +119,9 @@ export class ProfessionalsService {
     return this.prisma.professional.findUnique({
       where: { id },
       include: {
-        user: true,
+        user: this.publicUser,
         services: true,
-        bookings: true,
-        treatmentPlans: true,
+        provider: PROVIDER_PUBLIC,
       },
     });
   }
@@ -336,7 +353,7 @@ export class ProfessionalsService {
               ? undefined
               : (data.healthAuthorities as Prisma.InputJsonValue),
         },
-        include: { user: true, provider: PROVIDER_PUBLIC },
+        include: { user: this.publicUser, provider: PROVIDER_PUBLIC },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {

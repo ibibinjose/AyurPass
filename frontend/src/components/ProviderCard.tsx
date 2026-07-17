@@ -8,7 +8,7 @@ import type { Provider } from "@/lib/types";
 import { BrandMark } from "./BrandMark";
 import { VerifiedTick } from "./VerifiedTick";
 import { VerifiedLogoBadge } from "./VerifiedLogoBadge";
-import { AuthorityBadgeRow } from "./AuthorityBadge";
+import { TagAuthorityRow } from "./AuthorityBadge";
 import { authoritiesForProvider } from "@/lib/credentials";
 import { QualityCardStrip } from "./QualityControls";
 import { useDirectoryDensity } from "@/components/DirectoryLayout";
@@ -101,17 +101,16 @@ export function ProviderCard({ provider }: { provider: Provider }) {
                   <span className="truncate">{location}</span>
                 </p>
               ) : null}
-              {showDiscoveryTags && tags.length > 0 ? (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {tags.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-semibold text-ink-secondary"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+              {tags.length > 0 || authorities.length > 0 ? (
+                <TagAuthorityRow
+                  tags={tags}
+                  authorities={authorities}
+                  size="sm"
+                  maxTags={3}
+                  maxAuthorities={2}
+                  linkable={false}
+                  className="mt-1.5"
+                />
               ) : stats.length > 0 ? (
                 <p className="mt-1 text-xs font-medium text-ink-muted">{stats.join(" · ")}</p>
               ) : null}
@@ -179,12 +178,6 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           {verified ? <VerifiedTick size="md" /> : null}
         </h3>
 
-        {authorities.length > 0 ? (
-          <div className="mt-2">
-            <AuthorityBadgeRow authorities={authorities} size="sm" linkable={false} />
-          </div>
-        ) : null}
-
         <p className="mt-1.5 text-sm font-medium text-ink-secondary">
           {PROVIDER_TYPE_LABEL[provider.type] ?? provider.type}
         </p>
@@ -196,22 +189,19 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           </p>
         ) : null}
 
-        {showDiscoveryTags
-          ? tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {tags.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full bg-clay px-2.5 py-1 text-xs font-semibold text-ink-secondary"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )
-          : stats.length > 0 && (
-              <p className="mt-3 text-sm font-medium text-ink-muted">{stats.join(" · ")}</p>
-            )}
+        {tags.length > 0 || authorities.length > 0 ? (
+          <TagAuthorityRow
+            tags={tags}
+            authorities={authorities}
+            size="sm"
+            maxTags={showDiscoveryTags ? 4 : 3}
+            maxAuthorities={3}
+            linkable={false}
+            className="mt-3"
+          />
+        ) : stats.length > 0 ? (
+          <p className="mt-3 text-sm font-medium text-ink-muted">{stats.join(" · ")}</p>
+        ) : null}
 
         <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[var(--separator)] pt-4">
           {quality}
