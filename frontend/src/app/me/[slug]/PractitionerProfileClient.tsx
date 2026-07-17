@@ -332,38 +332,6 @@ export default function PractitionerProfileClient({
     >
       <ProfilePageFrame
         coverUrl={coverUrl ?? avatar}
-        topBar={
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2.5">
-            <nav
-              className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm font-medium text-white/85"
-              aria-label="Breadcrumb"
-            >
-              <Link
-                href="/discover?tab=professionals"
-                className="profile-spring shrink-0 rounded-full px-1.5 py-0.5 transition-colors hover:bg-white/15 hover:text-white"
-              >
-                Discover
-              </Link>
-              <span aria-hidden className="text-white/45">
-                /
-              </span>
-              <span className="min-w-0 truncate font-semibold text-white">{displayName}</span>
-            </nav>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {verified || aaaListed ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  <ProfileVerifiedMark size="sm" />
-                  Verified
-                </span>
-              ) : null}
-              {years != null && years > 0 ? (
-                <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  {years}+ years
-                </span>
-              ) : null}
-            </div>
-          </div>
-        }
       >
         <ProfileHeroShell>
           <ProfileAvatar

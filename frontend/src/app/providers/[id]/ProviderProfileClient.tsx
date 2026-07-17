@@ -352,44 +352,6 @@ export default function ProviderProfilePage({
     }>
       <ProfilePageFrame
         coverUrl={coverUrl ?? logo}
-        topBar={
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2.5">
-            <nav
-              className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm font-medium text-white/85"
-              aria-label="Breadcrumb"
-            >
-              <Link
-                href="/discover"
-                className="profile-spring shrink-0 rounded-full px-1.5 py-0.5 transition-colors hover:bg-white/15 hover:text-white"
-              >
-                Discover
-              </Link>
-              <span aria-hidden className="text-white/45">
-                /
-              </span>
-              <span className="min-w-0 truncate font-semibold text-white">
-                {provider.businessName}
-              </span>
-            </nav>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                  isFreeListing
-                    ? "bg-white/20 text-white"
-                    : "bg-white/90 text-forest"
-                }`}
-              >
-                {isFreeListing ? "Directory listing" : "Bookings enabled"}
-              </span>
-              {verified ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                  <ProfileVerifiedMark size="sm" />
-                  Verified
-                </span>
-              ) : null}
-            </div>
-          </div>
-        }
       >
         <ProfileHeroShell>
           <ProfileAvatar
