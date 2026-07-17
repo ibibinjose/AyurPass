@@ -448,3 +448,35 @@ export interface RetreatInput {
   externalBookingUrl?: string;
   status?: string;
 }
+
+export interface ClientNote {
+  id: string;
+  clientRecordId: string;
+  authorId?: string | null;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientRecord {
+  id: string;
+  providerId: string;
+  consumerId: string;
+  tags?: string[];
+  status?: string;
+  createdAt: string;
+  updatedAt: string;
+  consumer?: {
+    userId: string;
+    user?: {
+      id: string;
+      fullName?: string | null;
+      email: string;
+      phone?: string | null;
+      avatarUrl?: string | null;
+    };
+  };
+  notes?: ClientNote[];
+  bookings?: Booking[];
+  orders?: Order[];
+}

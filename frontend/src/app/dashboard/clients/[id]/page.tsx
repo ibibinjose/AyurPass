@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
+import type { ClientRecord, ClientNote, Booking, Order } from "@/lib/types";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
@@ -15,7 +16,7 @@ export default function ClientDetailPage() {
   const { id: consumerId } = useParams();
   const router = useRouter();
 
-  const [client, setClient] = useState<any | null>(null);
+  const [client, setClient] = useState<ClientRecord | null>(null);
   const [noteText, setNoteText] = useState("");
   const [newTag, setNewTag] = useState("");
   const [busy, setBusy] = useState(false);
@@ -187,7 +188,7 @@ export default function ClientDetailPage() {
                 <p className="text-sm text-ink-muted">No notes recorded yet.</p>
               ) : (
                 <ul className="space-y-4">
-                  {client.notes?.map((n: any) => (
+                  {client.notes?.map((n: ClientNote) => (
                     <li key={n.id} className="rounded-xl bg-clay/20 p-4 relative group">
                       <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{n.note}</p>
                       <div className="mt-3 flex items-center justify-between text-xs text-ink-muted">
@@ -221,7 +222,7 @@ export default function ClientDetailPage() {
               <p className="text-sm text-ink-muted">No bookings with this client yet.</p>
             ) : (
               <ul className="space-y-3">
-                {client.bookings?.map((b: any) => (
+                {client.bookings?.map((b: Booking) => (
                   <li key={b.id} className="rounded-xl border border-hairline bg-clay/5 p-3.5 space-y-1">
                     <p className="font-semibold text-foreground text-sm truncate">{b.service?.name}</p>
                     <p className="text-xs text-ink-secondary">
@@ -248,10 +249,10 @@ export default function ClientDetailPage() {
               <p className="text-sm text-ink-muted">No product purchases yet.</p>
             ) : (
               <ul className="space-y-3">
-                {client.orders?.map((o: any) => (
+                {client.orders?.map((o: Order) => (
                   <li key={o.id} className="rounded-xl border border-hairline bg-clay/5 p-3.5 space-y-1.5">
                     <p className="font-semibold text-foreground text-xs truncate">
-                      {o.items?.map((i: any) => `${i.quantity}× ${i.product?.name ?? "Product"}`).join(", ")}
+                      {o.items?.map((i) => `${i.quantity}× ${i.product?.name ?? "Product"}`).join(", ")}
                     </p>
                     <p className="text-[11px] text-ink-muted">
                       {new Date(o.createdAt).toLocaleDateString(undefined, { dateStyle: "short" })}

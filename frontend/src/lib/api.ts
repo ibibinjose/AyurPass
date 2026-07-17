@@ -41,6 +41,8 @@ import type {
   TreatmentPlan,
   UserProfile,
   WellnessPackage,
+  ClientRecord,
+  ClientNote,
 } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -510,7 +512,7 @@ export const api = {
   adjustInventory: (id: string, data: { quantity: number; type: "ADJUSTMENT" | "RESTOCK"; reason?: string }) =>
     request<unknown>(`/products/${id}/inventory`, { method: "POST", body: data, auth: true }),
   getInventoryTransactions: (id: string) =>
-    request<any[]>(`/products/${id}/inventory`, { auth: true }),
+    request<unknown[]>(`/products/${id}/inventory`, { auth: true }),
 
   // --- orders ---
   createOrder: (data: {
@@ -802,29 +804,29 @@ export const api = {
 
   // --- crm ---
   crmClients: (providerId: string) =>
-    request<any[]>(`/crm/provider/${providerId}`, { auth: true }),
+    request<ClientRecord[]>(`/crm/provider/${providerId}`, { auth: true }),
   crmClientDetail: (providerId: string, consumerId: string) =>
-    request<any>(`/crm/provider/${providerId}/client/${consumerId}`, { auth: true }),
+    request<ClientRecord>(`/crm/provider/${providerId}/client/${consumerId}`, { auth: true }),
   updateCrmClient: (
     providerId: string,
     consumerId: string,
-    data: { tags?: string[]; customFields?: any; status?: string },
+    data: { tags?: string[]; customFields?: unknown; status?: string },
   ) =>
-    request<any>(`/crm/provider/${providerId}/client/${consumerId}`, {
+    request<ClientRecord>(`/crm/provider/${providerId}/client/${consumerId}`, {
       method: "PUT",
       body: data,
       auth: true,
     }),
   addCrmClientNote: (providerId: string, consumerId: string, data: { note: string }) =>
-    request<any>(`/crm/provider/${providerId}/client/${consumerId}/notes`, {
+    request<ClientNote>(`/crm/provider/${providerId}/client/${consumerId}/notes`, {
       method: "POST",
       body: data,
       auth: true,
     }),
   deleteCrmClientNote: (noteId: string) =>
-    request<any>(`/crm/notes/${noteId}`, { method: "DELETE", auth: true }),
+    request<unknown>(`/crm/notes/${noteId}`, { method: "DELETE", auth: true }),
   sendCrmCampaign: (providerId: string, data: { subject: string; body: string }) =>
-    request<any>(`/crm/provider/${providerId}/campaign`, {
+    request<{ sentCount: number; platform: string }>(`/crm/provider/${providerId}/campaign`, {
       method: "POST",
       body: data,
       auth: true,

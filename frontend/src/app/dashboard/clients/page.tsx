@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
+import type { ClientRecord } from "@/lib/types";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { EmptyState, Field, Input, Button, Textarea, ErrorNote } from "@/components/ui";
 
@@ -11,7 +12,7 @@ export default function ClientsDirectoryPage() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
 
-  const [clients, setClients] = useState<any[] | null>(null);
+  const [clients, setClients] = useState<ClientRecord[] | null>(null);
   const [filter, setFilter] = useState("");
   const [campaignModal, setCampaignModal] = useState(false);
   const [campaignSubject, setCampaignSubject] = useState("");

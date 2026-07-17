@@ -172,7 +172,16 @@ const CONSUMER_GROUPS: NavGroup[] = [
 const PROVIDER_GROUPS: NavGroup[] = [
   {
     label: "Home",
-    items: [{ href: "/dashboard", label: "Overview", icon: LeafIcon, exact: true, chip: true }],
+    items: [
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: LeafIcon,
+        exact: true,
+        chip: true,
+        hint: "Practice stats",
+      },
+    ],
   },
   {
     label: "Organiser",
@@ -191,9 +200,21 @@ const PROVIDER_GROUPS: NavGroup[] = [
         hint: "List view",
         chip: true,
       },
-      { href: "/dashboard/rooms", label: "Rooms", icon: MoonIcon },
-      { href: "/dashboard/team", label: "Team", icon: UsersIcon, chip: true },
-      { href: "/dashboard/clients", label: "Clients", icon: UsersIcon, chip: true },
+      { href: "/dashboard/rooms", label: "Rooms", icon: MoonIcon, hint: "Practice spaces" },
+      {
+        href: "/dashboard/team",
+        label: "Team",
+        icon: UsersIcon,
+        chip: true,
+        hint: "Staff profiles",
+      },
+      {
+        href: "/dashboard/clients",
+        label: "Clients",
+        icon: UsersIcon,
+        chip: true,
+        hint: "CRM directory",
+      },
     ],
   },
   {
@@ -204,30 +225,32 @@ const PROVIDER_GROUPS: NavGroup[] = [
         label: "Sessions",
         icon: CompassIcon,
         chip: true,
+        hint: "Bookable sessions",
       },
-      { href: "/dashboard/packages", label: "Packages", icon: SparkleIcon },
-      { href: "/dashboard/retreats", label: "Retreats", icon: MoonIcon },
-      { href: "/dashboard/products", label: "Products", icon: LotusIcon },
+      { href: "/dashboard/packages", label: "Packages", icon: SparkleIcon, hint: "Bundled sessions" },
+      { href: "/dashboard/retreats", label: "Retreats", icon: MoonIcon, hint: "Sanctuary escapes" },
+      { href: "/dashboard/products", label: "Products", icon: LotusIcon, hint: "Store inventory" },
     ],
   },
   {
     label: "Sales",
     items: [
-      { href: "/dashboard/orders", label: "Orders", icon: FlameIcon, chip: true },
+      { href: "/dashboard/orders", label: "Orders", icon: FlameIcon, chip: true, hint: "Sales history" },
       {
         href: "/dashboard/enquiries",
         label: "Enquiries",
         icon: MailIcon,
         chip: true,
+        hint: "Client messaging",
       },
-      { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon },
-      { href: "/dashboard/payments", label: "Payments", icon: TrophyIcon },
+      { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon, hint: "Accept payments" },
+      { href: "/dashboard/payments", label: "Payments", icon: TrophyIcon, hint: "Counter checkouts" },
     ],
   },
   {
     label: "Practice",
     items: [
-      { href: "/dashboard/channels", label: "Online channels", icon: GlobeIcon },
+      { href: "/dashboard/channels", label: "Online channels", icon: GlobeIcon, hint: "Integrations & APIs" },
       {
         href: "/dashboard/business",
         label: "Business",
@@ -235,7 +258,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
         hint: "Public page",
         chip: true,
       },
-      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true },
+      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true, hint: "Practice configurations" },
     ],
   },
 ];
@@ -244,12 +267,13 @@ const ADMIN_GROUPS: NavGroup[] = [
   {
     label: "Platform",
     items: [
-      { href: "/dashboard", label: "Overview", icon: LeafIcon, exact: true, chip: true },
+      { href: "/dashboard", label: "Overview", icon: LeafIcon, exact: true, chip: true, hint: "Control center" },
       {
         href: "/dashboard/admin/providers",
         label: "Providers",
         icon: UsersIcon,
         chip: true,
+        hint: "Approved businesses",
       },
       {
         href: "/dashboard/admin/vanity",
@@ -264,15 +288,16 @@ const ADMIN_GROUPS: NavGroup[] = [
         hint: "Abuse & ideas",
         chip: true,
       },
-      { href: "/dashboard/admin/offers", label: "Offers", icon: GiftIcon },
+      { href: "/dashboard/admin/offers", label: "Offers", icon: GiftIcon, hint: "Global campaigns" },
       {
         href: "/dashboard/admin/bookings",
         label: "All bookings",
         icon: CalendarIcon,
         chip: true,
+        hint: "Platform schedule",
       },
-      { href: "/dashboard/admin/users", label: "Users", icon: CompassIcon },
-      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true },
+      { href: "/dashboard/admin/users", label: "Users", icon: CompassIcon, hint: "Registered accounts" },
+      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true, hint: "Admin settings" },
     ],
   },
 ];
@@ -399,12 +424,18 @@ function NavLink({
       >
         <Icon className="h-4 w-4" />
       </span>
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      {item.hint && !active ? (
-        <span className="hidden max-w-[5.5rem] truncate text-[10px] font-medium text-ink-muted xl:inline">
-          {item.hint}
-        </span>
-      ) : null}
+      <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
+        <span className="truncate text-sm font-semibold leading-tight">{item.label}</span>
+        {item.hint ? (
+          <span
+            className={`truncate text-[10px] font-medium mt-0.5 leading-none transition-colors ${
+              active ? "text-white/70" : "text-ink-muted/90"
+            }`}
+          >
+            {item.hint}
+          </span>
+        ) : null}
+      </div>
     </Link>
   );
 }
@@ -609,48 +640,6 @@ function UserFooter({
 
   return (
     <div className="mt-auto space-y-3 border-t border-hairline pt-3 relative">
-      {practiceName && publicHref ? (
-        <Link
-          href={publicHref}
-          onClick={onNavigate}
-          className="dash-nav-link flex items-center gap-2 rounded-xl border border-hairline bg-clay/30 px-3 py-2.5 transition-colors hover:border-leaf hover:bg-clay/50"
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-xs font-bold text-forest">{practiceName}</span>
-            <span className="block text-[10px] font-medium text-ink-muted">View public page</span>
-          </span>
-          <ExternalLinkIcon className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
-        </Link>
-      ) : isSeeker ? (
-        <div className="grid grid-cols-2 gap-1.5">
-          <Link
-            href="/explore"
-            onClick={onNavigate}
-            className="dash-nav-link flex min-h-[var(--tap-min)] items-center justify-center gap-1.5 rounded-xl bg-forest px-2 text-xs font-bold text-white active:bg-forest-deep"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            Book
-          </Link>
-          <Link
-            href="/discover"
-            onClick={onNavigate}
-            className="dash-nav-link flex min-h-[var(--tap-min)] items-center justify-center gap-1.5 rounded-xl border border-hairline bg-clay/30 px-2 text-xs font-bold text-forest hover:border-leaf"
-          >
-            <SearchIcon className="h-3.5 w-3.5" />
-            Discover
-          </Link>
-        </div>
-      ) : (
-        <Link
-          href="/discover"
-          onClick={onNavigate}
-          className="dash-nav-link flex items-center gap-2 rounded-xl border border-hairline bg-clay/30 px-3 py-2 text-xs font-semibold text-forest transition-colors hover:border-leaf"
-        >
-          <SearchIcon className="h-3.5 w-3.5" />
-          Discover
-        </Link>
-      )}
-
       <button
         type="button"
         onClick={toggle}
@@ -803,6 +792,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const hubLabel = isAdmin ? "Admin console" : isProvider ? "Practice hub" : "Your wellness";
+  const hubSubtext = isAdmin
+    ? "Manage platform parameters & users"
+    : isProvider
+    ? "Grow & run your wellness practice"
+    : "Your personalized health sanctuary";
 
   return (
     <div className="dash-shell flex bg-background">
@@ -848,15 +842,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {!collapsed ? (
-          <div className="mt-3 flex items-center justify-between gap-2 px-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
-              {hubLabel}
+          <div className="mt-3 flex flex-col px-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
+                {hubLabel}
+              </p>
+              {isSeeker ? (
+                <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+                  Seeker
+                </span>
+              ) : null}
+            </div>
+            <p className="text-[10px] text-ink-muted/85 mt-0.5 font-medium leading-relaxed">
+              {hubSubtext}
             </p>
-            {isSeeker ? (
-              <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                Seeker
-              </span>
-            ) : null}
           </div>
         ) : (
           <div className="my-2 h-px w-full bg-hairline" />
@@ -925,17 +924,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <XIcon className="h-5 w-5" />
               </button>
             </div>
-            <div className="mb-3 flex items-center justify-between px-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
-                {hubLabel}
+            <div className="mb-3 flex flex-col px-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
+                  {hubLabel}
+                </p>
+                {isSeeker ? (
+                  <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+                    Seeker
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-[10px] text-ink-muted/85 mt-0.5 font-medium leading-relaxed">
+                {hubSubtext}
               </p>
-              {isSeeker ? (
-                <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                  Seeker
-                </span>
-              ) : null}
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
+              {isSeeker ? (
+                <div className="mb-3 grid grid-cols-2 gap-1.5 px-0.5">
+                  <Link
+                    href="/explore"
+                    onClick={() => setMobileOpen(false)}
+                    className="dash-nav-link flex min-h-[2.5rem] items-center justify-center gap-1 rounded-xl bg-forest px-2 text-[11px] font-bold text-white active:bg-forest-deep"
+                  >
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    Book
+                  </Link>
+                  <Link
+                    href="/discover"
+                    onClick={() => setMobileOpen(false)}
+                    className="dash-nav-link flex min-h-[2.5rem] items-center justify-center gap-1 rounded-xl border border-hairline bg-clay/40 px-2 text-[11px] font-bold text-forest hover:border-leaf"
+                  >
+                    <CompassIcon className="h-3.5 w-3.5" />
+                    Discover
+                  </Link>
+                </div>
+              ) : null}
               <SidebarNav
                 groups={groups}
                 pathname={pathname}
