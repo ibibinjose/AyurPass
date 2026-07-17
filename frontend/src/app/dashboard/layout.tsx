@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useCallback, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { DashboardBottomNav } from "@/components/MobileBottomNav";
@@ -328,6 +328,7 @@ const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
 ];
 
 const COLLAPSE_KEY = "ayurpass.dashboard.sidebarCollapsed";
+const VIEW_MODE_KEY = "ayurpass.dashboard.viewModeOverride";
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact || href === "/dashboard") return pathname === href;
@@ -693,8 +694,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(COLLAPSE_KEY);
-      if (stored === "1") setCollapsed(true);
+      const storedCollapse = window.localStorage.getItem(COLLAPSE_KEY);
+      if (storedCollapse === "1") setCollapsed(true);
+
+      const storedViewMode = window.localStorage.getItem(VIEW_MODE_KEY);
+      if (storedViewMode === "seeker" || storedViewMode === "provider") {
+        setViewModeOverride(storedViewMode);
+      }
     } catch {
       /* ignore */
     }
@@ -729,6 +735,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return next;
     });
   }
+
+  const handleToggleViewMode = useCallback(() => {
+    setViewModeOverride((prev) => {
+      const next = prev === "seeker" ? "provider" : "seeker";
+      try {
+        window.localStorage.setItem(VIEW_MODE_KEY, next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   const hasBothProfiles =
     user?.role === "PROVIDER_ADMIN" ||
@@ -891,9 +909,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             isSeeker={isSeeker}
             onLogout={handleLogout}
             hasBothProfiles={hasBothProfiles}
-            onToggleViewMode={() =>
-              setViewModeOverride((prev) => (prev === "seeker" ? "provider" : "seeker"))
-            }
+            onToggleViewMode={handleToggleViewMode}
           />
         </div>
       </aside>
@@ -974,9 +990,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onLogout={handleLogout}
                 onNavigate={() => setMobileOpen(false)}
                 hasBothProfiles={hasBothProfiles}
-                onToggleViewMode={() =>
-                  setViewModeOverride((prev) => (prev === "seeker" ? "provider" : "seeker"))
-                }
+                onToggleViewMode={handleToggleViewMode}
               />
             </div>
           </aside>

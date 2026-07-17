@@ -479,4 +479,6 @@ export interface ClientRecord {
   notes?: ClientNote[];
   bookings?: Booking[];
   orders?: Order[];
+  bookingsCount?: number;
+  ordersCount?: number;
 }

@@ -116,7 +116,7 @@ export default function ClientsDirectoryPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap gap-1">
-                          {c.tags?.length > 0 ? (
+                          {c.tags && c.tags.length > 0 ? (
                             c.tags.map((t: string) => (
                               <span
                                 key={t}

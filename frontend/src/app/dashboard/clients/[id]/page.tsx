@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import type { ClientRecord, ClientNote, Booking, Order } from "@/lib/types";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
-import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Field, Input, Textarea, InlineSpinner } from "@/components/ui";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 
@@ -76,7 +76,7 @@ export default function ClientDetailPage() {
 
   async function handleAddTag(e: React.FormEvent) {
     e.preventDefault();
-    if (!newTag.trim() || !provider || !consumerId) return;
+    if (!newTag.trim() || !provider || !consumerId || !client) return;
     const cleanTag = newTag.trim();
     if (client.tags?.includes(cleanTag)) {
       setNewTag("");
@@ -93,14 +93,22 @@ export default function ClientDetailPage() {
   }
 
   async function handleRemoveTag(tag: string) {
-    if (!provider || !consumerId) return;
-    const tags = client.tags.filter((t: string) => t !== tag);
+    if (!provider || !consumerId || !client) return;
+    const tags = (client.tags ?? []).filter((t: string) => t !== tag);
     try {
       await api.updateCrmClient(provider.id, consumerId as string, { tags });
       reload();
     } catch {
       setError("Failed to remove tag.");
     }
+  }
+
+  if (!client) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <InlineSpinner label="Loading client record..." />
+      </div>
+    );
   }
 
   const clientUser = client.consumer?.user;
