@@ -11,7 +11,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const provider = await api.provider(id);
+    const profile = await api.providerProfile(id);
+    const provider = profile.provider;
     const title = `${provider.businessName} · Links`;
     const description =
       provider.brandProfile?.about?.replace(/\s+/g, " ").trim().slice(0, 160) ||
@@ -43,5 +44,6 @@ export default async function ProviderBioPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <PracticeLinkBioClient providerId={id} />;
+  const profile = await api.providerProfile(id).catch(() => null);
+  return <PracticeLinkBioClient providerId={id} initialProfile={profile} />;
 }

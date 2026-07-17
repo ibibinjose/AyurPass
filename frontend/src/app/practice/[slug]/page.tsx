@@ -16,8 +16,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   try {
-    const provider = await api.providerBySlug(slug);
-    return providerMetadata(provider);
+    const profile = await api.providerProfileBySlug(slug);
+    return providerMetadata(profile.provider);
   } catch {
     return { title: "Practice not found", robots: { index: false, follow: false } };
   }
@@ -29,7 +29,8 @@ export default async function PracticeProfilePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const provider = await api.providerBySlug(slug).catch(() => null);
+  const profile = await api.providerProfileBySlug(slug).catch(() => null);
+  const provider = profile?.provider ?? null;
 
   return (
     <>
@@ -44,7 +45,7 @@ export default async function PracticeProfilePage({
           ]}
         />
       )}
-      <ProviderProfileClient />
+      <ProviderProfileClient initialProfile={profile} />
     </>
   );
 }

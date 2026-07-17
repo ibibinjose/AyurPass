@@ -29,8 +29,5 @@
   ],
   "devDependencies": {
     "concurrently": "^10.0.3"
-  },
-  "dependencies": {
-    "expo": "^57.0.6"
   }
 }

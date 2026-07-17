@@ -8,7 +8,14 @@ import { trackRecentView } from "@/hooks/useRecentViews";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practiceBioPath, practicePath, practitionerPath } from "@/lib/paths";
 import { SITE_URL } from "@/lib/seo";
-import type { Product, Professional, Provider, Retreat, Service } from "@/lib/types";
+import type {
+  Product,
+  Professional,
+  Provider,
+  ProviderProfileBundle,
+  Retreat,
+  Service,
+} from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -112,8 +119,11 @@ function hasAddress(provider: Provider): boolean {
 }
 
 export default function ProviderProfilePage({
+  initialProfile,
   vanityHandle,
 }: {
+  /** Server-loaded provider page bundle shared by /providers, /practice and vanity URLs. */
+  initialProfile?: ProviderProfileBundle | null;
   /** When set, load by admin-approved root vanity handle. */
   vanityHandle?: string;
 } = {}) {
@@ -121,37 +131,65 @@ export default function ProviderProfilePage({
   const slug = params.slug;
   const id = params.id;
   const rootHandle = vanityHandle || params.handle;
-  const [provider, setProvider] = useState<Provider | null | undefined>(undefined);
-  const [services, setServices] = useState<Service[] | null>(null);
-  const [products, setProducts] = useState<Product[] | null>(null);
-  const [retreats, setRetreats] = useState<Retreat[]>([]);
-  const [team, setTeam] = useState<Professional[]>([]);
+  const [provider, setProvider] = useState<Provider | null | undefined>(
+    initialProfile?.provider ?? undefined,
+  );
+  const [services, setServices] = useState<Service[] | null>(
+    initialProfile ? initialProfile.services : null,
+  );
+  const [products, setProducts] = useState<Product[] | null>(
+    initialProfile ? initialProfile.products : null,
+  );
+  const [retreats, setRetreats] = useState<Retreat[]>(initialProfile?.retreats ?? []);
+  const [team, setTeam] = useState<Professional[]>(initialProfile?.team ?? []);
   const [enquireOpen, setEnquireOpen] = useState(false);
   const [tab, setTab] = useState("about");
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialProfile) {
+      setProvider(initialProfile.provider);
+      setServices(initialProfile.services);
+      setProducts(initialProfile.products);
+      setRetreats(initialProfile.retreats);
+      setTeam(initialProfile.team);
+      return;
+    }
     if (rootHandle && vanityHandle) {
       api
-        .providerByVanity(rootHandle)
-        .then((p) => setProvider(p ?? null))
+        .providerProfileByVanity(rootHandle)
+        .then((profile) => {
+          setProvider(profile.provider);
+          setServices(profile.services);
+          setProducts(profile.products);
+          setRetreats(profile.retreats);
+          setTeam(profile.team);
+        })
         .catch(() => setProvider(null));
       return;
     }
     if (!slug && !id) return;
-    const loadProvider = slug ? api.providerBySlug(slug) : api.provider(id!);
+    const loadProvider = slug ? api.providerProfileBySlug(slug) : api.providerProfile(id!);
     loadProvider
-      .then((p) => setProvider(p ?? null))
+      .then((profile) => {
+        setProvider(profile.provider);
+        setServices(profile.services);
+        setProducts(profile.products);
+        setRetreats(profile.retreats);
+        setTeam(profile.team);
+      })
       .catch(() => setProvider(null));
-  }, [slug, id, rootHandle, vanityHandle]);
+  }, [slug, id, rootHandle, vanityHandle, initialProfile]);
 
   useEffect(() => {
     if (!provider?.id) return;
     const providerId = provider.id;
-    api.servicesByProvider(providerId).then(setServices).catch(() => setServices([]));
-    api.productsByProvider(providerId).then(setProducts).catch(() => setProducts([]));
-    api.retreatsByProvider(providerId).then(setRetreats).catch(() => setRetreats([]));
-    api.publicProfessionalsByProvider(providerId).then(setTeam).catch(() => setTeam([]));
+    if (!initialProfile || initialProfile.provider.id !== providerId) {
+      api.servicesByProvider(providerId).then(setServices).catch(() => setServices([]));
+      api.productsByProvider(providerId).then(setProducts).catch(() => setProducts([]));
+      api.retreatsByProvider(providerId).then(setRetreats).catch(() => setRetreats([]));
+      api.publicProfessionalsByProvider(providerId).then(setTeam).catch(() => setTeam([]));
+    }
     trackRecentView({
       kind: "provider",
       id: provider.id,
@@ -159,7 +197,7 @@ export default function ProviderProfilePage({
       href: practicePath(provider),
       subtitle: PROVIDER_TYPE_LABEL[provider.type] ?? provider.type,
     });
-  }, [provider?.id]);
+  }, [provider?.id, initialProfile]);
 
   // All hooks must run before any early return (stable hook order).
   const brand = provider?.brandProfile;

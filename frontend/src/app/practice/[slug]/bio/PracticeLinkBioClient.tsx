@@ -6,7 +6,7 @@ import { api, formatMoney } from "@/lib/api";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practiceBioPath, practicePath } from "@/lib/paths";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
-import type { Product, Provider, Service } from "@/lib/types";
+import type { Product, Provider, ProviderProfileBundle, Service } from "@/lib/types";
 import { brandSocialToDisplay } from "@/lib/social";
 import { Logo } from "@/components/Logo";
 import { SocialBrandBadge } from "@/components/SocialBrandIcon";
@@ -27,38 +27,53 @@ import { EnquireModal } from "@/components/EnquireModal";
  * Tall single column: avatar · name · CTAs · stacked links · sessions · products · social.
  */
 export default function PracticeLinkBioClient({
+  initialProfile,
   slug,
   providerId,
 }: {
+  initialProfile?: ProviderProfileBundle | null;
   slug?: string;
   providerId?: string;
 }) {
-  const [provider, setProvider] = useState<Provider | null | undefined>(undefined);
-  const [services, setServices] = useState<Service[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [provider, setProvider] = useState<Provider | null | undefined>(
+    initialProfile?.provider ?? undefined,
+  );
+  const [services, setServices] = useState<Service[]>(initialProfile?.services ?? []);
+  const [products, setProducts] = useState<Product[]>(initialProfile?.products ?? []);
   const [enquireOpen, setEnquireOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (initialProfile) {
+      setProvider(initialProfile.provider);
+      setServices(initialProfile.services);
+      setProducts(initialProfile.products);
+      return;
+    }
     const load = slug
-      ? api.providerBySlug(slug)
+      ? api.providerProfileBySlug(slug)
       : providerId
-        ? api.provider(providerId)
+        ? api.providerProfile(providerId)
         : null;
     if (!load) {
       setProvider(null);
       return;
     }
     load
-      .then((p) => setProvider(p ?? null))
+      .then((profile) => {
+        setProvider(profile.provider);
+        setServices(profile.services);
+        setProducts(profile.products);
+      })
       .catch(() => setProvider(null));
-  }, [slug, providerId]);
+  }, [slug, providerId, initialProfile]);
 
   useEffect(() => {
     if (!provider?.id) return;
+    if (initialProfile?.provider.id === provider.id) return;
     api.servicesByProvider(provider.id).then(setServices).catch(() => setServices([]));
     api.productsByProvider(provider.id).then(setProducts).catch(() => setProducts([]));
-  }, [provider?.id]);
+  }, [provider?.id, initialProfile]);
 
   const brand = provider?.brandProfile;
   const logo = brand?.logoUrl ?? brand?.coverImageUrl ?? null;

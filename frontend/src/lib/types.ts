@@ -50,6 +50,14 @@ export interface ProfessionalDetail extends Professional {
   user?: Pick<User, "id" | "fullName" | "email" | "phone" | "avatarUrl">;
 }
 
+export interface ProviderProfileBundle {
+  provider: import("@ayurpass/shared").Provider;
+  services: Service[];
+  products: Product[];
+  retreats: Retreat[];
+  team: Professional[];
+}
+
 /** User as returned by GET /auth/profile — includes linked profiles. */
 export interface UserProfile extends User {
   consumer?: import("@ayurpass/shared").Consumer | null;

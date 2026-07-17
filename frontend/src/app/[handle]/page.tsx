@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pro = await api.professionalByVanity(h).catch(() => null);
   if (pro) return practitionerMetadata(pro);
 
-  const provider = await api.providerByVanity(h).catch(() => null);
-  if (provider) return providerMetadata(provider);
+  const providerProfile = await api.providerProfileByVanity(h).catch(() => null);
+  if (providerProfile) return providerMetadata(providerProfile.provider);
 
   return { title: "Not found", robots: { index: false, follow: false } };
 }
@@ -61,8 +61,9 @@ export default async function RootVanityPage({ params }: Props) {
     );
   }
 
-  const provider = await api.providerByVanity(h).catch(() => null);
-  if (provider) {
+  const providerProfile = await api.providerProfileByVanity(h).catch(() => null);
+  if (providerProfile) {
+    const provider = providerProfile.provider;
     // ProviderProfileClient resolves by id or slug from params — inject via redirect
     // to stable practice path so the existing client works, OR render with query.
     // Cleanest: redirect id-based providers page is ugly. Update client instead.
@@ -79,7 +80,7 @@ export default async function RootVanityPage({ params }: Props) {
             ]),
           ]}
         />
-        <ProviderVanityBridge handle={h} />
+        <ProviderVanityBridge handle={h} initialProfile={providerProfile} />
       </>
     );
   }
@@ -88,7 +89,13 @@ export default async function RootVanityPage({ params }: Props) {
 }
 
 /** Thin client bridge: ProviderProfileClient expects id/slug params. */
-function ProviderVanityBridge({ handle }: { handle: string }) {
+function ProviderVanityBridge({
+  handle,
+  initialProfile,
+}: {
+  handle: string;
+  initialProfile: NonNullable<Awaited<ReturnType<typeof api.providerProfileByVanity>>>;
+}) {
   // Re-export as provider client with vanity mode — update ProviderProfileClient.
-  return <ProviderProfileClient vanityHandle={handle} />;
+  return <ProviderProfileClient vanityHandle={handle} initialProfile={initialProfile} />;
 }

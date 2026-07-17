@@ -28,6 +28,7 @@ import type {
   Professional,
   ProfessionalDetail,
   Provider,
+  ProviderProfileBundle,
   ProviderType,
   RegisterPayload,
   Retreat,
@@ -384,11 +385,17 @@ export const api = {
     return request<Provider[]>(`/providers${qs ? `?${qs}` : ""}`);
   },
   provider: (id: string) => request<Provider>(`/providers/${id}`),
+  providerProfile: (id: string) =>
+    request<ProviderProfileBundle>(`/providers/${encodeURIComponent(id)}/profile`),
   providerBySlug: (slug: string) =>
     request<Provider>(`/providers/slug/${encodeURIComponent(slug)}`),
+  providerProfileBySlug: (slug: string) =>
+    request<ProviderProfileBundle>(`/providers/slug/${encodeURIComponent(slug)}/profile`),
   /** Root vanity practice — only when admin-approved. */
   providerByVanity: (handle: string) =>
     request<Provider>(`/providers/vanity/${encodeURIComponent(handle)}`),
+  providerProfileByVanity: (handle: string) =>
+    request<ProviderProfileBundle>(`/providers/vanity/${encodeURIComponent(handle)}/profile`),
   updateProvider: (
     id: string,
     data: {

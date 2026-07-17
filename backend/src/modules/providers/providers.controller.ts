@@ -31,11 +31,29 @@ export class ProvidersController {
     return this.service.findBySlug(slug);
   }
 
+  @Public()
+  @Get('slug/:slug/profile')
+  profileBySlug(@Param('slug') slug: string) {
+    return this.service.findProfileBundleBySlug(slug);
+  }
+
   /** Root vanity — ayurpass.com/:handle for approved practices. */
   @Public()
   @Get('vanity/:handle')
   byVanity(@Param('handle') handle: string) {
     return this.service.findByVanity(handle);
+  }
+
+  @Public()
+  @Get('vanity/:handle/profile')
+  profileByVanity(@Param('handle') handle: string) {
+    return this.service.findProfileBundleByVanity(handle);
+  }
+
+  @Public()
+  @Get(':id/profile')
+  profileById(@Param('id') id: string) {
+    return this.service.findProfileBundleById(id);
   }
 
   @Public()

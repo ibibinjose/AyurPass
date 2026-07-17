@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import type {
   AuthResponse,
   AuthTokens,
@@ -47,28 +47,84 @@ const ACCESS_KEY = "ayurpass.accessToken";
 const REFRESH_KEY = "ayurpass.refreshToken";
 
 /**
- * In-memory token cache backed by SecureStore. `request` reads synchronously
- * from memory; persistence happens asynchronously. Call `load()` once at startup.
+ * Platform storage:
+ * - iOS / Android: expo-secure-store (Keychain / Keystore)
+ * - Web: localStorage (SecureStore has no web native module)
+ */
+const kv = {
+  async get(key: string): Promise<string | null> {
+    if (Platform.OS === "web") {
+      try {
+        return typeof localStorage !== "undefined" ? localStorage.getItem(key) : null;
+      } catch {
+        return null;
+      }
+    }
+    const SecureStore = await import("expo-secure-store");
+    return SecureStore.getItemAsync(key);
+  },
+  async set(key: string, value: string): Promise<void> {
+    if (Platform.OS === "web") {
+      try {
+        if (typeof localStorage !== "undefined") localStorage.setItem(key, value);
+      } catch {
+        /* private mode / blocked */
+      }
+      return;
+    }
+    const SecureStore = await import("expo-secure-store");
+    await SecureStore.setItemAsync(key, value);
+  },
+  async remove(key: string): Promise<void> {
+    if (Platform.OS === "web") {
+      try {
+        if (typeof localStorage !== "undefined") localStorage.removeItem(key);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    const SecureStore = await import("expo-secure-store");
+    await SecureStore.deleteItemAsync(key);
+  },
+};
+
+/**
+ * In-memory token cache backed by SecureStore (native) or localStorage (web).
+ * Call `load()` once at startup.
  */
 export const tokenStore = {
   access: null as string | null,
   refresh: null as string | null,
 
   async load() {
-    this.access = await SecureStore.getItemAsync(ACCESS_KEY);
-    this.refresh = await SecureStore.getItemAsync(REFRESH_KEY);
+    try {
+      this.access = await kv.get(ACCESS_KEY);
+      this.refresh = await kv.get(REFRESH_KEY);
+    } catch {
+      this.access = null;
+      this.refresh = null;
+    }
   },
   async set(tokens: AuthTokens) {
     this.access = tokens.accessToken;
     this.refresh = tokens.refreshToken;
-    await SecureStore.setItemAsync(ACCESS_KEY, tokens.accessToken);
-    await SecureStore.setItemAsync(REFRESH_KEY, tokens.refreshToken);
+    try {
+      await kv.set(ACCESS_KEY, tokens.accessToken);
+      await kv.set(REFRESH_KEY, tokens.refreshToken);
+    } catch {
+      /* memory tokens still work for this session */
+    }
   },
   async clear() {
     this.access = null;
     this.refresh = null;
-    await SecureStore.deleteItemAsync(ACCESS_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_KEY);
+    try {
+      await kv.remove(ACCESS_KEY);
+      await kv.remove(REFRESH_KEY);
+    } catch {
+      /* ignore */
+    }
   },
 };
 

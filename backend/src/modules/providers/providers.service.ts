@@ -17,6 +17,61 @@ const PUBLIC_COUNTS = {
   select: { professionals: true, services: true, products: true, packages: true, rooms: true },
 } as const;
 
+const PROVIDER_CARD = {
+  select: {
+    id: true,
+    code: true,
+    businessName: true,
+    type: true,
+    verificationStatus: true,
+    brandProfile: true,
+  },
+} as const;
+
+const PROFESSIONAL_PROVIDER_PUBLIC = {
+  select: {
+    id: true,
+    code: true,
+    slug: true,
+    vanityHandle: true,
+    vanityStatus: true,
+    businessName: true,
+    type: true,
+    verificationStatus: true,
+    listingTier: true,
+    brandProfile: true,
+    address: true,
+    healthAuthorities: true,
+  },
+} as const;
+
+const SERVICE_PUBLIC_INCLUDES = {
+  provider: PROVIDER_CARD,
+  professional: {
+    select: {
+      id: true,
+      title: true,
+      specializations: true,
+      rating: true,
+      reviewCount: true,
+      user: { select: { id: true, fullName: true } },
+    },
+  },
+} as const;
+
+const PROFESSIONAL_PUBLIC_INCLUDES = {
+  user: {
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+      avatarUrl: true,
+    },
+  },
+  provider: PROFESSIONAL_PROVIDER_PUBLIC,
+} as const;
+
 export interface ProviderQuery {
   q?: string;
   type?: ProviderType;
@@ -223,6 +278,54 @@ export class ProvidersService {
     });
     if (!provider) throw new NotFoundException('Practice not found');
     return provider;
+  }
+
+  /**
+   * Public profile bundle for practice pages. Keeps SSR, metadata, and the
+   * interactive client on one contract instead of making the browser waterfall
+   * provider -> services -> products -> retreats -> team.
+   */
+  async findProfileBundleById(id: string) {
+    const provider = await this.findOne(id);
+    if (!provider) throw new NotFoundException('Practice not found');
+    return this.profileBundle(provider);
+  }
+
+  async findProfileBundleBySlug(slug: string) {
+    const provider = await this.findBySlug(slug);
+    return this.profileBundle(provider);
+  }
+
+  async findProfileBundleByVanity(handle: string) {
+    const provider = await this.findByVanity(handle);
+    return this.profileBundle(provider);
+  }
+
+  private async profileBundle(provider: NonNullable<Awaited<ReturnType<ProvidersService['findOne']>>>) {
+    const [services, products, retreats, team] = await Promise.all([
+      this.prisma.service.findMany({
+        where: { providerId: provider.id },
+        include: SERVICE_PUBLIC_INCLUDES,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.product.findMany({
+        where: { providerId: provider.id },
+        include: { provider: PROVIDER_CARD },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.retreat.findMany({
+        where: { providerId: provider.id, status: 'published' },
+        include: { provider: PROVIDER_CARD },
+        orderBy: [{ startDate: 'asc' }, { createdAt: 'desc' }],
+      }),
+      this.prisma.professional.findMany({
+        where: { providerId: provider.id },
+        include: PROFESSIONAL_PUBLIC_INCLUDES,
+        orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
+      }),
+    ]);
+
+    return { provider, services, products, retreats, team };
   }
 
   async updateProvider(id: string, data: UpdateProviderDto) {

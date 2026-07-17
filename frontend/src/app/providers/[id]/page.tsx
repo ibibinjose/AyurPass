@@ -15,7 +15,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const provider = await api.provider(id).catch(() => null);
+  const profile = await api.providerProfile(id).catch(() => null);
+  const provider = profile?.provider ?? null;
   if (!provider) {
     return { title: "Practice not found", robots: { index: false, follow: false } };
   }
@@ -28,7 +29,8 @@ export default async function ProviderProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const provider = await api.provider(id).catch(() => null);
+  const profile = await api.providerProfile(id).catch(() => null);
+  const provider = profile?.provider ?? null;
 
   return (
     <>
@@ -43,7 +45,7 @@ export default async function ProviderProfilePage({
           ]}
         />
       )}
-      <ProviderProfileClient />
+      <ProviderProfileClient initialProfile={profile} />
     </>
   );
 }
