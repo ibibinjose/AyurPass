@@ -8,7 +8,7 @@ Premium wellness marketplace for **Ayurveda, yoga, luxury spa, meditation, healt
 |---|---|
 | API | NestJS 11 · Prisma 6 · PostgreSQL · Stripe Connect · JWT auth |
 | Web | Next.js 16 · React 19 · Tailwind CSS v4 |
-| Mobile | Expo 52 · React Native 0.76 |
+| Mobile | Expo 55 · React Native 0.83 · React 19 |
 | Shared | `@ayurpass/shared` types |
 
 ## Features
@@ -42,7 +42,7 @@ npm start   # API :4000 + web :3000
 | `npm run dev:mobile` | Expo |
 | `npm run stripe:status` | Stripe key / mock mode check |
 
-See [SETUP_LOCAL.md](./SETUP_LOCAL.md) and [RUN_APP.md](./RUN_APP.md).
+See [SETUP_LOCAL.md](./SETUP_LOCAL.md), [RUN_APP.md](./RUN_APP.md), and **[docs/AWS-AND-MOBILE-LAUNCH.md](./docs/AWS-AND-MOBILE-LAUNCH.md)** (AWS hosting + Expo 55 store path).
 
 ## Security notes (production)
 

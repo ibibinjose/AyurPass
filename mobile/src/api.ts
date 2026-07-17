@@ -20,14 +20,17 @@ import type {
 
 /**
  * Resolve the API base URL:
- *  1. an explicit `extra.apiUrl` in app.json (use this for staging/prod), else
- *  2. in dev, the LAN IP of the Metro host + port 4000, so a physical device
- *     running Expo Go can reach the backend on your machine, else
- *  3. localhost (simulator).
+ *  1. EXPO_PUBLIC_API_URL (EAS build / shell — AWS API Gateway / ALB URL)
+ *  2. extra.apiUrl from app.config.ts / app.json
+ *  3. Dev: LAN IP of Metro host + :4000 (physical device on same Wi‑Fi)
+ *  4. localhost (iOS Simulator / Android emulator with adb reverse)
  */
 function resolveApiUrl(): string {
-  const configured = (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl;
-  if (configured) return configured;
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+
+  const configured = (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl?.trim();
+  if (configured) return configured.replace(/\/$/, "");
 
   const hostUri =
     Constants.expoConfig?.hostUri ??

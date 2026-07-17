@@ -66,19 +66,21 @@ Expo/React Native consumer app against the live API; standalone install; EAS-rea
 
 **Exit criteria:** live payments in a test account; all protected routes guarded; errors reported to Sentry; media served from storage/CDN; e2e green in CI.
 
-### Phase 3 — AWS/GCP HIPAA-ready deployment
-**Goal:** compliant, reproducible cloud with CI/CD.
+### Phase 3 — AWS deploy + mobile store (primary path)
+**Goal:** reproducible AWS staging, then soft launch; iOS/Android via EAS (Expo 55).  
+**Guide:** [AWS-AND-MOBILE-LAUNCH.md](./AWS-AND-MOBILE-LAUNCH.md)
 
 | # | Task |
 |---|---|
-| 3.1 | **Dockerize** backend (and web); multi-stage builds |
-| 3.2 | **Infrastructure as Code** (Terraform/CDK): VPC, ECS Fargate, RDS PostgreSQL+PostGIS, ElastiCache Redis, S3, CloudFront, ALB, Secrets Manager |
-| 3.3 | **CI/CD** (GitHub Actions): lint → typecheck → test → build → migrate → deploy; staging + prod |
-| 3.4 | **HIPAA**: sign BAA; encryption at rest (KMS) + in transit; audit logging; least-privilege IAM; backup/PITR |
-| 3.5 | **Mobile release**: EAS Build + Submit to App Store & Play Store; production `apiUrl`; OTA updates |
-| 3.6 | **Runbooks**: on-call, incident response, restore drills |
+| 3.1 | **Dockerize** Nest API (and Next if not on Amplify); multi-stage builds → **ECR** |
+| 3.2 | **AWS**: VPC, **ECS Fargate** or **App Runner** (API), **RDS Postgres**, **S3**+CloudFront (media), ALB+ACM, **Secrets Manager** |
+| 3.3 | **Web**: Amplify or CloudFront+S3 / ECS for Next; `NEXT_PUBLIC_API_URL` → AWS API |
+| 3.4 | **CI/CD** (GitHub Actions): typecheck → build → migrate → deploy staging/prod |
+| 3.5 | **Mobile (Expo 55)**: `eas.json` profiles; `EXPO_PUBLIC_API_URL`; EAS Build + Submit iOS/Android |
+| 3.6 | **HIPAA** (only if required later): BAA, KMS, audit — optional for directory+enquiry soft launch |
+| 3.7 | **Runbooks**: on-call, restore drills |
 
-**Exit criteria:** one-command deploy to staging; blue/green or rolling prod deploy; RDS backups + tested restore; BAA in place.
+**Exit criteria:** staging API+web on AWS; TestFlight/Play internal build against staging; then prod DNS + store.
 
 ### Phase 4 — Advanced features (future)
 - **Telehealth** — Twilio Programmable Video for virtual sessions.

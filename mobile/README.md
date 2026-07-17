@@ -1,90 +1,105 @@
 # AyurPass Mobile (iOS + Android)
 
-The consumer app for AyurPass, built with **Expo (React Native) + Expo Router + TypeScript**.
-It talks to the same NestJS API as the web app and shares the brand design language.
+Consumer app for AyurPass — **Expo SDK 55 · React Native 0.83 · React 19.2 · Expo Router**.
 
-> This package is installed **standalone** — it is intentionally *not* part of the root
-> npm workspaces. React Native's Metro bundler and the Expo toolchain are fragile when
-> their dependencies are hoisted, so the app keeps its own self-contained `node_modules`.
+Talks to the same NestJS API as the web app (local or **AWS**). Installed **standalone** (not a root npm workspace) so Metro does not break on hoisted deps.
 
 ## Prerequisites
 
-- Node 18+ and npm
-- The **backend running** (`npm run dev:backend` from the repo root → API on `:4000`)
-- Either the **Expo Go** app on your phone, or an iOS Simulator / Android Emulator
+- Node 20+ and npm  
+- Backend reachable (`:4000` local, or your AWS API URL)  
+- Expo Go (SDK 55) **or** iOS Simulator / Android Emulator  
+- For store builds: [EAS CLI](https://docs.expo.dev/eas/) + Apple/Google developer accounts  
 
 ## Install & run
 
 ```bash
+# Always run from mobile/ (not the monorepo root)
 cd mobile
-npm install          # standalone install (do NOT run from the repo root)
-npx expo start       # then press i (iOS sim), a (Android emulator), or scan the QR in Expo Go
+npm install --legacy-peer-deps
+npx expo start --clear
+# i = iOS · a = Android · w = web · scan QR with Expo Go (SDK 55)
 ```
 
-## Pointing the app at your API
+> **Entry:** `package.json` → `main: "index.js"` → `expo-router/entry`.  
+> If you see `Unable to resolve "../../App"`, you started Expo outside `mobile/` or with a stale cache — stop, `cd mobile`, then `npx expo start --clear`.
 
-`src/api.ts` resolves the API base URL in this order:
+| Script | Purpose |
+|---|---|
+| `npm start` | Expo dev server |
+| `npm run ios` / `android` / `web` | Platform shortcuts |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run build:preview` | EAS internal build (iOS + Android) |
+| `npm run build:all` | EAS production builds |
+| `npm run submit:ios` / `submit:android` | Store upload |
 
-1. `extra.apiUrl` in **app.json** — set this for staging/production
-   (e.g. `"apiUrl": "https://api.ayurpass.com"`).
-2. In dev, the **LAN IP of the Metro host + `:4000`** — so a physical phone on the same
-   Wi‑Fi reaches the backend on your computer automatically. No config needed.
-3. `http://localhost:4000` — for the iOS Simulator.
+## Pointing at the API
 
-If a physical device can't reach the API, make sure your phone and computer are on the same
-network and that the backend allows the origin (CORS is currently pinned to the web app).
+`src/api.ts` resolves the base URL in this order:
 
-## What's implemented
+1. **`EXPO_PUBLIC_API_URL`** — set for EAS / AWS staging & production  
+2. **`extra.apiUrl`** from `app.config.ts` / `app.json`  
+3. **Dev LAN** — Metro host IP + `:4000` (physical device on same Wi‑Fi)  
+4. **`http://localhost:4000`** — simulators  
 
-The full consumer journey, wired to the live API:
+Examples:
 
-- **Auth** — welcome, register, login (tokens stored in `expo-secure-store`, auto‑refresh)
-- **Onboarding** — the 12‑question Prakriti (dosha) assessment, saved to the backend
-- **Discover** — searchable list of verified providers
-- **Explore** — services browsable by category
-- **Provider & service detail** — profiles and bookable sessions
-- **Booking** — pick a day/time, add notes, confirm
-- **Bookings tab** — your reservations with a mock‑payment "Pay now" action
-- **Profile** — your dosha meters, AyurPass Rewards balance, retake assessment, sign out
+```bash
+# Local machine
+export EXPO_PUBLIC_API_URL=http://localhost:4000
+
+# AWS staging
+export EXPO_PUBLIC_API_URL=https://api-staging.ayurpass.com
+```
+
+In `eas.json`, preview/production profiles already set staging/prod URLs — change them to your real ALB / App Runner hostnames.
+
+## What’s implemented
+
+- **Auth** — welcome, register, login (tokens in `expo-secure-store`, refresh)  
+- **Dosha assessment** — 12-question Prakriti, saved to API  
+- **Discover** — providers  
+- **Explore** — services by category  
+- **Provider & service detail**  
+- **Booking** — day/time, notes, confirm  
+- **Bookings tab** — list + pay via API  
+- **Profile** — dosha meters, rewards, retake assessment, sign out  
+
+## AWS soft launch (mobile side)
+
+The app only needs a **public HTTPS API**. You still need (on AWS) RDS, API service, secrets, and preferably S3 for media — see **[docs/AWS-AND-MOBILE-LAUNCH.md](../docs/AWS-AND-MOBILE-LAUNCH.md)**.
+
+Mobile does **not** talk to Postgres or S3 directly.
+
+## Store builds (EAS)
+
+```bash
+npm install -g eas-cli && eas login
+cd mobile
+eas build:configure   # once — paste project id into app.config.ts extra.eas.projectId
+
+eas build --platform all --profile preview     # TestFlight internal / APK
+eas build --platform all --profile production
+eas submit --platform ios --profile production
+eas submit --platform android --profile production
+```
+
+Bundle IDs: **`com.ayurpass.app`** (iOS + Android).
 
 ## Project structure
 
 ```
 mobile/
-  app/                    # Expo Router screens (file-based routing)
-    _layout.tsx           # fonts + auth gate + navigation stack
-    (auth)/               # welcome, login, register
-    (tabs)/               # discover, explore, bookings, profile
-    assessment.tsx        # dosha questionnaire
-    provider/[id].tsx     # provider profile
-    service/[id].tsx      # service detail
-    book/[serviceId].tsx  # booking flow
-  src/
-    api.ts                # typed API client (SecureStore auth, host auto-detect)
-    auth.tsx              # AuthProvider / useAuth
-    types.ts              # API types (mirrors the backend contract)
-    dosha.ts              # Prakriti questions + scoring (identical to web)
-    theme.ts, catalog.ts  # brand tokens, labels & icons
-    components/           # UI kit, ServiceCard, DoshaMeter
-  assets/                 # app icon, adaptive icon, splash, favicon
+  app/                 # Expo Router screens
+  app.config.ts        # Dynamic config (API URL, privacy, plugins)
+  eas.json             # EAS build/submit profiles
+  src/api.ts           # Typed client + SecureStore auth
+  src/auth.tsx         # AuthProvider
+  assets/              # icon, splash, adaptive icon
 ```
 
-## Building for the App Store / Play Store
+## SDK notes
 
-Use **Expo Application Services (EAS)** — no local Xcode/Android build farm required:
-
-```bash
-npm install -g eas-cli
-eas login
-eas build:configure
-eas build --platform ios       # or android, or all
-eas submit --platform ios      # upload to App Store Connect / Play Console
-```
-
-Set a production `extra.apiUrl` (or an EAS environment/`app.config` variant) before building.
-
-## Scripts
-
-- `npm start` — Expo dev server
-- `npm run ios` / `npm run android` / `npm run web`
-- `npm run typecheck` — `tsc --noEmit`
+- **New Architecture** is required on SDK 55 (RN 0.83).  
+- Prefer **`npm install --legacy-peer-deps`** if peer resolution conflicts during upgrades.  
+- After changing `EXPO_PUBLIC_*` for production, **rebuild** (values are compile-time).  
