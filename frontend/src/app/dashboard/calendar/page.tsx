@@ -203,22 +203,29 @@ export default function CalendarPage() {
     }
   }
 
-  async function payAction(kind: "pay" | "refund") {
+  async function payAction(method: "CASH" | "CARD_TERMINAL" | "STRIPE_ONLINE" | "refund") {
     if (!selected) return;
     setBusy(true);
     setError(null);
     try {
-      const updated =
-        kind === "pay" ? await api.payBooking(selected.id) : await api.refundBooking(selected.id);
+      let updated;
+      if (method === "refund") {
+        updated = await api.refundBooking(selected.id);
+      } else if (method === "STRIPE_ONLINE") {
+        updated = await api.payBooking(selected.id);
+      } else {
+        const trxId = `${method}-${Date.now()}`;
+        updated = await api.payBookingCounter(selected.id, method, trxId);
+      }
       setSelected({ ...selected, ...updated });
       reload();
     } catch (e) {
       const msg =
         e instanceof Error
           ? e.message
-          : kind === "pay"
-            ? "Payment failed."
-            : "Refund failed.";
+          : method === "refund"
+            ? "Refund failed."
+            : "Payment failed.";
       setError(
         msg.toLowerCase().includes("onboarding") || msg.toLowerCase().includes("payment setup")
           ? "This practice has not finished Stripe payment setup yet. Complete Connect onboarding under Payments, or use mock mode in local dev."
@@ -880,14 +887,34 @@ export default function CalendarPage() {
               <ErrorNote message={error} />
 
               <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="soft"
-                  disabled={busy || selected.paymentStatus === "paid"}
-                  onClick={() => void payAction("pay")}
-                >
-                  Mark paid
-                </Button>
+                {selected.paymentStatus !== "paid" && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="soft"
+                      disabled={busy}
+                      onClick={() => void payAction("CASH")}
+                    >
+                      Paid Cash
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="soft"
+                      disabled={busy}
+                      onClick={() => void payAction("CARD_TERMINAL")}
+                    >
+                      Paid Card (Counter)
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => void payAction("STRIPE_ONLINE")}
+                    >
+                      Stripe (Online)
+                    </Button>
+                  </>
+                )}
                 <Button
                   type="button"
                   variant="ghost"

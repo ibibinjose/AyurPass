@@ -363,6 +363,12 @@ export const api = {
     request<Booking>(`/payments/confirm/${bookingId}`, { method: "POST", auth: true }),
   refundBooking: (bookingId: string) =>
     request<Booking>(`/payments/refund/${bookingId}`, { method: "POST", auth: true }),
+  payBookingCounter: (bookingId: string, paymentMethod: string, posTransactionId?: string) =>
+    request<Booking>(`/payments/pay-counter/${bookingId}`, {
+      method: "POST",
+      body: { paymentMethod, posTransactionId },
+      auth: true,
+    }),
   stripeConnectOnboard: (
     providerId: string,
     urls: { returnUrl: string; refreshUrl: string },
@@ -501,6 +507,10 @@ export const api = {
   ) => request<Product>(`/products/${id}`, { method: "PUT", body: data, auth: true }),
   deleteProduct: (id: string) =>
     request<Product>(`/products/${id}`, { method: "DELETE", auth: true }),
+  adjustInventory: (id: string, data: { quantity: number; type: "ADJUSTMENT" | "RESTOCK"; reason?: string }) =>
+    request<unknown>(`/products/${id}/inventory`, { method: "POST", body: data, auth: true }),
+  getInventoryTransactions: (id: string) =>
+    request<any[]>(`/products/${id}/inventory`, { auth: true }),
 
   // --- orders ---
   createOrder: (data: {
@@ -508,12 +518,16 @@ export const api = {
     items: { productId: string; quantity: number }[];
     shippingAddress?: BusinessAddress;
     notes?: string;
+    paymentMethod?: string;
+    posTransactionId?: string;
+    status?: string;
+    paymentStatus?: string;
   }) => request<Order>("/orders", { method: "POST", body: data, auth: true }),
   ordersByConsumer: (consumerId: string) =>
     request<Order[]>(`/orders/consumer/${consumerId}`, { auth: true }),
   ordersByProvider: (providerId: string) =>
     request<Order[]>(`/orders/provider/${providerId}`, { auth: true }),
-  updateOrder: (id: string, data: { status?: OrderStatus; notes?: string }) =>
+  updateOrder: (id: string, data: { status?: OrderStatus; notes?: string; paymentStatus?: string; paymentMethod?: string; posTransactionId?: string }) =>
     request<Order>(`/orders/${id}`, { method: "PUT", body: data, auth: true }),
   payOrder: (orderId: string, redemption?: { giftCardCode?: string; redeemPoints?: number }) =>
     request<OrderCheckout>(`/payments/checkout-order/${orderId}`, {
@@ -525,6 +539,12 @@ export const api = {
     request<Order>(`/payments/confirm-order/${orderId}`, { method: "POST", auth: true }),
   refundOrder: (orderId: string) =>
     request<Order>(`/payments/refund-order/${orderId}`, { method: "POST", auth: true }),
+  payOrderCounter: (orderId: string, paymentMethod: string, posTransactionId?: string) =>
+    request<Order>(`/payments/pay-order-counter/${orderId}`, {
+      method: "POST",
+      body: { paymentMethod, posTransactionId },
+      auth: true,
+    }),
 
   // --- loyalty (AyurPass Rewards) ---
   loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
@@ -776,6 +796,36 @@ export const api = {
   ) =>
     request<FeedbackReportRow>(`/quality/feedback/${id}`, {
       method: "PUT",
+      body: data,
+      auth: true,
+    }),
+
+  // --- crm ---
+  crmClients: (providerId: string) =>
+    request<any[]>(`/crm/provider/${providerId}`, { auth: true }),
+  crmClientDetail: (providerId: string, consumerId: string) =>
+    request<any>(`/crm/provider/${providerId}/client/${consumerId}`, { auth: true }),
+  updateCrmClient: (
+    providerId: string,
+    consumerId: string,
+    data: { tags?: string[]; customFields?: any; status?: string },
+  ) =>
+    request<any>(`/crm/provider/${providerId}/client/${consumerId}`, {
+      method: "PUT",
+      body: data,
+      auth: true,
+    }),
+  addCrmClientNote: (providerId: string, consumerId: string, data: { note: string }) =>
+    request<any>(`/crm/provider/${providerId}/client/${consumerId}/notes`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+  deleteCrmClientNote: (noteId: string) =>
+    request<any>(`/crm/notes/${noteId}`, { method: "DELETE", auth: true }),
+  sendCrmCampaign: (providerId: string, data: { subject: string; body: string }) =>
+    request<any>(`/crm/provider/${providerId}/campaign`, {
+      method: "POST",
       body: data,
       auth: true,
     }),

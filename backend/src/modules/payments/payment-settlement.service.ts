@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { PaymentMethod } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
@@ -63,7 +64,13 @@ export class PaymentSettlementService {
     return { total, giftCardApplied, pointsRedeemed, pointsValue, cardCharge, pointsEarned };
   }
 
-  async markBookingPaid(bookingId: string, settlement: Settlement, paymentIntentId: string) {
+  async markBookingPaid(
+    bookingId: string,
+    settlement: Settlement,
+    paymentIntentId: string,
+    paymentMethod?: PaymentMethod,
+    posTransactionId?: string,
+  ) {
     return this.prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -72,12 +79,20 @@ export class PaymentSettlementService {
         giftCardRedeemed: settlement.giftCardApplied,
         pointsRedeemed: settlement.pointsRedeemed,
         pointsEarned: settlement.pointsEarned,
+        paymentMethod,
+        posTransactionId,
       },
       include: { service: true, room: true },
     });
   }
 
-  async markOrderPaid(orderId: string, settlement: Settlement, paymentIntentId: string) {
+  async markOrderPaid(
+    orderId: string,
+    settlement: Settlement,
+    paymentIntentId: string,
+    paymentMethod?: PaymentMethod,
+    posTransactionId?: string,
+  ) {
     return this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -87,6 +102,8 @@ export class PaymentSettlementService {
         giftCardRedeemed: settlement.giftCardApplied,
         pointsRedeemed: settlement.pointsRedeemed,
         pointsEarned: settlement.pointsEarned,
+        paymentMethod,
+        posTransactionId,
       },
       include: { items: { include: { product: true } } },
     });

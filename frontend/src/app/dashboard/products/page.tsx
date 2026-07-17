@@ -7,7 +7,7 @@ import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/ProductCard";
 import { MediaGalleryField } from "@/components/MediaField";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
-import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Field, Input, Textarea, Select } from "@/components/ui";
 
 interface FormState {
   id?: string;
@@ -34,6 +34,11 @@ export default function ProviderProductsPage() {
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
+  const [stockModal, setStockModal] = useState<Product | null>(null);
+  const [adjustQty, setAdjustQty] = useState("");
+  const [adjustType, setAdjustType] = useState<"ADJUSTMENT" | "RESTOCK">("ADJUSTMENT");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [trxLogs, setTrxLogs] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +194,38 @@ export default function ProviderProductsPage() {
                       <PencilIcon className="h-4 w-4" />
                     </button>
                     <button
+                      title="Adjust Stock"
+                      onClick={async () => {
+                        setStockModal(p);
+                        setAdjustQty("");
+                        setAdjustReason("");
+                        setAdjustType("RESTOCK");
+                        setError(null);
+                        try {
+                          const logs = await api.getInventoryTransactions(p.id);
+                          setTrxLogs(logs);
+                        } catch {
+                          setTrxLogs([]);
+                        }
+                      }}
+                      className="rounded-full border border-hairline p-2 text-ink-secondary hover:border-leaf hover:text-forest"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="h-4 w-4"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0.621 0 1.125.504 1.125 1.125z"
+                        />
+                      </svg>
+                    </button>
+                    <button
                       title="Delete"
                       onClick={() => remove(p)}
                       className="rounded-full border border-hairline p-2 text-ink-secondary hover:border-red-300 hover:text-red-700"
@@ -202,6 +239,99 @@ export default function ProviderProductsPage() {
           </div>
         )}
       </div>
+
+      {stockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-100">
+          <div className="w-full max-w-lg rounded-3xl border border-hairline bg-surface p-6 shadow-2xl animate-in zoom-in-95 duration-150">
+            <h2 className="font-display text-2xl text-forest font-semibold">Stock take</h2>
+            <p className="text-sm text-ink-secondary mt-1 font-semibold">{stockModal.name}</p>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                setError(null);
+                try {
+                  await api.adjustInventory(stockModal.id, {
+                    quantity: Number(adjustQty),
+                    type: adjustType,
+                    reason: adjustReason || undefined,
+                  });
+                  setStockModal(null);
+                  reload();
+                } catch {
+                  setError("Could not complete stock adjustment.");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              className="mt-4 space-y-4"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Adjustment Quantity" hint="Negative subtracts (e.g. -5).">
+                  <Input
+                    required
+                    type="number"
+                    value={adjustQty}
+                    onChange={(e) => setAdjustQty(e.target.value)}
+                    placeholder="e.g. 10 or -5"
+                  />
+                </Field>
+                <Field label="Type">
+                  <Select
+                    value={adjustType}
+                    onChange={(e) => setAdjustType(e.target.value as any)}
+                  >
+                    <option value="RESTOCK">Restock / Add inventory</option>
+                    <option value="ADJUSTMENT">Stock take adjustment</option>
+                  </Select>
+                </Field>
+              </div>
+              <Field label="Reason / Notes" hint="Optional">
+                <Input
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  placeholder="e.g. Supplier delivery, audit count"
+                />
+              </Field>
+
+              <ErrorNote message={error} />
+
+              <div className="flex gap-3 pt-2">
+                <Button type="submit" disabled={busy}>
+                  {busy ? "Adjusting..." : "Apply Adjustment"}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setStockModal(null)}>
+                  Close
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-6 border-t border-hairline pt-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Stock Movement Log</h3>
+              {trxLogs.length === 0 ? (
+                <p className="mt-2 text-xs text-ink-muted">No stock movements recorded yet.</p>
+              ) : (
+                <div className="mt-2 max-h-40 overflow-y-auto space-y-2 pr-1">
+                  {trxLogs.map((l) => (
+                    <div key={l.id} className="flex items-center justify-between gap-2 rounded-xl bg-clay/40 px-3 py-2 text-xs">
+                      <div>
+                        <span className="font-semibold text-foreground">
+                          {l.quantity > 0 ? `+${l.quantity}` : l.quantity} ({l.type})
+                        </span>
+                        <p className="text-[10px] text-ink-muted mt-0.5">{l.reason || "Manual Adjustment"}</p>
+                      </div>
+                      <span className="text-[10px] text-ink-muted">
+                        {new Date(l.createdAt).toLocaleDateString(undefined, { dateStyle: "short", timeStyle: "short" })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

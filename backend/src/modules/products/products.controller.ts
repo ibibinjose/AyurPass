@@ -55,4 +55,29 @@ export class ProductsController {
     await assertProductProviderAccess(this.prisma, req.user, id);
     return this.service.removeProduct(id);
   }
+
+  @Post(':id/inventory')
+  async adjustInventory(
+    @Param('id') id: string,
+    @Body() body: { quantity: number; type: 'ADJUSTMENT' | 'RESTOCK'; reason?: string },
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProductProviderAccess(this.prisma, req.user, id);
+    return this.service.adjustInventory(
+      id,
+      body.quantity,
+      body.type,
+      body.reason,
+      req.user.sub,
+    );
+  }
+
+  @Get(':id/inventory')
+  async getInventory(
+    @Param('id') id: string,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProductProviderAccess(this.prisma, req.user, id);
+    return this.service.getInventoryTransactions(id);
+  }
 }

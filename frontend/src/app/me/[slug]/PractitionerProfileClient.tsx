@@ -204,6 +204,8 @@ export default function PractitionerProfileClient({
     [professional, provider, brand],
   );
 
+  const socialOnly = linkItems.filter((i) => i.kind === "social");
+
   const gallery = useMemo(() => {
     const g = brand?.gallery?.filter(Boolean) ?? [];
     if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
@@ -288,8 +290,8 @@ export default function PractitionerProfileClient({
     const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${displayName}
-TEL:${provider?.phone || ""}
-EMAIL:${provider?.email || ""}
+TEL:${brand?.contactPhone || ""}
+EMAIL:${brand?.contactEmail || ""}
 URL:${shareUrl}
 END:VCARD`;
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -303,6 +305,7 @@ END:VCARD`;
     URL.revokeObjectURL(url);
   };
   const reviewCount = professional.reviewCount ?? 0;
+  const rating = Number(professional.rating ?? 0);
   const years = professional.yearsExperience;
 
   const bookHref = brand?.externalBookingUrl

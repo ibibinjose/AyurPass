@@ -43,6 +43,18 @@ export const AVAILABLE_CHANNELS = [
     connectable: true,
   },
   {
+    type: 'MAILCHIMP',
+    name: 'Mailchimp',
+    description: 'Sync your client CRM list automatically to Mailchimp for marketing campaigns.',
+    connectable: true,
+  },
+  {
+    type: 'SENDGRID',
+    name: 'SendGrid Email Campaigns',
+    description: 'Sync your clients list to SendGrid and send transactional/promotional emails.',
+    connectable: true,
+  },
+  {
     type: 'AYURPASS_STORE',
     name: 'AyurPass Online Store',
     description: 'Your products and sessions, bookable and buyable on ayurpass.com.',

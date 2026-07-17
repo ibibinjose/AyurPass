@@ -193,6 +193,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
       },
       { href: "/dashboard/rooms", label: "Rooms", icon: MoonIcon },
       { href: "/dashboard/team", label: "Team", icon: UsersIcon, chip: true },
+      { href: "/dashboard/clients", label: "Clients", icon: UsersIcon, chip: true },
     ],
   },
   {
@@ -461,6 +462,8 @@ function UserFooter({
   isSeeker,
   onLogout,
   onNavigate,
+  hasBothProfiles,
+  onToggleViewMode,
 }: {
   user: {
     fullName?: string | null;
@@ -474,7 +477,11 @@ function UserFooter({
   isSeeker?: boolean;
   onLogout: () => void;
   onNavigate?: () => void;
+  hasBothProfiles?: boolean;
+  onToggleViewMode?: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const initials =
     user.fullName
       ?.split(/\s+/)
@@ -486,14 +493,107 @@ function UserFooter({
     user.email.slice(0, 2).toUpperCase() ||
     "AP";
 
+  const closeMenu = () => setIsOpen(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const clickOutside = () => setIsOpen(false);
+    document.addEventListener("click", clickOutside);
+    return () => document.removeEventListener("click", clickOutside);
+  }, [isOpen]);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const menuItems = (
+    <div
+      className={`absolute bottom-full mb-2 z-50 bg-surface border border-hairline rounded-2xl p-2 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-100 ${
+        collapsed ? "left-2 w-48" : "left-1 right-1"
+      }`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="px-3 py-2 border-b border-hairline mb-1">
+        <p className="text-xs font-bold text-forest truncate">{user.fullName || "Account"}</p>
+        <p className="text-[10px] text-ink-muted truncate">{user.email}</p>
+      </div>
+
+      <Link
+        href="/dashboard/settings"
+        onClick={() => {
+          closeMenu();
+          onNavigate?.();
+        }}
+        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+      >
+        <PencilIcon className="h-3.5 w-3.5" />
+        Settings & Profile
+      </Link>
+
+      {practiceName && publicHref && (
+        <Link
+          href={publicHref}
+          onClick={() => {
+            closeMenu();
+            onNavigate?.();
+          }}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+        >
+          <ExternalLinkIcon className="h-3.5 w-3.5" />
+          View Public Page
+        </Link>
+      )}
+
+      {hasBothProfiles && onToggleViewMode && (
+        <button
+          type="button"
+          onClick={() => {
+            closeMenu();
+            onToggleViewMode();
+          }}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+        >
+          <CompassIcon className="h-3.5 w-3.5" />
+          {isSeeker ? "Switch to Hub view" : "Switch to Seeker view"}
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={() => {
+          closeMenu();
+          onLogout();
+        }}
+        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors mt-1 pt-2 border-t border-hairline"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="h-3.5 w-3.5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+          />
+        </svg>
+        Sign out
+      </button>
+    </div>
+  );
+
   if (collapsed) {
     return (
-      <div className="mt-auto flex flex-col items-center gap-2 border-t border-hairline pt-3">
-        <Link
-          href="/dashboard/settings"
-          title="Settings"
-          onClick={onNavigate}
-          className="dash-nav-link flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface"
+      <div className="mt-auto relative flex flex-col items-center gap-2 border-t border-hairline pt-3">
+        <button
+          type="button"
+          onClick={toggle}
+          title="Account profile menu"
+          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface transition-transform active:scale-95"
         >
           {user.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -501,21 +601,14 @@ function UserFooter({
           ) : (
             initials
           )}
-        </Link>
-        <button
-          type="button"
-          onClick={onLogout}
-          title="Sign out"
-          className="dash-nav-link rounded-lg p-2 text-xs font-semibold text-ink-muted hover:bg-clay/70 hover:text-forest"
-        >
-          Out
         </button>
+        {isOpen && menuItems}
       </div>
     );
   }
 
   return (
-    <div className="mt-auto space-y-3 border-t border-hairline pt-3">
+    <div className="mt-auto space-y-3 border-t border-hairline pt-3 relative">
       {practiceName && publicHref ? (
         <Link
           href={publicHref}
@@ -558,19 +651,19 @@ function UserFooter({
         </Link>
       )}
 
-      <div className="flex items-center gap-2.5 rounded-xl px-1">
-        <Link
-          href="/dashboard/settings"
-          onClick={onNavigate}
-          className="dash-nav-link flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface"
-        >
+      <button
+        type="button"
+        onClick={toggle}
+        className="w-full flex items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-clay/40 transition-colors"
+      >
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface">
           {user.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             initials
           )}
-        </Link>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
             {user.fullName || "Account"}
@@ -580,31 +673,19 @@ function UserFooter({
             {ROLE_LABEL[user.role] ?? user.role.replace(/_/g, " ")}
           </span>
         </div>
-      </div>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="h-4 w-4 shrink-0 text-ink-muted"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+        </svg>
+      </button>
 
-      <div className="flex gap-1">
-        <Link
-          href="/"
-          onClick={onNavigate}
-          className="dash-nav-link flex min-h-9 flex-1 items-center justify-center rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink-muted transition-colors hover:bg-clay/70 hover:text-forest"
-        >
-          Site
-        </Link>
-        <Link
-          href="/dashboard/settings"
-          onClick={onNavigate}
-          className="dash-nav-link flex min-h-9 flex-1 items-center justify-center rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink-muted transition-colors hover:bg-clay/70 hover:text-forest"
-        >
-          Settings
-        </Link>
-        <button
-          type="button"
-          onClick={onLogout}
-          className="dash-nav-link flex min-h-9 flex-1 items-center justify-center rounded-lg px-2 py-1.5 text-center text-xs font-semibold text-ink-muted transition-colors hover:bg-clay/70 hover:text-red-700"
-        >
-          Sign out
-        </button>
-      </div>
+      {isOpen && menuItems}
     </div>
   );
 }
@@ -615,6 +696,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [viewModeOverride, setViewModeOverride] = useState<"seeker" | "provider" | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.replace(loginUrl(pathname));
@@ -659,9 +741,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
   }
 
-  const isProvider = user?.role === "PROVIDER_ADMIN" || user?.role === "PROFESSIONAL";
+  const hasBothProfiles =
+    user?.role === "PROVIDER_ADMIN" ||
+    user?.role === "PROFESSIONAL" ||
+    Boolean(user?.provider || user?.professional);
+
+  const isProvider =
+    viewModeOverride === "provider" ||
+    (viewModeOverride !== "seeker" &&
+      (user?.role === "PROVIDER_ADMIN" || user?.role === "PROFESSIONAL"));
   const isAdmin = user?.role === "PLATFORM_ADMIN";
-  const isSeeker = Boolean(user && !isProvider && !isAdmin);
+  const isSeeker =
+    viewModeOverride === "seeker" ||
+    (viewModeOverride !== "provider" && Boolean(user && !isProvider && !isAdmin));
 
   const groups = useMemo(() => {
     if (!user) return [];
@@ -799,6 +891,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             publicHref={publicHref}
             isSeeker={isSeeker}
             onLogout={handleLogout}
+            hasBothProfiles={hasBothProfiles}
+            onToggleViewMode={() =>
+              setViewModeOverride((prev) => (prev === "seeker" ? "provider" : "seeker"))
+            }
           />
         </div>
       </aside>
@@ -853,6 +949,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 isSeeker={isSeeker}
                 onLogout={handleLogout}
                 onNavigate={() => setMobileOpen(false)}
+                hasBothProfiles={hasBothProfiles}
+                onToggleViewMode={() =>
+                  setViewModeOverride((prev) => (prev === "seeker" ? "provider" : "seeker"))
+                }
               />
             </div>
           </aside>

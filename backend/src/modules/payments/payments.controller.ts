@@ -22,6 +22,7 @@ import {
   assertProviderAccess,
 } from '../../common/ownership';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PaymentMethod } from '@prisma/client';
 
 export class RedemptionDto {
   @IsString()
@@ -74,6 +75,16 @@ export class PaymentsController {
     return this.service.confirmBookingPayment(bookingId);
   }
 
+  @Post('pay-counter/:bookingId')
+  async payCounter(
+    @Param('bookingId') bookingId: string,
+    @Body() body: { paymentMethod: PaymentMethod; posTransactionId?: string },
+    @Req() req: AuthedRequest,
+  ) {
+    await assertBookingParty(this.prisma, req.user, bookingId);
+    return this.service.payCounter(bookingId, body.paymentMethod, body.posTransactionId);
+  }
+
   /** Consumer or provider staff may refund a booking they are party to. */
   @Post('refund/:bookingId')
   async refund(@Param('bookingId') bookingId: string, @Req() req: AuthedRequest) {
@@ -95,6 +106,16 @@ export class PaymentsController {
   async confirmOrder(@Param('orderId') orderId: string, @Req() req: AuthedRequest) {
     await assertOrderPayer(this.prisma, req.user, orderId);
     return this.service.confirmOrderPayment(orderId);
+  }
+
+  @Post('pay-order-counter/:orderId')
+  async payOrderCounter(
+    @Param('orderId') orderId: string,
+    @Body() body: { paymentMethod: PaymentMethod; posTransactionId?: string },
+    @Req() req: AuthedRequest,
+  ) {
+    await assertOrderParty(this.prisma, req.user, orderId);
+    return this.service.payOrderCounter(orderId, body.paymentMethod, body.posTransactionId);
   }
 
   @Post('refund-order/:orderId')

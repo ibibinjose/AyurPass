@@ -48,6 +48,14 @@ export class OrdersService {
             where: { id: product.id },
             data: { inventoryQuantity: { decrement: item.quantity } },
           });
+          await tx.inventoryTransaction.create({
+            data: {
+              productId: product.id,
+              type: 'SALE',
+              quantity: -item.quantity,
+              reason: `Order Sale: POS / Online`,
+            },
+          });
         }
       }
 
@@ -62,6 +70,10 @@ export class OrdersService {
           providerPayout: Math.round((subtotal - platformCommission) * 100) / 100,
           shippingAddress: data.shippingAddress as object | undefined,
           notes: data.notes,
+          paymentMethod: data.paymentMethod,
+          posTransactionId: data.posTransactionId,
+          status: data.status || 'PENDING',
+          paymentStatus: data.paymentStatus || 'unpaid',
           items: {
             create: data.items.map((item) => ({
               productId: item.productId,
@@ -104,14 +116,22 @@ export class OrdersService {
 
     // Cancelling an order puts the stock back on the shelf.
     if (data.status === 'CANCELLED' && existing.status !== 'CANCELLED') {
-      await this.prisma.$transaction(
-        existing.items.map((item) =>
-          this.prisma.product.update({
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of existing.items) {
+          await tx.product.update({
             where: { id: item.productId },
             data: { inventoryQuantity: { increment: item.quantity } },
-          }),
-        ),
-      );
+          });
+          await tx.inventoryTransaction.create({
+            data: {
+              productId: item.productId,
+              type: 'RETURN',
+              quantity: item.quantity,
+              reason: `Order Cancelled: ${id}`,
+            },
+          });
+        }
+      });
     }
 
     return this.prisma.order.update({ where: { id }, data, include: ORDER_INCLUDES });

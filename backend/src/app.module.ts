@@ -30,6 +30,7 @@ import { OffersModule } from './modules/offers/offers.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { QualityModule } from './modules/quality/quality.module';
 import { HealthModule } from './health/health.module';
+import { CrmModule } from './modules/crm/crm.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { HealthModule } from './health/health.module';
     UploadsModule,
     QualityModule,
     HealthModule,
+    CrmModule,
   ],
   providers: [
     // Global authentication: every route requires a valid access token

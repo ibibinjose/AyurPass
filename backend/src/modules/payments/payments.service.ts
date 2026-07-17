@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PaymentMethod } from '@prisma/client';
 import type Stripe from 'stripe';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
@@ -428,5 +429,67 @@ export class PaymentsService {
     if (order) return { kind: 'order', id: order.id, paymentStatus: order.paymentStatus };
 
     return null;
+  }
+
+  async payCounter(bookingId: string, paymentMethod: PaymentMethod, posTransactionId?: string) {
+    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.paymentStatus === 'paid') {
+      return this.prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { service: true, room: true },
+      });
+    }
+
+    const settled: Settlement = {
+      total: Number(booking.totalAmount ?? 0),
+      giftCardApplied: Number(booking.giftCardRedeemed ?? 0),
+      pointsRedeemed: Number(booking.pointsRedeemed ?? 0),
+      pointsValue: 0,
+      cardCharge: Number(booking.totalAmount ?? 0) - Number(booking.giftCardRedeemed ?? 0),
+      pointsEarned: Number(booking.pointsEarned ?? 0),
+    };
+
+    if (!booking.pointsEarned) {
+      settled.pointsEarned = await this.loyalty.award(
+        booking.consumerId,
+        settled.cardCharge,
+        `Earned · Counter Booking ${booking.id.slice(0, 8)}`,
+      );
+    }
+
+    const trxId = posTransactionId || `pos_b_${bookingId.slice(0, 8)}_${Date.now()}`;
+    return this.settlement.markBookingPaid(bookingId, settled, trxId, paymentMethod, trxId);
+  }
+
+  async payOrderCounter(orderId: string, paymentMethod: PaymentMethod, posTransactionId?: string) {
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.paymentStatus === 'paid') {
+      return this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { product: true } } },
+      });
+    }
+
+    const settled: Settlement = {
+      total: Number(order.subtotal),
+      giftCardApplied: Number(order.giftCardRedeemed ?? 0),
+      pointsRedeemed: Number(order.pointsRedeemed ?? 0),
+      pointsValue: 0,
+      cardCharge: Number(order.subtotal) - Number(order.giftCardRedeemed ?? 0),
+      pointsEarned: Number(order.pointsEarned ?? 0),
+    };
+
+    if (!order.pointsEarned) {
+      settled.pointsEarned = await this.loyalty.award(
+        order.consumerId,
+        settled.cardCharge,
+        `Earned · Counter Order ${order.id.slice(0, 8)}`,
+      );
+    }
+
+    const trxId = posTransactionId || `pos_o_${orderId.slice(0, 8)}_${Date.now()}`;
+    return this.settlement.markOrderPaid(orderId, settled, trxId, paymentMethod, trxId);
   }
 }

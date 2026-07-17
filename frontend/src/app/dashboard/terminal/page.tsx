@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import type { Order, Product } from "@/lib/types";
 import { PlusIcon, TrashIcon } from "@/components/icons";
-import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Field, Input, Select } from "@/components/ui";
 
 /** A Square-style Virtual Terminal: ring up an in-person product sale for a client. */
 export default function VirtualTerminalPage() {
@@ -15,6 +15,7 @@ export default function VirtualTerminalPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [email, setEmail] = useState("");
+  const [payMethod, setPayMethod] = useState<"CASH" | "CARD_TERMINAL" | "STRIPE_ONLINE">("CASH");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Order | null>(null);
@@ -63,13 +64,28 @@ export default function VirtualTerminalPage() {
         setError("No AyurPass account found for that email. The client must have an account first.");
         return;
       }
-      const order = await api.createOrder({
-        consumerId: client.id,
-        items: Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity })),
-      });
-      const paid = await api.payOrder(order.id);
-      await api.updateOrder(order.id, { status: "FULFILLED" });
-      setDone(paid);
+
+      if (payMethod === "STRIPE_ONLINE") {
+        const order = await api.createOrder({
+          consumerId: client.id,
+          items: Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity })),
+        });
+        const paid = await api.payOrder(order.id);
+        await api.updateOrder(order.id, { status: "FULFILLED" });
+        setDone(paid);
+      } else {
+        const trxId = `${payMethod}-${Date.now()}`;
+        const order = await api.createOrder({
+          consumerId: client.id,
+          items: Object.entries(cart).map(([productId, quantity]) => ({ productId, quantity })),
+          paymentMethod: payMethod,
+          posTransactionId: trxId,
+          status: "FULFILLED",
+          paymentStatus: "paid",
+        });
+        setDone(order);
+      }
+
       setCart({});
       setEmail("");
       reload();
@@ -96,8 +112,8 @@ export default function VirtualTerminalPage() {
 
       {done && (
         <div className="mt-6 rounded-2xl border border-hairline bg-clay/50 px-5 py-4 text-sm text-forest">
-          Sale complete — {formatMoney(done.subtotal)} charged and fulfilled. Payment{" "}
-          {done.paymentIntentId?.slice(0, 15)}….
+          Sale complete — {formatMoney(done.subtotal)} processed and fulfilled. Payment Ref:{" "}
+          {(done.paymentIntentId || done.posTransactionId || "").slice(0, 18)}….
         </div>
       )}
 
@@ -178,7 +194,18 @@ export default function VirtualTerminalPage() {
             <span className="text-lg font-semibold text-foreground">{formatMoney(total)}</span>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-5 space-y-4">
+            <Field label="Payment method">
+              <Select
+                value={payMethod}
+                onChange={(e) => setPayMethod(e.target.value as any)}
+              >
+                <option value="CASH">Cash (Pay at counter)</option>
+                <option value="CARD_TERMINAL">Card Terminal (In-person)</option>
+                <option value="STRIPE_ONLINE">Online Card (Stripe)</option>
+              </Select>
+            </Field>
+
             <Field label="Client email">
               <Input
                 type="email"
@@ -194,9 +221,9 @@ export default function VirtualTerminalPage() {
             disabled={busy || Object.keys(cart).length === 0 || !email}
             onClick={charge}
           >
-            {busy ? "Charging…" : `Charge ${formatMoney(total)}`}
+            {busy ? "Processing…" : `Process ${formatMoney(total)}`}
           </Button>
-          <p className="mt-2 text-xs text-ink-muted">Test mode — no real card is charged.</p>
+          <p className="mt-2 text-xs text-ink-muted">In-person payment records stock decrement immediately.</p>
         </aside>
       </div>
     </div>

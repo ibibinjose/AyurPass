@@ -48,4 +48,45 @@ export class ProductsService {
   async removeProduct(id: string) {
     return this.prisma.product.delete({ where: { id } });
   }
+
+  async adjustInventory(
+    id: string,
+    quantity: number,
+    type: 'ADJUSTMENT' | 'RESTOCK' | 'RETURN' | 'SALE',
+    reason?: string,
+    userId?: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id } });
+      if (!product) throw new Error('Product not found');
+
+      const currentQty = product.inventoryQuantity ?? 0;
+      const newQty = currentQty + quantity;
+      if (newQty < 0) {
+        throw new Error('Stock quantity cannot be negative');
+      }
+
+      await tx.product.update({
+        where: { id },
+        data: { inventoryQuantity: newQty },
+      });
+
+      return tx.inventoryTransaction.create({
+        data: {
+          productId: id,
+          type,
+          quantity,
+          reason: reason || 'Manual adjustment',
+          userId,
+        },
+      });
+    });
+  }
+
+  async getInventoryTransactions(productId: string) {
+    return this.prisma.inventoryTransaction.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

@@ -12,7 +12,7 @@ import {
   IsDateString,
   IsNumber,
 } from 'class-validator';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod } from '@prisma/client';
 
 export class OrderItemInputDto {
   @IsString()
@@ -75,6 +75,14 @@ export class Order {
   @IsOptional()
   paymentIntentId?: string;
 
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
+
   @IsNumber()
   @IsOptional()
   giftCardRedeemed?: number;
@@ -125,6 +133,22 @@ export class CreateOrderDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
+
+  @IsEnum(OrderStatus)
+  @IsOptional()
+  status?: OrderStatus;
+
+  @IsString()
+  @IsOptional()
+  paymentStatus?: string;
 }
 
 export class UpdateOrderDto {
@@ -135,4 +159,16 @@ export class UpdateOrderDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
+
+  @IsString()
+  @IsOptional()
+  paymentStatus?: string;
 }

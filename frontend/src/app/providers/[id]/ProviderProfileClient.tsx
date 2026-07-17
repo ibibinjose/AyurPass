@@ -323,8 +323,8 @@ export default function ProviderProfilePage({
     const vcard = `BEGIN:VCARD
 VERSION:3.0
 FN:${provider.businessName}
-TEL:${provider.phone || ""}
-EMAIL:${provider.email || ""}
+TEL:${brand?.contactPhone || ""}
+EMAIL:${brand?.contactEmail || ""}
 URL:${shareUrl}
 END:VCARD`;
     const blob = new Blob([vcard], { type: "text/vcard" });

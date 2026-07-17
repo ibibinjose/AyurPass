@@ -77,6 +77,8 @@ export interface Booking extends SharedBooking {
     userId: string;
     user?: { id: string; fullName?: string | null; email?: string };
   } | null;
+  paymentMethod?: string | null;
+  posTransactionId?: string | null;
 }
 
 export interface WellnessPackage extends SharedWellnessPackage {
@@ -189,6 +191,8 @@ export interface Order {
   providerPayout?: string | number | null;
   paymentStatus: PaymentStatus;
   paymentIntentId?: string | null;
+  paymentMethod?: string | null;
+  posTransactionId?: string | null;
   giftCardRedeemed?: string | number;
   pointsRedeemed?: number;
   pointsEarned?: number;

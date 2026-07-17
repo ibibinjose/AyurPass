@@ -85,6 +85,7 @@ export default function ProviderOrdersPage() {
                       {o.consumer?.user?.fullName ?? o.consumer?.user?.email ?? "Client"} ·{" "}
                       {new Date(o.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })} ·{" "}
                       {formatMoney(o.subtotal)} (payout {formatMoney(o.providerPayout ?? 0)})
+                      {o.paymentMethod && ` · Paid via ${o.paymentMethod}`}
                     </p>
                     {o.shippingAddress?.city && (
                       <p className="mt-1 text-xs text-ink-muted">

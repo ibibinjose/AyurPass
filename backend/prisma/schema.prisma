@@ -48,6 +48,7 @@ model Consumer {
   treatmentPlans    TreatmentPlan[]
   orders            Order[]
   loyaltyAccount    LoyaltyAccount?
+  clientRecords     ClientRecord[]
 }
 
 model Provider {
@@ -102,6 +103,7 @@ model Provider {
   integrations      Integration[]
   enquiries         Enquiry[]
   retreats          Retreat[]
+  clientRecords     ClientRecord[]
 }
 
 enum ProviderType {
@@ -312,6 +314,8 @@ model Booking {
   pointsEarned        Int       @default(0)
   notes               String?
   createdAt           DateTime  @default(now())
+  paymentMethod       PaymentMethod?
+  posTransactionId    String?
 }
 
 model Room {
@@ -425,6 +429,7 @@ model Product {
   createdAt             DateTime  @default(now())
 
   orderItems            OrderItem[]
+  inventoryTransactions InventoryTransaction[]
 }
 
 enum OrderStatus {
@@ -453,6 +458,8 @@ model Order {
   shippingAddress    Json?
   notes              String?
   createdAt          DateTime    @default(now())
+  paymentMethod      PaymentMethod?
+  posTransactionId   String?
 
   items              OrderItem[]
 }
@@ -631,4 +638,55 @@ model Offer {
   updatedAt     DateTime  @updatedAt
 
   @@index([active, featured])
+}
+
+enum PaymentMethod {
+  STRIPE_ONLINE
+  CASH
+  CARD_TERMINAL
+  BANK_TRANSFER
+}
+
+model InventoryTransaction {
+  id            String                  @id @default(uuid())
+  productId     String
+  product       Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type          InventoryTransactionType
+  quantity      Int                     // Positive for stock added, negative for stock removed
+  reason        String?                 // e.g. "Stock Take", "Sale", "Damaged", "Return"
+  userId        String?                 // User who performed the transaction
+  createdAt     DateTime                @default(now())
+}
+
+enum InventoryTransactionType {
+  ADJUSTMENT
+  SALE
+  RETURN
+  RESTOCK
+}
+
+model ClientRecord {
+  id          String       @id @default(uuid())
+  providerId  String
+  provider    Provider     @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  consumerId  String
+  consumer    Consumer     @relation(fields: [consumerId], references: [userId], onDelete: Cascade)
+  tags        String[]     // e.g., ["VIP", "Sanskrit Scholar"]
+  customFields Json?       // Key-value pairs for customizable CRM data
+  status      String       @default("active") // active | inactive | archived
+  notes       ClientNote[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([providerId, consumerId])
+}
+
+model ClientNote {
+  id             String       @id @default(uuid())
+  clientRecordId String
+  clientRecord   ClientRecord @relation(fields: [clientRecordId], references: [id], onDelete: Cascade)
+  authorId       String       // User ID of the practitioner / staff who wrote it
+  note           String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }

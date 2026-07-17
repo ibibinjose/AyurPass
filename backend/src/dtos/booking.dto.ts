@@ -1,6 +1,6 @@
 import { IsString, IsDate, IsEnum, IsNumber, IsOptional, IsBoolean, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, PaymentMethod } from '@prisma/client';
 
 export class Booking {
   @IsString()
@@ -53,6 +53,14 @@ export class Booking {
   @IsString()
   @IsOptional()
   paymentStatus?: string;
+
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
 
   @IsNumber()
   @IsOptional()
@@ -123,6 +131,18 @@ export class CreateBookingDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
+
+  @IsString()
+  @IsOptional()
+  paymentStatus?: string;
 }
 
 export class UpdateBookingDto {
@@ -151,4 +171,16 @@ export class UpdateBookingDto {
   @IsDate()
   @IsOptional()
   endTime?: Date;
+
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
+
+  @IsString()
+  @IsOptional()
+  posTransactionId?: string;
+
+  @IsString()
+  @IsOptional()
+  paymentStatus?: string;
 }
