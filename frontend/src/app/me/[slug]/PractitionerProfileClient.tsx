@@ -283,8 +283,25 @@ export default function PractitionerProfileClient({
     typeof window !== "undefined"
       ? `${window.location.origin}${sharePath}`
       : `${SITE_URL}${sharePath}`;
-  const socialOnly = linkItems.filter((i) => i.kind === "social");
-  const rating = Number(professional.rating ?? 0);
+
+  const handleSaveToPhone = () => {
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${displayName}
+TEL:${provider?.phone || ""}
+EMAIL:${provider?.email || ""}
+URL:${shareUrl}
+END:VCARD`;
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${displayName.replace(/\s+/g, "_")}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   const reviewCount = professional.reviewCount ?? 0;
   const years = professional.yearsExperience;
 
@@ -385,9 +402,9 @@ export default function PractitionerProfileClient({
               </div>
             ) : null}
 
-            {socialOnly.length > 0 ? (
+            {linkItems.length > 0 ? (
               <div className="mt-3">
-                <ProfileSocialStrip items={socialOnly} size="sm" compact />
+                <ProfileSocialStrip items={linkItems} size="sm" compact />
               </div>
             ) : null}
 
@@ -400,6 +417,7 @@ export default function PractitionerProfileClient({
               bookHref={bookHref}
               enquireDisabled={!provider}
               onOpenReviews={() => setTab("reviews")}
+              onSaveToPhone={handleSaveToPhone}
             />
           </ProfileHeroInfo>
         </ProfileHeroShell>

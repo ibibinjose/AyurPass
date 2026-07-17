@@ -310,6 +310,7 @@ export function ProfileActionBar({
   bookHref,
   enquireDisabled,
   onOpenReviews,
+  onSaveToPhone,
 }: {
   target: EngagementTarget;
   shareUrl: string;
@@ -320,6 +321,7 @@ export function ProfileActionBar({
   enquireDisabled?: boolean;
   /** Jump to reviews / rate panel */
   onOpenReviews?: () => void;
+  onSaveToPhone?: () => void;
 }) {
   const { following, onFollow, canEngage } = useEngagement(target);
   const qualityTarget = { type: target.kind, id: target.id };
@@ -442,6 +444,12 @@ export function ProfileActionBar({
         {onOpenReviews ? (
           <button type="button" onClick={onOpenReviews} className={actionOutline}>
             ★ Rate
+          </button>
+        ) : null}
+        {onSaveToPhone ? (
+          <button type="button" onClick={onSaveToPhone} className={actionOutline}>
+            <PhoneIcon className="h-4 w-4" />
+            Save to Phone
           </button>
         ) : null}
         <button type="button" onClick={() => void share()} className={actionOutline}>

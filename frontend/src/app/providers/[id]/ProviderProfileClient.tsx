@@ -318,6 +318,26 @@ export default function ProviderProfilePage({
   const aboutEmpty =
     !brand?.about?.trim() && tags.length === 0 && amenities.length === 0 && !hours;
 
+  const handleSaveToPhone = () => {
+    if (!provider) return;
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${provider.businessName}
+TEL:${provider.phone || ""}
+EMAIL:${provider.email || ""}
+URL:${shareUrl}
+END:VCARD`;
+    const blob = new Blob([vcard], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${provider.businessName.replace(/\s+/g, "_")}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <PageWrap stickyCta={
       <div className="flex gap-2">
@@ -392,9 +412,9 @@ export default function ProviderProfilePage({
             ) : null}
 
             {/* Social logos only in hero — full contact lives under Links */}
-            {socialOnly.length > 0 ? (
+            {linkItems.length > 0 ? (
               <div className="mt-3">
-                <ProfileSocialStrip items={socialOnly} size="sm" compact />
+                <ProfileSocialStrip items={linkItems} size="sm" compact />
               </div>
             ) : null}
 
@@ -406,6 +426,7 @@ export default function ProviderProfilePage({
               onEnquire={() => setEnquireOpen(true)}
               bookHref={bookHref}
               onOpenReviews={() => setTab("reviews")}
+              onSaveToPhone={handleSaveToPhone}
             />
           </ProfileHeroInfo>
         </ProfileHeroShell>
