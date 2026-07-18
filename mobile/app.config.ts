@@ -95,7 +95,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...((config.extra as object) || {}),
       apiUrl,
       eas: {
-        projectId: process.env.EAS_PROJECT_ID || "REPLACE_WITH_EAS_PROJECT_ID",
+        projectId:
+          process.env.EAS_PROJECT_ID ||
+          (config.extra as any)?.eas?.projectId ||
+          "63f33f66-1d10-40e9-b1bb-23299cbd4179" || // Link to the created project ID from the user's terminal run
+          "REPLACE_WITH_EAS_PROJECT_ID",
       },
     },
     owner: process.env.EAS_OWNER || undefined,
