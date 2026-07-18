@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "63f33f66-1d10-40e9-b1bb-23299cbd4179"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.culturestudios.ayurpass",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
