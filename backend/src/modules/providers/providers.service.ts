@@ -107,7 +107,7 @@ function cleanUrl(v: unknown): string | null | undefined {
   // Allow relative paths for internal CTAs and local uploads (/uploads/…).
   if (t.startsWith('/')) return t;
   try {
-    // eslint-disable-next-line no-new
+     
     new URL(t);
     return t;
   } catch {

@@ -21,7 +21,10 @@
     "seed:aaa-scrape": "node backend/scripts/scrape-aaa-practitioners.mjs",
     "seed:aaa": "node backend/scripts/seed-aaa-practitioners.mjs",
     "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa",
-    "e2e:smoke": "node scripts/e2e-smoke.mjs"
+    "e2e:smoke": "node scripts/e2e-smoke.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present && npm run typecheck:mobile",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   },
   "workspaces": [
     "backend",
@@ -30,9 +33,9 @@
   ],
   "devDependencies": {
     "concurrently": "^10.0.3",
-    "prisma": "^7.8.0"
+    "prisma": "^6.0.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.8.0"
+    "@prisma/client": "^6.0.0"
   }
 }
