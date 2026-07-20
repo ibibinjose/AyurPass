@@ -31,6 +31,14 @@ AWS Amplify Hosting is used to build, deploy, and host the Next.js SSR applicati
    - Running the Next.js production build (`next build`) in `standalone` output mode.
    - Targeting the `.next` artifacts directory.
 
+> [!IMPORTANT]
+> **Monorepo Build Error (Cannot read 'next' version in package.json)**:
+> If the build fails with this error, go to **App Settings > Environment Variables** in the Amplify Console and manually add:
+> *   **Key**: `AMPLIFY_MONOREPO_APP_ROOT`
+> *   **Value**: `frontend`
+>
+> Re-run the build after saving the environment variable.
+
 ### Step 3: Configure Environment Variables
 In the Amplify Console under **App Settings > Environment Variables**, add the following:
 
