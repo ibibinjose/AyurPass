@@ -57,6 +57,7 @@ export class AuthService {
         type,
         listingTier,
         slug,
+        currency: dto.currency?.trim().toUpperCase().slice(0, 3) || 'AUD',
         brandProfile: (dto.brandProfile ?? undefined) as object | undefined,
         address: (dto.address ?? undefined) as object | undefined,
       },

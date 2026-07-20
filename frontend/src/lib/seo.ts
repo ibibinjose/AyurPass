@@ -118,7 +118,7 @@ export function retreatEventJsonLd(retreat: Retreat) {
         ? {
             "@type": "Offer",
             price: Number(retreat.priceFrom),
-            priceCurrency: retreat.currency || "USD",
+            priceCurrency: retreat.currency || "AUD",
             url: abs(`/retreats/${retreat.slug}`),
             availability: "https://schema.org/InStock",
           }

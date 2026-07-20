@@ -102,3 +102,82 @@ export function formatDuration(minutes: number): string {
   const m = minutes % 60;
   return m ? `${h} h ${m} min` : `${h} h`;
 }
+
+/**
+ * Format a date in the provider's timezone so consumers see local practice time.
+ * Falls back to the user's browser locale if no timezone is given.
+ */
+export function formatDate(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleDateString(undefined, opts);
+}
+
+/**
+ * Format a time (HH:MM) in the provider's timezone.
+ * Useful for booking slot display — consumers always see the practice's local clock.
+ */
+export function formatTime(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    hour: "numeric",
+    minute: "2-digit",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleTimeString(undefined, opts);
+}
+
+/**
+ * Format a full date + time in the provider's timezone.
+ * Example: "20 Jul 2026, 2:30 pm" (varies by user locale).
+ */
+export function formatDateTime(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleString(undefined, opts);
+}
+
+/**
+ * Short timezone abbreviation for display next to times.
+ * e.g. "AEST", "IST", "GMT"
+ */
+export function timezoneAbbr(timezone?: string | null): string {
+  if (!timezone) return "";
+  try {
+    const parts = new Intl.DateTimeFormat(undefined, {
+      timeZone: timezone,
+      timeZoneName: "short",
+    }).formatToParts(new Date());
+    const tz = parts.find((p) => p.type === "timeZoneName");
+    return tz?.value ?? "";
+  } catch {
+    return "";
+  }
+}

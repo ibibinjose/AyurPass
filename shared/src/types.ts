@@ -157,6 +157,8 @@ export interface Provider {
   brandProfile?: BrandProfile | null;
   address?: BusinessAddress | null;
   timezone?: string | null;
+  /** ISO 4217 currency code — AUD, USD, GBP, INR, EUR, NZD, etc. */
+  currency?: string;
   subscriptionTier?: string | null;
   listingTier?: string | null;
   verificationStatus: string;

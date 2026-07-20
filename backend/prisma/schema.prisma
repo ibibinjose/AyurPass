@@ -72,6 +72,8 @@ model Provider {
   brandProfile      Json?
   address           Json?
   timezone          String?
+  /** ISO 4217 currency code — AUD, USD, GBP, INR, EUR, NZD, etc. */
+  currency          String    @default("AUD")
   stripeAccountId   String?
   subscriptionTier  String?
   listingTier       String    @default("BOOKING") // FREE_LISTING | BOOKING

@@ -305,11 +305,11 @@ export const api = {
   loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
 };
 
-export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {
+export function formatMoney(value: string | number | null | undefined, currency = "AUD"): string {
   const n = Number(value ?? 0);
   const fractionDigits = Number.isInteger(n) ? 0 : 2;
   try {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency,
       minimumFractionDigits: fractionDigits,
@@ -318,4 +318,62 @@ export function formatMoney(value: string | number | null | undefined, currency 
   } catch {
     return `$${n.toFixed(fractionDigits)}`;
   }
+}
+
+/**
+ * Format a date in the provider's timezone so consumers see the practice's local time.
+ */
+export function formatDate(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleDateString(undefined, opts);
+}
+
+/**
+ * Format a time in the provider's timezone.
+ */
+export function formatTime(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    hour: "numeric",
+    minute: "2-digit",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleTimeString(undefined, opts);
+}
+
+/**
+ * Format full date + time in the provider's timezone.
+ */
+export function formatDateTime(
+  iso: string | Date | null | undefined,
+  timezone?: string | null,
+): string {
+  if (!iso) return "";
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return "";
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    ...(timezone ? { timeZone: timezone } : {}),
+  };
+  return d.toLocaleString(undefined, opts);
 }

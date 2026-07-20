@@ -461,6 +461,7 @@ export class ProvidersService {
           businessName,
           type: data.type,
           timezone: data.timezone?.trim().slice(0, 64),
+          currency: data.currency?.trim().toUpperCase().slice(0, 3),
           listingTier: data.listingTier,
           slug,
           vanityHandle,

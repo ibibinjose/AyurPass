@@ -159,7 +159,7 @@ export interface Product {
   createdAt: string;
   provider?: Pick<
     import("@ayurpass/shared").Provider,
-    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
+    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile" | "currency"
   >;
 }
 

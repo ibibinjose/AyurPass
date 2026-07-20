@@ -137,7 +137,7 @@ export default function ProviderProductsPage() {
             <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What it is, its benefits, how to use it." />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Price (USD)">
+            <Field label="Price">
               <Input required type="number" min="0" step="1" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="24" />
             </Field>
             <Field label="Inventory quantity" hint="Leave blank for unlimited / made to order.">

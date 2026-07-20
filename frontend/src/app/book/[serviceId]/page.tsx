@@ -135,7 +135,7 @@ export default function BookServicePage() {
                 <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
                   <CheckIcon className="h-2.5 w-2.5" strokeWidth={3} />
                 </span>
-                Paid {formatMoney(confirmed.totalAmount ?? service.price)}
+                Paid {formatMoney(confirmed.totalAmount ?? service.price, service.currency)}
               </p>
               {(confirmed.pointsEarned ?? 0) > 0 && (
                 <p className="text-sm text-gold">
@@ -158,6 +158,7 @@ export default function BookServicePage() {
                 publishableKey={stripePay?.publishableKey}
                 amountLabel={formatMoney(
                   Math.max(0, Number(confirmed.totalAmount ?? service.price) - redemption.discount),
+                  service.currency,
                 )}
                 busy={busy}
                 error={error}

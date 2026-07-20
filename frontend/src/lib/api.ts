@@ -900,11 +900,11 @@ export type QualityReview = {
   };
 };
 
-export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {
+export function formatMoney(value: string | number | null | undefined, currency = "AUD"): string {
   const n = Number(value ?? 0);
   // Whole amounts stay clean ($45); fractional amounts show cents ($0.05, $2.80).
   const fractionDigits = Number.isInteger(n) ? 0 : 2;
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
     minimumFractionDigits: fractionDigits,

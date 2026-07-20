@@ -128,7 +128,7 @@ export default function ProviderPackagesPage() {
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Total price (USD)">
+            <Field label="Total price">
               <Input
                 required
                 type="number"

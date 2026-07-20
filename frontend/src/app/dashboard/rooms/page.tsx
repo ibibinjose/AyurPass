@@ -124,7 +124,7 @@ export default function RoomsPage() {
                 onChange={(e) => setForm({ ...form, capacity: e.target.value })}
               />
             </Field>
-            <Field label="Operating cost per hour (USD)" hint="Optional — internal cost tracking.">
+            <Field label="Operating cost per hour" hint="Optional — internal cost tracking.">
               <Input
                 type="number"
                 min="0"

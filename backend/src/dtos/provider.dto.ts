@@ -31,6 +31,12 @@ export class CreateFreeListingDto {
   @IsOptional()
   address?: Record<string, unknown>;
 
+  /** ISO 4217 currency code — AUD, USD, GBP, INR, EUR, NZD, etc. */
+  @IsString()
+  @IsOptional()
+  @MaxLength(3)
+  currency?: string;
+
   /** "FREE_LISTING" (default) | "BOOKING" */
   @IsString()
   @IsOptional()
@@ -59,6 +65,12 @@ export class UpdateProviderDto {
   @IsString()
   @IsOptional()
   timezone?: string;
+
+  /** ISO 4217 currency code — AUD, USD, GBP, INR, EUR, NZD, etc. */
+  @IsString()
+  @IsOptional()
+  @MaxLength(3)
+  currency?: string;
 
   /** "FREE_LISTING" | "BOOKING" — flips when a listing upgrades to accept bookings. */
   @IsString()
