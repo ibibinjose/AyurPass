@@ -282,6 +282,72 @@ export function practitionerJsonLd(professional: ProfessionalDetail) {
   };
 }
 
+function getDynamicKeywords(type: string | undefined, name: string, location: string): string[] {
+  const base = [name, type || "", location].filter(Boolean);
+  if (!type) return base;
+
+  switch (type.toUpperCase()) {
+    case "AYURVEDA_CLINIC":
+    case "AYURVEDA_DOCTOR":
+    case "AYURVEDA":
+      return [
+        ...base,
+        "Ayurveda clinic",
+        "Ayurvedic doctor",
+        "Panchakarma detox",
+        "Abhyanga massage",
+        "Ayurvedic consultation",
+        "Vedic healing",
+        "natural medicine",
+      ];
+    case "YOGA_STUDIO":
+    case "YOGA_INSTRUCTOR":
+    case "YOGA":
+      return [
+        ...base,
+        "yoga classes",
+        "yoga teacher",
+        "vinyasa flow",
+        "hatha yoga",
+        "yin yoga",
+        "pranayama",
+        "meditation classes",
+      ];
+    case "LUXURY_SPA":
+    case "SPA":
+      return [
+        ...base,
+        "spa massage",
+        "body treatment",
+        "facials",
+        "rejuvenation spa",
+        "deep tissue massage",
+        "hot stone therapy",
+      ];
+    case "MEDITATION_CENTER":
+    case "MEDITATION":
+      return [
+        ...base,
+        "meditation sessions",
+        "mindfulness training",
+        "sound healing",
+        "vipassana",
+        "spiritual growth",
+      ];
+    case "HEALTH_CLUB":
+      return [
+        ...base,
+        "gym membership",
+        "personal training",
+        "wellness club",
+        "sauna steam room",
+        "fitness center",
+      ];
+    default:
+      return base;
+  }
+}
+
 export function practitionerMetadata(professional: ProfessionalDetail): Metadata {
   const name = professional.user?.fullName || professional.title || "Practitioner";
   const title = professional.title || "Wellness practitioner";
@@ -289,6 +355,7 @@ export function practitionerMetadata(professional: ProfessionalDetail): Metadata
     ? formatAddress(professional.provider.address)
     : "";
   const path = practitionerPath(professional);
+  const dynKeywords = getDynamicKeywords(professional.title || undefined, name, where);
   return pageMetadata({
     title: `${name} — ${title}${where ? ` in ${where}` : ""}`,
     description:
@@ -303,8 +370,7 @@ export function practitionerMetadata(professional: ProfessionalDetail): Metadata
     keywords: [
       title,
       ...(professional.specializations ?? []),
-      where,
-      name,
+      ...dynKeywords,
     ].filter(Boolean) as string[],
   });
 }
@@ -312,6 +378,7 @@ export function practitionerMetadata(professional: ProfessionalDetail): Metadata
 export function providerMetadata(provider: Provider): Metadata {
   const type = PROVIDER_TYPE_LABEL[provider.type] ?? "Wellness";
   const where = formatAddress(provider.address);
+  const dynKeywords = getDynamicKeywords(provider.type, provider.businessName, where);
   return pageMetadata({
     title: `${provider.businessName} — ${type}${where ? ` in ${where}` : ""}`,
     description:
@@ -321,6 +388,6 @@ export function providerMetadata(provider: Provider): Metadata {
     images: [provider.brandProfile?.coverImageUrl, provider.brandProfile?.logoUrl].filter(
       Boolean,
     ) as string[],
-    keywords: [type, where, provider.businessName].filter(Boolean) as string[],
+    keywords: dynKeywords,
   });
 }
