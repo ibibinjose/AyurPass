@@ -351,14 +351,16 @@ export default function TreatmentPlansPage() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
 
+  const providerId = provider?.id;
+
   const load = useCallback(async () => {
     if (!user) return;
     setError(null);
     try {
       if (isConsumer) {
         setPlans(await api.plansByConsumer(user.id));
-      } else if (provider?.id) {
-        setPlans(await api.plansByProvider(provider.id));
+      } else if (providerId) {
+        setPlans(await api.plansByProvider(providerId));
       } else {
         setPlans([]);
       }
@@ -366,10 +368,18 @@ export default function TreatmentPlansPage() {
       setPlans([]);
       setError("We couldn't load treatment plans right now.");
     }
-  }, [user, isConsumer, provider?.id]);
+  }, [user, isConsumer, providerId]);
 
   useEffect(() => {
-    void load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) void load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const filtered = useMemo(() => {

@@ -28,6 +28,14 @@ const BLANK: FormState = {
   images: [],
 };
 
+interface InventoryTransaction {
+  id: string;
+  quantity: number;
+  type: string;
+  reason?: string | null;
+  createdAt: string;
+}
+
 export default function ProviderProductsPage() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
@@ -38,7 +46,7 @@ export default function ProviderProductsPage() {
   const [adjustQty, setAdjustQty] = useState("");
   const [adjustType, setAdjustType] = useState<"ADJUSTMENT" | "RESTOCK">("ADJUSTMENT");
   const [adjustReason, setAdjustReason] = useState("");
-  const [trxLogs, setTrxLogs] = useState<any[]>([]);
+  const [trxLogs, setTrxLogs] = useState<InventoryTransaction[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -202,7 +210,7 @@ export default function ProviderProductsPage() {
                         setAdjustType("RESTOCK");
                         setError(null);
                         try {
-                          const logs = await api.getInventoryTransactions(p.id);
+                          const logs = await api.getInventoryTransactions(p.id) as InventoryTransaction[];
                           setTrxLogs(logs);
                         } catch {
                           setTrxLogs([]);
@@ -280,7 +288,7 @@ export default function ProviderProductsPage() {
                 <Field label="Type">
                   <Select
                     value={adjustType}
-                    onChange={(e) => setAdjustType(e.target.value as any)}
+                    onChange={(e) => setAdjustType(e.target.value as "RESTOCK" | "ADJUSTMENT")}
                   >
                     <option value="RESTOCK">Restock / Add inventory</option>
                     <option value="ADJUSTMENT">Stock take adjustment</option>

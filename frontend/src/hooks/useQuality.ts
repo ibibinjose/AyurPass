@@ -31,8 +31,12 @@ export function useQuality(target: QualityTarget | null) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const targetType = target?.type;
+  const targetId = target?.id;
+  const myReaction = summary?.myReaction;
+
   const reload = useCallback(async () => {
-    if (!target?.id) {
+    if (!targetId || !targetType) {
       setSummary(null);
       setReviews(null);
       setLoading(false);
@@ -42,8 +46,8 @@ export function useQuality(target: QualityTarget | null) {
     setError(null);
     try {
       const [s, r] = await Promise.all([
-        api.qualitySummary(target.type, target.id),
-        api.qualityReviews(target.type, target.id, 12),
+        api.qualitySummary(targetType, targetId),
+        api.qualityReviews(targetType, targetId, 12),
       ]);
       setSummary(s);
       setReviews(r);
@@ -58,8 +62,8 @@ export function useQuality(target: QualityTarget | null) {
         setError(msg);
       }
       setSummary({
-        targetType: target.type,
-        targetId: target.id,
+        targetType: targetType,
+        targetId: targetId,
         rating: 0,
         reviewCount: 0,
         likeCount: 0,
@@ -72,10 +76,20 @@ export function useQuality(target: QualityTarget | null) {
     } finally {
       setLoading(false);
     }
-  }, [target?.type, target?.id]);
+  }, [targetType, targetId]);
 
   useEffect(() => {
-    void reload();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) {
+        void reload();
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [reload]);
 
   const requireAuth = useCallback((): boolean => {
@@ -91,17 +105,17 @@ export function useQuality(target: QualityTarget | null) {
 
   const setReaction = useCallback(
     async (value: "like" | "dislike" | "none") => {
-      if (!target || !requireAuth()) return null;
+      if (!targetId || !targetType || !requireAuth()) return null;
       setBusy(true);
       setError(null);
       try {
         // Toggle: same reaction again clears
-        const current = summary?.myReaction;
+        const current = myReaction;
         const next =
           value !== "none" && current === value ? "none" : value;
         const s = await api.setReaction({
-          targetType: target.type,
-          targetId: target.id,
+          targetType: targetType,
+          targetId: targetId,
           value: next,
         });
         setSummary(s);
@@ -117,18 +131,18 @@ export function useQuality(target: QualityTarget | null) {
         setBusy(false);
       }
     },
-    [target, requireAuth, summary?.myReaction],
+    [targetId, targetType, requireAuth, myReaction],
   );
 
   const submitReview = useCallback(
     async (data: { rating: number; title?: string; body?: string }) => {
-      if (!target || !requireAuth()) return null;
+      if (!targetId || !targetType || !requireAuth()) return null;
       setBusy(true);
       setError(null);
       try {
         await api.upsertReview({
-          targetType: target.type,
-          targetId: target.id,
+          targetType: targetType,
+          targetId: targetId,
           rating: data.rating,
           title: data.title,
           body: data.body,
@@ -146,15 +160,15 @@ export function useQuality(target: QualityTarget | null) {
         setBusy(false);
       }
     },
-    [target, requireAuth, reload],
+    [targetId, targetType, requireAuth, reload],
   );
 
   const removeReview = useCallback(async () => {
-    if (!target || !requireAuth()) return false;
+    if (!targetId || !targetType || !requireAuth()) return false;
     setBusy(true);
     setError(null);
     try {
-      await api.deleteReview(target.type, target.id);
+      await api.deleteReview(targetType, targetId);
       await reload();
       return true;
     } catch (e) {
@@ -167,7 +181,7 @@ export function useQuality(target: QualityTarget | null) {
     } finally {
       setBusy(false);
     }
-  }, [target, requireAuth, reload]);
+  }, [targetId, targetType, requireAuth, reload]);
 
   return {
     summary,

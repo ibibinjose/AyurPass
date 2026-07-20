@@ -15,26 +15,31 @@ export function useDirectoryUrlState<T extends Record<string, string>>(
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const defaultsRef = useRef(defaults);
-  defaultsRef.current = defaults;
+  const defaultsString = JSON.stringify(defaults);
+  const stableDefaults = useMemo(() => JSON.parse(defaultsString) as T, [defaultsString]);
   const debounceMs = opts?.debounceMs ?? 300;
 
   const fromUrl = useMemo(() => {
-    const next = { ...defaultsRef.current };
-    for (const key of Object.keys(defaultsRef.current) as (keyof T)[]) {
+    const next = { ...stableDefaults };
+    for (const key of Object.keys(stableDefaults) as (keyof T)[]) {
       const v = searchParams.get(String(key));
       if (v != null) next[key] = v as T[keyof T];
     }
     return next;
-  }, [searchParams]);
+  }, [searchParams, stableDefaults]);
 
   const [local, setLocal] = useState<T>(fromUrl);
+  const [prevFromUrl, setPrevFromUrl] = useState<T>(fromUrl);
   const skipUrlWrite = useRef(false);
 
-  // Hydrate when the URL changes externally (back/forward, shared link).
+  // Hydrate when the URL changes externally (back/forward, shared link) during render phase.
+  if (fromUrl !== prevFromUrl) {
+    setPrevFromUrl(fromUrl);
+    setLocal(fromUrl);
+  }
+
   useEffect(() => {
     skipUrlWrite.current = true;
-    setLocal(fromUrl);
   }, [fromUrl]);
 
   // Push local state to URL (debounced as a whole to batch rapid edits).
@@ -44,7 +49,7 @@ export function useDirectoryUrlState<T extends Record<string, string>>(
       return;
     }
     const t = window.setTimeout(() => {
-      const qs = buildQueryString(local, defaultsRef.current);
+      const qs = buildQueryString(local, stableDefaults);
       const target = `${pathname}${qs}`;
       const current = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       if (target !== current) {
@@ -52,7 +57,7 @@ export function useDirectoryUrlState<T extends Record<string, string>>(
       }
     }, debounceMs);
     return () => window.clearTimeout(t);
-  }, [local, pathname, router, searchParams, debounceMs]);
+  }, [local, pathname, router, searchParams, debounceMs, stableDefaults]);
 
   const set = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
     setLocal((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
@@ -63,12 +68,12 @@ export function useDirectoryUrlState<T extends Record<string, string>>(
   }, []);
 
   const clear = useCallback(() => {
-    setLocal({ ...defaultsRef.current });
-  }, []);
+    setLocal({ ...stableDefaults });
+  }, [stableDefaults]);
 
   const sharePath = useMemo(
-    () => `${pathname}${buildQueryString(local, defaultsRef.current)}`,
-    [pathname, local],
+    () => `${pathname}${buildQueryString(local, stableDefaults)}`,
+    [pathname, local, stableDefaults],
   );
 
   return { values: local, set, setMany, clear, sharePath, pathname };

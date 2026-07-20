@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
               <>
                 <h1 className="font-display text-2xl font-semibold text-forest">Reset password</h1>
                 <p className="mt-2 text-sm text-ink-muted leading-relaxed">
-                  Enter your email address and we'll send you a link to reset your password.
+                  Enter your email address and {"we'll"} send you a link to reset your password.
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <h1 className="font-display text-2xl font-semibold text-forest">Check your email</h1>
                 <p className="mt-3 text-sm text-ink-secondary leading-relaxed">
-                  We've sent a password recovery link to <span className="font-semibold text-foreground">{email}</span>.
+                  {"We've"} sent a password recovery link to <span className="font-semibold text-foreground">{email}</span>.
                   Please check your inbox and spam folder.
                 </p>
 
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                     }}
                     className="text-xs font-semibold text-forest hover:underline focus:outline-none"
                   >
-                    Didn't receive email? Click to resend
+                    {"Didn't"} receive email? Click to resend
                   </button>
                 </div>
               </div>

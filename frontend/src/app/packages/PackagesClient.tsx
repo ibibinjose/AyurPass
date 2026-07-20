@@ -122,7 +122,15 @@ export default function PackagesClient() {
   }, []);
 
   useEffect(() => {
-    load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const loading = !error && packages === null;

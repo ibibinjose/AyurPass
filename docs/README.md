@@ -12,6 +12,7 @@ Engineering and product documentation for **AyurPass**, a dual-sided premium wel
 | 4 | [APP_FLOW.md](./APP_FLOW.md) | Application Flows — onboarding, booking, payments, consent (diagrams) |
 | 5 | [BACKEND_SCHEMA.md](./BACKEND_SCHEMA.md) | Backend Schema — data model, ERD, full REST API reference |
 | 6 | [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) | Implementation Plan — status, phased roadmap, risks |
+| 7 | [AWS-AMPLIFY-HOSTING.md](./AWS-AMPLIFY-HOSTING.md) | AWS Amplify & Backend Hosting — deployment guides, env vars, runbooks |
 
 ## Blueprint (background)
 
@@ -34,4 +35,4 @@ Engineering and product documentation for **AyurPass**, a dual-sided premium wel
 - Source of truth for data/API is `backend/prisma/schema.prisma` and `backend/src/modules/**`; the docs are kept in sync with it.
 - Diagrams use Mermaid (render on GitHub and most Markdown viewers).
 
-_Last updated: 2026-07-15._
+_Last updated: 2026-07-20._

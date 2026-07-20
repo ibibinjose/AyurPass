@@ -134,7 +134,15 @@ export default function ShopClient() {
   }, []);
 
   useEffect(() => {
-    load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const loading = !error && products === null;

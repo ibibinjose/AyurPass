@@ -1,6 +1,6 @@
 # AyurPass — Implementation Plan
 
-**Status:** Living document · **Last updated:** 2026-07-17
+**Status:** Living document · **Last updated:** 2026-07-20
 **Related:** [PRD](./PRD.md) · [TRD](./TRD.md) · [Backend Schema](./BACKEND_SCHEMA.md) · [BUILD-LOG](./BUILD-LOG.md)
 
 **Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (20+ modules) and web app are built and hardening. Work focuses on: live payments, tests, deploy, and mobile polish. **Hosting target: AWS/GCP, HIPAA-ready.**
@@ -72,9 +72,9 @@ Expo/React Native consumer app against the live API; standalone install; EAS-rea
 
 | # | Task |
 |---|---|
-| 3.1 | **Dockerize** Nest API (and Next if not on Amplify); multi-stage builds → **ECR** |
+| 3.1 | ✅ **Dockerize** Nest API (Docker image config ready) |
 | 3.2 | **AWS**: VPC, **ECS Fargate** or **App Runner** (API), **RDS Postgres**, **S3**+CloudFront (media), ALB+ACM, **Secrets Manager** |
-| 3.3 | **Web**: Amplify or CloudFront+S3 / ECS for Next; `NEXT_PUBLIC_API_URL` → AWS API |
+| 3.3 | ✅ **Web**: Amplify config, standalone build setup, `NEXT_PUBLIC_API_URL` ready |
 | 3.4 | **CI/CD** (GitHub Actions): typecheck → build → migrate → deploy staging/prod |
 | 3.5 | **Mobile (Expo 55)**: `eas.json` profiles; `EXPO_PUBLIC_API_URL`; EAS Build + Submit iOS/Android |
 | 3.6 | **HIPAA** (only if required later): BAA, KMS, audit — optional for directory+enquiry soft launch |

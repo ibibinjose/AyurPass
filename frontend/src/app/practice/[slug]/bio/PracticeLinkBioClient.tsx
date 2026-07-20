@@ -44,28 +44,40 @@ export default function PracticeLinkBioClient({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (initialProfile) {
-      setProvider(initialProfile.provider);
-      setServices(initialProfile.services);
-      setProducts(initialProfile.products);
-      return;
-    }
-    const load = slug
-      ? api.providerProfileBySlug(slug)
-      : providerId
-        ? api.providerProfile(providerId)
-        : null;
-    if (!load) {
-      setProvider(null);
-      return;
-    }
-    load
-      .then((profile) => {
-        setProvider(profile.provider);
-        setServices(profile.services);
-        setProducts(profile.products);
-      })
-      .catch(() => setProvider(null));
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (initialProfile) {
+        setProvider(initialProfile.provider);
+        setServices(initialProfile.services);
+        setProducts(initialProfile.products);
+        return;
+      }
+      const load = slug
+        ? api.providerProfileBySlug(slug)
+        : providerId
+          ? api.providerProfile(providerId)
+          : null;
+      if (!load) {
+        setProvider(null);
+        return;
+      }
+      load
+        .then((profile) => {
+          if (!active) return;
+          setProvider(profile.provider);
+          setServices(profile.services);
+          setProducts(profile.products);
+        })
+        .catch(() => {
+          if (active) setProvider(null);
+        });
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [slug, providerId, initialProfile]);
 
   useEffect(() => {

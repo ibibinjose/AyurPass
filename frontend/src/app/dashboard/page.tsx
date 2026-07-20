@@ -84,81 +84,91 @@ function ConsumerOverview() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    setLoading(true);
-    Promise.allSettled([
-      api.healthProfile(user.id),
-      api.bookingsByConsumer(user.id),
-      api.ordersByConsumer(user.id),
-      api.plansByConsumer(user.id),
-      api.loyalty(),
-      api.myGiftCards(),
-    ]).then((results) => {
+    const run = async () => {
+      await Promise.resolve();
       if (cancelled) return;
-      const [h, b, o, p, l, g] = results;
-      setHealth(h.status === "fulfilled" ? h.value : null);
-      setBookings(b.status === "fulfilled" ? b.value : []);
-      setOrders(o.status === "fulfilled" ? o.value : []);
-      setPlans(p.status === "fulfilled" ? p.value : []);
-      setLoyalty(l.status === "fulfilled" ? l.value : null);
-      if (g.status === "fulfilled") {
-        const sum = g.value
-          .filter((c) => c.status === "active")
-          .reduce((acc, c) => acc + Number(c.balance || 0), 0);
-        setGiftBalance(sum);
-      } else {
-        setGiftBalance(null);
-      }
-      setLoading(false);
-    });
+      setLoading(true);
+      Promise.allSettled([
+        api.healthProfile(user.id),
+        api.bookingsByConsumer(user.id),
+        api.ordersByConsumer(user.id),
+        api.plansByConsumer(user.id),
+        api.loyalty(),
+        api.myGiftCards(),
+      ]).then((results) => {
+        if (cancelled) return;
+        const [h, b, o, p, l, g] = results;
+        setHealth(h.status === "fulfilled" ? h.value : null);
+        setBookings(b.status === "fulfilled" ? b.value : []);
+        setOrders(o.status === "fulfilled" ? o.value : []);
+        setPlans(p.status === "fulfilled" ? p.value : []);
+        setLoyalty(l.status === "fulfilled" ? l.value : null);
+        if (g.status === "fulfilled") {
+          const sum = g.value
+            .filter((c) => c.status === "active")
+            .reduce((acc, c) => acc + Number(c.balance || 0), 0);
+          setGiftBalance(sum);
+        } else {
+          setGiftBalance(null);
+        }
+        setLoading(false);
+      });
+    };
+    run();
     return () => {
       cancelled = true;
     };
   }, [user]);
 
-  // Resolve followed practice / pro names for the “Following” strip
   useEffect(() => {
     const providers = follows.filter((f) => f.kind === "provider");
     const pros = follows.filter((f) => f.kind === "professional");
     let cancelled = false;
 
-    if (providers.length) {
-      Promise.all(
-        providers.slice(0, 8).map((f) =>
-          api.provider(f.id).catch(() => null),
-        ),
-      ).then((rows) => {
-        if (cancelled) return;
-        const map = new Map<string, Pick<Provider, "id" | "businessName" | "slug" | "type">>();
-        for (const row of rows) {
-          if (row) map.set(row.id, row);
-        }
-        setFollowedProviders(map);
-      });
-    } else {
-      setFollowedProviders(new Map());
-    }
+    const run = async () => {
+      await Promise.resolve();
+      if (cancelled) return;
 
-    if (pros.length) {
-      Promise.all(
-        pros.slice(0, 8).map((f) =>
-          api.professional(f.id).catch(() => null),
-        ),
-      ).then((rows) => {
-        if (cancelled) return;
-        const map = new Map<string, { id: string; name: string; href: string }>();
-        for (const row of rows) {
-          if (!row) continue;
-          map.set(row.id, {
-            id: row.id,
-            name: row.user?.fullName || row.title || "Practitioner",
-            href: practitionerPath(row),
-          });
-        }
-        setFollowedPros(map);
-      });
-    } else {
-      setFollowedPros(new Map());
-    }
+      if (providers.length) {
+        Promise.all(
+          providers.slice(0, 8).map((f) =>
+            api.provider(f.id).catch(() => null),
+          ),
+        ).then((rows) => {
+          if (cancelled) return;
+          const map = new Map<string, Pick<Provider, "id" | "businessName" | "slug" | "type">>();
+          for (const row of rows) {
+            if (row) map.set(row.id, row);
+          }
+          setFollowedProviders(map);
+        });
+      } else {
+        setFollowedProviders(new Map());
+      }
+
+      if (pros.length) {
+        Promise.all(
+          pros.slice(0, 8).map((f) =>
+            api.professional(f.id).catch(() => null),
+          ),
+        ).then((rows) => {
+          if (cancelled) return;
+          const map = new Map<string, { id: string; name: string; href: string }>();
+          for (const row of rows) {
+            if (!row) continue;
+            map.set(row.id, {
+              id: row.id,
+              name: row.user?.fullName || row.title || "Practitioner",
+              href: practitionerPath(row),
+            });
+          }
+          setFollowedPros(map);
+        });
+      } else {
+        setFollowedPros(new Map());
+      }
+    };
+    run();
 
     return () => {
       cancelled = true;

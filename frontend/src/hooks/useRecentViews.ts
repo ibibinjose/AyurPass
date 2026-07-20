@@ -11,11 +11,19 @@ export function useRecentViews(limit = 8) {
   }, [limit]);
 
   useEffect(() => {
-    reload();
-    const on = () => reload();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) reload();
+    };
+    run();
+    const on = () => {
+      if (active) reload();
+    };
     window.addEventListener("ayurpass-recent", on);
     window.addEventListener("storage", on);
     return () => {
+      active = false;
       window.removeEventListener("ayurpass-recent", on);
       window.removeEventListener("storage", on);
     };

@@ -693,21 +693,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [loading, user, router, pathname]);
 
   useEffect(() => {
-    try {
-      const storedCollapse = window.localStorage.getItem(COLLAPSE_KEY);
-      if (storedCollapse === "1") setCollapsed(true);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      try {
+        const storedCollapse = window.localStorage.getItem(COLLAPSE_KEY);
+        if (storedCollapse === "1") setCollapsed(true);
 
-      const storedViewMode = window.localStorage.getItem(VIEW_MODE_KEY);
-      if (storedViewMode === "seeker" || storedViewMode === "provider") {
-        setViewModeOverride(storedViewMode);
+        const storedViewMode = window.localStorage.getItem(VIEW_MODE_KEY);
+        if (storedViewMode === "seeker" || storedViewMode === "provider") {
+          setViewModeOverride(storedViewMode);
+        }
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
-    }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    setMobileOpen(false);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) setMobileOpen(false);
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [pathname]);
 
   useEffect(() => {

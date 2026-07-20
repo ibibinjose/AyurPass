@@ -198,7 +198,7 @@ export default function VirtualTerminalPage() {
             <Field label="Payment method">
               <Select
                 value={payMethod}
-                onChange={(e) => setPayMethod(e.target.value as any)}
+                onChange={(e) => setPayMethod(e.target.value as "CASH" | "CARD_TERMINAL" | "STRIPE_ONLINE")}
               >
                 <option value="CASH">Cash (Pay at counter)</option>
                 <option value="CARD_TERMINAL">Card Terminal (In-person)</option>

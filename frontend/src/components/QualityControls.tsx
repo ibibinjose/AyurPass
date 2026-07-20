@@ -92,11 +92,20 @@ export function LikeDislikeBar({
   const [armed, setArmed] = useState(Boolean(initialAction));
 
   useEffect(() => {
-    if (!armed || !initialAction || loading || !summary) return;
-    setArmed(false);
-    if (summary.myReaction !== initialAction) {
-      void setReaction(initialAction);
-    }
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (!armed || !initialAction || loading || !summary) return;
+      setArmed(false);
+      if (summary.myReaction !== initialAction) {
+        void setReaction(initialAction);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [armed, initialAction, loading, summary, setReaction]);
 
   const btn = (active: boolean, danger?: boolean) =>
@@ -186,12 +195,22 @@ export function QualityPanel({
   const [body, setBody] = useState("");
   const [formOpen, setFormOpen] = useState(false);
 
+  const myReview = summary?.myReview;
   useEffect(() => {
-    if (summary?.myReview) {
-      setRating(summary.myReview.rating);
-      setBody(summary.myReview.body ?? "");
-    }
-  }, [summary?.myReview?.id, summary?.myReview?.rating, summary?.myReview?.body]);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (myReview) {
+        setRating(myReview.rating);
+        setBody(myReview.body ?? "");
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [myReview]);
 
   const avg = summary?.rating ?? 0;
   const count = summary?.reviewCount ?? 0;

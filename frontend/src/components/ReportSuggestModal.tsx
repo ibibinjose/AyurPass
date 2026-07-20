@@ -47,14 +47,23 @@ export function ReportSuggestModal({
 
   useEffect(() => {
     if (!open) return;
-    setKind(initialKind);
-    setCategory(initialKind === "abuse" ? "spam" : "feature");
-    setMessage("");
-    setError(null);
-    setDone(false);
-    setRefId(null);
-    setContactEmail(user?.email ?? "");
-    setContactName(user?.fullName ?? "");
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      setKind(initialKind);
+      setCategory(initialKind === "abuse" ? "spam" : "feature");
+      setMessage("");
+      setError(null);
+      setDone(false);
+      setRefId(null);
+      setContactEmail(user?.email ?? "");
+      setContactName(user?.fullName ?? "");
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [open, initialKind, user?.email, user?.fullName]);
 
   useEffect(() => {

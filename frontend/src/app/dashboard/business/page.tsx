@@ -256,15 +256,28 @@ export default function BusinessProfilePage() {
   }, []);
 
   useEffect(() => {
-    if (!sessionProvider) {
-      setLoaded(null);
-      return;
-    }
-    setLoaded(undefined);
-    api
-      .provider(sessionProvider.id)
-      .then(hydrate)
-      .catch(() => setLoaded(null));
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (!sessionProvider) {
+        setLoaded(null);
+        return;
+      }
+      setLoaded(undefined);
+      api
+        .provider(sessionProvider.id)
+        .then((p) => {
+          if (active) hydrate(p);
+        })
+        .catch(() => {
+          if (active) setLoaded(null);
+        });
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [sessionProvider, hydrate]);
 
   function markDirty<T>(setter: (v: T) => void) {

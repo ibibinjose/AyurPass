@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS "FeedbackReport" (
     "status" TEXT NOT NULL DEFAULT 'open',
     "adminNote" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "FeedbackReport_pkey" PRIMARY KEY ("id")
 );
 

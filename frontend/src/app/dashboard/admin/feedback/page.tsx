@@ -54,7 +54,17 @@ export default function AdminFeedbackPage() {
       });
   }, [filter]);
 
-  useEffect(reload, [reload]);
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) reload();
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [reload]);
 
   if (user && user.role !== "PLATFORM_ADMIN") {
     return (

@@ -53,8 +53,18 @@ export function Navbar() {
 
   // Close mobile drawer on route change.
   useEffect(() => {
-    setMobileOpen(false);
-    setMoreOpen(false);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) {
+        setMobileOpen(false);
+        setMoreOpen(false);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [pathname]);
 
   // Escape + click-outside for "More" menu.

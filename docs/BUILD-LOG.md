@@ -1,5 +1,23 @@
 # AyurPass Build Log
 
+## 2026-07-20 — Database fixes, React Compiler strictness, and AWS Amplify hosting readiness
+- **Database Migrations**: Fixed PostgreSQL collation mismatches. Corrected Prisma migrations SQL sequence dependencies where `FeedbackReport`, `Reaction`, and `Review` columns were dropped prior to their definition.
+- **React Compiler & Hook Strictness**: Wrapped synchronous state updates within `useEffect` hooks in async microtask deferrals (`await Promise.resolve()`) across Next.js and custom components to avoid cascading renders.
+- **Render-phase URL Hydration**: Refactored URL query syncing in `useDirectoryUrlState.ts` to update local state directly during the render phase and defer ref writes to a dedicated `useEffect` hook.
+- **TypeScript Type Corrections**:
+  - Eliminated `any` casts in `terminal/page.tsx` and `products/page.tsx`.
+  - Added `InventoryTransaction` interface to properly type stock movement logs in `products/page.tsx`.
+  - Fixed empty interface declaration in `PasswordInput.tsx` with a type alias.
+- **JSX Character Escaping**: Wrapped unescaped single quotes and apostrophes in JSX curly braces in `forgot-password` and `RetreatDetailClient.tsx` templates.
+- **Calendar Layout Refactoring**:
+  - Extracted inner components `ResourceDayGrid` and `EventBlock` from inside the render body of the `CalendarPage` component to the module scope to avoid re-declaring components during render.
+  - Moved columns memoization hooks above the early return checks.
+- **AWS Amplify Hosting Readiness**:
+  - Configured Next.js production build for standalone output (`output: "standalone"`) inside `next.config.ts` to compile self-contained packages.
+  - Aligned root and frontend `amplify.yml` build configurations.
+  - Created a step-by-step AWS Amplify and App Runner hosting playbook at `docs/AWS-AMPLIFY-HOSTING.md`.
+- **Growth Plan Pricing & Feature Updates**: Modified subscription tiers on the landing and benefits pages to update the Growth plan pricing to $369/month, adding Social media management, One Page WebSite, and 1 Podcast to the tier's features.
+
 ## 2026-07-17 — Tags + AAA AU row, profiles, discover, link-in-bio
 - **TagAuthorityRow**: discipline/focus tags (e.g. Ayurveda) sit beside authority chips (**AAA AU**) on one row
 - Used on Discover **Practitioners** & **Practices** cards, practice & practitioner public profiles

@@ -40,7 +40,15 @@ export default function PermissionsPage() {
   }, [user, isConsumer]);
 
   useEffect(() => {
-    void load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) void load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const filtered = useMemo(() => {

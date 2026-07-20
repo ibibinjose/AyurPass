@@ -147,38 +147,53 @@ export default function ProviderProfilePage({
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialProfile) {
-      setProvider(initialProfile.provider);
-      setServices(initialProfile.services);
-      setProducts(initialProfile.products);
-      setRetreats(initialProfile.retreats);
-      setTeam(initialProfile.team);
-      return;
-    }
-    if (rootHandle && vanityHandle) {
-      api
-        .providerProfileByVanity(rootHandle)
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (initialProfile) {
+        setProvider(initialProfile.provider);
+        setServices(initialProfile.services);
+        setProducts(initialProfile.products);
+        setRetreats(initialProfile.retreats);
+        setTeam(initialProfile.team);
+        return;
+      }
+      if (rootHandle && vanityHandle) {
+        api
+          .providerProfileByVanity(rootHandle)
+          .then((profile) => {
+            if (!active) return;
+            setProvider(profile.provider);
+            setServices(profile.services);
+            setProducts(profile.products);
+            setRetreats(profile.retreats);
+            setTeam(profile.team);
+          })
+          .catch(() => {
+            if (active) setProvider(null);
+          });
+        return;
+      }
+      if (!slug && !id) return;
+      const loadProvider = slug ? api.providerProfileBySlug(slug) : api.providerProfile(id!);
+      loadProvider
         .then((profile) => {
+          if (!active) return;
           setProvider(profile.provider);
           setServices(profile.services);
           setProducts(profile.products);
           setRetreats(profile.retreats);
           setTeam(profile.team);
         })
-        .catch(() => setProvider(null));
-      return;
-    }
-    if (!slug && !id) return;
-    const loadProvider = slug ? api.providerProfileBySlug(slug) : api.providerProfile(id!);
-    loadProvider
-      .then((profile) => {
-        setProvider(profile.provider);
-        setServices(profile.services);
-        setProducts(profile.products);
-        setRetreats(profile.retreats);
-        setTeam(profile.team);
-      })
-      .catch(() => setProvider(null));
+        .catch(() => {
+          if (active) setProvider(null);
+        });
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [slug, id, rootHandle, vanityHandle, initialProfile]);
 
   useEffect(() => {
@@ -197,7 +212,7 @@ export default function ProviderProfilePage({
       href: practicePath(provider),
       subtitle: PROVIDER_TYPE_LABEL[provider.type] ?? provider.type,
     });
-  }, [provider?.id, initialProfile]);
+  }, [provider, initialProfile]);
 
   // All hooks must run before any early return (stable hook order).
   const brand = provider?.brandProfile;
@@ -241,7 +256,16 @@ export default function ProviderProfilePage({
   ]);
 
   useEffect(() => {
-    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [tabs, tab]);
 
   useEffect(() => {

@@ -151,7 +151,7 @@ const TIERS: {
   },
   {
     name: "Growth",
-    price: "$349",
+    price: "$369",
     cadence: "/month",
     highlight: true,
     badge: "Most popular",
@@ -161,6 +161,9 @@ const TIERS: {
       "Bookable sessions & calendar",
       "Team & rooms",
       "Payments & analytics",
+      "Social media management",
+      "One Page WebSite",
+      "1 Podcast",
     ],
     cta: "Start free, upgrade later",
     href: "/list-your-business",

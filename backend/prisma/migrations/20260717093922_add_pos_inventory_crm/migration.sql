@@ -12,9 +12,6 @@ ADD COLUMN     "posTransactionId" TEXT;
 ALTER TABLE "Consumer" ALTER COLUMN "code" SET DEFAULT upper(substr(md5(random()::text), 1, 7));
 
 -- AlterTable
-ALTER TABLE "FeedbackReport" ALTER COLUMN "updatedAt" DROP DEFAULT;
-
--- AlterTable
 ALTER TABLE "Order" ADD COLUMN     "paymentMethod" "PaymentMethod",
 ADD COLUMN     "posTransactionId" TEXT;
 
@@ -26,12 +23,6 @@ ALTER TABLE "Professional" ALTER COLUMN "code" SET DEFAULT upper(substr(md5(rand
 
 -- AlterTable
 ALTER TABLE "Provider" ALTER COLUMN "code" SET DEFAULT upper(substr(md5(random()::text), 1, 7));
-
--- AlterTable
-ALTER TABLE "Reaction" ALTER COLUMN "updatedAt" DROP DEFAULT;
-
--- AlterTable
-ALTER TABLE "Review" ALTER COLUMN "updatedAt" DROP DEFAULT;
 
 -- AlterTable
 ALTER TABLE "Service" ALTER COLUMN "code" SET DEFAULT upper(substr(md5(random()::text), 1, 7));

@@ -96,28 +96,37 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!user) return;
-    const next = {
-      fullName: user.fullName ?? "",
-      phone: user.phone ?? "",
-      avatarUrl: user.avatarUrl ?? "",
-      title: "",
-      titleKind: "",
-      handle: "",
-      handleNamespace: "pro",
-      vanityHandle: "",
-      requestVanity: false,
-      registrationNumber: "",
-      licenceNumber: "",
-      authorityCodes: [] as string[],
-      customAuthority: "",
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      const next = {
+        fullName: user.fullName ?? "",
+        phone: user.phone ?? "",
+        avatarUrl: user.avatarUrl ?? "",
+        title: "",
+        titleKind: "",
+        handle: "",
+        handleNamespace: "pro",
+        vanityHandle: "",
+        requestVanity: false,
+        registrationNumber: "",
+        licenceNumber: "",
+        authorityCodes: [] as string[],
+        customAuthority: "",
+      };
+      setFullName(next.fullName);
+      setPhone(next.phone);
+      setAvatarUrl(next.avatarUrl);
+      if (!professional?.id) {
+        setBaseline(snapshot(next));
+        setDirty(false);
+      }
     };
-    setFullName(next.fullName);
-    setPhone(next.phone);
-    setAvatarUrl(next.avatarUrl);
-    if (!professional?.id) {
-      setBaseline(snapshot(next));
-      setDirty(false);
-    }
+    run();
+    return () => {
+      active = false;
+    };
   }, [user, professional?.id]);
 
   useEffect(() => {
@@ -220,7 +229,17 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!baseline) return;
-    setDirty(currentSnap !== baseline);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) {
+        setDirty(currentSnap !== baseline);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [currentSnap, baseline]);
 
   const initials =

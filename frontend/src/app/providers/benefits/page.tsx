@@ -64,7 +64,7 @@ const TIERS = [
   },
   {
     name: "Growth",
-    price: "$349",
+    price: "$369",
     cadence: "/month",
     blurb: "For growing clinics & multi-practitioner studios.",
     features: [
@@ -72,6 +72,9 @@ const TIERS = [
       "Staff & multi-practitioner management",
       "Analytics & revenue insights",
       "Marketing automation",
+      "Social media management",
+      "One Page WebSite",
+      "1 Podcast",
     ],
     cta: "Choose Growth",
     highlight: true,

@@ -151,7 +151,15 @@ export default function ExploreClient() {
   }, []);
 
   useEffect(() => {
-    load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   const loading = !error && services === null;

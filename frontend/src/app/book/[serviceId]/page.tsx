@@ -49,7 +49,11 @@ export default function BookServicePage() {
     [service, selectedDay],
   );
 
-  useEffect(() => setSlot(null), [dayIso]);
+  const [prevDayIso, setPrevDayIso] = useState(dayIso);
+  if (dayIso !== prevDayIso) {
+    setPrevDayIso(dayIso);
+    setSlot(null);
+  }
 
   async function confirmBooking() {
     if (!user || !service || !slot) return;

@@ -901,7 +901,17 @@ export function ProfileThemeScope({ children }: { children: ReactNode }) {
   const [accentId, setAccentId] = useState<ProfileAccentId>("forest");
 
   useEffect(() => {
-    setAccentId(getStoredAccentId());
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) {
+        setAccentId(getStoredAccentId());
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const accent = accentById(accentId);

@@ -117,13 +117,32 @@ export default function ListYourBusinessClient() {
   // Prefill account fields from the signed-in session.
   useEffect(() => {
     if (!user) return;
-    if (user.fullName) setFullName((v) => v || user.fullName || "");
-    if (user.email) setEmail((v) => v || user.email);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (user.fullName) setFullName((v) => v || user.fullName || "");
+      if (user.email) setEmail((v) => v || user.email);
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   // Clamp step if auth resolves mid-flow and we drop the Account step.
   useEffect(() => {
-    setStep((s) => Math.min(s, lastStep));
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) {
+        setStep((s) => Math.min(s, lastStep));
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [lastStep]);
 
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step, steps.length]);

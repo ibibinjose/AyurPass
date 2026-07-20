@@ -42,7 +42,7 @@ npm start   # API :4000 + web :3000
 | `npm run dev:mobile` | Expo |
 | `npm run stripe:status` | Stripe key / mock mode check |
 
-See [SETUP_LOCAL.md](./SETUP_LOCAL.md), [RUN_APP.md](./RUN_APP.md), and **[docs/AWS-AND-MOBILE-LAUNCH.md](./docs/AWS-AND-MOBILE-LAUNCH.md)** (AWS hosting + Expo 55 store path).
+See [SETUP_LOCAL.md](./SETUP_LOCAL.md), [RUN_APP.md](./RUN_APP.md), **[docs/AWS-AMPLIFY-HOSTING.md](./docs/AWS-AMPLIFY-HOSTING.md)** (Amplify + App Runner hosting playbook), and **[docs/AWS-AND-MOBILE-LAUNCH.md](./docs/AWS-AND-MOBILE-LAUNCH.md)** (AWS hosting + Expo 55 store path).
 
 ## Security notes (production)
 

@@ -13,6 +13,7 @@ import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@
 const OPEN_HOUR = 8;
 const CLOSE_HOUR = 19;
 const HOUR_PX = 48;
+const hours = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => OPEN_HOUR + i);
 
 type CalView = "week" | "staff" | "rooms";
 
@@ -176,7 +177,25 @@ export default function CalendarPage() {
     [bookings],
   );
 
-  const hours = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => OPEN_HOUR + i);
+  const staffColumns = useMemo(() => {
+    const cols: { id: string; label: string; color: string }[] = team.map((p, i) => ({
+      id: p.id,
+      label: proName(p),
+      color: STAFF_COLORS[i % STAFF_COLORS.length],
+    }));
+    cols.push({ id: "__unassigned__", label: "Unassigned", color: STATUS_BLOCK.COMPLETED });
+    return cols;
+  }, [team]);
+
+  const roomColumns = useMemo(() => {
+    const cols: { id: string; label: string; color: string }[] = rooms.map((r, i) => ({
+      id: r.id,
+      label: r.name,
+      color: STAFF_COLORS[i % STAFF_COLORS.length],
+    }));
+    cols.push({ id: "__unassigned__", label: "No room", color: STATUS_BLOCK.COMPLETED });
+    return cols;
+  }, [rooms]);
 
   if (!provider) {
     return (
@@ -280,157 +299,9 @@ export default function CalendarPage() {
     ? (selected.service ?? services.find((s) => s.id === selected.serviceId))
     : null;
 
-  const staffColumns = useMemo(() => {
-    const cols: { id: string; label: string; color: string }[] = team.map((p, i) => ({
-      id: p.id,
-      label: proName(p),
-      color: STAFF_COLORS[i % STAFF_COLORS.length],
-    }));
-    cols.push({ id: "__unassigned__", label: "Unassigned", color: STATUS_BLOCK.COMPLETED });
-    return cols;
-  }, [team]);
 
-  const roomColumns = useMemo(() => {
-    const cols: { id: string; label: string; color: string }[] = rooms.map((r, i) => ({
-      id: r.id,
-      label: r.name,
-      color: STAFF_COLORS[i % STAFF_COLORS.length],
-    }));
-    cols.push({ id: "__unassigned__", label: "No room", color: STATUS_BLOCK.COMPLETED });
-    return cols;
-  }, [rooms]);
 
-  function dayBookingsForResource(
-    resourceId: string,
-    kind: "staff" | "rooms",
-  ): Booking[] {
-    const dayIso = toDateInput(dayFocus);
-    return visibleBookings.filter((b) => {
-      if (toDateInput(new Date(b.startTime)) !== dayIso) return false;
-      if (kind === "staff") {
-        const pid = b.professionalId ?? "__unassigned__";
-        return pid === resourceId;
-      }
-      const rid = b.roomId ?? "__unassigned__";
-      return rid === resourceId;
-    });
-  }
 
-  function EventBlock({
-    b,
-    style,
-    compact,
-  }: {
-    b: Booking;
-    style: React.CSSProperties;
-    compact?: boolean;
-  }) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          setDraft(null);
-          setSelected(b);
-        }}
-        className={`absolute overflow-hidden rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight transition-shadow hover:shadow-md sm:text-[11px] ${
-          STATUS_BLOCK[b.status] ?? STATUS_BLOCK.COMPLETED
-        } ${selected?.id === b.id ? "ring-2 ring-gold z-10" : ""}`}
-        style={style}
-      >
-        <span className="block truncate font-semibold">{b.service?.name ?? "Session"}</span>
-        {!compact ? (
-          <span className="block truncate opacity-85">
-            {b.consumer?.user?.fullName ?? "Client"}
-            {b.professional?.user?.fullName ? ` · ${b.professional.user.fullName}` : ""}
-            {b.room?.name ? ` · ${b.room.name}` : ""}
-          </span>
-        ) : null}
-      </button>
-    );
-  }
-
-  function ResourceDayGrid({
-    columns,
-    kind,
-  }: {
-    columns: { id: string; label: string; color: string }[];
-    kind: "staff" | "rooms";
-  }) {
-    return (
-      <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface">
-        <div
-          className="min-w-[640px]"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `56px repeat(${columns.length}, minmax(120px, 1fr))`,
-          }}
-        >
-          <div className="border-b border-hairline" />
-          {columns.map((c) => (
-            <div
-              key={c.id}
-              className="border-b border-l border-hairline px-2 py-2.5 text-center"
-            >
-              <p className="truncate text-xs font-bold text-forest">{c.label}</p>
-              <p className="mt-0.5 text-[10px] font-medium text-ink-muted">
-                {dayBookingsForResource(c.id, kind).length} session
-                {dayBookingsForResource(c.id, kind).length === 1 ? "" : "s"}
-              </p>
-            </div>
-          ))}
-          <div className="relative" style={{ height: hours.length * HOUR_PX }}>
-            {hours.map((h, i) => (
-              <span
-                key={h}
-                className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-ink-muted"
-                style={{ top: i * HOUR_PX }}
-              >
-                {h}:00
-              </span>
-            ))}
-          </div>
-          {columns.map((c) => {
-            const items = dayBookingsForResource(c.id, kind);
-            const lanes = laneLayout(items);
-            return (
-              <div
-                key={c.id}
-                className="relative border-l border-hairline"
-                style={{ height: hours.length * HOUR_PX }}
-              >
-                {hours.map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute inset-x-0 border-t border-hairline/50"
-                    style={{ top: i * HOUR_PX }}
-                  />
-                ))}
-                {items.map((b) => {
-                  const s = new Date(b.startTime);
-                  const e = new Date(b.endTime);
-                  const layout = lanes.get(b.id) ?? { lane: 0, lanes: 1 };
-                  const widthPct = 100 / layout.lanes;
-                  return (
-                    <EventBlock
-                      key={b.id}
-                      b={b}
-                      compact={layout.lanes > 1}
-                      style={{
-                        top: bookingTop(s),
-                        height: bookingHeight(s, e),
-                        left: `calc(${layout.lane * widthPct}% + 2px)`,
-                        width: `calc(${widthPct}% - 4px)`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="dash-wide">
@@ -634,6 +505,9 @@ export default function CalendarPage() {
                             key={b.id}
                             b={b}
                             compact={layout.lanes > 1}
+                            selected={selected}
+                            setDraft={setDraft}
+                            setSelected={setSelected}
                             style={{
                               top: bookingTop(s),
                               height: bookingHeight(s, e),
@@ -661,7 +535,15 @@ export default function CalendarPage() {
               }
             />
           ) : (
-            <ResourceDayGrid columns={staffColumns} kind="staff" />
+            <ResourceDayGrid
+              columns={staffColumns}
+              kind="staff"
+              visibleBookings={visibleBookings}
+              dayFocus={dayFocus}
+              selected={selected}
+              setDraft={setDraft}
+              setSelected={setSelected}
+            />
           )
         ) : rooms.length === 0 ? (
           <EmptyState
@@ -674,7 +556,15 @@ export default function CalendarPage() {
             }
           />
         ) : (
-          <ResourceDayGrid columns={roomColumns} kind="rooms" />
+          <ResourceDayGrid
+            columns={roomColumns}
+            kind="rooms"
+            visibleBookings={visibleBookings}
+            dayFocus={dayFocus}
+            selected={selected}
+            setDraft={setDraft}
+            setSelected={setSelected}
+          />
         )}
 
         {/* Side panel */}
@@ -968,6 +858,159 @@ export default function CalendarPage() {
             </div>
           )}
         </aside>
+      </div>
+    </div>
+  );
+}
+
+function dayBookingsForResource(
+  bookings: Booking[],
+  dayFocus: Date,
+  resourceId: string,
+  kind: "staff" | "rooms",
+): Booking[] {
+  const dayIso = toDateInput(dayFocus);
+  return bookings.filter((b) => {
+    if (toDateInput(new Date(b.startTime)) !== dayIso) return false;
+    if (kind === "staff") {
+      const pid = b.professionalId ?? "__unassigned__";
+      return pid === resourceId;
+    }
+    const rid = b.roomId ?? "__unassigned__";
+    return rid === resourceId;
+  });
+}
+
+function EventBlock({
+  b,
+  style,
+  compact,
+  selected,
+  setDraft,
+  setSelected,
+}: {
+  b: Booking;
+  style: React.CSSProperties;
+  compact?: boolean;
+  selected: Booking | null;
+  setDraft: (d: DraftAppointment | null) => void;
+  setSelected: (b: Booking | null) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setDraft(null);
+        setSelected(b);
+      }}
+      className={`absolute overflow-hidden rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight transition-shadow hover:shadow-md sm:text-[11px] ${
+        STATUS_BLOCK[b.status] ?? STATUS_BLOCK.COMPLETED
+      } ${selected?.id === b.id ? "ring-2 ring-gold z-10" : ""}`}
+      style={style}
+    >
+      <span className="block truncate font-semibold">{b.service?.name ?? "Session"}</span>
+      {!compact ? (
+        <span className="block truncate opacity-85">
+          {b.consumer?.user?.fullName ?? "Client"}
+          {b.professional?.user?.fullName ? ` · ${b.professional.user.fullName}` : ""}
+          {b.room?.name ? ` · ${b.room.name}` : ""}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function ResourceDayGrid({
+  columns,
+  kind,
+  visibleBookings,
+  dayFocus,
+  selected,
+  setDraft,
+  setSelected,
+}: {
+  columns: { id: string; label: string; color: string }[];
+  kind: "staff" | "rooms";
+  visibleBookings: Booking[];
+  dayFocus: Date;
+  selected: Booking | null;
+  setDraft: (d: DraftAppointment | null) => void;
+  setSelected: (b: Booking | null) => void;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface">
+      <div
+        className="min-w-[640px]"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `56px repeat(${columns.length}, minmax(120px, 1fr))`,
+        }}
+      >
+        <div className="border-b border-hairline" />
+        {columns.map((c) => (
+          <div
+            key={c.id}
+            className="border-b border-l border-hairline px-2 py-2.5 text-center"
+          >
+            <p className="truncate text-xs font-bold text-forest">{c.label}</p>
+            <p className="mt-0.5 text-[10px] font-medium text-ink-muted">
+              {dayBookingsForResource(visibleBookings, dayFocus, c.id, kind).length} session
+              {dayBookingsForResource(visibleBookings, dayFocus, c.id, kind).length === 1 ? "" : "s"}
+            </p>
+          </div>
+        ))}
+        <div className="relative" style={{ height: hours.length * HOUR_PX }}>
+          {hours.map((h, i) => (
+            <span
+              key={h}
+              className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-ink-muted"
+              style={{ top: i * HOUR_PX }}
+            >
+              {h}:00
+            </span>
+          ))}
+        </div>
+        {columns.map((c) => {
+          const items = dayBookingsForResource(visibleBookings, dayFocus, c.id, kind);
+          const lanes = laneLayout(items);
+          return (
+            <div
+              key={c.id}
+              className="relative border-l border-hairline"
+              style={{ height: hours.length * HOUR_PX }}
+            >
+              {hours.map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-x-0 border-t border-hairline/50"
+                  style={{ top: i * HOUR_PX }}
+                />
+              ))}
+              {items.map((b) => {
+                const s = new Date(b.startTime);
+                const e = new Date(b.endTime);
+                const layout = lanes.get(b.id) ?? { lane: 0, lanes: 1 };
+                const widthPct = 100 / layout.lanes;
+                return (
+                  <EventBlock
+                    key={b.id}
+                    b={b}
+                    compact={layout.lanes > 1}
+                    selected={selected}
+                    setDraft={setDraft}
+                    setSelected={setSelected}
+                    style={{
+                      top: bookingTop(s),
+                      height: bookingHeight(s, e),
+                      left: `calc(${layout.lane * widthPct}% + 2px)`,
+                      width: `calc(${widthPct}% - 4px)`,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

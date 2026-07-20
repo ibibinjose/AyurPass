@@ -220,18 +220,39 @@ function DiscoverInner() {
   }, []);
 
   useEffect(() => {
-    load();
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (active) load();
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [load]);
 
   useEffect(() => {
-    if (!user || user.role !== "CONSUMER") {
-      setMyDosha(null);
-      return;
-    }
-    api
-      .healthProfile(user.id)
-      .then((h) => setMyDosha(h ? primaryDoshaName(h) : null))
-      .catch(() => setMyDosha(null));
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (!user || user.role !== "CONSUMER") {
+        setMyDosha(null);
+        return;
+      }
+      api
+        .healthProfile(user.id)
+        .then((h) => {
+          if (active) setMyDosha(h ? primaryDoshaName(h) : null);
+        })
+        .catch(() => {
+          if (active) setMyDosha(null);
+        });
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   const loading =

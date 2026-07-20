@@ -223,7 +223,16 @@ export default function PractitionerProfileClient({
   }, [gallery.length, linkItems.length, hasBookableServices]);
 
   useEffect(() => {
-    if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      if (!tabs.some((t) => t.id === tab)) setTab(tabs[0]?.id ?? "about");
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [tabs, tab]);
 
   if (professional === null) {

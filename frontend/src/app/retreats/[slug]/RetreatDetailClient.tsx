@@ -249,7 +249,7 @@ export default function RetreatDetailPage() {
         <aside className="space-y-6">
           {inclusions.length > 0 && (
             <section className="rounded-2xl border border-hairline bg-surface p-5">
-              <h3 className="font-display text-lg text-forest">What's included</h3>
+              <h3 className="font-display text-lg text-forest">{"What's included"}</h3>
               <ul className="mt-3 space-y-2">
                 {inclusions.map((i) => (
                   <li key={i} className="inline-flex items-start gap-2 text-sm text-ink-secondary">

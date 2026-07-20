@@ -96,17 +96,35 @@ export function DirectoryLayout({
   const recent = useRecentViews(6);
 
   useEffect(() => {
-    const storedOpen = readFiltersOpen();
-    if (storedOpen != null) setMobileOpen(storedOpen);
-    else if (filterActive) setMobileOpen(true);
-    setLocalDensity(readDensity());
-    setHydrated(true);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      const storedOpen = readFiltersOpen();
+      if (storedOpen != null) setMobileOpen(storedOpen);
+      else if (filterActive) setMobileOpen(true);
+      setLocalDensity(readDensity());
+      setHydrated(true);
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- hydrate once
 
   useEffect(() => {
     if (!hydrated) return;
-    // Auto-open mobile filters when something becomes active.
-    if (filterActive && readFiltersOpen() == null) setMobileOpen(true);
+    let active = true;
+    const run = async () => {
+      await Promise.resolve();
+      if (!active) return;
+      // Auto-open mobile filters when something becomes active.
+      if (filterActive && readFiltersOpen() == null) setMobileOpen(true);
+    };
+    run();
+    return () => {
+      active = false;
+    };
   }, [filterActive, hydrated]);
 
   function toggleMobile() {
