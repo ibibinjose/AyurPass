@@ -17,6 +17,7 @@
   - Aligned root and frontend `amplify.yml` build configurations.
   - Created a step-by-step AWS Amplify and App Runner hosting playbook at `docs/AWS-AMPLIFY-HOSTING.md`.
 - **Growth Plan Pricing & Feature Updates**: Modified subscription tiers on the landing and benefits pages to update the Growth plan pricing to $369/month, adding Social media management, One Page WebSite, and 1 Podcast to the tier's features.
+- **Dynamic SEO Keywords Mapping**: Implemented a dynamic keyword mapping helper (`getDynamicKeywords`) in `frontend/src/lib/seo.ts` to automatically enrich HTML metadata keywords for providers and practitioners based on their specific wellness disciplines (e.g. adding 'Panchakarma', 'Abhyanga massage' for Ayurveda clinics, and 'Vinyasa flow' for yoga studios).
 
 ## 2026-07-17 — Tags + AAA AU row, profiles, discover, link-in-bio
 - **TagAuthorityRow**: discipline/focus tags (e.g. Ayurveda) sit beside authority chips (**AAA AU**) on one row
