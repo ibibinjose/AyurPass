@@ -31,6 +31,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { QualityModule } from './modules/quality/quality.module';
 import { HealthModule } from './health/health.module';
 import { CrmModule } from './modules/crm/crm.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { CrmModule } from './modules/crm/crm.module';
     QualityModule,
     HealthModule,
     CrmModule,
+    SearchModule,
   ],
   providers: [
     // Global authentication: every route requires a valid access token
