@@ -60,14 +60,15 @@ export function assertProductionConfig(): void {
 }
 
 /** Parse CORS_ORIGIN into a Nest-compatible origin option. */
-export function corsOrigins(): string | string[] | boolean {
+export function corsOrigins(): ((origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => void) | boolean {
   const raw = process.env.CORS_ORIGIN?.trim();
   if (!raw) {
     if (isStrictEnv()) {
       throw new Error('CORS_ORIGIN is required in production');
     }
     // Dev default: local web app only (never * with credentials).
-    return ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    const allowed = new Set(['http://localhost:3000', 'http://127.0.0.1:3000']);
+    return (origin, cb) => cb(null, !origin || allowed.has(origin));
   }
   if (raw === '*') {
     if (isStrictEnv()) {
@@ -76,5 +77,6 @@ export function corsOrigins(): string | string[] | boolean {
     // Explicit * only in non-strict dev — still no credentials wildcard ambiguity.
     return true;
   }
-  return raw.split(',').map((o) => o.trim()).filter(Boolean);
+  const allowed = new Set(raw.split(',').map((o) => o.trim()).filter(Boolean));
+  return (origin, cb) => cb(null, !origin || allowed.has(origin));
 }
