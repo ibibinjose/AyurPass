@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
-import { Button, Field, Input, ErrorNote } from "@/components/ui";
+import { Button, ErrorNote, Field, Input } from "@/components/ui";
 import { AuthBanner } from "@/components/auth/AuthBanner";
+import { api } from "@/lib/api";
 import { MailCheck, ArrowLeft } from "lucide-react";
-import { api, ApiError } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -17,16 +17,35 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-    setError(null);
     setBusy(true);
+    setError(null);
     try {
       await api.forgotPassword(email.trim());
-      setBusy(false);
       setSent(true);
     } catch (err) {
+      const status = err && typeof err === "object" && "status" in err ? Number((err as { status: number }).status) : 0;
+      if (status === 429) {
+        setError("Too many attempts. Please wait a minute and try again.");
+      } else if (status === 0) {
+        setError("Unable to reach the server. Please check your connection.");
+      } else {
+        // Always show success-like message to prevent email enumeration
+        setSent(true);
+      }
+    } finally {
       setBusy(false);
-      const msg = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
-      setError(msg);
+    }
+  };
+
+  const handleResend = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.forgotPassword(email.trim());
+    } catch {
+      // silently ignore resend errors
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -61,10 +80,10 @@ export default function ForgotPasswordPage() {
                     />
                   </Field>
 
-                  {error && <ErrorNote message={error} />}
+                  <ErrorNote message={error} />
 
                   <Button type="submit" disabled={busy} className="w-full mt-2">
-                    {busy ? "Sending link…" : "Send reset link"}
+                    {busy ? "Sending link..." : "Send reset link"}
                   </Button>
                 </form>
               </>
@@ -79,30 +98,13 @@ export default function ForgotPasswordPage() {
                   Please check your inbox and spam folder.
                 </p>
 
-                {error && (
-                  <div className="mt-4">
-                    <ErrorNote message={error} />
-                  </div>
-                )}
-
                 <div className="mt-6 flex flex-col gap-2">
                   <button
-                    onClick={async () => {
-                      setError(null);
-                      setBusy(true);
-                      try {
-                        await api.forgotPassword(email.trim());
-                        setBusy(false);
-                      } catch (err) {
-                        setBusy(false);
-                        const msg = err instanceof ApiError ? err.message : "Something went wrong.";
-                        setError(msg);
-                      }
-                    }}
+                    onClick={handleResend}
                     disabled={busy}
                     className="text-xs font-semibold text-forest hover:underline focus:outline-none disabled:opacity-50"
                   >
-                    {busy ? "Resending…" : "Didn't receive email? Click to resend"}
+                    {"Didn't"} receive email? Click to resend
                   </button>
                 </div>
               </div>

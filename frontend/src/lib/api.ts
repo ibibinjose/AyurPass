@@ -129,9 +129,38 @@ export const tokenStore = {
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
     super(message);
+    this.name = "ApiError";
     this.status = status;
+    this.code = code;
+  }
+
+  /** True for 5xx or network failures. */
+  get isServerError(): boolean {
+    return this.status >= 500;
+  }
+
+  /** True when the user's session has expired (401 after refresh attempt). */
+  get isUnauthorized(): boolean {
+    return this.status === 401;
+  }
+
+  /** True for rate-limiting (429). */
+  get isRateLimited(): boolean {
+    return this.status === 429;
+  }
+
+  /** True for validation errors (400/422). */
+  get isValidation(): boolean {
+    return this.status === 400 || this.status === 422;
+  }
+
+  /** Network or CORS failure (status 0 means fetch itself threw). */
+  get isNetworkError(): boolean {
+    return this.status === 0;
   }
 }
 
@@ -177,11 +206,21 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (auth && tokenStore.access) headers.Authorization = `Bearer ${tokenStore.access}`;
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    // Network failure, CORS block, or offline
+    throw new ApiError(
+      "Unable to reach the server. Please check your connection and try again.",
+      0,
+      "NETWORK_ERROR",
+    );
+  }
 
   // Transparent access-token refresh for authenticated calls.
   if (res.status === 401 && auth && !_retried) {
@@ -193,14 +232,16 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
+    let code: string | undefined;
     try {
       const data = await res.json();
       if (typeof data?.message === "string") message = data.message;
       else if (Array.isArray(data?.message)) message = data.message.join(", ");
+      if (typeof data?.error === "string") code = data.error;
     } catch {
       /* non-JSON error body */
     }
-    throw new ApiError(message, res.status);
+    throw new ApiError(message, res.status, code);
   }
 
   if (res.status === 204) return undefined as T;
