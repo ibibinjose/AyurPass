@@ -5,7 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { assertProductionConfig, corsOrigins, isStrictEnv } from './common/env';
+import { assertProductionConfig, isStrictEnv } from './common/env';
+import cors from 'cors';
 
 async function bootstrap() {
   assertProductionConfig();
@@ -20,10 +21,26 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors({
-    origin: corsOrigins(),
+  // CORS: use raw cors middleware to properly reflect origin
+  const corsAllowed = new Set(
+    (process.env.CORS_ORIGIN?.trim() ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  );
+
+  app.use(cors({
+    origin: (requestOrigin, callback) => {
+      if (!requestOrigin) return callback(null, true);
+      if (corsAllowed.has(requestOrigin)) return callback(null, true);
+      if (!isStrictEnv()) return callback(null, true);
+      callback(null, false);
+    },
     credentials: true,
-  });
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
+  }));
 
   // Local image uploads (avatars, covers, gallery). Create dir if missing.
   const uploadDir = join(process.cwd(), 'uploads');
