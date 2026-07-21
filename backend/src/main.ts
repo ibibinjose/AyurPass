@@ -6,12 +6,15 @@ import type { NextFunction, Request, Response } from 'express';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { assertProductionConfig, isStrictEnv } from './common/env';
-import cors from 'cors';
 
 async function bootstrap() {
   assertProductionConfig();
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
+  // Explicitly disable NestJS built-in CORS — we handle it manually below.
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+    cors: false,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,7 +24,7 @@ async function bootstrap() {
     }),
   );
 
-  // CORS: use raw cors middleware to properly reflect origin
+  // CORS: manually reflect the matching origin — no cors package involved.
   const corsAllowed = new Set(
     (process.env.CORS_ORIGIN?.trim() ?? '')
       .split(',')
@@ -29,18 +32,35 @@ async function bootstrap() {
       .filter(Boolean),
   );
 
-  app.use(cors({
-    origin: (requestOrigin, callback) => {
-      if (!requestOrigin) return callback(null, true);
-      if (corsAllowed.has(requestOrigin)) return callback(null, true);
-      if (!isStrictEnv()) return callback(null, true);
-      callback(null, false);
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 86400,
-  }));
+  const isOriginAllowed = (origin: string): boolean => {
+    if (corsAllowed.has(origin)) return true;
+
+    // In dev / non-strict env, allow any local host origin on any port
+    if (!isStrictEnv()) {
+      return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    }
+
+    return false;
+  };
+
+  // Register on the raw Express app BEFORE NestJS routes are mounted.
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.use((req: Request, res: Response, next: NextFunction) => {
+    const origin = req.headers.origin as string | undefined;
+    if (origin && isOriginAllowed(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin');
+      res.setHeader('Access-Control-Max-Age', '86400');
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
 
   // Local image uploads (avatars, covers, gallery). Create dir if missing.
   const uploadDir = join(process.cwd(), 'uploads');
@@ -54,6 +74,7 @@ async function bootstrap() {
     },
   });
 
+  // Security headers
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');

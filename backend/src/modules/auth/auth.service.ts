@@ -209,4 +209,63 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    // Standard security practice: return a generic success message
+    // even if the user is not found to prevent email enumeration attacks.
+    if (!user) {
+      return { message: 'If the email exists, a password reset link has been sent.' };
+    }
+
+    const payload = { sub: user.id };
+    const secret = accessSecret() + (user.passwordHash || '');
+    const token = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      secret,
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    console.log('\n--- PASSWORD RESET REQUEST ---');
+    console.log(`User: ${user.fullName} (${user.email})`);
+    console.log(`Reset Link: ${resetLink}`);
+    console.log('------------------------------\n');
+
+    return { message: 'If the email exists, a password reset link has been sent.' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    let payload: { sub: string } | null = null;
+    try {
+      payload = this.jwtService.decode(token) as { sub: string } | null;
+    } catch (err) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    if (!payload || !payload.sub) {
+      throw new UnauthorizedException('Invalid token payload');
+    }
+
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      const secret = accessSecret() + (user.passwordHash || '');
+      await this.jwtService.verifyAsync(token, { secret });
+    } catch (err) {
+      throw new UnauthorizedException('Password reset token is invalid or has expired');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: hashedPassword },
+    });
+
+    return { message: 'Password has been reset successfully' };
+  }
 }

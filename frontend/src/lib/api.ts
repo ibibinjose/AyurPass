@@ -216,6 +216,10 @@ export const api = {
   refresh: (refreshToken: string) =>
     request<AuthTokens>("/auth/refresh", { method: "POST", body: { refreshToken } }),
   profile: () => request<UserProfile>("/auth/profile", { auth: true }),
+  forgotPassword: (email: string) =>
+    request<{ message: string }>("/auth/forgot-password", { method: "POST", body: { email } }),
+  resetPassword: (token: string, password: string) =>
+    request<{ message: string }>("/auth/reset-password", { method: "POST", body: { token, password } }),
   /**
    * Create a free directory listing for the currently signed-in user
    * (no second account / password). Returns tokens when role is upgraded.

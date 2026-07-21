@@ -163,3 +163,20 @@ export class RegisterPayload {
   @IsOptional()
   preferences?: any;
 }
+
+export class ForgotPasswordDto {
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(PASSWORD_MIN, { message: 'Password must be at least 8 characters' })
+  @MaxLength(PASSWORD_MAX)
+  password: string;
+}

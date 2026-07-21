@@ -3,24 +3,31 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
-import { Button, Field, Input } from "@/components/ui";
+import { Button, Field, Input, ErrorNote } from "@/components/ui";
 import { AuthBanner } from "@/components/auth/AuthBanner";
 import { MailCheck, ArrowLeft } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
+    setError(null);
     setBusy(true);
-    // Simulate sending recovery email
-    setTimeout(() => {
+    try {
+      await api.forgotPassword(email.trim());
       setBusy(false);
       setSent(true);
-    }, 1500);
+    } catch (err) {
+      setBusy(false);
+      const msg = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
+      setError(msg);
+    }
   };
 
   return (
@@ -54,6 +61,8 @@ export default function ForgotPasswordPage() {
                     />
                   </Field>
 
+                  {error && <ErrorNote message={error} />}
+
                   <Button type="submit" disabled={busy} className="w-full mt-2">
                     {busy ? "Sending link…" : "Send reset link"}
                   </Button>
@@ -70,19 +79,30 @@ export default function ForgotPasswordPage() {
                   Please check your inbox and spam folder.
                 </p>
 
+                {error && (
+                  <div className="mt-4">
+                    <ErrorNote message={error} />
+                  </div>
+                )}
+
                 <div className="mt-6 flex flex-col gap-2">
                   <button
-                    onClick={() => {
-                      setSent(false);
+                    onClick={async () => {
+                      setError(null);
                       setBusy(true);
-                      setTimeout(() => {
+                      try {
+                        await api.forgotPassword(email.trim());
                         setBusy(false);
-                        setSent(true);
-                      }, 1000);
+                      } catch (err) {
+                        setBusy(false);
+                        const msg = err instanceof ApiError ? err.message : "Something went wrong.";
+                        setError(msg);
+                      }
                     }}
-                    className="text-xs font-semibold text-forest hover:underline focus:outline-none"
+                    disabled={busy}
+                    className="text-xs font-semibold text-forest hover:underline focus:outline-none disabled:opacity-50"
                   >
-                    {"Didn't"} receive email? Click to resend
+                    {busy ? "Resending…" : "Didn't receive email? Click to resend"}
                   </button>
                 </div>
               </div>

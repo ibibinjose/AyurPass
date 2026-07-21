@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Req, NotFoundException } from '@nestjs/com
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from '../../dtos/auth.dto';
+import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto } from '../../dtos/auth.dto';
 import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
@@ -52,5 +52,19 @@ export class AuthController {
     const user = await this.usersService.findById(req.user.sub);
     if (!user) throw new NotFoundException('User not found');
     return sanitizeUser(user);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('forgot-password')
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('reset-password')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }
