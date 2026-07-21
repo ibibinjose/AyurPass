@@ -1,12 +1,10 @@
+import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { AllExceptionsFilter } from './common/http-exception.filter';
-
-@Module({
-  imports: [
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
+import { AllExceptionsFilter } from './common/http-exception.filter';
 import { accessSecret } from './common/env';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
@@ -36,6 +34,7 @@ import { HealthModule } from './health/health.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { SearchModule } from './modules/search/search.module';
 import { MailModule } from './modules/mail/mail.module';
+import { StaffModule } from './modules/staff/staff.module';
 
 @Module({
   imports: [
@@ -84,6 +83,7 @@ import { MailModule } from './modules/mail/mail.module';
     HealthModule,
     CrmModule,
     SearchModule,
+    StaffModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

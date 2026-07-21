@@ -24,6 +24,7 @@ model User {
   consumer      Consumer?
   professional  Professional?
   provider      Provider?
+  staffMemberships ProviderStaff[]
 }
 
 enum Role {
@@ -106,6 +107,7 @@ model Provider {
   enquiries         Enquiry[]
   retreats          Retreat[]
   clientRecords     ClientRecord[]
+  staff             ProviderStaff[]
 }
 
 enum ProviderType {
@@ -120,6 +122,54 @@ enum ProviderType {
   NUTRITIONIST
   COACHING
   HYBRID
+}
+
+/** Staff role within a provider's team — controls dashboard access level. */
+enum StaffRole {
+  OWNER
+  MANAGER
+  RECEPTIONIST
+  PRACTITIONER
+}
+
+/** Staff invitation status */
+enum StaffInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
+/**
+ * Links users to providers with role-based access.
+ * A user can be staff at multiple providers (e.g. locum practitioner).
+ * The OWNER role is automatically assigned to the provider creator.
+ */
+model ProviderStaff {
+  id          String            @id @default(uuid())
+  providerId  String
+  provider    Provider          @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  role        StaffRole         @default(RECEPTIONIST)
+  /** Optional JSON for fine-grained permission overrides beyond the role defaults */
+  permissions Json?
+  /** Email used for invitation (before user accepts and userId is set) */
+  inviteEmail String?
+  /** Display name for the staff member within this practice */
+  displayName String?
+  inviteStatus StaffInviteStatus @default(PENDING)
+  /** Token sent in the invitation email — used to accept */
+  inviteToken  String?          @unique
+  invitedAt    DateTime         @default(now())
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([providerId, userId])
+  @@index([inviteEmail])
+  @@index([providerId, role])
 }
 
 model Professional {

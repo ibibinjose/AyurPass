@@ -43,6 +43,9 @@ import type {
   WellnessPackage,
   ClientRecord,
   ClientNote,
+  StaffMember,
+  StaffMembershipSummary,
+  StaffRole,
 } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -874,6 +877,39 @@ export const api = {
     request<{ sentCount: number; platform: string }>(`/crm/provider/${providerId}/campaign`, {
       method: "POST",
       body: data,
+      auth: true,
+    }),
+
+  // --- staff ---
+  listStaff: (providerId: string) =>
+    request<StaffMember[]>(`/staff/provider/${providerId}`, { auth: true }),
+  myStaffMembership: (providerId: string) =>
+    request<StaffMember | null>(`/staff/provider/${providerId}/me`, { auth: true }),
+  myStaffMemberships: () =>
+    request<StaffMembershipSummary[]>("/staff/my-memberships", { auth: true }),
+  inviteStaff: (providerId: string, data: { email: string; role: StaffRole; displayName?: string }) =>
+    request<{ id: string; inviteToken: string; inviteEmail: string; role: string }>(`/staff/provider/${providerId}/invite`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+  acceptStaffInvite: (token: string) =>
+    request<{ id: string; role: string; provider: { id: string; businessName: string } }>("/staff/accept-invite", {
+      method: "POST",
+      body: { token },
+      auth: true,
+    }),
+  viewStaffInvite: (token: string) =>
+    request<{ valid: boolean; role?: string; provider?: { businessName: string }; inviteEmail?: string }>(`/staff/invite/${token}`),
+  updateStaffMember: (providerId: string, staffId: string, data: { role?: StaffRole; displayName?: string }) =>
+    request<StaffMember>(`/staff/provider/${providerId}/${staffId}`, {
+      method: "PUT",
+      body: data,
+      auth: true,
+    }),
+  removeStaffMember: (providerId: string, staffId: string) =>
+    request<unknown>(`/staff/provider/${providerId}/${staffId}`, {
+      method: "DELETE",
       auth: true,
     }),
 };

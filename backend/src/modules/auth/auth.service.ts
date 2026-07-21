@@ -84,6 +84,18 @@ export class AuthService {
       });
     }
 
+    // Create OWNER staff record for the provider creator
+    await this.prisma.providerStaff.create({
+      data: {
+        providerId: provider.id,
+        userId: existing.id,
+        role: 'OWNER',
+        inviteStatus: 'ACCEPTED',
+        acceptedAt: new Date(),
+        displayName: existing.fullName || null,
+      },
+    });
+
     const user = await this.usersService.findById(existing.id);
     if (!user) throw new NotFoundException('User not found');
 
@@ -150,6 +162,18 @@ export class AuthService {
           title: registerDto.title,
           specializations: registerDto.specializations || [],
           bio: registerDto.bio,
+        },
+      });
+
+      // Create OWNER staff record for the provider creator
+      await this.prisma.providerStaff.create({
+        data: {
+          providerId: provider.id,
+          userId: user.id,
+          role: 'OWNER',
+          inviteStatus: 'ACCEPTED',
+          acceptedAt: new Date(),
+          displayName: registerDto.fullName || null,
         },
       });
     }

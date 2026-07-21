@@ -252,6 +252,13 @@ const PROVIDER_GROUPS: NavGroup[] = [
     items: [
       { href: "/dashboard/channels", label: "Online channels", icon: GlobeIcon, hint: "Integrations & APIs" },
       {
+        href: "/dashboard/staff",
+        label: "Staff & access",
+        icon: ShieldIcon,
+        hint: "Roles & permissions",
+        chip: true,
+      },
+      {
         href: "/dashboard/business",
         label: "Business",
         icon: ShieldIcon,

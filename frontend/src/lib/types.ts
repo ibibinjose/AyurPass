@@ -482,3 +482,43 @@ export interface ClientRecord {
   bookingsCount?: number;
   ordersCount?: number;
 }
+
+// --- Staff ---
+
+export type StaffRole = "OWNER" | "MANAGER" | "RECEPTIONIST" | "PRACTITIONER";
+export type StaffInviteStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "REVOKED";
+
+export interface StaffMember {
+  id: string;
+  providerId: string;
+  userId?: string | null;
+  role: StaffRole;
+  displayName?: string | null;
+  permissions?: Record<string, boolean> | null;
+  effectivePermissions: Record<string, boolean>;
+  inviteEmail?: string | null;
+  inviteStatus: StaffInviteStatus;
+  invitedAt: string;
+  acceptedAt?: string | null;
+  user?: {
+    id: string;
+    email: string;
+    fullName?: string | null;
+    avatarUrl?: string | null;
+    role?: string;
+  } | null;
+}
+
+export interface StaffMembershipSummary {
+  id: string;
+  role: StaffRole;
+  displayName?: string | null;
+  effectivePermissions: Record<string, boolean>;
+  provider: {
+    id: string;
+    businessName: string;
+    slug?: string | null;
+    type: string;
+    brandProfile?: Record<string, unknown> | null;
+  };
+}
