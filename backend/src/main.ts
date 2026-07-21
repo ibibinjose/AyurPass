@@ -20,7 +20,9 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      // Strip unrecognized fields silently rather than rejecting with 400.
+      // This allows frontend to evolve ahead of backend deploys.
+      forbidNonWhitelisted: false,
     }),
   );
 
