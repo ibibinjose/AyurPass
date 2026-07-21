@@ -1,3 +1,39 @@
+"use client";
+
+import { useState } from "react";
+
+/** Internal image with onError fallback. */
+function CardListMediaImage({
+  src,
+  alt,
+  fallback,
+}: {
+  src?: string | null;
+  alt: string;
+  fallback?: React.ReactNode;
+}) {
+  const [broken, setBroken] = useState(false);
+
+  if (!src || broken) {
+    return (
+      <div className="absolute inset-0 flex items-end bg-[linear-gradient(135deg,var(--color-forest),var(--color-leaf))] p-3">
+        {fallback}
+      </div>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+      loading="lazy"
+      onError={() => setBroken(true)}
+    />
+  );
+}
+
 /** Shared list-row media pane — large side image for directory list density. */
 export function CardListMedia({
   src,
@@ -23,19 +59,7 @@ export function CardListMedia({
     <div
       className={`card-list-media relative isolate shrink-0 overflow-hidden bg-clay ${className}`}
     >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={alt}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-          loading="lazy"
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-end bg-[linear-gradient(135deg,var(--color-forest),var(--color-leaf))] p-3">
-          {fallback}
-        </div>
-      )}
+      <CardListMediaImage src={src} alt={alt} fallback={fallback} />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/5"

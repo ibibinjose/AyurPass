@@ -460,6 +460,7 @@ export const api = {
       brandProfile?: BrandProfile;
       address?: BusinessAddress;
       timezone?: string;
+      currency?: string;
       listingTier?: string;
       registrationNumber?: string | null;
       licenceNumber?: string | null;

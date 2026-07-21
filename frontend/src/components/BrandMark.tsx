@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { BrandProfile, ProviderType } from "@/lib/types";
 import {
   CoachIcon,
@@ -50,8 +53,9 @@ export function BrandMark({
 }) {
   const logo = provider.brandProfile?.logoUrl;
   const dims = SIZES[size];
+  const [broken, setBroken] = useState(false);
 
-  if (logo) {
+  if (logo && !broken) {
     return (
       // Data-URL / arbitrary host logos — plain img avoids next/image domain config.
       // eslint-disable-next-line @next/next/no-img-element
@@ -59,6 +63,7 @@ export function BrandMark({
         src={logo}
         alt={`${provider.businessName} brand mark`}
         className={`relative z-[1] ${dims.box} shrink-0 rounded-full object-cover ring-1 ring-hairline ${className}`}
+        onError={() => setBroken(true)}
       />
     );
   }
