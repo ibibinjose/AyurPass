@@ -35,9 +35,40 @@ async function bootstrap() {
   const isOriginAllowed = (origin: string): boolean => {
     if (corsAllowed.has(origin)) return true;
 
-    // In dev / non-strict env, allow any local host origin on any port
-    if (!isStrictEnv()) {
-      return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    try {
+      const url = new URL(origin);
+      const hostname = url.hostname;
+
+      // In dev / non-strict env, allow any local host origin on any port
+      if (!isStrictEnv()) {
+        if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+      }
+
+      // Automatically allow both apex and www if either is in the configured allowlist
+      for (const allowed of corsAllowed) {
+        try {
+          const allowedUrl = new URL(allowed);
+          const allowedHost = allowedUrl.hostname;
+          if (hostname === allowedHost) return true;
+          if (allowedHost.replace(/^www\./, '') === hostname.replace(/^www\./, '')) {
+            return true;
+          }
+        } catch {
+          // ignore invalid URLs in set
+        }
+      }
+
+      // Allow any subdomains or apex domain of ayurpass.com
+      if (hostname === 'ayurpass.com' || hostname.endsWith('.ayurpass.com')) {
+        return true;
+      }
+
+      // Allow any AWS Amplify branch preview/hosting URLs
+      if (hostname.endsWith('.amplifyapp.com')) {
+        return true;
+      }
+    } catch {
+      // ignore invalid origin header format
     }
 
     return false;

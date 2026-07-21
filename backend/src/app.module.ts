@@ -32,9 +32,11 @@ import { QualityModule } from './modules/quality/quality.module';
 import { HealthModule } from './health/health.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { SearchModule } from './modules/search/search.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
+    MailModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

@@ -14,6 +14,7 @@ import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { sanitizeUser } from '../../common/sanitize-user';
 import { accessSecret, refreshSecret } from '../../common/env';
 import { slugifyName, withSlugSuffix } from '../../common/slug';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private mailService: MailService,
   ) {}
 
   /**
@@ -228,10 +230,11 @@ export class AuthService {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
-    console.log('\n--- PASSWORD RESET REQUEST ---');
-    console.log(`User: ${user.fullName} (${user.email})`);
-    console.log(`Reset Link: ${resetLink}`);
-    console.log('------------------------------\n');
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      user.fullName || 'User',
+      resetLink,
+    );
 
     return { message: 'If the email exists, a password reset link has been sent.' };
   }
