@@ -1,5 +1,8 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { AllExceptionsFilter } from './common/http-exception.filter';
+
+@Module({
+  imports: [
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -83,6 +86,7 @@ import { MailModule } from './modules/mail/mail.module';
     SearchModule,
   ],
   providers: [
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
     // Global authentication: every route requires a valid access token
     // unless annotated @Public(). See src/common/jwt-auth.guard.ts.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
