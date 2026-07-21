@@ -93,11 +93,11 @@ async function bootstrap() {
     next();
   });
 
-  // Local image uploads (avatars, covers, gallery). Create dir if missing.
+  // Serve uploaded media files. Static prefix avoids collision with POST /uploads route.
   const uploadDir = join(process.cwd(), 'uploads');
   if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
   app.useStaticAssets(uploadDir, {
-    prefix: '/uploads/',
+    prefix: '/files/',
     maxAge: isStrictEnv() ? '7d' : 0,
     setHeaders: (res) => {
       res.setHeader('X-Content-Type-Options', 'nosniff');
