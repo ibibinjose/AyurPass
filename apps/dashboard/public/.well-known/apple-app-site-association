@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.thepassionarc.ayurpass",
+        "paths": [
+          "/provider/*",
+          "/providers/*",
+          "/practice/*",
+          "/book/*",
+          "/offers*",
+          "/dashboard/bookings*",
+          "/service/*",
+          "/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.thepassionarc.ayurpass"]
+  }
+}

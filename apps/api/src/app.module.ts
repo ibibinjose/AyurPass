@@ -35,10 +35,12 @@ import { CrmModule } from './modules/crm/crm.module';
 import { SearchModule } from './modules/search/search.module';
 import { MailModule } from './modules/mail/mail.module';
 import { StaffModule } from './modules/staff/staff.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
     MailModule,
+    NotificationsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

@@ -57,6 +57,10 @@ export const endpoints = {
   uploadsBatch: "/uploads/batch",
 
   search: "/search",
+
+  notifications: {
+    devices: "/notifications/devices",
+  },
 } as const;
 
 export type EndpointTree = typeof endpoints;

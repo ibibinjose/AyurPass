@@ -303,6 +303,20 @@ export const api = {
       auth: true,
     }),
   loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
+
+  // push devices
+  registerDevice: (token: string, platform?: "ios" | "android" | "web") =>
+    request<{ id: string; token: string }>("/notifications/devices", {
+      method: "POST",
+      body: { token, platform },
+      auth: true,
+    }),
+  unregisterDevice: (token: string) =>
+    request<{ removed: boolean }>("/notifications/devices", {
+      method: "DELETE",
+      body: { token },
+      auth: true,
+    }),
 };
 
 export function formatMoney(value: string | number | null | undefined, currency = "AUD"): string {

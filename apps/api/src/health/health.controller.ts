@@ -13,7 +13,7 @@ export class HealthController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       service: 'AyurPass Backend API',
-      version: '0.1.0',
+      version: '1.0.0',
     };
   }
 

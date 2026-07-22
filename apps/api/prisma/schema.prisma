@@ -25,6 +25,20 @@ model User {
   professional  Professional?
   provider      Provider?
   staffMemberships ProviderStaff[]
+  devicePushTokens DevicePushToken[]
+}
+
+/** Expo / FCM / APNs device tokens for booking reminders and marketing. */
+model DevicePushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String?  // ios | android | web
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 enum Role {
