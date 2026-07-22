@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Platform, View } from "react-native";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { usePaymentMode } from "../hooks/useCatalogDetail";
@@ -12,21 +12,13 @@ export function StripeAppProvider({ children }: { children: ReactNode }) {
   const publishableKey = data?.publishableKey?.trim() || "";
   const key = publishableKey || "pk_test_placeholder";
 
-  const merchantIdentifier = useMemo(
-    () => (Platform.OS === "ios" ? "merchant.com.passionarc.ayurpass" : undefined),
-    [],
-  );
-
   if (Platform.OS === "web") {
     return <View style={{ flex: 1 }}>{children}</View>;
   }
 
+  // merchantIdentifier omitted until Apple Pay merchant ID is enabled on the App ID.
   return (
-    <StripeProvider
-      publishableKey={key}
-      merchantIdentifier={merchantIdentifier}
-      urlScheme="ayurpass"
-    >
+    <StripeProvider publishableKey={key} urlScheme="ayurpass">
       <View style={{ flex: 1 }}>{children}</View>
     </StripeProvider>
   );

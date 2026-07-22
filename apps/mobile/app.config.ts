@@ -45,18 +45,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             "Allow AyurPass to use the camera for your profile picture.",
         },
       ],
-      [
-        "expo-notifications",
-        {
-          // Android notification color only — avoid custom icon (must be white alpha)
-          color: "#1e3228",
-        },
-      ],
+      // Push: enable "Push Notifications" on the App ID in Apple Developer, then
+      // re-add this plugin and regenerate the provisioning profile.
+      // "expo-notifications",
+      // Stripe PaymentSheet (card). Apple Pay merchant ID is optional — enable later
+      // in Apple Developer + re-add merchantIdentifier after the first device install works.
       [
         "@stripe/stripe-react-native",
         {
-          // Must match Apple Pay merchant ID in Apple Developer / Stripe Dashboard
-          merchantIdentifier: "merchant.com.passionarc.ayurpass",
           enableGooglePay: true,
         },
       ],
@@ -70,7 +66,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       supportsTablet: true,
       // Matches EAS credentials: com.passionarc.ayurpass
       bundleIdentifier: "com.passionarc.ayurpass",
-      associatedDomains: ["applinks:ayurpass.com", "applinks:www.ayurpass.com"],
+      // Universal Links (applinks:) re-enable after App ID has Associated Domains.
+      // Custom scheme ayurpass:// still works without this entitlement.
+      // associatedDomains: ["applinks:ayurpass.com", "applinks:www.ayurpass.com"],
       infoPlist: {
         UIRequiresFullScreen: false,
         UIStatusBarStyle: "UIStatusBarStyleDarkContent",
