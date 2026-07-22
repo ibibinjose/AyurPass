@@ -38,7 +38,14 @@ Choose one of the following options:
 
 ### 3. Configure Environment Variables
 
-The `.env` file in `/backend` is already configured for local development:
+Copy env templates (or edit existing files):
+
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/dashboard/.env.example apps/dashboard/.env.local
+```
+
+The API `.env` in `apps/api` should include:
 
 ```
 DATABASE_URL="postgresql://localhost:5432/ayurpass_dev"

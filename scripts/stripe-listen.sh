@@ -15,8 +15,8 @@ fi
 
 echo "Forwarding Stripe events → http://${TARGET}"
 echo ""
-echo "Copy the webhook signing secret (whsec_…) into backend/.env as STRIPE_WEBHOOK_SECRET"
-echo "Then restart the backend."
+echo "Copy the webhook signing secret (whsec_…) into apps/api/.env as STRIPE_WEBHOOK_SECRET"
+echo "Then restart the API (npm run dev:api)."
 echo ""
 
 exec stripe listen --forward-to "${TARGET}" --events payment_intent.succeeded,account.updated

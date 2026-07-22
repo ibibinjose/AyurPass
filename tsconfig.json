@@ -8,9 +8,10 @@
     "skipLibCheck": true
   },
   "references": [
-    { "path": "backend" },
-    { "path": "frontend" },
-    { "path": "shared" }
+    { "path": "apps/api" },
+    { "path": "apps/dashboard" },
+    { "path": "apps/mobile" },
+    { "path": "packages/shared" }
   ],
   "files": []
 }

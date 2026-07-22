@@ -11,13 +11,15 @@ build/
 .next/
 .expo/
 out/
+.turbo/
 
-# Backend compiled output (source lives in src/)
-backend/dist/
+# API compiled output (source lives in src/)
+apps/api/dist/
 
 # Local media uploads
 /uploads/
-/backend/uploads/
+/apps/api/uploads/
+backend/uploads/
 
 # IDE / tooling
 .idea/
@@ -29,3 +31,10 @@ coverage/
 
 # Backup files
 *.bak
+
+# Mobile native build caches (keep sources; ignore heavy caches)
+apps/mobile/ios/Pods/
+apps/mobile/ios/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/build/

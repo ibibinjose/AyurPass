@@ -1,74 +1,50 @@
 # Running AyurPass Application
 
+## Monorepo layout
+
+```text
+apps/api         NestJS API (:4000)
+apps/dashboard   Next.js web + admin dashboard (:3000)
+apps/mobile      Expo iOS / Android
+packages/shared  Shared types, tokens, API contracts
+```
+
 ## Quick Start (recommended)
 
-From the project root, with the `ayurpass-postgres` Docker container running:
+From the project root, with PostgreSQL running:
 
 ```bash
-npm run start
-```
-
-This starts the backend API (http://localhost:4000) and the Next.js frontend (http://localhost:3000) together. `Ctrl+C` stops both.
-
-## Running the Backend Alone
-
-### From Terminal:
-
-1. Navigate to the backend directory:
-```bash
-cd backend
-```
-
-2. Install dependencies (if not already installed):
-```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/dashboard/.env.example apps/dashboard/.env.local
 npm install
+npm run prisma:generate
+npm run prisma:migrate
+npm start
 ```
 
-3. Generate Prisma client:
+This starts the API (http://localhost:4000) and the dashboard (http://localhost:3000). `Ctrl+C` stops both.
+
+## Run individually
+
 ```bash
-npx prisma generate
+npm run dev:api        # Nest watch → :4000
+npm run dev:dashboard  # Next.js → :3000
+npm run dev:mobile     # Expo Metro
 ```
 
-4. Run database migrations (if needed):
+## Mobile
+
 ```bash
-npx prisma migrate dev
+cd apps/mobile
+# or from root:
+npm run dev:mobile
 ```
 
-5. Start the development server:
+Set `EXPO_PUBLIC_API_URL` (see `apps/mobile/.env.example`) for physical devices / EAS builds.
+
+## Turbo
+
 ```bash
-npm run start:dev
+npx turbo run typecheck
+npx turbo run build --filter=@ayurpass/dashboard
 ```
-
-## Available Scripts in Backend
-
-After navigating to the `/backend` directory, you can run:
-
-- `npm run start` - Start the application
-- `npm run start:dev` - Start with watch mode (recommended for development)
-- `npm run start:debug` - Start in debug mode
-- `npm run start:prod` - Start in production mode
-- `npm run build` - Build the application
-- `npm run lint` - Lint the code
-- `npm run format` - Format the code
-
-## Expected Output
-
-When running `npm run start:dev`, you should see:
-```
-[Nest] [INFO] Starting Nest application...
-[Nest] [INFO] AppModule dependencies initialized
-[Nest] [INFO] PrismaModule dependencies initialized
-[Nest] [INFO] AuthModule dependencies initialized
-...
-[Nest] [INFO] 🚀 AyurPass Backend running on port 4000
-```
-
-The application will be available at `http://localhost:4000`
-
-## Troubleshooting
-
-If you encounter issues:
-1. Make sure you're in the `/backend` directory, not the root directory
-2. Ensure PostgreSQL is running and accessible
-3. Verify your `.env` file has correct database configuration
-4. Check that all dependencies are installed with `npm install`

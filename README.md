@@ -14,14 +14,25 @@ Premium wellness marketplace for **Ayurveda, yoga, luxury spa, meditation, healt
 | **Database** | AWS RDS PostgreSQL | `ayurpass-db.cbeacm4wet89…` | 🟢 Live (22 migrations) |
 | **SSL/TLS Certificates** | AWS ACM | `*.ayurpass.com` / `api.ayurpass.com` | 🟢 Active & Managed |
 
+## Monorepo layout (Turborepo)
+
+```text
+apps/
+  api/          NestJS + Prisma backend (@ayurpass/api)
+  dashboard/    Next.js web + admin dashboard (@ayurpass/dashboard)
+  mobile/       Expo iOS/Android app (@ayurpass/mobile)
+packages/
+  shared/       Types, tokens, endpoints, HTTP helpers (@ayurpass/shared)
+```
+
 ## Stack
 
 | Layer | Tech | Deployment Target |
 |---|---|---|
 | **API** | NestJS 11 · Prisma 6 · PostgreSQL · Stripe Connect · JWT auth | AWS ECS Fargate (`ap-southeast-2`) |
-| **Web** | Next.js 16 · React 19 · Tailwind CSS v4 · Standalone Build | AWS Amplify Hosting + CloudFront CDN |
-| **Mobile** | Expo 55 · React Native 0.83 · React 19 | iOS & Android (EAS / App Store) |
-| **Shared** | `@ayurpass/shared` types | Shared workspace package |
+| **Web / Dashboard** | Next.js 16 · React 19 · Tailwind CSS v4 · TanStack Query | AWS Amplify Hosting + CloudFront CDN |
+| **Mobile** | Expo 55 · React Native 0.83 · NativeWind · TanStack Query | iOS & Android (EAS / App Store) |
+| **Shared** | `@ayurpass/shared` types, design tokens, API contracts | Workspace package |
 
 ## Features
 
@@ -38,23 +49,24 @@ Premium wellness marketplace for **Ayurveda, yoga, luxury spa, meditation, healt
 
 ```bash
 # Prerequisites: Node 20+, PostgreSQL
-cp backend/.env.example backend/.env          # edit DATABASE_URL, JWT secrets
-cp frontend/.env.example frontend/.env.local # NEXT_PUBLIC_API_URL
+cp apps/api/.env.example apps/api/.env
+cp apps/dashboard/.env.example apps/dashboard/.env.local
+# optional mobile: copy apps/mobile/.env.example → apps/mobile/.env
 
-npm run install:all
+npm install
 npm run prisma:generate
 npm run prisma:migrate
-npm start   # API :4000 + web :3000
+npm start   # API :4000 + dashboard :3000
 ```
 
 | Script | Purpose |
 |---|---|
-| `npm start` | Backend + frontend together |
-| `npm run dev:backend` | Nest watch mode |
-| `npm run dev:frontend` | Next.js dev |
-| `npm run dev:mobile` | Expo dev server |
-| `npm run typecheck` | Typecheck all workspaces (`backend`, `frontend`, `mobile`, `shared`) |
-| `npm run lint` | Lint all workspaces |
+| `npm start` / `npm run dev` | API + dashboard together |
+| `npm run dev:api` | Nest watch mode |
+| `npm run dev:dashboard` | Next.js web/dashboard |
+| `npm run dev:mobile` | Expo (iOS/Android) |
+| `npm run typecheck` | Typecheck all workspaces via Turbo |
+| `npm run lint` | Lint workspaces via Turbo |
 | `npm run stripe:status` | Stripe key / mock mode check |
 
 ## Infrastructure & Production Security
@@ -67,8 +79,8 @@ npm start   # API :4000 + web :3000
 ## CI/CD Pipeline
 
 Automated with GitHub Actions:
-- **`ci.yml`**: Runs linting, typechecking, and builds for `backend`, `frontend`, and `mobile` on push/PR.
-- **`deploy-backend.yml`**: Builds the Docker container, pushes to **AWS ECR** (`ayurpass-backend`), runs Prisma database migrations, and updates **AWS ECS Fargate** automatically on push to `main`.
+- **`ci.yml`**: Lints/typechecks/builds `apps/api`, `apps/dashboard`, `packages/shared`, and typechecks `apps/mobile`.
+- **`deploy-backend.yml`**: Builds `apps/api` Docker image, pushes to **AWS ECR** (`ayurpass-backend`), updates **AWS ECS Fargate** on `main`.
 
 ## Documentation
 

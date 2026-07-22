@@ -70,7 +70,7 @@ async function api(path, { method = "GET", body, token } = {}) {
 
 async function promoteAdmin(userId) {
   // Prefer Prisma from backend workspace
-  const clientPath = join(__dirname, "../backend/node_modules/@prisma/client");
+  const clientPath = join(__dirname, "../apps/api/node_modules/@prisma/client");
   let PrismaClient;
   try {
     ({ PrismaClient } = require(clientPath));

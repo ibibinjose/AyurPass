@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  backend:
+  api:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
@@ -20,13 +20,13 @@ jobs:
       - run: npm ci
       - run: npm run prisma:generate
       - name: Lint
-        run: cd backend && npm run lint
+        run: npm run lint -w @ayurpass/api
       - name: Typecheck
-        run: cd backend && npm run typecheck
+        run: npm run typecheck -w @ayurpass/api
       - name: Build
-        run: npm run build:backend
+        run: npm run build -w @ayurpass/api
 
-  frontend:
+  dashboard:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_API_URL: http://localhost:4000
@@ -39,24 +39,35 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Lint
-        run: cd frontend && npm run lint
+        run: npm run lint -w @ayurpass/dashboard
       - name: Build (includes typecheck)
-        run: cd frontend && npm run build
+        run: npm run build -w @ayurpass/dashboard
 
-  # Mobile is standalone (not an npm workspace) — must install its own lockfile.
-  mobile:
+  shared:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: mobile/package-lock.json
-      - name: Install mobile dependencies
-        run: npm install --legacy-peer-deps
+      - run: npm ci
+      - name: Typecheck shared
+        run: npm run typecheck -w @ayurpass/shared
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install monorepo + mobile deps
+        working-directory: .
+        run: npm ci
       - name: Typecheck
         run: npm run typecheck
