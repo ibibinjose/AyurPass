@@ -122,6 +122,6 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
   await app.listen(port);
   console.log(`🚀 AyurPass Backend running on port ${port}`);
-  console.log(`🖼  Uploads served from ${uploadDir} at /uploads/`);
+  console.log(`🖼  Uploads served from ${uploadDir} at /files/`);
 }
 bootstrap();

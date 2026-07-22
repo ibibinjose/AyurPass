@@ -16,8 +16,8 @@ out/
 backend/dist/
 
 # Local media uploads
-backend/uploads/
-uploads/
+/uploads/
+/backend/uploads/
 
 # IDE / tooling
 .idea/

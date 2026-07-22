@@ -22,13 +22,18 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copy package config
+# Copy package config and install production-only dependencies
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Copy compiled code and node_modules from builder
+# Copy compiled code from builder
 COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /usr/src/app/prisma ./prisma
+
+# Create a non-root user for security
+RUN addgroup -S ayurpass && adduser -S ayurpass -G ayurpass
+RUN mkdir -p uploads && chown ayurpass:ayurpass uploads
 
 # Expose NestJS port
 EXPOSE 4000
@@ -39,5 +44,12 @@ ENV NODE_ENV=production
 # Start application via entrypoint script
 COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
 RUN chmod +x ./scripts/entrypoint.sh
+
+# Docker healthcheck — ALB and ECS also run their own, but this catches
+# container-level issues immediately.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:4000/health || exit 1
+
+USER ayurpass
 
 ENTRYPOINT ["./scripts/entrypoint.sh"]
