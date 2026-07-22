@@ -36,7 +36,6 @@
     "expo-image-picker": "~55.0.22",
     "expo-linear-gradient": "~55.0.16",
     "expo-linking": "~55.0.16",
-    "expo-notifications": "~55.0.25",
     "expo-router": "~55.0.17",
     "expo-secure-store": "~55.0.16",
     "expo-splash-screen": "~55.0.23",
@@ -55,9 +54,9 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.10",
-    "typescript": "~5.9.2",
+    "prettier-plugin-tailwindcss": "^0.5.11",
     "tailwindcss": "^3.4.17",
-    "prettier-plugin-tailwindcss": "^0.5.11"
+    "typescript": "~5.9.2"
   },
   "private": true
 }
