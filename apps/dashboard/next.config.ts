@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   // Workspace package ships TypeScript source — transpile in the Next bundler.
   transpilePackages: ["@ayurpass/shared"],
 
+  // Tree-shake heavy icon / UI packages for faster dashboard routes.
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
+
   // Allow Next.js Image to load from the API and CDN.
   images: {
     remotePatterns: [

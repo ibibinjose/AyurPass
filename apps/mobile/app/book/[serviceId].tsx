@@ -6,6 +6,7 @@ import { Body, Button, EmptyState, ErrorNote, Loading, Title } from "../../src/c
 import { useAuth } from "../../src/auth";
 import { formatMoney } from "../../src/api";
 import { useCreateBooking, useServiceDetail } from "../../src/hooks/useCatalogDetail";
+import { scheduleLocalBookingReminder } from "../../src/notifications/push";
 import { colors } from "../../src/theme";
 
 const SLOT_HOURS = [9, 12, 15, 18];
@@ -74,6 +75,16 @@ export default function BookScreen() {
         timezone,
         notes: notes.trim() || undefined,
       });
+
+      // Local reminder ~1 hour before (or 1 min for near-term demo slots).
+      const msUntil = start.getTime() - Date.now() - 60 * 60_000;
+      const secondsFromNow = Math.max(60, Math.floor(msUntil / 1000));
+      void scheduleLocalBookingReminder({
+        title: "Upcoming AyurPass session",
+        body: `${service.name} starts soon.`,
+        secondsFromNow,
+      });
+
       Alert.alert(
         "Booking requested",
         "Your session is reserved. Pay from the Bookings tab to confirm it.",

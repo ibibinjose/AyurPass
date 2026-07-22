@@ -2,7 +2,8 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Body, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
+import { Body, Display, EmptyState, Loading } from "../../src/components/ui";
+import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { ServiceCard } from "../../src/components/ServiceCard";
 import { SERVICE_CATEGORY_LABEL } from "../../src/catalog";
 import { useServices } from "../../src/hooks/useServices";
@@ -77,12 +78,16 @@ export default function Explore() {
           />
         }
       >
-        <ErrorNote message={errMsg} />
+        <OfflineBanner
+          error={errMsg}
+          onRetry={() => void refetch()}
+          retrying={isRefetching}
+        />
         {isLoading && !data ? (
           <Loading />
-        ) : services.length === 0 ? (
+        ) : services.length === 0 && !errMsg ? (
           <EmptyState title={`No ${label.toLowerCase()} sessions yet`} body="Try another category." />
-        ) : (
+        ) : services.length === 0 ? null : (
           <View className="gap-3">
             <Body muted>{services.length} available</Body>
             {services.map((s) => (

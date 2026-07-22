@@ -3,7 +3,15 @@ import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { Alert, Linking, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Badge, Button, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
+import {
+  Badge,
+  Button,
+  Display,
+  EmptyState,
+  ErrorNote,
+  Loading,
+} from "../../src/components/ui";
+import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { useAuth } from "../../src/auth";
 import { formatMoney } from "../../src/api";
 import {
@@ -12,10 +20,10 @@ import {
   usePayBooking,
 } from "../../src/hooks/useBookings";
 import { usePaymentMode } from "../../src/hooks/useCatalogDetail";
+import { presentBookingPayment } from "../../src/payments/presentBookingPayment";
 import type { Booking, BookingStatus } from "../../src/types";
 import { colors } from "../../src/theme";
 
-/** Web dashboard bookings — card checkout until native PaymentSheet ships. */
 const WEB_BOOKINGS_URL =
   process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://www.ayurpass.com";
 
@@ -55,6 +63,10 @@ function BookingRow({
   const paying = pay.isPending || confirm.isPending;
   const canPay = booking.paymentStatus === "unpaid" && booking.status !== "CANCELLED";
 
+  async function openWebCheckout() {
+    await Linking.openURL(`${WEB_BOOKINGS_URL}/dashboard/bookings`);
+  }
+
   async function onPay() {
     setError(null);
     try {
@@ -63,34 +75,43 @@ function BookingRow({
         onSettled();
         return;
       }
-      if (result.payment?.clientSecret) {
-        const checkoutUrl = `${WEB_BOOKINGS_URL}/dashboard/bookings`;
-        const modeHint = paymentMode.data?.mock === false
-          ? "Open web checkout to pay securely with Stripe."
-          : "Card checkout opens in the browser. After paying, return here and confirm.";
-        Alert.alert("Complete payment", modeHint, [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Open web checkout",
-            onPress: () => {
-              void Linking.openURL(checkoutUrl);
-            },
-          },
-          {
-            text: "I've paid — refresh",
-            onPress: async () => {
-              try {
-                await confirm.mutateAsync(booking.id);
-                onSettled();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
-              }
-            },
-          },
-        ]);
+
+      const sheet = await presentBookingPayment(result);
+      if (sheet.status === "paid_mock" || sheet.status === "paid_sheet") {
+        try {
+          await confirm.mutateAsync(booking.id);
+        } catch {
+          // Webhook may already mark paid — still refresh list.
+        }
+        onSettled();
         return;
       }
-      onSettled();
+      if (sheet.status === "canceled") return;
+      if (sheet.status === "error") {
+        setError(sheet.message);
+        return;
+      }
+
+      // Native sheet unavailable (Expo Go / web) — fall back to browser checkout.
+      const modeHint =
+        paymentMode.data?.mock === false
+          ? "Open web checkout to pay securely with Stripe."
+          : "Card checkout opens in the browser. After paying, return here and confirm.";
+      Alert.alert("Complete payment", `${sheet.reason}\n\n${modeHint}`, [
+        { text: "Cancel", style: "cancel" },
+        { text: "Open web checkout", onPress: () => void openWebCheckout() },
+        {
+          text: "I've paid — refresh",
+          onPress: async () => {
+            try {
+              await confirm.mutateAsync(booking.id);
+              onSettled();
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
+            }
+          },
+        },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed.");
     }
@@ -116,7 +137,9 @@ function BookingRow({
 
       <View className="flex-row items-center gap-1.5">
         <Ionicons name="calendar-outline" size={14} color={colors.inkMuted} />
-        <Text className="font-body text-[13px] text-ink-secondary">{formatWhen(booking.startTime)}</Text>
+        <Text className="font-body text-[13px] text-ink-secondary">
+          {formatWhen(booking.startTime)}
+        </Text>
       </View>
 
       <View className="flex-row items-center justify-between border-t border-hairline pt-3">
@@ -170,15 +193,19 @@ export default function Bookings() {
       >
         <Display>Your bookings</Display>
         <View className="mt-5">
-          <ErrorNote message={errMsg} />
+          <OfflineBanner
+            error={errMsg}
+            onRetry={() => void refetch()}
+            retrying={isRefetching}
+          />
           {isLoading && !data ? (
             <Loading />
-          ) : bookings.length === 0 ? (
+          ) : bookings.length === 0 && !errMsg ? (
             <EmptyState
               title="No bookings yet"
               body="Explore sessions and book your first experience."
             />
-          ) : (
+          ) : bookings.length === 0 ? null : (
             <View className="gap-3">
               {bookings.map((b) => (
                 <BookingRow

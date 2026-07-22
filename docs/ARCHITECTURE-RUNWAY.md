@@ -36,17 +36,17 @@ packages/shared    Types, tokens, endpoints, HTTP helpers, query keys
 
 - [x] Discover / Book / Bookings / Profile on NativeWind + Query where applicable
 - [x] Provider / service / book / offers detail flows on NativeWind + Query
-- [x] Web checkout deep-link from mobile pay (bridge until PaymentSheet)
-- [ ] Offline-friendly empty states + retry banners on all list screens
-- [ ] Deep links: booking, provider, offer (universal links)
-- [ ] Push notifications (booking reminders)
-- [ ] Stripe PaymentSheet on device (replace web checkout bridge)
+- [x] Web checkout deep-link from mobile pay (fallback)
+- [x] Offline + error retry banners on Discover / Explore / Bookings
+- [x] Universal / App Links config (`applinks:` + Android intent filters)
+- [x] Push registration bootstrap + local booking reminders
+- [x] Stripe PaymentSheet (native builds; Expo Go falls back to web)
 
 ### Dashboard / web
 
 - [x] Query hooks for admin providers, consumer bookings, provider services, admin overview
 - [x] Orders, products, staff, enquiries on TanStack Query
-- [ ] Dashboard bundle analysis; lazy-load heavy admin modules
+- [x] Dashboard route `loading.tsx` + `optimizePackageImports`
 - [ ] Role shells: consumer vs provider vs platform density
 
 ### API / data

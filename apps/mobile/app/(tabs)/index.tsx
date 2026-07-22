@@ -10,7 +10,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Body, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
+import { Body, Display, EmptyState, Loading } from "../../src/components/ui";
+import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { useAuth } from "../../src/auth";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
 import { useDebouncedValue } from "../../src/hooks/useDebouncedValue";
@@ -123,15 +124,19 @@ export default function Discover() {
         </View>
 
         <View className="mt-5">
-          <ErrorNote message={errMsg} />
+          <OfflineBanner
+            error={errMsg}
+            onRetry={() => void refetch()}
+            retrying={isRefetching}
+          />
           {isLoading && !data ? (
             <Loading label="Finding wellness near you…" />
-          ) : providers.length === 0 ? (
+          ) : providers.length === 0 && !errMsg ? (
             <EmptyState
               title="No providers found"
               body="Try a different search, or pull to refresh."
             />
-          ) : (
+          ) : providers.length === 0 ? null : (
             <View className="gap-3">
               {providers.map((p) => (
                 <ProviderCard

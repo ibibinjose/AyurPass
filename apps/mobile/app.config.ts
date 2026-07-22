@@ -12,6 +12,7 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim() || "";
+  const webUrl = process.env.EXPO_PUBLIC_WEB_URL?.trim() || "https://www.ayurpass.com";
 
   return {
     ...config,
@@ -22,8 +23,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
-    // New Architecture is always on in Expo SDK 55 / RN 0.83
-    // Ensure expo-router is primary plugin (registers entry)
     plugins: [
       "expo-router",
       "expo-secure-store",
@@ -46,6 +45,21 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             "Allow AyurPass to use the camera for your profile picture.",
         },
       ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#1e3228",
+          sounds: [],
+        },
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          merchantIdentifier: "merchant.com.thepassionarc.ayurpass",
+          enableGooglePay: true,
+        },
+      ],
     ],
     splash: {
       image: "./assets/splash-icon.png",
@@ -55,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.thepassionarc.ayurpass",
+      associatedDomains: ["applinks:ayurpass.com", "applinks:www.ayurpass.com"],
       infoPlist: {
         UIRequiresFullScreen: false,
         UIStatusBarStyle: "UIStatusBarStyleDarkContent",
@@ -81,7 +96,29 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#1e3228",
       },
-      permissions: ["CAMERA", "READ_MEDIA_IMAGES"],
+      permissions: [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+      ],
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            { scheme: "https", host: "ayurpass.com", pathPrefix: "/" },
+            { scheme: "https", host: "www.ayurpass.com", pathPrefix: "/" },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+        {
+          action: "VIEW",
+          data: [{ scheme: "ayurpass" }],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     web: {
       bundler: "metro",
@@ -92,6 +129,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     extra: {
       apiUrl,
+      webUrl,
       eas: {
         projectId: "c2c21fac-bf55-46c5-a4d6-f44f1270690c",
       },
