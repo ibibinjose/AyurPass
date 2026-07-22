@@ -48,15 +48,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       [
         "expo-notifications",
         {
-          icon: "./assets/icon.png",
+          // Android notification color only — avoid custom icon (must be white alpha)
           color: "#1e3228",
-          sounds: [],
         },
       ],
       [
         "@stripe/stripe-react-native",
         {
-          merchantIdentifier: "merchant.com.thepassionarc.ayurpass",
+          // Must match Apple Pay merchant ID in Apple Developer / Stripe Dashboard
+          merchantIdentifier: "merchant.com.passionarc.ayurpass",
           enableGooglePay: true,
         },
       ],
@@ -68,7 +68,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.thepassionarc.ayurpass",
+      // Matches EAS credentials: com.passionarc.ayurpass
+      bundleIdentifier: "com.passionarc.ayurpass",
       associatedDomains: ["applinks:ayurpass.com", "applinks:www.ayurpass.com"],
       infoPlist: {
         UIRequiresFullScreen: false,
@@ -89,7 +90,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     android: {
-      package: "com.thepassionarc.ayurpass",
+      package: "com.passionarc.ayurpass",
       versionCode: 1,
       softwareKeyboardLayoutMode: "resize",
       adaptiveIcon: {

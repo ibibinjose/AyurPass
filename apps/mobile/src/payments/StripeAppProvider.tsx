@@ -13,7 +13,7 @@ export function StripeAppProvider({ children }: { children: ReactNode }) {
   const key = publishableKey || "pk_test_placeholder";
 
   const merchantIdentifier = useMemo(
-    () => (Platform.OS === "ios" ? "merchant.com.thepassionarc.ayurpass" : undefined),
+    () => (Platform.OS === "ios" ? "merchant.com.passionarc.ayurpass" : undefined),
     [],
   );
 

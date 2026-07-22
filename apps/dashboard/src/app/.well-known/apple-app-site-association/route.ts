@@ -18,7 +18,7 @@ export async function GET() {
         apps: [],
         details: [
           {
-            appID: "TEAMID.com.thepassionarc.ayurpass",
+            appID: "TEAMID.com.passionarc.ayurpass",
             paths: ["*"],
           },
         ],

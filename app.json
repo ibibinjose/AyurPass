@@ -1,3 +1,15 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "c2c21fac-bf55-46c5-a4d6-f44f1270690c"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.passionarc.ayurpass",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
 }
