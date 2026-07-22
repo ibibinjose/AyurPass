@@ -15,4 +15,10 @@ echo "Running database migrations..."
 npx prisma migrate deploy
 
 echo "Starting NestJS application..."
-exec npm run start:prod
+if [ -f dist/main.js ]; then
+  exec node dist/main.js
+elif [ -f dist/src/main.js ]; then
+  exec node dist/src/main.js
+else
+  exec npm run start:prod
+fi
