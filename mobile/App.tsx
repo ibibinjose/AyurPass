@@ -4,7 +4,8 @@
  */
 import { ExpoRoot } from "expo-router";
 
-const ctx = require.context("./app");
+// require.context is provided by Metro bundler for Expo Router
+const ctx = (require as any).context("./app");
 
 export default function App() {
   return <ExpoRoot context={ctx} />;
