@@ -1,0 +1,26 @@
+name: Create Preview Builds (internal)
+
+# Ad Hoc / internal installs for testers.
+# iOS requires the iPhone UDID registered on the Apple team first:
+#   eas device:create --apple-team-id 26WGXSNG58
+#
+# Run:
+#   cd apps/mobile && eas workflow:run create-preview-builds.yml
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_android:
+    name: Android preview APK
+    type: build
+    params:
+      platform: android
+      profile: preview
+
+  build_ios:
+    name: iOS preview (device)
+    type: build
+    params:
+      platform: ios
+      profile: preview

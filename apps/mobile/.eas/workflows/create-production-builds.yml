@@ -1,0 +1,26 @@
+name: Create Production Builds
+
+# Manual run:
+#   cd apps/mobile && eas workflow:run create-production-builds.yml
+#
+# Production profile uses store distribution (App Store / Play).
+# iOS still needs a valid App Store distribution cert + profile on EAS.
+# Android uses AAB for Play Store.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_android:
+    name: Android production
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  build_ios:
+    name: iOS production
+    type: build
+    params:
+      platform: ios
+      profile: production
