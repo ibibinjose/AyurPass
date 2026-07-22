@@ -19,10 +19,27 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api-staging.ayurpass.com"
+        "EXPO_PUBLIC_API_URL": "https://api.ayurpass.com",
+        "EXPO_PUBLIC_WEB_URL": "https://www.ayurpass.com"
+      },
+      "ios": {
+        "resourceClass": "m-medium",
+        "simulator": false
       },
       "android": {
         "buildType": "apk"
+      }
+    },
+    "preview-simulator": {
+      "distribution": "internal",
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.ayurpass.com",
+        "EXPO_PUBLIC_WEB_URL": "https://www.ayurpass.com"
+      },
+      "ios": {
+        "simulator": true,
+        "resourceClass": "m-medium"
       }
     },
     "production": {
