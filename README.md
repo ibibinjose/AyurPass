@@ -86,6 +86,7 @@ Automated with GitHub Actions:
 
 | Doc | Contents |
 |---|---|
+| [docs/ARCHITECTURE-RUNWAY.md](./docs/ARCHITECTURE-RUNWAY.md) | 12–18 month scale & design runway |
 | [docs/IMPLEMENTATION_PLAN.md](./docs/IMPLEMENTATION_PLAN.md) | Roadmap & launch status |
 | [docs/BUILD-LOG.md](./docs/BUILD-LOG.md) | Development & release changelog |
 | [docs/PRD.md](./docs/PRD.md) | Product requirements document |

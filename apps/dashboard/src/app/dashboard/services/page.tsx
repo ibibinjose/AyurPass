@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import { CATEGORY_LABEL } from "@/lib/catalog";
-import type { Professional, Service, ServiceCategory } from "@/lib/types";
+import type { Service, ServiceCategory } from "@/lib/types";
 import {
   DashCard,
   DashFormActions,
@@ -15,6 +15,11 @@ import {
 import { MediaField } from "@/components/MediaField";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
+import {
+  useInvalidateProviderServices,
+  useProviderServices,
+  useProviderTeam,
+} from "@/hooks/useProviderCatalog";
 
 const CATEGORIES: ServiceCategory[] = [
   "AYURVEDA",
@@ -55,24 +60,24 @@ const BLANK: FormState = {
 export default function ProviderServicesPage() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
+  const providerId = provider?.id;
 
-  const [services, setServices] = useState<Service[] | null>(null);
-  const [team, setTeam] = useState<Professional[]>([]);
+  const servicesQ = useProviderServices(providerId);
+  const teamQ = useProviderTeam(providerId);
+  const invalidateServices = useInvalidateProviderServices(providerId);
+
+  const services =
+    servicesQ.isLoading && !servicesQ.data ? null : (servicesQ.data ?? []);
+  const team = teamQ.data ?? [];
   const [form, setForm] = useState<FormState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ServiceCategory | "ALL">("ALL");
 
-  const reload = useCallback(() => {
-    if (!provider) return;
-    api
-      .servicesByProvider(provider.id)
-      .then(setServices)
-      .catch(() => setServices([]));
-    api.professionalsByProvider(provider.id).then(setTeam).catch(() => setTeam([]));
-  }, [provider]);
-
-  useEffect(reload, [reload]);
+  const reload = () => {
+    void invalidateServices();
+    void teamQ.refetch();
+  };
 
   if (!provider) {
     return (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
+import { useAdminOverview } from "@/hooks/useAdminOverview";
 import type {
   AdminOverview,
   Booking,
@@ -975,11 +976,7 @@ function ProviderOverview() {
 }
 
 function PlatformAdminOverview() {
-  const [stats, setStats] = useState<AdminOverview | null>(null);
-
-  useEffect(() => {
-    api.adminOverview().then(setStats).catch(() => {});
-  }, []);
+  const { data: stats, isLoading } = useAdminOverview(true);
 
   return (
     <div className="space-y-8">
@@ -988,7 +985,7 @@ function PlatformAdminOverview() {
         <p className="mt-1 text-ink-muted">AyurPass at a glance.</p>
       </div>
 
-      {stats === null ? (
+      {isLoading || !stats ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-clay/70" />

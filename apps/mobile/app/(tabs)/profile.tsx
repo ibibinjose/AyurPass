@@ -10,7 +10,6 @@ import {
   ScrollView,
   Text,
   View,
-  StyleSheet,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,9 +17,10 @@ import { Card, VerifiedTick } from "../../src/components/ui";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
 import { api, ApiError } from "../../src/api";
+import { useHealthProfile, useLoyalty } from "../../src/hooks/useProfileExtras";
 import type { Dosha } from "../../src/dosha";
-import type { HealthProfile, LoyaltySummary } from "../../src/types";
-import { colors, fonts, radius } from "../../src/theme";
+import type { HealthProfile } from "../../src/types";
+import { colors } from "../../src/theme";
 
 function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: number; primary: Dosha } {
   const vata = Number(p.vataScore ?? 0);
@@ -47,12 +47,12 @@ function Row({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] }]}
+      className="min-h-[52px] flex-row items-center gap-3 border-b border-hairline px-4 py-3.5 active:opacity-85"
     >
-      <View style={styles.rowIcon}>
+      <View className="h-8 w-8 items-center justify-center rounded-[10px] bg-system-blue/10">
         <Ionicons name={icon} size={18} color={colors.systemBlue} />
       </View>
-      <Text style={styles.rowLabel}>{label}</Text>
+      <Text className="flex-1 font-body-semi text-base text-foreground">{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
     </Pressable>
   );
@@ -60,25 +60,27 @@ function Row({
 
 /**
  * Neo-minimal consumer profile — immersive gradient hero, status ring avatar,
- * soft cards, springy rows (mirrors web ProfileThemeScope vibe).
+ * soft cards (mirrors web ProfileThemeScope vibe). NativeWind + Query.
  */
 export default function Profile() {
   const { user, logout, refreshProfile } = useAuth();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const pad = width >= 400 ? 20 : 16;
-  const [health, setHealth] = useState<HealthProfile | null>(null);
-  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
+
+  const healthQ = useHealthProfile(user?.id);
+  const loyaltyQ = useLoyalty(Boolean(user));
 
   useFocusEffect(
     useCallback(() => {
-      if (!user) return;
-      api.healthProfile(user.id).then(setHealth).catch(() => {});
-      api.loyalty().then(setLoyalty).catch(() => {});
-    }, [user]),
+      void healthQ.refetch();
+      void loyaltyQ.refetch();
+    }, [healthQ.refetch, loyaltyQ.refetch]),
   );
 
+  const health = healthQ.data ?? null;
+  const loyalty = loyaltyQ.data ?? null;
   const scores = health ? toScores(health) : null;
   const initials =
     user?.fullName
@@ -139,7 +141,6 @@ export default function Profile() {
   }
 
   function promptAvatarLink() {
-    // Alert.prompt is iOS-only.
     if (typeof Alert.prompt === "function") {
       Alert.prompt(
         "Profile photo link",
@@ -185,51 +186,54 @@ export default function Profile() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 48 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Immersive hero */}
-        <View style={styles.heroWrap}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
+        <View className="min-h-[220px] overflow-hidden pb-7">
           <LinearGradient
             colors={[colors.forest, colors.leaf, colors.goldSoft]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.heroGradient}
+            className="absolute inset-0 opacity-95"
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.95 }}
           />
-          <View style={[styles.heroContent, { paddingHorizontal: pad }]}>
+          <View className="items-center pt-7" style={{ paddingHorizontal: pad }}>
             <Pressable
               onPress={openAvatarOptions}
               disabled={avatarBusy}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo"
-              style={({ pressed }) => [styles.avatarRing, pressed && { opacity: 0.9 }]}
+              className="mb-1.5 h-[104px] w-[104px] rounded-full bg-white/35 p-1 active:opacity-90"
             >
-              <View style={styles.avatarInner}>
+              <View className="flex-1 items-center justify-center overflow-hidden rounded-full border-[3px] border-surface bg-surface">
                 {user?.avatarUrl ? (
-                  <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+                  <Image source={{ uri: user.avatarUrl }} className="h-full w-full" />
                 ) : (
-                  <Text style={styles.avatarText}>{initials}</Text>
+                  <Text className="font-display text-[28px] text-forest">{initials}</Text>
                 )}
               </View>
-              <View style={styles.avatarBadge}>
-                <Ionicons name={avatarBusy ? "hourglass-outline" : "camera"} size={14} color={colors.forest} />
+              <View className="absolute bottom-0.5 right-0.5 h-7 w-7 items-center justify-center rounded-full border border-black/5 bg-surface">
+                <Ionicons
+                  name={avatarBusy ? "hourglass-outline" : "camera"}
+                  size={14}
+                  color={colors.forest}
+                />
               </View>
             </Pressable>
-            <Text style={styles.avatarHint}>{avatarBusy ? "Saving…" : "Tap to change photo"}</Text>
-            <View style={styles.nameRow}>
-              <Text style={styles.name} numberOfLines={1}>
+            <Text className="mb-2.5 font-body-medium text-xs text-white/80">
+              {avatarBusy ? "Saving…" : "Tap to change photo"}
+            </Text>
+            <View className="max-w-[90%] flex-row items-center gap-2">
+              <Text className="shrink font-display text-[26px] text-white" numberOfLines={1}>
                 {user?.fullName ?? "Wellness seeker"}
               </Text>
               <VerifiedTick size={20} />
             </View>
-            <Text style={styles.email} numberOfLines={1}>
+            <Text className="mt-1 font-body-medium text-sm text-white/85" numberOfLines={1}>
               {user?.email}
             </Text>
             {scores ? (
-              <View style={styles.doshaPill}>
-                <Text style={styles.doshaPillText}>
+              <View className="mt-3 rounded-full bg-white/20 px-3 py-1.5">
+                <Text className="font-body-semi text-xs tracking-wide text-white">
                   Prakriti · {scores.primary.charAt(0).toUpperCase() + scores.primary.slice(1)}
                 </Text>
               </View>
@@ -243,20 +247,35 @@ export default function Profile() {
               colors={[colors.forest, "#2a4a3c"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.loyaltyCard}
+              className="flex-row items-center justify-between rounded-lg p-[18px]"
+              style={{
+                borderRadius: 22,
+                padding: 18,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <View>
-                <Text style={styles.loyaltyEyebrow}>AyurPass Rewards</Text>
-                <Text style={styles.loyaltyPoints}>{loyalty.pointsBalance} pts</Text>
-                <Text style={styles.loyaltyTier}>{loyalty.tier} tier</Text>
+                <Text className="font-body-semi text-[11px] uppercase tracking-widest text-gold-soft">
+                  AyurPass Rewards
+                </Text>
+                <Text className="mt-1 font-display text-[28px] text-white">
+                  {loyalty.pointsBalance} pts
+                </Text>
+                <Text className="mt-0.5 font-body-medium text-sm text-white/80">
+                  {loyalty.tier} tier
+                </Text>
               </View>
               <Ionicons name="sparkles" size={28} color={colors.goldSoft} />
             </LinearGradient>
           ) : null}
 
           {scores ? (
-            <Card style={{ marginTop: 14 }}>
-              <Text style={styles.sectionLabel}>Dosha balance</Text>
+            <Card className="mt-3.5">
+              <Text className="mb-3 font-body-semi text-xs uppercase tracking-widest text-ink-muted">
+                Dosha balance
+              </Text>
               <DoshaMeterGroup
                 vata={scores.vata}
                 pitta={scores.pitta}
@@ -267,18 +286,20 @@ export default function Profile() {
           ) : (
             <Pressable
               onPress={() => router.push("/assessment")}
-              style={({ pressed }) => [styles.ctaCard, pressed && { opacity: 0.9 }]}
+              className="mt-3.5 flex-row items-center gap-3 rounded-lg border border-hairline bg-surface p-4 active:opacity-90"
             >
               <Ionicons name="compass-outline" size={22} color={colors.systemBlue} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.ctaTitle}>Discover your dosha</Text>
-                <Text style={styles.ctaBody}>Take the Prakriti assessment</Text>
+              <View className="flex-1">
+                <Text className="font-body-semi text-base text-forest">Discover your dosha</Text>
+                <Text className="mt-0.5 font-body text-[13px] text-ink-muted">
+                  Take the Prakriti assessment
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
             </Pressable>
           )}
 
-          <Card style={{ marginTop: 14, padding: 0, overflow: "hidden" }}>
+          <Card className="mt-3.5 overflow-hidden p-0">
             <Row icon="calendar-outline" label="My bookings" onPress={() => router.push("/(tabs)/bookings")} />
             <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/offers")} />
             <Row
@@ -286,191 +307,18 @@ export default function Profile() {
               label={scores ? "Retake assessment" : "Dosha assessment"}
               onPress={() => router.push("/assessment")}
             />
-            <Row icon="search-outline" label="Explore sessions" onPress={() => router.push("/(tabs)/explore")} />
+            <Row
+              icon="search-outline"
+              label="Explore sessions"
+              onPress={() => router.push("/(tabs)/explore")}
+            />
           </Card>
 
-          <Pressable
-            onPress={confirmLogout}
-            style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.7 }]}
-          >
-            <Text style={styles.signOutText}>Sign out</Text>
+          <Pressable onPress={confirmLogout} className="mt-6 items-center py-3.5 active:opacity-70">
+            <Text className="font-body-semi text-base text-danger">Sign out</Text>
           </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  heroWrap: {
-    minHeight: 220,
-    paddingBottom: 28,
-    overflow: "hidden",
-  },
-  heroGradient: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.95,
-  },
-  heroContent: {
-    alignItems: "center",
-    paddingTop: 28,
-  },
-  avatarRing: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
-    padding: 4,
-    backgroundColor: "rgba(255,255,255,0.35)",
-    marginBottom: 6,
-  },
-  avatarInner: {
-    flex: 1,
-    borderRadius: 48,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: colors.surface,
-    overflow: "hidden",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  avatarBadge: {
-    position: "absolute",
-    right: 2,
-    bottom: 2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.06)",
-  },
-  avatarHint: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    color: "rgba(255,255,255,0.8)",
-    marginBottom: 10,
-  },
-  avatarText: {
-    fontFamily: fonts.display,
-    fontSize: 28,
-    color: colors.forest,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    maxWidth: "90%",
-  },
-  name: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.white,
-    flexShrink: 1,
-  },
-  email: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: "rgba(255,255,255,0.85)",
-    marginTop: 4,
-  },
-  doshaPill: {
-    marginTop: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
-  },
-  doshaPillText: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 12,
-    color: colors.white,
-    letterSpacing: 0.3,
-  },
-  loyaltyCard: {
-    borderRadius: radius.lg,
-    padding: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  loyaltyEyebrow: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 11,
-    color: colors.goldSoft,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  loyaltyPoints: {
-    fontFamily: fonts.display,
-    fontSize: 28,
-    color: colors.white,
-    marginTop: 4,
-  },
-  loyaltyTier: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 2,
-  },
-  sectionLabel: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 12,
-    color: colors.inkMuted,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  ctaCard: {
-    marginTop: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    padding: 16,
-  },
-  ctaTitle: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.forest },
-  ctaBody: { fontFamily: fonts.body, fontSize: 13, color: colors.inkMuted, marginTop: 2 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
-    minHeight: 52,
-  },
-  rowIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: "rgba(0,122,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rowLabel: {
-    flex: 1,
-    fontFamily: fonts.bodySemi,
-    fontSize: 16,
-    color: colors.foreground,
-  },
-  signOut: {
-    marginTop: 24,
-    alignItems: "center",
-    paddingVertical: 14,
-  },
-  signOutText: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 16,
-    color: colors.danger,
-  },
-});

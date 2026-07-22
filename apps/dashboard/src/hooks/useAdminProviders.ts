@@ -5,11 +5,9 @@ import { queryKeys } from "@ayurpass/shared";
 import { api } from "@/lib/api";
 import type { AdminProvider } from "@/lib/types";
 
-const adminProvidersKey = [...queryKeys.all, "admin", "providers"] as const;
-
 export function useAdminProviders(enabled = true) {
   return useQuery({
-    queryKey: adminProvidersKey,
+    queryKey: queryKeys.admin.providers(),
     queryFn: (): Promise<AdminProvider[]> => api.adminProviders(),
     enabled,
     staleTime: 20_000,
@@ -27,7 +25,7 @@ export function useSetProviderVerification() {
       status: "verified" | "rejected" | "pending";
     }) => api.adminSetVerification(providerId, status),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: adminProvidersKey });
+      void qc.invalidateQueries({ queryKey: queryKeys.admin.providers() });
       void qc.invalidateQueries({ queryKey: queryKeys.admin.overview() });
     },
   });

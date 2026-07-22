@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, ApiError, formatMoney } from "@/lib/api";
 import { downloadBookingIcs } from "@/lib/ics";
@@ -12,6 +12,10 @@ import { PaymentBadge } from "@/components/PaymentBadge";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { DashHeader, DashTabs } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState, ErrorNote } from "@/components/ui";
+import {
+  useConsumerBookings,
+  useInvalidateConsumerBookings,
+} from "@/hooks/useConsumerBookings";
 
 type TabId = "upcoming" | "past" | "unpaid" | "all";
 
@@ -33,7 +37,9 @@ function friendlyPayError(message: string): string {
 
 export default function BookingsPage() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[] | null>(null);
+  const { data: bookingsData, isLoading } = useConsumerBookings(user?.id);
+  const invalidateBookings = useInvalidateConsumerBookings(user?.id);
+  const bookings = bookingsData ?? null;
   const [tab, setTab] = useState<TabId>("upcoming");
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [paying, setPaying] = useState<string | null>(null);
@@ -45,15 +51,9 @@ export default function BookingsPage() {
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
-  const reload = useCallback(() => {
-    if (!user) return;
-    api
-      .bookingsByConsumer(user.id)
-      .then(setBookings)
-      .catch(() => setBookings([]));
-  }, [user]);
-
-  useEffect(reload, [reload]);
+  const reload = () => {
+    void invalidateBookings();
+  };
 
   const now = useMemo(() => new Date(), [bookings]);
 
@@ -189,7 +189,7 @@ export default function BookingsPage() {
       <ErrorNote message={error} />
 
       <div>
-        {bookings === null ? (
+        {isLoading && bookings === null ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-20 animate-pulse rounded-2xl bg-clay/70" />

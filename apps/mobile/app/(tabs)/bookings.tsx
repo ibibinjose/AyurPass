@@ -1,13 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from "react-native";
+import { Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Badge, Body, Button, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
+import { Badge, Button, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
 import { useAuth } from "../../src/auth";
-import { api, formatMoney } from "../../src/api";
+import { formatMoney } from "../../src/api";
+import {
+  useConfirmBookingPayment,
+  useConsumerBookings,
+  usePayBooking,
+} from "../../src/hooks/useBookings";
 import type { Booking, BookingStatus } from "../../src/types";
-import { colors, fonts, radius } from "../../src/theme";
+import { colors } from "../../src/theme";
 
 const STATUS_TONE: Record<BookingStatus, "leaf" | "gold" | "muted"> = {
   PENDING: "gold",
@@ -29,18 +34,27 @@ function formatWhen(iso: string): string {
   });
 }
 
-function BookingRow({ booking, onPaid }: { booking: Booking; onPaid: () => void }) {
-  const [paying, setPaying] = useState(false);
+function BookingRow({
+  booking,
+  userId,
+  onSettled,
+}: {
+  booking: Booking;
+  userId: string | undefined;
+  onSettled: () => void;
+}) {
   const [error, setError] = useState<string | null>(null);
+  const pay = usePayBooking(userId);
+  const confirm = useConfirmBookingPayment(userId);
+  const paying = pay.isPending || confirm.isPending;
   const canPay = booking.paymentStatus === "unpaid" && booking.status !== "CANCELLED";
 
-  async function pay() {
-    setPaying(true);
+  async function onPay() {
     setError(null);
     try {
-      const result = await api.payBooking(booking.id);
+      const result = await pay.mutateAsync(booking.id);
       if (result.paymentStatus === "paid" || result.payment?.mock) {
-        onPaid();
+        onSettled();
         return;
       }
       if (result.payment?.clientSecret) {
@@ -48,16 +62,15 @@ function BookingRow({ booking, onPaid }: { booking: Booking; onPaid: () => void 
           "Complete payment on web",
           "Card checkout is available on ayurpass.com for now. After paying, tap Confirm to refresh.",
           [
-            { text: "Cancel", style: "cancel", onPress: () => setPaying(false) },
+            { text: "Cancel", style: "cancel" },
             {
               text: "Confirm paid",
               onPress: async () => {
                 try {
-                  await api.confirmBookingPayment(booking.id);
-                  onPaid();
+                  await confirm.mutateAsync(booking.id);
+                  onSettled();
                 } catch (err) {
                   setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
-                  setPaying(false);
                 }
               },
             },
@@ -65,39 +78,51 @@ function BookingRow({ booking, onPaid }: { booking: Booking; onPaid: () => void 
         );
         return;
       }
-      onPaid();
+      onSettled();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment failed.");
-      setPaying(false);
     }
   }
 
   return (
-    <View style={styles.card}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
-          <Text style={styles.service} numberOfLines={2}>
+    <View className="gap-2.5 rounded-lg border border-hairline bg-surface p-4">
+      <View className="flex-row items-start justify-between">
+        <View className="flex-1 pr-3">
+          <Text className="font-body-semi text-base leading-[21px] text-forest" numberOfLines={2}>
             {booking.service?.name ?? "Session"}
           </Text>
-          {booking.provider ? <Text style={styles.provider}>{booking.provider.businessName}</Text> : null}
+          {booking.provider ? (
+            <Text className="mt-0.5 font-body text-[13px] text-ink-secondary">
+              {booking.provider.businessName}
+            </Text>
+          ) : null}
         </View>
-        <Badge tone={STATUS_TONE[booking.status]}>{booking.status.replace("_", " ").toLowerCase()}</Badge>
+        <Badge tone={STATUS_TONE[booking.status]}>
+          {booking.status.replace("_", " ").toLowerCase()}
+        </Badge>
       </View>
 
-      <View style={styles.metaRow}>
+      <View className="flex-row items-center gap-1.5">
         <Ionicons name="calendar-outline" size={14} color={colors.inkMuted} />
-        <Text style={styles.meta}>{formatWhen(booking.startTime)}</Text>
+        <Text className="font-body text-[13px] text-ink-secondary">{formatWhen(booking.startTime)}</Text>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.price}>{formatMoney(booking.totalAmount, "USD")}</Text>
+      <View className="flex-row items-center justify-between border-t border-hairline pt-3">
+        <Text className="font-body-semi text-base text-foreground">
+          {formatMoney(booking.totalAmount, "USD")}
+        </Text>
         {booking.paymentStatus === "paid" ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View className="flex-row items-center gap-1">
             <Ionicons name="checkmark-circle" size={16} color={colors.leaf} />
-            <Text style={styles.paid}>Paid</Text>
+            <Text className="font-body-medium text-[13px] text-leaf">Paid</Text>
           </View>
         ) : canPay ? (
-          <Button title="Pay now" onPress={pay} loading={paying} style={{ paddingVertical: 9, paddingHorizontal: 18 }} />
+          <Button
+            title="Pay now"
+            onPress={onPay}
+            loading={paying}
+            style={{ paddingVertical: 9, paddingHorizontal: 18 }}
+          />
         ) : null}
       </View>
       <ErrorNote message={error} />
@@ -107,50 +132,49 @@ function BookingRow({ booking, onPaid }: { booking: Booking; onPaid: () => void 
 
 export default function Bookings() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!user) return;
-    setError(null);
-    try {
-      setBookings(await api.bookingsByConsumer(user.id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't load bookings.");
-      setBookings([]);
-    }
-  }, [user]);
+  const { data, error, isLoading, refetch, isRefetching } = useConsumerBookings(user?.id);
 
   useFocusEffect(
     useCallback(() => {
-      load();
-    }, [load]),
+      void refetch();
+    }, [refetch]),
   );
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
+  const bookings = data ?? [];
+  const errMsg =
+    error instanceof Error ? error.message : error ? "Couldn't load bookings." : null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.leaf} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => void refetch()}
+            tintColor={colors.leaf}
+          />
+        }
       >
         <Display>Your bookings</Display>
-        <View style={{ marginTop: 20 }}>
-          <ErrorNote message={error} />
-          {bookings === null ? (
+        <View className="mt-5">
+          <ErrorNote message={errMsg} />
+          {isLoading && !data ? (
             <Loading />
           ) : bookings.length === 0 ? (
-            <EmptyState title="No bookings yet" body="Explore sessions and book your first experience." />
+            <EmptyState
+              title="No bookings yet"
+              body="Explore sessions and book your first experience."
+            />
           ) : (
-            <View style={{ gap: 12 }}>
+            <View className="gap-3">
               {bookings.map((b) => (
-                <BookingRow key={b.id} booking={b} onPaid={load} />
+                <BookingRow
+                  key={b.id}
+                  booking={b}
+                  userId={user?.id}
+                  onSettled={() => void refetch()}
+                />
               ))}
             </View>
           )}
@@ -159,28 +183,3 @@ export default function Bookings() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderRadius: radius.lg,
-    padding: 16,
-    gap: 10,
-  },
-  service: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.forest, lineHeight: 21 },
-  provider: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSecondary, marginTop: 2 },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  meta: { fontFamily: fonts.body, fontSize: 13, color: colors.inkSecondary },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-    paddingTop: 12,
-  },
-  price: { fontFamily: fonts.bodySemi, fontSize: 16, color: colors.foreground },
-  paid: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.leaf },
-});

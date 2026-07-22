@@ -9,6 +9,8 @@ export const queryKeys = {
 
   profile: () => [...queryKeys.all, "profile"] as const,
 
+  healthProfile: (userId: string) => [...queryKeys.all, "health-profile", userId] as const,
+
   providers: {
     all: () => [...queryKeys.all, "providers"] as const,
     list: (filters?: Record<string, unknown>) =>
@@ -18,6 +20,8 @@ export const queryKeys = {
 
   professionals: {
     all: () => [...queryKeys.all, "professionals"] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.professionals.all(), "provider", providerId] as const,
     detail: (id: string) => [...queryKeys.professionals.all(), "detail", id] as const,
   },
 
@@ -25,12 +29,18 @@ export const queryKeys = {
     all: () => [...queryKeys.all, "services"] as const,
     list: (filters?: Record<string, unknown>) =>
       [...queryKeys.services.all(), "list", filters ?? {}] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.services.all(), "provider", providerId] as const,
     detail: (id: string) => [...queryKeys.services.all(), "detail", id] as const,
   },
 
   bookings: {
     all: () => [...queryKeys.all, "bookings"] as const,
     mine: () => [...queryKeys.bookings.all(), "mine"] as const,
+    byConsumer: (userId: string) =>
+      [...queryKeys.bookings.all(), "consumer", userId] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.bookings.all(), "provider", providerId] as const,
     detail: (id: string) => [...queryKeys.bookings.all(), "detail", id] as const,
   },
 
@@ -50,5 +60,6 @@ export const queryKeys = {
 
   admin: {
     overview: () => [...queryKeys.all, "admin", "overview"] as const,
+    providers: () => [...queryKeys.all, "admin", "providers"] as const,
   },
 } as const;
