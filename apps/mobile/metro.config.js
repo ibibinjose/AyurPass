@@ -1,32 +1,32 @@
 // AyurPass mobile — Expo monorepo Metro + NativeWind + shared package.
+// Keep overrides minimal so `npx expo-doctor` stays green.
 const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
 const path = require("path");
 
 const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, "../..");
+const monorepoRoot = path.resolve(projectRoot, "../..");
+
 const config = getDefaultConfig(projectRoot);
 
-config.projectRoot = projectRoot;
-// Watch monorepo packages used by the app.
+// Preserve Expo defaults, then add monorepo roots.
 config.watchFolders = [
-  projectRoot,
-  path.resolve(workspaceRoot, "packages/shared"),
-  path.resolve(workspaceRoot, "node_modules"),
+  ...new Set([
+    ...(config.watchFolders ?? []),
+    projectRoot,
+    monorepoRoot,
+    path.resolve(monorepoRoot, "packages/shared"),
+  ]),
 ];
 
-config.resolver = {
-  ...config.resolver,
-  // Prefer the app's node_modules, then the workspace root (npm workspaces hoist).
-  nodeModulesPaths: [
-    path.resolve(projectRoot, "node_modules"),
-    path.resolve(workspaceRoot, "node_modules"),
-  ],
-  extraNodeModules: {
-    "@ayurpass/shared": path.resolve(workspaceRoot, "packages/shared"),
-  },
-  // Ensure a single copy of critical React packages.
-  unstable_enableSymlinks: true,
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, "node_modules"),
+  path.resolve(monorepoRoot, "node_modules"),
+];
+
+config.resolver.extraNodeModules = {
+  ...(config.resolver.extraNodeModules ?? {}),
+  "@ayurpass/shared": path.resolve(monorepoRoot, "packages/shared"),
 };
 
 module.exports = withNativeWind(config, { input: "./global.css" });
