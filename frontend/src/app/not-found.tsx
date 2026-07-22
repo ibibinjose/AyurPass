@@ -16,7 +16,7 @@ export default function NotFound() {
             Page not found
           </h1>
           <p className="mt-3 text-[var(--text-base)] leading-[var(--leading-body)] text-ink-muted">
-            The path you're looking for doesn't exist — it may have been moved or
+            The path you&apos;re looking for doesn&apos;t exist — it may have been moved or
             the URL might be incorrect.
           </p>
 
