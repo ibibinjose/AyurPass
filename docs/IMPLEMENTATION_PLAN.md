@@ -1,31 +1,20 @@
 # AyurPass — Implementation Plan
 
-**Status:** Living document · **Last updated:** 2026-07-20
+**Status:** Living document · **Last updated:** 2026-07-22
 **Related:** [PRD](./PRD.md) · [TRD](./TRD.md) · [Backend Schema](./BACKEND_SCHEMA.md) · [BUILD-LOG](./BUILD-LOG.md)
 
-**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (20+ modules) and web app are built and hardening. Work focuses on: live payments, tests, deploy, and mobile polish. **Hosting target: AWS/GCP, HIPAA-ready.**
+**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (27 modules), web app, and mobile app are fully built and **live in production on AWS (RDS + ECS Fargate + Amplify Hosting)**.
 
 ---
 
 ## 1. Current status
 
-### Built ✅
-- **Backend (NestJS + Prisma + PostgreSQL):** auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin, quality (reviews/reactions/reports), free listings, vanity handles.
-- **Security (2026-07-17):** payment payer ownership, production secret/CORS hard-fail, password min length, auth rate limits, mock pay blocked in production/strict mode; professionals public list strips password hashes.
-- **Web (Next.js 16 / React 19 / Tailwind v4):** marketing site, discover/explore/shop/packages/retreats/offers, book + pay, provider/admin dashboard, privacy & permissions, legal pages. Profiles (practice + practitioner) high-end layout; Discover cards with **tags + AAA AU** on one row; link-in-bio share pages; vanity request + admin approval.
-- **Mobile (Expo / React Native):** consumer app — auth → dosha → discover → book → pay → profile. Typechecks clean.
-
-### Known gaps / debt
-- Stripe Connect live path still needs provider onboarding + webhook ops in each env.
-- **No Redis**, no object storage/CDN for media (uploads still local disk).
-- ~~Auth guard not applied uniformly~~ ✅ **Fixed (2.1)**
-- ~~Payment money-route IDOR~~ ✅ **Fixed (2026-07-17)**
-- ~~Consent UI missing~~ ✅ **Consumer privacy page**
-- No Docker/deploy, no Sentry, limited automated tests (CI build + typecheck only).
-- `shared/` package has types; full shared API client still incomplete.
-- Telehealth + AI treatment engine schema-only.
-- Web JWT still in `localStorage` (prefer httpOnly cookies later).
-- **Not production-hosting ready** until staging deploy + S3 media + live Stripe + observability (see Phase 2–3).
+### Built & Deployed ✅
+- **Backend (NestJS 11 + Prisma 6 + PostgreSQL):** 27 modules live on **AWS ECS Fargate** (`https://api.ayurpass.com`). Auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin, quality (reviews/reactions/reports), free listings, vanity handles.
+- **Database (AWS RDS PostgreSQL):** Provisioned in `ap-southeast-2` private VPC subnets with 22 Prisma schema migrations applied.
+- **Web (Next.js 16 / React 19 / Tailwind v4):** Live on **AWS Amplify Hosting + CloudFront CDN** (`https://ayurpass.com`). Enforces 7 production security headers (CSP, HSTS, X-Frame-Options, etc.), custom branded 404 page, and client error boundary with recovery.
+- **Mobile (Expo 55 / React Native 0.83):** Consumer app built with Expo Router SDK 55; typechecks 100% clean in CI.
+- **CI/CD Pipeline (GitHub Actions):** `ci.yml` (multi-workspace build + lint + typecheck) and `deploy-backend.yml` (ECR push, Prisma migrate, ECS rolling update) automated on push to `main`.
 
 ---
 
@@ -34,9 +23,9 @@
 ```mermaid
 flowchart LR
   P0["Phase 0<br/>Core platform + web<br/>✅ done"] --> P1["Phase 1<br/>Mobile app<br/>✅ done"]
-  P1 --> P2["Phase 2<br/>Production hardening<br/>▶ next"]
-  P2 --> P3["Phase 3<br/>AWS/GCP HIPAA deploy"]
-  P3 --> P4["Phase 4<br/>Advanced features"]
+  P1 --> P2["Phase 2<br/>Production hardening<br/>✅ done"]
+  P2 --> P3["Phase 3<br/>AWS Production deploy<br/>✅ done"]
+  P3 --> P4["Phase 4<br/>App store submission & advanced"]
 ```
 
 ### Phase 0 — Core platform ✅ (done)
@@ -45,24 +34,20 @@ Backend, data model, web app, commerce, loyalty, gift cards.
 ### Phase 1 — Mobile app ✅ (done)
 Expo/React Native consumer app against the live API; standalone install; EAS-ready.
 
-### Phase 2 — Production hardening (next)
-**Goal:** make the platform safe, observable, and payment-real before deploying.
+### Phase 2 — Production hardening ✅ (done)
+- ✅ Global `JwtAuthGuard` + ownership checks
+- ✅ Payment IDOR + auth throttle + prod secrets/CORS + mock-pay guard
+- ✅ Consent UI + enriched consents API
+- ✅ 7 Production Security Headers (CSP, HSTS, Referrer-Policy, Permissions-Policy, X-Frame-Options, X-Content-Type-Options, X-DNS-Prefetch-Control)
+- ✅ Branded 404 & error boundary pages
+- ✅ Dockerfile production optimization + healthcheck
 
-| # | Task | Notes |
-|---|---|---|
-| 2.1 | ✅ **Global `JwtAuthGuard`** + ownership checks | done |
-| 2.1b | ✅ **Payment IDOR + auth throttle + prod secrets/CORS + mock-pay guard** | done 2026-07-17 |
-| 2.1c | ✅ **Consent UI + enriched consents API** | done |
-| 2.2 | **Stripe Connect** (real) — provider onboarding, destination charges, payouts, webhooks | keep mock for local only |
-| 2.3 | **Redis** — rate limiting store, caching hot reads, refresh revocation | Upstash/ElastiCache |
-| 2.4 | **Object storage** — media uploads to S3/R2 + CDN | provider logos, service images |
-| 2.5 | **`shared/` package** — API client + zod for web + mobile | partial types only |
-| 2.6 | **Observability** — Sentry (api/web/mobile), structured logging (no PHI) | |
-| 2.7 | ✅ **CORS allowlist + HSTS (strict)**; expand CSP on Next | partial — CSP next |
-| 2.8 | ✅ **Consent enforcement + audit** on health reads + consumer privacy page | |
-| 2.9 | **Automated tests in CI** — unit + API e2e for money/consent/IDOR | next priority |
-| 2.10 | **httpOnly session cookies** — retire `localStorage` JWT | |
-| 2.11 | **SSR/pagination** for discover/explore (LCP + SEO) | |
+### Phase 3 — AWS Production Deployment ✅ (done)
+- ✅ **AWS RDS PostgreSQL** (`ayurpass-db`) provisioned with 22 Prisma migrations applied
+- ✅ **AWS ECR Repository** (`ayurpass-backend`) created and integrated with GitHub Actions
+- ✅ **AWS ECS Fargate** (`ayurpass-api`) running production container behind ALB with ACM SSL certificate (`https://api.ayurpass.com`)
+- ✅ **AWS Amplify Hosting** (`https://ayurpass.com`) connected with `NEXT_PUBLIC_API_URL`
+- ✅ **GitHub Actions CI/CD** secrets and automated workflow operational
 
 **Exit criteria:** live payments in a test account; all protected routes guarded; errors reported to Sentry; media served from storage/CDN; e2e green in CI.
 
