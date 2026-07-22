@@ -26,3 +26,6 @@ backend/dist/
 
 # Test / coverage
 coverage/
+
+# Backup files
+*.bak

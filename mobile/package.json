@@ -34,6 +34,7 @@
     "expo-secure-store": "~55.0.16",
     "expo-splash-screen": "~55.0.23",
     "expo-status-bar": "~55.0.6",
+    "expo-updates": "~55.0.26",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",

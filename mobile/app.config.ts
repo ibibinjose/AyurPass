@@ -3,16 +3,15 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
 /**
  * Dynamic Expo config for AyurPass mobile (Expo SDK 55).
  *
+ * This is the SINGLE SOURCE OF TRUTH for all Expo/EAS configuration.
+ * mobile/app.json is a minimal stub — all real config lives here.
+ *
  * API URL resolution (highest wins):
  *  1. EXPO_PUBLIC_API_URL (EAS env / shell)
- *  2. extra.apiUrl from static defaults
- *  3. Runtime LAN / localhost in src/api.ts
+ *  2. Runtime LAN / localhost in src/api.ts
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const apiUrl =
-    process.env.EXPO_PUBLIC_API_URL?.trim() ||
-    (typeof config.extra?.apiUrl === "string" ? config.extra.apiUrl : "") ||
-    "";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim() || "";
 
   return {
     ...config,
@@ -37,6 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
       "expo-asset",
+      "expo-updates",
       [
         "expo-image-picker",
         {
@@ -54,8 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.ayurpass.app",
-      buildNumber: "1",
+      bundleIdentifier: "com.thepassionarc.ayurpass",
       infoPlist: {
         UIRequiresFullScreen: false,
         UIStatusBarStyle: "UIStatusBarStyleDarkContent",
@@ -75,7 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     android: {
-      package: "com.ayurpass.app",
+      package: "com.thepassionarc.ayurpass",
       versionCode: 1,
       softwareKeyboardLayoutMode: "resize",
       adaptiveIcon: {
@@ -92,22 +91,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       typedRoutes: true,
     },
     extra: {
-      ...((config.extra as object) || {}),
       apiUrl,
       eas: {
-        projectId:
-          process.env.EAS_PROJECT_ID ||
-          (config.extra as any)?.eas?.projectId ||
-          "63f33f66-1d10-40e9-b1bb-23299cbd4179" || // Link to the created project ID from the user's terminal run
-          "REPLACE_WITH_EAS_PROJECT_ID",
+        projectId: "c2c21fac-bf55-46c5-a4d6-f44f1270690c",
       },
     },
-    owner: process.env.EAS_OWNER || undefined,
+    owner: "passionarc",
     runtimeVersion: {
       policy: "appVersion",
     },
     updates: {
-      url: process.env.EAS_UPDATE_URL || undefined,
+      url: `https://u.expo.dev/c2c21fac-bf55-46c5-a4d6-f44f1270690c`,
     },
   };
 };
