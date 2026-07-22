@@ -40,7 +40,11 @@ packages/shared    Types, tokens, endpoints, HTTP helpers, query keys
 - [x] Offline + error retry banners on Discover / Explore / Bookings
 - [x] Universal / App Links config (`applinks:` + Android intent filters)
 - [x] Push registration bootstrap + local booking reminders
+- [x] Device token API (`POST /notifications/devices`) + mobile sync
 - [x] Stripe PaymentSheet (native builds; Expo Go falls back to web)
+- [x] AASA + Android assetlinks served from dashboard
+- [x] Amplify monorepo root fixed (`apps/dashboard`) — production web deploys
+- [x] EAS Android preview APK builds successfully
 
 ### Dashboard / web
 
