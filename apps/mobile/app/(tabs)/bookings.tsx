@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { Alert, RefreshControl, ScrollView, Text, View } from "react-native";
+import { Alert, Linking, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Badge, Button, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
 import { useAuth } from "../../src/auth";
@@ -11,8 +11,13 @@ import {
   useConsumerBookings,
   usePayBooking,
 } from "../../src/hooks/useBookings";
+import { usePaymentMode } from "../../src/hooks/useCatalogDetail";
 import type { Booking, BookingStatus } from "../../src/types";
 import { colors } from "../../src/theme";
+
+/** Web dashboard bookings — card checkout until native PaymentSheet ships. */
+const WEB_BOOKINGS_URL =
+  process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://www.ayurpass.com";
 
 const STATUS_TONE: Record<BookingStatus, "leaf" | "gold" | "muted"> = {
   PENDING: "gold",
@@ -46,6 +51,7 @@ function BookingRow({
   const [error, setError] = useState<string | null>(null);
   const pay = usePayBooking(userId);
   const confirm = useConfirmBookingPayment(userId);
+  const paymentMode = usePaymentMode();
   const paying = pay.isPending || confirm.isPending;
   const canPay = booking.paymentStatus === "unpaid" && booking.status !== "CANCELLED";
 
@@ -58,24 +64,30 @@ function BookingRow({
         return;
       }
       if (result.payment?.clientSecret) {
-        Alert.alert(
-          "Complete payment on web",
-          "Card checkout is available on ayurpass.com for now. After paying, tap Confirm to refresh.",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Confirm paid",
-              onPress: async () => {
-                try {
-                  await confirm.mutateAsync(booking.id);
-                  onSettled();
-                } catch (err) {
-                  setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
-                }
-              },
+        const checkoutUrl = `${WEB_BOOKINGS_URL}/dashboard/bookings`;
+        const modeHint = paymentMode.data?.mock === false
+          ? "Open web checkout to pay securely with Stripe."
+          : "Card checkout opens in the browser. After paying, return here and confirm.";
+        Alert.alert("Complete payment", modeHint, [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Open web checkout",
+            onPress: () => {
+              void Linking.openURL(checkoutUrl);
             },
-          ],
-        );
+          },
+          {
+            text: "I've paid — refresh",
+            onPress: async () => {
+              try {
+                await confirm.mutateAsync(booking.id);
+                onSettled();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Payment not confirmed yet.");
+              }
+            },
+          },
+        ]);
         return;
       }
       onSettled();

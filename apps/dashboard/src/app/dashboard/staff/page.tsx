@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { StaffMember, StaffRole } from "@/lib/types";
 import { PlusIcon, TrashIcon, UsersIcon, PencilIcon, ShieldIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, SuccessNote } from "@/components/ui";
+import {
+  useInvalidateProviderStaff,
+  useProviderStaff,
+} from "@/hooks/useProviderStaff";
 
 const ROLE_LABELS: Record<StaffRole, string> = {
   OWNER: "Owner",
@@ -35,7 +39,9 @@ export default function StaffPage() {
   const provider = user?.provider ?? user?.professional?.provider ?? null;
   const canManage = user?.role === "PROVIDER_ADMIN" || user?.role === "PLATFORM_ADMIN";
 
-  const [staff, setStaff] = useState<StaffMember[] | null>(null);
+  const staffQ = useProviderStaff(provider?.id);
+  const invalidateStaff = useInvalidateProviderStaff(provider?.id);
+  const staff = staffQ.isLoading && !staffQ.data ? null : (staffQ.data ?? []);
   const [showInvite, setShowInvite] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,15 +58,9 @@ export default function StaffPage() {
   const [editName, setEditName] = useState("");
   const [editBusy, setEditBusy] = useState(false);
 
-  const reload = useCallback(() => {
-    if (!provider) return;
-    api
-      .listStaff(provider.id)
-      .then(setStaff)
-      .catch(() => setStaff([]));
-  }, [provider]);
-
-  useEffect(reload, [reload]);
+  const reload = () => {
+    void invalidateStaff();
+  };
 
   if (!provider) {
     return (

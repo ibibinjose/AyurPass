@@ -46,14 +46,38 @@ export const queryKeys = {
 
   offers: {
     all: () => [...queryKeys.all, "offers"] as const,
-    list: () => [...queryKeys.offers.all(), "list"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.offers.all(), "list", filters ?? {}] as const,
   },
 
   products: {
     all: () => [...queryKeys.all, "products"] as const,
     list: (filters?: Record<string, unknown>) =>
       [...queryKeys.products.all(), "list", filters ?? {}] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.products.all(), "provider", providerId] as const,
     detail: (id: string) => [...queryKeys.products.all(), "detail", id] as const,
+  },
+
+  orders: {
+    all: () => [...queryKeys.all, "orders"] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.orders.all(), "provider", providerId] as const,
+  },
+
+  enquiries: {
+    all: () => [...queryKeys.all, "enquiries"] as const,
+    mine: () => [...queryKeys.enquiries.all(), "mine"] as const,
+  },
+
+  staff: {
+    all: () => [...queryKeys.all, "staff"] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.staff.all(), "provider", providerId] as const,
+  },
+
+  payments: {
+    mode: () => [...queryKeys.all, "payments", "mode"] as const,
   },
 
   loyalty: () => [...queryKeys.all, "loyalty"] as const,

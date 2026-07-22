@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
@@ -8,6 +8,10 @@ import { ProductCard } from "@/components/ProductCard";
 import { MediaGalleryField } from "@/components/MediaField";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea, Select } from "@/components/ui";
+import {
+  useInvalidateProviderProducts,
+  useProviderProducts,
+} from "@/hooks/useProviderProducts";
 
 interface FormState {
   id?: string;
@@ -39,8 +43,11 @@ interface InventoryTransaction {
 export default function ProviderProductsPage() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
+  const productsQ = useProviderProducts(provider?.id);
+  const invalidateProducts = useInvalidateProviderProducts(provider?.id);
+  const products =
+    productsQ.isLoading && !productsQ.data ? null : (productsQ.data ?? []);
 
-  const [products, setProducts] = useState<Product[] | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [stockModal, setStockModal] = useState<Product | null>(null);
   const [adjustQty, setAdjustQty] = useState("");
@@ -50,15 +57,9 @@ export default function ProviderProductsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(() => {
-    if (!provider) return;
-    api
-      .productsByProvider(provider.id)
-      .then(setProducts)
-      .catch(() => setProducts([]));
-  }, [provider]);
-
-  useEffect(reload, [reload]);
+  const reload = () => {
+    void invalidateProducts();
+  };
 
   if (!provider) {
     return <EmptyState title="No practice linked" body="Products are managed by provider accounts." />;

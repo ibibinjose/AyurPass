@@ -1,30 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { api, formatMoney } from "@/lib/api";
-import type { Order, OrderStatus } from "@/lib/types";
+import { formatMoney } from "@/lib/api";
+import type { Order } from "@/lib/types";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { StatTile } from "@/components/StatTile";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
+import {
+  useInvalidateProviderOrders,
+  useProviderOrders,
+} from "@/hooks/useProviderOrders";
+import { api } from "@/lib/api";
 
 export default function ProviderOrdersPage() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const ordersQ = useProviderOrders(provider?.id);
+  const invalidate = useInvalidateProviderOrders(provider?.id);
+  const orders = ordersQ.isLoading && !ordersQ.data ? null : (ordersQ.data ?? []);
   const [acting, setActing] = useState<string | null>(null);
 
-  const reload = useCallback(() => {
-    if (!provider) return;
-    api
-      .ordersByProvider(provider.id)
-      .then(setOrders)
-      .catch(() => setOrders([]));
-  }, [provider]);
-
-  useEffect(reload, [reload]);
+  const reload = () => {
+    void invalidate();
+  };
 
   if (!provider) {
     return <EmptyState title="No practice linked" body="Orders are available for provider accounts." />;

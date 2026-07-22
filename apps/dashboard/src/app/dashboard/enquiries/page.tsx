@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/api";
+import { useMemo, useState } from "react";
 import type { Enquiry } from "@/lib/types";
 import { DashHeader, DashTabs } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
+import { useMyEnquiries, useUpdateEnquiryStatus } from "@/hooks/useEnquiries";
 
 type Filter = "new" | "all" | "archived";
 
@@ -28,26 +28,15 @@ function timeAgo(iso: string): string {
 }
 
 export default function EnquiriesPage() {
-  const [enquiries, setEnquiries] = useState<Enquiry[] | null>(null);
+  const enquiriesQ = useMyEnquiries();
+  const updateStatus = useUpdateEnquiryStatus();
+  const enquiries =
+    enquiriesQ.isLoading && !enquiriesQ.data ? null : (enquiriesQ.data ?? []);
   const [filter, setFilter] = useState<Filter>("new");
-  const [error, setError] = useState(false);
+  const error = enquiriesQ.isError;
 
-  useEffect(() => {
-    api
-      .myEnquiries()
-      .then(setEnquiries)
-      .catch(() => setError(true));
-  }, []);
-
-  async function setStatus(id: string, status: Enquiry["status"]) {
-    // Optimistic — reflect the change immediately, then persist.
-    setEnquiries((prev) => prev?.map((e) => (e.id === id ? { ...e, status } : e)) ?? prev);
-    try {
-      await api.updateEnquiry(id, status);
-    } catch {
-      // Reload from source on failure so the UI can't drift.
-      api.myEnquiries().then(setEnquiries).catch(() => setError(true));
-    }
+  function setStatus(id: string, status: Enquiry["status"]) {
+    updateStatus.mutate({ id, status });
   }
 
   const counts = useMemo(() => {

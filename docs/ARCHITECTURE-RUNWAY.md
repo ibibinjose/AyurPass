@@ -35,15 +35,17 @@ packages/shared    Types, tokens, endpoints, HTTP helpers, query keys
 ### Mobile
 
 - [x] Discover / Book / Bookings / Profile on NativeWind + Query where applicable
+- [x] Provider / service / book / offers detail flows on NativeWind + Query
+- [x] Web checkout deep-link from mobile pay (bridge until PaymentSheet)
 - [ ] Offline-friendly empty states + retry banners on all list screens
-- [ ] Deep links: booking, provider, offer
+- [ ] Deep links: booking, provider, offer (universal links)
 - [ ] Push notifications (booking reminders)
-- [ ] Stripe PaymentSheet on device (replace “pay on web” path)
+- [ ] Stripe PaymentSheet on device (replace web checkout bridge)
 
 ### Dashboard / web
 
 - [x] Query hooks for admin providers, consumer bookings, provider services, admin overview
-- [ ] Migrate remaining dashboard list pages (orders, products, staff, enquiries) to Query
+- [x] Orders, products, staff, enquiries on TanStack Query
 - [ ] Dashboard bundle analysis; lazy-load heavy admin modules
 - [ ] Role shells: consumer vs provider vs platform density
 
