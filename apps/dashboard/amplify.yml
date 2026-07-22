@@ -4,11 +4,40 @@ frontend:
     preBuild:
       commands:
         - nvm use 20 || nvm install 20
-        # monorepo root is two levels up from apps/dashboard
-        - cd ../.. && npm ci
+        - |
+          set -e
+          find_root() {
+            d="$(pwd)"
+            while [ "$d" != "/" ]; do
+              if [ -f "$d/package.json" ] && grep -q '"name": "ayurpass"' "$d/package.json" 2>/dev/null; then
+                echo "$d"
+                return 0
+              fi
+              d="$(dirname "$d")"
+            done
+            if [ -f ../../package.json ]; then (cd ../.. && pwd); else pwd; fi
+          }
+          ROOT="$(find_root)"
+          cd "$ROOT"
+          npm ci
     build:
       commands:
-        - cd ../.. && npm run build -w @ayurpass/dashboard
+        - |
+          set -e
+          find_root() {
+            d="$(pwd)"
+            while [ "$d" != "/" ]; do
+              if [ -f "$d/package.json" ] && grep -q '"name": "ayurpass"' "$d/package.json" 2>/dev/null; then
+                echo "$d"
+                return 0
+              fi
+              d="$(dirname "$d")"
+            done
+            if [ -f ../../package.json ]; then (cd ../.. && pwd); else pwd; fi
+          }
+          ROOT="$(find_root)"
+          cd "$ROOT"
+          npm run build -w @ayurpass/dashboard
   artifacts:
     baseDirectory: .next
     files:
