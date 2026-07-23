@@ -32,11 +32,12 @@ export default function Welcome() {
         </View>
 
         <View>
-          <Text className="font-display text-[40px] leading-[44px] text-white">
+          <Text className="font-display text-[38px] leading-[42px] text-white">
             Wellness, tuned to your <Text className="text-gold-soft">constitution</Text>.
           </Text>
           <Text className="mt-4 font-body text-base leading-6 text-white/80">
-            Verified Ayurveda, Yoga & Wellness — find & book practices personalised to your dosha.
+            Find clinics, studios and spas that fit how you feel — free to browse. Optional quiz
+            personalises matches when you want it.
           </Text>
 
           <View className="mt-6 flex-row flex-wrap gap-2.5">

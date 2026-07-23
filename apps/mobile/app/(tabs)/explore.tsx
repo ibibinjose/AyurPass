@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
@@ -28,20 +29,23 @@ export default function Explore() {
 
   const services = data ?? [];
   const label = useMemo(
-    () => (category === "ALL" ? "All" : SERVICE_CATEGORY_LABEL[category]),
+    () => (category === "ALL" ? "sessions" : SERVICE_CATEGORY_LABEL[category].toLowerCase()),
     [category],
   );
   const errMsg =
-    error instanceof Error ? error.message : error ? "Couldn't load services." : null;
+    error instanceof Error ? error.message : error ? "Couldn't load sessions." : null;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="px-5 pt-5">
+      <View className="px-5 pt-3">
         <Display>Book a session</Display>
+        <Body muted className="mt-1 text-[14px] leading-5">
+          Treatments and classes you can book online.
+        </Body>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingVertical: 16 }}
+          contentContainerStyle={{ gap: 8, paddingTop: 14, paddingBottom: 8 }}
         >
           {CATEGORIES.map((c) => {
             const active = c === category;
@@ -49,14 +53,12 @@ export default function Explore() {
               <Pressable
                 key={c}
                 onPress={() => setCategory(c)}
-                className={`rounded-full border px-4 py-2 ${
-                  active
-                    ? "border-forest bg-forest"
-                    : "border-hairline bg-surface"
+                className={`rounded-full border px-3.5 py-2 ${
+                  active ? "border-forest bg-forest" : "border-hairline bg-surface"
                 }`}
               >
                 <Text
-                  className={`font-body-medium text-[13px] ${
+                  className={`font-body-semi text-[13px] ${
                     active ? "text-white" : "text-ink-secondary"
                   }`}
                 >
@@ -69,7 +71,8 @@ export default function Explore() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -84,14 +87,32 @@ export default function Explore() {
           retrying={isRefetching}
         />
         {isLoading && !data ? (
-          <Loading />
+          <Loading label="Loading sessions…" />
         ) : services.length === 0 && !errMsg ? (
-          <EmptyState title={`No ${label.toLowerCase()} sessions yet`} body="Try another category." />
+          <View className="gap-4">
+            <EmptyState
+              title={`No ${label} yet`}
+              body="Bookable sessions appear when practices publish them. Browse the directory meanwhile."
+            />
+            <Pressable
+              onPress={() => router.push("/(tabs)")}
+              className="flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-surface py-3.5 active:opacity-90"
+            >
+              <Ionicons name="compass-outline" size={18} color={colors.forest} />
+              <Text className="font-body-semi text-[15px] text-forest">Browse practices</Text>
+            </Pressable>
+          </View>
         ) : services.length === 0 ? null : (
           <View className="gap-3">
-            <Body muted>{services.length} available</Body>
+            <Text className="font-body-medium text-[13px] text-ink-muted">
+              {services.length} available
+            </Text>
             {services.map((s) => (
-              <ServiceCard key={s.id} service={s} onPress={() => router.push(`/service/${s.id}`)} />
+              <ServiceCard
+                key={s.id}
+                service={s}
+                onPress={() => router.push(`/service/${s.id}`)}
+              />
             ))}
           </View>
         )}

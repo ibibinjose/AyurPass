@@ -127,7 +127,7 @@ export function Card({
 }) {
   return (
     <View
-      className={`rounded-lg border border-hairline bg-surface p-4 ${className ?? ""}`}
+      className={`rounded-2xl border border-hairline bg-surface p-4 ${className ?? ""}`}
       style={style}
     >
       {children}
@@ -259,7 +259,7 @@ export function Loading({ label }: { label?: string }) {
 
 export function EmptyState({ title, body }: { title: string; body?: string }) {
   return (
-    <View className="items-center rounded-lg border border-dashed border-hairline px-5 py-10">
+    <View className="items-center rounded-2xl border border-dashed border-hairline bg-surface/60 px-5 py-10">
       <Text className="font-display text-xl text-forest">{title}</Text>
       {body ? (
         <Body muted className="mt-2 text-center" style={{ textAlign: "center", marginTop: 8 }}>

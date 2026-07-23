@@ -20,7 +20,7 @@
       "channel": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.ayurpass.com",
-        "EXPO_PUBLIC_WEB_URL": "https://www.ayurpass.com"
+        "EXPO_PUBLIC_WEB_URL": "https://ayurpass.com"
       },
       "ios": {
         "resourceClass": "m-medium",
@@ -35,7 +35,7 @@
       "channel": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.ayurpass.com",
-        "EXPO_PUBLIC_WEB_URL": "https://www.ayurpass.com"
+        "EXPO_PUBLIC_WEB_URL": "https://ayurpass.com"
       },
       "ios": {
         "simulator": true,
@@ -48,7 +48,7 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.ayurpass.com",
-        "EXPO_PUBLIC_WEB_URL": "https://www.ayurpass.com"
+        "EXPO_PUBLIC_WEB_URL": "https://ayurpass.com"
       },
       "ios": {
         "resourceClass": "m-medium"

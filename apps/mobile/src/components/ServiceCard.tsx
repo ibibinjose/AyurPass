@@ -17,7 +17,7 @@ export function ServiceCard({
   return (
     <Pressable
       onPress={onPress}
-      className="min-h-[72px] flex-row items-center gap-3 rounded-lg border border-hairline bg-surface p-3.5 active:opacity-90"
+      className="min-h-[72px] flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface p-3.5 active:opacity-90"
     >
       <View className="h-[42px] w-[42px] items-center justify-center rounded-full bg-leaf/10">
         <Ionicons name={SERVICE_CATEGORY_ICON[service.category]} size={20} color={colors.leaf} />

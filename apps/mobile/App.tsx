@@ -1,10 +1,12 @@
 /**
- * Fallback root component when Metro resolves expo/AppEntry.js
- * (import App from '../../App'). Expo Router is the real app under app/.
+ * Fallback when Metro resolves expo/AppEntry → import App from '../../App'.
+ * Primary entry is package.json "main": "./index.js". Do not import index here
+ * (that would double-register the root component).
  */
 import { ExpoRoot } from "expo-router";
 
-// require.context is provided by Metro bundler for Expo Router
+// require.context is provided by Metro for Expo Router
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ctx = (require as any).context("./app");
 
 export default function App() {

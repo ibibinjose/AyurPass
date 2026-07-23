@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Badge,
   Button,
+  Body,
   Display,
   EmptyState,
   ErrorNote,
@@ -25,7 +26,7 @@ import type { Booking, BookingStatus } from "../../src/types";
 import { colors } from "../../src/theme";
 
 const WEB_BOOKINGS_URL =
-  process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://www.ayurpass.com";
+  process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://ayurpass.com";
 
 const STATUS_TONE: Record<BookingStatus, "leaf" | "gold" | "muted"> = {
   PENDING: "gold",
@@ -118,7 +119,7 @@ function BookingRow({
   }
 
   return (
-    <View className="gap-2.5 rounded-lg border border-hairline bg-surface p-4">
+    <View className="gap-2.5 rounded-2xl border border-hairline bg-surface p-4">
       <View className="flex-row items-start justify-between">
         <View className="flex-1 pr-3">
           <Text className="font-body-semi text-base leading-[21px] text-forest" numberOfLines={2}>
@@ -144,7 +145,7 @@ function BookingRow({
 
       <View className="flex-row items-center justify-between border-t border-hairline pt-3">
         <Text className="font-body-semi text-base text-foreground">
-          {formatMoney(booking.totalAmount, "USD")}
+          {formatMoney(booking.totalAmount, booking.service?.currency || "AUD")}
         </Text>
         {booking.paymentStatus === "paid" ? (
           <View className="flex-row items-center gap-1">
@@ -191,7 +192,10 @@ export default function Bookings() {
           />
         }
       >
-        <Display>Your bookings</Display>
+        <Display>Bookings</Display>
+        <Body muted className="mt-1 text-[14px]">
+          Upcoming and past sessions.
+        </Body>
         <View className="mt-5">
           <OfflineBanner
             error={errMsg}

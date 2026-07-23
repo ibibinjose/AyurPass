@@ -12,7 +12,7 @@ import type { ExpoConfig, ConfigContext } from "expo/config";
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
   const apiUrl = process.env.EXPO_PUBLIC_API_URL?.trim() || "";
-  const webUrl = process.env.EXPO_PUBLIC_WEB_URL?.trim() || "https://www.ayurpass.com";
+  const webUrl = process.env.EXPO_PUBLIC_WEB_URL?.trim() || "https://ayurpass.com";
 
   return {
     ...config,

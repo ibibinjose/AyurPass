@@ -13,10 +13,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Card, VerifiedTick } from "../../src/components/ui";
+import { Card } from "../../src/components/ui";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
 import { api, ApiError } from "../../src/api";
+import { resolveMediaUrl } from "../../src/media";
 import { useHealthProfile, useLoyalty } from "../../src/hooks/useProfileExtras";
 import type { Dosha } from "../../src/dosha";
 import type { HealthProfile } from "../../src/types";
@@ -82,6 +83,8 @@ export default function Profile() {
   const health = healthQ.data ?? null;
   const loyalty = loyaltyQ.data ?? null;
   const scores = health ? toScores(health) : null;
+  const avatarUri = resolveMediaUrl(user?.avatarUrl);
+  const isPlatformAdmin = user?.role === "PLATFORM_ADMIN";
   const initials =
     user?.fullName
       ?.split(" ")
@@ -205,8 +208,8 @@ export default function Profile() {
               className="mb-1.5 h-[104px] w-[104px] rounded-full bg-white/35 p-1 active:opacity-90"
             >
               <View className="flex-1 items-center justify-center overflow-hidden rounded-full border-[3px] border-surface bg-surface">
-                {user?.avatarUrl ? (
-                  <Image source={{ uri: user.avatarUrl }} className="h-full w-full" />
+                {avatarUri ? (
+                  <Image source={{ uri: avatarUri }} className="h-full w-full" />
                 ) : (
                   <Text className="font-display text-[28px] text-forest">{initials}</Text>
                 )}
@@ -226,7 +229,13 @@ export default function Profile() {
               <Text className="shrink font-display text-[26px] text-white" numberOfLines={1}>
                 {user?.fullName ?? "Wellness seeker"}
               </Text>
-              <VerifiedTick size={20} />
+              {isPlatformAdmin ? (
+                <View className="rounded-full bg-white/20 px-2 py-0.5">
+                  <Text className="font-body-semi text-[10px] uppercase tracking-wide text-white">
+                    Admin
+                  </Text>
+                </View>
+              ) : null}
             </View>
             <Text className="mt-1 font-body-medium text-sm text-white/85" numberOfLines={1}>
               {user?.email}
@@ -234,7 +243,7 @@ export default function Profile() {
             {scores ? (
               <View className="mt-3 rounded-full bg-white/20 px-3 py-1.5">
                 <Text className="font-body-semi text-xs tracking-wide text-white">
-                  Prakriti · {scores.primary.charAt(0).toUpperCase() + scores.primary.slice(1)}
+                  Energy · {scores.primary.charAt(0).toUpperCase() + scores.primary.slice(1)}
                 </Text>
               </View>
             ) : null}
@@ -286,31 +295,36 @@ export default function Profile() {
           ) : (
             <Pressable
               onPress={() => router.push("/assessment")}
-              className="mt-3.5 flex-row items-center gap-3 rounded-lg border border-hairline bg-surface p-4 active:opacity-90"
+              className="mt-3.5 flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 active:opacity-90"
             >
-              <Ionicons name="compass-outline" size={22} color={colors.systemBlue} />
+              <Ionicons name="compass-outline" size={22} color={colors.forest} />
               <View className="flex-1">
-                <Text className="font-body-semi text-base text-forest">Discover your dosha</Text>
+                <Text className="font-body-semi text-base text-forest">Free energy quiz</Text>
                 <Text className="mt-0.5 font-body text-[13px] text-ink-muted">
-                  Take the Prakriti assessment
+                  Optional — maps how you feel day to day
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
             </Pressable>
           )}
 
-          <Card className="mt-3.5 overflow-hidden p-0">
+          <Card className="mt-3.5 overflow-hidden rounded-2xl p-0">
             <Row icon="calendar-outline" label="My bookings" onPress={() => router.push("/(tabs)/bookings")} />
             <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/offers")} />
             <Row
               icon="compass-outline"
-              label={scores ? "Retake assessment" : "Dosha assessment"}
+              label={scores ? "Retake energy quiz" : "Energy quiz"}
               onPress={() => router.push("/assessment")}
             />
             <Row
               icon="search-outline"
-              label="Explore sessions"
+              label="Browse sessions"
               onPress={() => router.push("/(tabs)/explore")}
+            />
+            <Row
+              icon="briefcase-outline"
+              label="Careers"
+              onPress={() => router.push("/jobs")}
             />
           </Card>
 
