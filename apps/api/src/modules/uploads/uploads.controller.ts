@@ -9,12 +9,11 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import type { Request } from 'express';
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
-  UPLOAD_DIR,
   UploadsService,
 } from './uploads.service';
 
@@ -43,19 +42,17 @@ export class UploadsController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-        filename: (_req, file, cb) => {
-          cb(null, UploadsService.makeFilename(file.mimetype, file.originalname));
-        },
-      }),
+      // Memory → service stores to S3 (prod) or local disk (dev)
+      storage: memoryStorage(),
       limits: { fileSize: MAX_FILE_BYTES, files: 1 },
       fileFilter: imageFileFilter,
     }),
   )
-  uploadOne(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
-    this.uploads.assertImage(file);
-    return this.uploads.toUploadResponse(file, req);
+  async uploadOne(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+    if (file && !file.filename) {
+      file.filename = UploadsService.makeFilename(file.mimetype, file.originalname);
+    }
+    return this.uploads.storeImage(file, req);
   }
 
   /** Authenticated batch upload — up to 8 images. */
@@ -63,19 +60,19 @@ export class UploadsController {
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
   @UseInterceptors(
     FilesInterceptor('files', 8, {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-        filename: (_req, file, cb) => {
-          cb(null, UploadsService.makeFilename(file.mimetype, file.originalname));
-        },
-      }),
+      storage: memoryStorage(),
       limits: { fileSize: MAX_FILE_BYTES, files: 8 },
       fileFilter: imageFileFilter,
     }),
   )
-  uploadMany(@UploadedFiles() files: Express.Multer.File[], @Req() req: Request) {
+  async uploadMany(@UploadedFiles() files: Express.Multer.File[], @Req() req: Request) {
     if (!files?.length) throw new BadRequestException('No files uploaded.');
-    const mapped = files.map((f) => this.uploads.toUploadResponse(f, req));
+    for (const f of files) {
+      if (!f.filename) {
+        f.filename = UploadsService.makeFilename(f.mimetype, f.originalname);
+      }
+    }
+    const mapped = await Promise.all(files.map((f) => this.uploads.storeImage(f, req)));
     return {
       urls: mapped.map((m) => m.url),
       files: mapped,

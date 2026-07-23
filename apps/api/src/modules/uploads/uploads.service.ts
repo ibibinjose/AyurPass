@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomBytes } from 'crypto';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
 import type { Request } from 'express';
 
@@ -22,6 +23,38 @@ const EXT_BY_MIME: Record<string, string> = {
 
 @Injectable()
 export class UploadsService {
+  private readonly logger = new Logger(UploadsService.name);
+  private readonly s3: S3Client | null;
+  private readonly bucket: string | null;
+  private readonly s3PublicBase: string | null;
+  private readonly region: string;
+
+  constructor() {
+    this.region =
+      process.env.AWS_REGION?.trim() ||
+      process.env.AWS_DEFAULT_REGION?.trim() ||
+      'ap-southeast-2';
+    this.bucket = process.env.S3_MEDIA_BUCKET?.trim() || null;
+    this.s3PublicBase =
+      process.env.S3_MEDIA_PUBLIC_BASE?.trim().replace(/\/$/, '') ||
+      (this.bucket
+        ? `https://${this.bucket}.s3.${this.region}.amazonaws.com`
+        : null);
+    this.s3 = this.bucket ? new S3Client({ region: this.region }) : null;
+
+    if (this.bucket) {
+      this.logger.log(`Media uploads → S3 s3://${this.bucket}/media/ (${this.region})`);
+    } else {
+      this.logger.warn(
+        'S3_MEDIA_BUCKET not set — uploads use local disk (ephemeral on ECS).',
+      );
+    }
+  }
+
+  get usesS3(): boolean {
+    return Boolean(this.s3 && this.bucket);
+  }
+
   ensureUploadDir() {
     if (!existsSync(UPLOAD_DIR)) {
       mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -29,9 +62,8 @@ export class UploadsService {
   }
 
   /**
-   * Absolute base for public file URLs.
-   * Priority: PUBLIC_API_URL / API_PUBLIC_URL → request Host (ALB) → prod default → localhost.
-   * Never return bare localhost in production — that breaks avatars on ayurpass.com.
+   * Absolute base for public *local* file URLs (disk fallback).
+   * Priority: PUBLIC_API_URL / API_PUBLIC_URL → request Host → prod default → localhost.
    */
   publicBaseUrl(req?: Request): string {
     const fromEnv = (
@@ -49,7 +81,6 @@ export class UploadsService {
     }
 
     if (process.env.NODE_ENV === 'production' || process.env.AYURPASS_STRICT === '1') {
-      // Deployed ECS / ALB default for this product
       return 'https://api.ayurpass.com';
     }
 
@@ -85,7 +116,7 @@ export class UploadsService {
     }
   }
 
-  /** Relative path always safe to store / rewrite on the client. */
+  /** Relative path for disk-served files. */
   toPublicPath(filename: string): string {
     return `/files/${filename}`;
   }
@@ -94,6 +125,65 @@ export class UploadsService {
     return `${this.publicBaseUrl(req)}${this.toPublicPath(filename)}`;
   }
 
+  /**
+   * Persist an uploaded image to S3 (production) or local disk (dev).
+   * Returns durable public URL + path.
+   */
+  async storeImage(file: Express.Multer.File, req?: Request) {
+    this.assertImage(file);
+    const filename = file.filename || this.filenameFor(file.mimetype, file.originalname);
+    const buffer = file.buffer ?? (file.path ? undefined : undefined);
+
+    if (this.usesS3) {
+      const key = `media/${filename}`;
+      // Prefer in-memory buffer; fall back to reading path if disk storage used
+      let body: Buffer;
+      if (file.buffer && file.buffer.length) {
+        body = file.buffer;
+      } else if (file.path) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        body = require('fs').readFileSync(file.path) as Buffer;
+      } else {
+        throw new BadRequestException('Empty upload body.');
+      }
+
+      await this.s3!.send(
+        new PutObjectCommand({
+          Bucket: this.bucket!,
+          Key: key,
+          Body: body,
+          ContentType: file.mimetype,
+          CacheControl: 'public, max-age=31536000, immutable',
+        }),
+      );
+
+      const url = `${this.s3PublicBase}/${key}`;
+      return {
+        url,
+        path: `/${key}`,
+        filename,
+        mimeType: file.mimetype,
+        size: file.size || body.length,
+        storage: 's3' as const,
+      };
+    }
+
+    // Local disk fallback (dev / no bucket)
+    this.ensureUploadDir();
+    if (file.buffer && file.buffer.length && !file.path) {
+      writeFileSync(join(UPLOAD_DIR, filename), file.buffer);
+    }
+    return {
+      url: this.toPublicUrl(filename, req),
+      path: this.toPublicPath(filename),
+      filename,
+      mimeType: file.mimetype,
+      size: file.size,
+      storage: 'disk' as const,
+    };
+  }
+
+  /** @deprecated use storeImage — kept for any legacy callers */
   toUploadResponse(file: Express.Multer.File, req?: Request) {
     return {
       url: this.toPublicUrl(file.filename, req),

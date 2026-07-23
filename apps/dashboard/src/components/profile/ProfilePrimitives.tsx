@@ -580,6 +580,16 @@ export function ProfileAvatar({
   size?: number;
   status?: "online" | "offline" | "none";
 }) {
+  const [imgBroken, setImgBroken] = useState(false);
+  const [hubBroken, setHubBroken] = useState(false);
+
+  useEffect(() => {
+    setImgBroken(false);
+  }, [imageUrl]);
+  useEffect(() => {
+    setHubBroken(false);
+  }, [hubLogoUrl]);
+
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -588,6 +598,7 @@ export function ProfileAvatar({
     .toUpperCase();
   const ringPad = status === "none" ? 0 : 5;
   const outer = size + ringPad * 2;
+  const showPhoto = Boolean(imageUrl?.trim()) && !imgBroken;
 
   return (
     <div
@@ -612,12 +623,13 @@ export function ProfileAvatar({
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.14)] ring-4 ring-surface"
         style={{ width: size, height: size }}
       >
-        {imageUrl ? (
+        {showPhoto ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl}
+            src={imageUrl!}
             alt=""
             className="h-full w-full object-cover"
+            onError={() => setImgBroken(true)}
           />
         ) : (
           <div
@@ -629,12 +641,13 @@ export function ProfileAvatar({
           </div>
         )}
       </div>
-      {hubLogoUrl ? (
+      {hubLogoUrl && !hubBroken ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={hubLogoUrl}
           alt=""
           className="absolute bottom-0.5 right-0.5 z-[1] h-10 w-10 rounded-full border-[3px] border-surface object-cover shadow-md"
+          onError={() => setHubBroken(true)}
         />
       ) : null}
     </div>
