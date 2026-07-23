@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, ApiError } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practiceBioPath, practicePath } from "@/lib/paths";
 import { SITE_URL } from "@/lib/seo";
@@ -236,8 +237,10 @@ export default function BusinessProfilePage() {
     setPostcode(p.address?.postcode ?? "");
     setCountry(p.address?.country ?? "");
     setTimezone(p.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? "");
-    setLogoUrl(p.brandProfile?.logoUrl ?? "");
-    setCoverImageUrl(p.brandProfile?.coverImageUrl ?? "");
+    setLogoUrl(resolveMediaUrl(p.brandProfile?.logoUrl) ?? p.brandProfile?.logoUrl ?? "");
+    setCoverImageUrl(
+      resolveMediaUrl(p.brandProfile?.coverImageUrl) ?? p.brandProfile?.coverImageUrl ?? "",
+    );
     setGallery((p.brandProfile?.gallery ?? []).join("\n"));
     setTags((p.brandProfile?.tags ?? []).join(", "));
     setAmenities((p.brandProfile?.amenities ?? []).join(", "));
@@ -456,8 +459,9 @@ export default function BusinessProfilePage() {
         website: website.trim() || undefined,
         openingHours: openingHours.trim() || undefined,
         // null clears a previously saved mark/cover on the server
-        logoUrl: logoUrl.trim() || null,
-        coverImageUrl: coverImageUrl.trim() || null,
+        logoUrl: resolveMediaUrl(logoUrl.trim()) || logoUrl.trim() || null,
+        coverImageUrl:
+          resolveMediaUrl(coverImageUrl.trim()) || coverImageUrl.trim() || null,
         gallery: splitLines(gallery),
         tags: splitList(tags),
         amenities: splitList(amenities),

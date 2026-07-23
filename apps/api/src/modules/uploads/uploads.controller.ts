@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Post,
+  Req,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -9,6 +10,7 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { diskStorage } from 'multer';
+import type { Request } from 'express';
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
@@ -51,14 +53,9 @@ export class UploadsController {
       fileFilter: imageFileFilter,
     }),
   )
-  uploadOne(@UploadedFile() file: Express.Multer.File) {
+  uploadOne(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
     this.uploads.assertImage(file);
-    return {
-      url: this.uploads.toPublicUrl(file.filename),
-      filename: file.filename,
-      mimeType: file.mimetype,
-      size: file.size,
-    };
+    return this.uploads.toUploadResponse(file, req);
   }
 
   /** Authenticated batch upload — up to 8 images. */
@@ -76,16 +73,12 @@ export class UploadsController {
       fileFilter: imageFileFilter,
     }),
   )
-  uploadMany(@UploadedFiles() files: Express.Multer.File[]) {
+  uploadMany(@UploadedFiles() files: Express.Multer.File[], @Req() req: Request) {
     if (!files?.length) throw new BadRequestException('No files uploaded.');
+    const mapped = files.map((f) => this.uploads.toUploadResponse(f, req));
     return {
-      urls: files.map((f) => this.uploads.toPublicUrl(f.filename)),
-      files: files.map((f) => ({
-        url: this.uploads.toPublicUrl(f.filename),
-        filename: f.filename,
-        mimeType: f.mimetype,
-        size: f.size,
-      })),
+      urls: mapped.map((m) => m.url),
+      files: mapped,
     };
   }
 }

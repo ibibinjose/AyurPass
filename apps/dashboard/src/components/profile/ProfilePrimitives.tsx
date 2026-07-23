@@ -979,6 +979,33 @@ export function ProfileEmptyState({ title, body }: { title: string; body: string
  * Immersive fluid hero cover — blurred photo or accent gradient with soft fade.
  * Optional `parallaxY` (px) for scroll-linked depth.
  */
+function GenericCoverGradient({ parallaxY = 0 }: { parallaxY?: number }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 h-44 overflow-hidden sm:h-56"
+    >
+      <div
+        className="absolute inset-0 scale-110 will-change-transform"
+        style={{
+          background:
+            "var(--profile-gradient, linear-gradient(145deg,#1e3228 0%,#3d6650 48%,#c4a574 120%))",
+          transform: `translate3d(0, ${parallaxY * 0.35}px, 0)`,
+        }}
+      />
+      {/* Soft light wash so empty headers never look broken */}
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.28), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(233,217,184,0.35), transparent 50%)",
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-surface" />
+    </div>
+  );
+}
+
 export function ProfileCoverBand({
   imageUrl,
   parallaxY = 0,
@@ -986,31 +1013,26 @@ export function ProfileCoverBand({
   imageUrl?: string | null;
   parallaxY?: number;
 }) {
-  if (!imageUrl) {
-    return (
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-44 overflow-hidden sm:h-56"
-      >
-        <div
-          className="absolute inset-0 scale-110 will-change-transform"
-          style={{
-            background: "var(--profile-gradient, linear-gradient(145deg,#1e3228,#3d6650,#e9d9b8))",
-            transform: `translate3d(0, ${parallaxY * 0.35}px, 0)`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-surface" />
-      </div>
-    );
+  const [broken, setBroken] = useState(false);
+  const resolved = imageUrl?.trim() || null;
+
+  useEffect(() => {
+    setBroken(false);
+  }, [resolved]);
+
+  if (!resolved || broken) {
+    return <GenericCoverGradient parallaxY={parallaxY} />;
   }
+
   return (
     <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={imageUrl}
+        src={resolved}
         alt=""
         className="h-[130%] w-full object-cover opacity-95 will-change-transform"
         style={{ transform: `translate3d(0, ${parallaxY * 0.4}px, 0) scale(1.05)` }}
+        onError={() => setBroken(true)}
       />
       <div className="absolute inset-0 backdrop-blur-[1.5px]" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-surface" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { resolveMediaUrl, validateImageLink } from "@/lib/media";
 import { Button, Field, Input } from "@/components/ui";
 
 type Mode = "upload" | "link";
@@ -55,9 +56,30 @@ export function MediaField({
   const inputId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const [mode, setMode] = useState<Mode>(value && !value.startsWith("blob:") ? "link" : "upload");
+  // Prefer Upload mode for local/blob or empty; Link only when a remote URL is already set
+  const [mode, setMode] = useState<Mode>(() => {
+    if (!value || value.startsWith("blob:")) return "upload";
+    return "link";
+  });
+  const [linkDraft, setLinkDraft] = useState(() =>
+    value && !value.startsWith("blob:") ? value : "",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewBroken, setPreviewBroken] = useState(false);
+
+  const displayUrl = resolveMediaUrl(value) || value || "";
+
+  useEffect(() => {
+    setPreviewBroken(false);
+  }, [displayUrl]);
+
+  // Keep link draft in sync when parent value changes from outside
+  useEffect(() => {
+    if (mode === "link" && value && !value.startsWith("blob:")) {
+      setLinkDraft(value);
+    }
+  }, [value, mode]);
 
   useEffect(() => {
     return () => {
@@ -78,6 +100,9 @@ export function MediaField({
   function clearValue() {
     clearBlobPreview();
     onDeferredFile?.(null);
+    setLinkDraft("");
+    setError(null);
+    setPreviewBroken(false);
     onChange("");
   }
 
@@ -106,8 +131,11 @@ export function MediaField({
       const res = await api.uploadImage(file);
       clearBlobPreview();
       onDeferredFile?.(null);
+      // Stay on Upload mode — show preview of the uploaded image, not a raw URL field
       onChange(res.url);
-      setMode("link");
+      setLinkDraft(res.url);
+      setMode("upload");
+      setPreviewBroken(false);
     } catch (e) {
       setError(
         e instanceof ApiError || e instanceof Error
@@ -118,6 +146,21 @@ export function MediaField({
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  function applyLink() {
+    const raw = linkDraft.trim();
+    const invalid = validateImageLink(raw);
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
+    clearBlobPreview();
+    onDeferredFile?.(null);
+    const resolved = resolveMediaUrl(raw) || raw;
+    onChange(resolved);
+    setError(null);
+    setPreviewBroken(false);
   }
 
   const previewClass =
@@ -144,7 +187,10 @@ export function MediaField({
           <button
             type="button"
             disabled={disabled}
-            onClick={() => setMode("upload")}
+            onClick={() => {
+              setMode("upload");
+              setError(null);
+            }}
             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
               mode === "upload" ? "bg-forest text-white" : "text-ink-muted"
             }`}
@@ -154,7 +200,11 @@ export function MediaField({
           <button
             type="button"
             disabled={disabled}
-            onClick={() => setMode("link")}
+            onClick={() => {
+              setMode("link");
+              setError(null);
+              if (value && !value.startsWith("blob:")) setLinkDraft(value);
+            }}
             className={`rounded-full px-3 py-1 text-[11px] font-bold ${
               mode === "link" ? "bg-forest text-white" : "text-ink-muted"
             }`}
@@ -215,43 +265,81 @@ export function MediaField({
             {recommended ? ` · ${recommended}` : ""}
             {deferUpload ? " · uploads when you publish" : ""}
           </p>
+          {value && !value.startsWith("blob:") ? (
+            <p className="mt-1.5 text-[11px] font-semibold text-forest">Image ready — save the form to keep it.</p>
+          ) : null}
         </div>
       ) : (
-        <Field label="Image URL">
-          <Input
-            type="url"
-            value={value.startsWith("blob:") ? "" : value}
-            disabled={disabled}
-            onChange={(e) => {
-              clearBlobPreview();
-              onDeferredFile?.(null);
-              onChange(e.target.value);
-            }}
-            placeholder="https://… or /uploads/…"
-          />
-        </Field>
+        <div className="space-y-2">
+          <Field
+            label="Image URL"
+            hint="Paste a direct image link (https://…). Works with CDN links from LinkedIn, X, Instagram, your website, etc."
+          >
+            <Input
+              type="url"
+              value={linkDraft}
+              disabled={disabled}
+              onChange={(e) => {
+                setLinkDraft(e.target.value);
+                setError(null);
+              }}
+              onBlur={() => {
+                if (linkDraft.trim() && linkDraft.trim() !== value) applyLink();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  applyLink();
+                }
+              }}
+              placeholder="https://media.example.com/photo.jpg"
+            />
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={disabled || !linkDraft.trim()}
+              onClick={applyLink}
+            >
+              Use this link
+            </Button>
+            {value ? (
+              <Button type="button" variant="ghost" disabled={disabled} onClick={clearValue}>
+                Clear
+              </Button>
+            ) : null}
+          </div>
+        </div>
       )}
 
-      {value ? (
+      {displayUrl && !previewBroken ? (
         <div className="flex flex-wrap items-end gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={value}
+            src={displayUrl}
             alt=""
             className={`border border-hairline bg-clay ${previewClass}`}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.opacity = "0.35";
-            }}
+            onError={() => setPreviewBroken(true)}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            className="!text-xs"
-            disabled={disabled}
-            onClick={clearValue}
-          >
-            Remove
-          </Button>
+          {mode === "upload" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="!text-xs"
+              disabled={disabled}
+              onClick={clearValue}
+            >
+              Remove
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {previewBroken && value ? (
+        <div
+          className={`flex items-center justify-center border border-dashed border-hairline bg-clay/40 text-xs font-medium text-ink-muted ${previewClass}`}
+        >
+          Preview unavailable
         </div>
       ) : null}
 
@@ -315,11 +403,16 @@ export function MediaGalleryField({
   function addUrl() {
     const u = urlDraft.trim();
     if (!u) return;
+    const invalid = validateImageLink(u);
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
     if (values.length >= max) {
       setError(`Maximum ${max} images.`);
       return;
     }
-    onChange([...values, u]);
+    onChange([...values, resolveMediaUrl(u) || u]);
     setUrlDraft("");
     setError(null);
   }
@@ -333,24 +426,27 @@ export function MediaGalleryField({
 
       {values.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {values.map((url, i) => (
-            <div key={`${url}-${i}`} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={url}
-                alt=""
-                className="h-20 w-20 rounded-xl border border-hairline object-cover"
-              />
-              <button
-                type="button"
-                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-forest text-[10px] font-bold text-white shadow"
-                onClick={() => onChange(values.filter((_, j) => j !== i))}
-                aria-label="Remove image"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {values.map((url, i) => {
+            const src = resolveMediaUrl(url) || url;
+            return (
+              <div key={`${url}-${i}`} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt=""
+                  className="h-20 w-20 rounded-xl border border-hairline object-cover"
+                />
+                <button
+                  type="button"
+                  className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-forest text-[10px] font-bold text-white shadow"
+                  onClick={() => onChange(values.filter((_, j) => j !== i))}
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -377,7 +473,7 @@ export function MediaGalleryField({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <Field label="Or paste image URL">
+          <Field label="Or paste image URL" hint="Direct https image link (CDN, website, social media).">
             <Input
               value={urlDraft}
               onChange={(e) => setUrlDraft(e.target.value)}

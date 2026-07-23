@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { existsSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
+import type { Request } from 'express';
 
 export const UPLOAD_DIR = join(process.cwd(), 'uploads');
 export const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -27,12 +28,33 @@ export class UploadsService {
     }
   }
 
-  publicBaseUrl(): string {
-    const base =
-      process.env.PUBLIC_API_URL?.replace(/\/$/, '') ||
-      process.env.API_PUBLIC_URL?.replace(/\/$/, '') ||
-      `http://localhost:${process.env.PORT || 4000}`;
-    return base;
+  /**
+   * Absolute base for public file URLs.
+   * Priority: PUBLIC_API_URL / API_PUBLIC_URL → request Host (ALB) → prod default → localhost.
+   * Never return bare localhost in production — that breaks avatars on ayurpass.com.
+   */
+  publicBaseUrl(req?: Request): string {
+    const fromEnv = (
+      process.env.PUBLIC_API_URL ||
+      process.env.API_PUBLIC_URL ||
+      ''
+    )
+      .trim()
+      .replace(/\/$/, '');
+    if (fromEnv && !isLoopbackHost(fromEnv)) return fromEnv;
+
+    if (req) {
+      const fromReq = baseFromRequest(req);
+      if (fromReq) return fromReq;
+    }
+
+    if (process.env.NODE_ENV === 'production' || process.env.AYURPASS_STRICT === '1') {
+      // Deployed ECS / ALB default for this product
+      return 'https://api.ayurpass.com';
+    }
+
+    if (fromEnv) return fromEnv;
+    return `http://localhost:${process.env.PORT || 4000}`;
   }
 
   /** Static helper for multer filename callbacks (no DI required). */
@@ -63,7 +85,46 @@ export class UploadsService {
     }
   }
 
-  toPublicUrl(filename: string): string {
-    return `${this.publicBaseUrl()}/files/${filename}`;
+  /** Relative path always safe to store / rewrite on the client. */
+  toPublicPath(filename: string): string {
+    return `/files/${filename}`;
   }
+
+  toPublicUrl(filename: string, req?: Request): string {
+    return `${this.publicBaseUrl(req)}${this.toPublicPath(filename)}`;
+  }
+
+  toUploadResponse(file: Express.Multer.File, req?: Request) {
+    return {
+      url: this.toPublicUrl(file.filename, req),
+      path: this.toPublicPath(file.filename),
+      filename: file.filename,
+      mimeType: file.mimetype,
+      size: file.size,
+    };
+  }
+}
+
+function isLoopbackHost(urlOrHost: string): boolean {
+  try {
+    const host = urlOrHost.includes('://')
+      ? new URL(urlOrHost).hostname
+      : urlOrHost.split(':')[0];
+    return host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0';
+  } catch {
+    return /localhost|127\.0\.0\.1/.test(urlOrHost);
+  }
+}
+
+function baseFromRequest(req: Request): string | null {
+  const xfProto = String(req.headers['x-forwarded-proto'] || '')
+    .split(',')[0]
+    ?.trim();
+  const xfHost = String(req.headers['x-forwarded-host'] || '')
+    .split(',')[0]
+    ?.trim();
+  const host = xfHost || String(req.headers.host || '').trim();
+  if (!host || isLoopbackHost(host)) return null;
+  const proto = xfProto === 'http' || xfProto === 'https' ? xfProto : 'https';
+  return `${proto}://${host}`.replace(/\/$/, '');
 }

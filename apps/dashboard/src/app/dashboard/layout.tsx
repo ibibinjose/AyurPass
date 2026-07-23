@@ -8,6 +8,7 @@ import { Logo } from "@/components/Logo";
 import { DashboardBottomNav } from "@/components/MobileBottomNav";
 import { InlineSpinner } from "@/components/ui";
 import { loginUrl } from "@/lib/auth-redirect";
+import { resolveMediaUrl } from "@/lib/media";
 import { practicePath } from "@/lib/paths";
 import {
   CalendarIcon,
@@ -634,9 +635,13 @@ function UserFooter({
           title="Account profile menu"
           className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface transition-transform active:scale-95"
         >
-          {user.avatarUrl ? (
+          {resolveMediaUrl(user.avatarUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+            <img
+              src={resolveMediaUrl(user.avatarUrl)!}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : (
             initials
           )}
@@ -654,9 +659,13 @@ function UserFooter({
         className="w-full flex items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-clay/40 transition-colors"
       >
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface">
-          {user.avatarUrl ? (
+          {resolveMediaUrl(user.avatarUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+            <img
+              src={resolveMediaUrl(user.avatarUrl)!}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : (
             initials
           )}
@@ -1056,9 +1065,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="dash-nav-link flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-clay text-[11px] font-bold text-forest ring-1 ring-hairline"
               aria-label="Account settings"
             >
-              {user.avatarUrl ? (
+              {resolveMediaUrl(user.avatarUrl) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={resolveMediaUrl(user.avatarUrl)!}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 initials
               )}

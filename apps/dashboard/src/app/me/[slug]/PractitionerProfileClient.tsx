@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { api, formatMoney } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 import { trackRecentView } from "@/hooks/useRecentViews";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practicePath, practitionerPath, professionalDisplayTitle } from "@/lib/paths";
@@ -194,8 +195,11 @@ export default function PractitionerProfileClient({
   // All hooks must run before any early return (stable hook order).
   const provider = professional?.provider;
   const brand = provider?.brandProfile;
-  const avatar = professional?.user?.avatarUrl ?? brand?.logoUrl ?? null;
-  const coverUrl = brand?.coverImageUrl ?? null;
+  const avatar = resolveMediaUrl(professional?.user?.avatarUrl ?? brand?.logoUrl ?? null);
+  const coverUrl =
+    resolveMediaUrl(brand?.coverImageUrl) ??
+    resolveMediaUrl(brand?.logoUrl) ??
+    avatar;
   const services = professional?.services ?? [];
   const hasBookableServices = services.length > 0;
 
@@ -280,7 +284,7 @@ export default function PractitionerProfileClient({
   const membership = professional.verificationDocuments?.membership;
   const location = provider ? formatAddress(provider.address) : "";
   const mapHref = provider ? mapsUrl(provider) : null;
-  const practiceLogo = brand?.logoUrl;
+  const practiceLogo = resolveMediaUrl(brand?.logoUrl);
   const about = professional.bio || brand?.about;
   const hourlyRate =
     professional.hourlyRate != null && Number(professional.hourlyRate) > 0

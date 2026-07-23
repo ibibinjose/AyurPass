@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 import { trackRecentView } from "@/hooks/useRecentViews";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practiceBioPath, practicePath, practitionerPath } from "@/lib/paths";
@@ -216,8 +217,10 @@ export default function ProviderProfilePage({
 
   // All hooks must run before any early return (stable hook order).
   const brand = provider?.brandProfile;
-  const logo = brand?.logoUrl ?? brand?.coverImageUrl ?? null;
-  const coverUrl = brand?.coverImageUrl ?? null;
+  const logo =
+    resolveMediaUrl(brand?.logoUrl) ?? resolveMediaUrl(brand?.coverImageUrl) ?? null;
+  const coverUrl =
+    resolveMediaUrl(brand?.coverImageUrl) ?? resolveMediaUrl(brand?.logoUrl) ?? null;
   const gallery = useMemo(() => brand?.gallery?.filter(Boolean) ?? [], [brand?.gallery]);
   const linkItems = useMemo(() => buildPracticeLinks(brand), [brand]);
   const hasBookableServices = (services?.length ?? 0) > 0;

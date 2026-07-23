@@ -229,12 +229,32 @@ export const api = {
       }
       throw new ApiError(message, res.status);
     }
-    return (await res.json()) as {
+    const data = (await res.json()) as {
       url: string;
+      path?: string;
       filename: string;
       mimeType: string;
       size: number;
     };
+    // Rewrite accidental localhost file URLs to the configured API base
+    const preferred = data.path || data.url;
+    let url = preferred;
+    try {
+      if (preferred.startsWith("/files/") || preferred.startsWith("/uploads/")) {
+        url = `${API_URL.replace(/\/$/, "")}${preferred}`;
+      } else {
+        const parsed = new URL(preferred);
+        if (
+          (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+          (parsed.pathname.startsWith("/files/") || parsed.pathname.startsWith("/uploads/"))
+        ) {
+          url = `${API_URL.replace(/\/$/, "")}${parsed.pathname}${parsed.search}`;
+        }
+      }
+    } catch {
+      /* keep preferred */
+    }
+    return { ...data, url };
   },
 
   // discovery

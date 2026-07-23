@@ -47,15 +47,24 @@ import type {
   StaffMembershipSummary,
   StaffRole,
 } from "./types";
+import { resolveMediaUrl } from "@/lib/media";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export type UploadedImage = {
   url: string;
+  /** Relative path e.g. `/files/….jpg` when returned by newer API builds. */
+  path?: string;
   filename: string;
   mimeType: string;
   size: number;
 };
+
+function normalizeUploadedImage(data: UploadedImage): UploadedImage {
+  const preferred = data.path || data.url;
+  const url = resolveMediaUrl(preferred) || preferred;
+  return { ...data, url };
+}
 
 async function uploadImageRequest(file: File, retried = false): Promise<UploadedImage> {
   const body = new FormData();
@@ -78,7 +87,8 @@ async function uploadImageRequest(file: File, retried = false): Promise<Uploaded
     }
     throw new ApiError(message, res.status);
   }
-  return res.json() as Promise<UploadedImage>;
+  const data = (await res.json()) as UploadedImage;
+  return normalizeUploadedImage(data);
 }
 
 async function uploadImagesRequest(
@@ -105,7 +115,13 @@ async function uploadImagesRequest(
     }
     throw new ApiError(message, res.status);
   }
-  return res.json() as Promise<{ urls: string[]; files: UploadedImage[] }>;
+  const data = (await res.json()) as { urls: string[]; files: UploadedImage[] };
+  const filesOut = (data.files ?? []).map(normalizeUploadedImage);
+  const urls =
+    filesOut.length > 0
+      ? filesOut.map((f) => f.url)
+      : (data.urls ?? []).map((u) => resolveMediaUrl(u) || u);
+  return { urls, files: filesOut };
 }
 
 const ACCESS_KEY = "ayurpass.accessToken";

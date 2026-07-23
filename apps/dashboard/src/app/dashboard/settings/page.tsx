@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 import type { HealthAuthorityBadge } from "@/lib/types";
 import { HEALTH_AUTHORITY_PRESETS, normalizeAuthorities } from "@/lib/credentials";
 import {
@@ -103,7 +104,7 @@ export default function SettingsPage() {
       const next = {
         fullName: user.fullName ?? "",
         phone: user.phone ?? "",
-        avatarUrl: user.avatarUrl ?? "",
+        avatarUrl: resolveMediaUrl(user.avatarUrl) ?? user.avatarUrl ?? "",
         title: "",
         titleKind: "",
         handle: "",
@@ -138,7 +139,7 @@ export default function SettingsPage() {
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
-          avatarUrl: user.avatarUrl ?? "",
+          avatarUrl: resolveMediaUrl(user.avatarUrl) ?? user.avatarUrl ?? "",
           title: me.title ?? "",
           titleKind: me.titleKind ?? "",
           handle: me.handle ?? me.slug ?? "",
@@ -150,6 +151,7 @@ export default function SettingsPage() {
           authorityCodes: normalizeAuthorities(me.healthAuthorities).map((a) => a.code),
           customAuthority: "",
         };
+        setAvatarUrl(next.avatarUrl);
         setTitle(next.title);
         setTitleKind(next.titleKind);
         setHandle(next.handle);
@@ -297,11 +299,14 @@ export default function SettingsPage() {
     setSaved(false);
     setError(null);
     try {
+      const nextAvatar =
+        resolveMediaUrl(avatarUrl.trim()) || avatarUrl.trim() || undefined;
       await api.updateUser(user.id, {
         fullName: fullName.trim(),
         phone: phone.trim() || undefined,
-        avatarUrl: avatarUrl.trim() || undefined,
+        avatarUrl: nextAvatar,
       });
+      if (nextAvatar) setAvatarUrl(nextAvatar);
       if (professional?.id) {
         const h = normalizeHandle(handle);
         if (h && !isValidHandle(h)) {
