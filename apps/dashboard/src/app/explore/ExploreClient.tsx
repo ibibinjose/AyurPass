@@ -231,9 +231,9 @@ export default function ExploreClient() {
 
   return (
     <DirectoryLayout
-      eyebrow="Book online"
+      eyebrow="Sessions"
       title="Book a session"
-      description="Consultations, classes, treatments and programs — book directly with verified practitioners. Free cancellation until 24 hours before."
+      description="Consultations, classes, treatments and programs — they land on your Calendar, colour-coded by Ayurveda, Yoga, Spa and more."
       heroExtra={
         <p className="text-sm font-semibold text-ink-muted">
           Prefer to browse practices first?{" "}

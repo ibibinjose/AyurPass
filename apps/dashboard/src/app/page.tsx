@@ -33,11 +33,11 @@ const PATHWAYS = [
     cta: "Browse directory",
   },
   {
-    href: "/explore",
+    href: "/dashboard/bookings",
     icon: CalendarIcon,
-    title: "Book a session",
-    body: "Ayurvedic treatments, yoga, spa and consultations you can book online.",
-    cta: "Find sessions",
+    title: "Calendar",
+    body: "Your sessions colour-coded by Ayurveda, Yoga, Spa and more.",
+    cta: "Open calendar",
   },
   {
     href: "/retreats",

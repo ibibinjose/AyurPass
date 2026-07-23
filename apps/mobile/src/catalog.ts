@@ -1,7 +1,14 @@
 import type { Ionicons } from "@expo/vector-icons";
+import {
+  colorForServiceCategory,
+  softColorForServiceCategory,
+  serviceCategoryColor,
+} from "@ayurpass/shared";
 import type { BusinessAddress, ProviderType, ServiceCategory } from "./types";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
+
+export { colorForServiceCategory, softColorForServiceCategory, serviceCategoryColor };
 
 export const PROVIDER_TYPE_LABEL: Record<ProviderType, string> = {
   AYURVEDA_CLINIC: "Ayurveda Clinic",
@@ -54,6 +61,27 @@ export const SERVICE_CATEGORY_ICON: Record<ServiceCategory, IoniconName> = {
   CONSULTATION: "chatbubbles-outline",
   PACKAGE: "gift-outline",
 };
+
+/** Ordered legend for calendar colour codes */
+export const CALENDAR_CATEGORY_LEGEND: {
+  id: ServiceCategory;
+  label: string;
+  color: string;
+}[] = (
+  [
+    "AYURVEDA",
+    "YOGA",
+    "SPA",
+    "MEDITATION",
+    "FITNESS",
+    "NUTRITION",
+    "CONSULTATION",
+  ] as ServiceCategory[]
+).map((id) => ({
+  id,
+  label: SERVICE_CATEGORY_LABEL[id],
+  color: colorForServiceCategory(id),
+}));
 
 export function formatAddress(address?: BusinessAddress | null): string | null {
   if (!address) return null;

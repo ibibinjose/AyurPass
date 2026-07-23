@@ -7,8 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import {
   CalendarIcon,
   CompassIcon,
+  GiftIcon,
   LotusIcon,
-  MoonIcon,
   SearchIcon,
   SparkleIcon,
   TrophyIcon,
@@ -34,22 +34,25 @@ const PUBLIC_TABS: Tab[] = [
       p.startsWith("/me/"),
   },
   {
-    href: "/retreats",
-    label: "Retreats",
-    icon: MoonIcon,
-    match: (p) => p.startsWith("/retreats"),
+    href: "/offers",
+    label: "Offers",
+    icon: GiftIcon,
+    match: (p) => p.startsWith("/offers"),
+  },
+  {
+    href: "/dashboard/bookings",
+    label: "Calendar",
+    icon: CalendarIcon,
+    match: (p) =>
+      p.startsWith("/dashboard/bookings") ||
+      p.startsWith("/dashboard/calendar") ||
+      p.startsWith("/book"),
   },
   {
     href: "/explore",
-    label: "Book",
-    icon: CalendarIcon,
+    label: "Sessions",
+    icon: SparkleIcon,
     match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
-  },
-  {
-    href: "/shop",
-    label: "Shop",
-    icon: LotusIcon,
-    match: (p) => p.startsWith("/shop") || p.startsWith("/packages") || p.startsWith("/offers"),
   },
 ];
 
@@ -257,7 +260,7 @@ export function DashboardBottomNav() {
           },
         ]
       : [
-          // Seeker — keep primary wellness actions in the thumb zone
+          // Seeker — Discover home, Calendar, Offers, Sessions, You
           {
             href: "/dashboard",
             label: "Home",
@@ -266,22 +269,21 @@ export function DashboardBottomNav() {
           },
           {
             href: "/dashboard/bookings",
-            label: "Bookings",
+            label: "Calendar",
             icon: CalendarIcon,
             match: (p) => p.startsWith("/dashboard/bookings"),
           },
           {
-            href: "/explore",
-            label: "Book",
-            icon: SparkleIcon,
-            match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
+            href: "/offers",
+            label: "Offers",
+            icon: GiftIcon,
+            match: (p) => p.startsWith("/offers"),
           },
           {
-            href: "/dashboard/rewards",
-            label: "Rewards",
-            icon: TrophyIcon,
-            match: (p) =>
-              p.startsWith("/dashboard/rewards") || p.startsWith("/dashboard/gift-cards"),
+            href: "/explore",
+            label: "Sessions",
+            icon: SparkleIcon,
+            match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
           },
           {
             href: "/dashboard/settings",
@@ -292,7 +294,8 @@ export function DashboardBottomNav() {
               p.startsWith("/dashboard/permissions") ||
               p.startsWith("/dashboard/purchases") ||
               p.startsWith("/dashboard/plans") ||
-              p.startsWith("/dashboard/assessment"),
+              p.startsWith("/dashboard/assessment") ||
+              p.startsWith("/dashboard/rewards"),
           },
         ];
 

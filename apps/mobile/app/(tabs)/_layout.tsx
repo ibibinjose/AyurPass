@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, fonts } from "../../src/theme";
 
 /**
- * Brand bottom tab bar — Discover · Book · Bookings · You
- * Uses safe-area insets so home-indicator devices don't clip labels.
+ * Bottom tabs — Discover · Calendar · Offers · You
+ * Book sessions via Calendar → “Book session” (explore stays a stack route).
  */
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -54,9 +54,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="calendar"
         options={{
-          title: "Book",
+          title: "Calendar",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "calendar" : "calendar-outline"}
@@ -67,12 +67,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="bookings"
+        name="offers"
         options={{
-          title: "Bookings",
+          title: "Offers",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "list" : "list-outline"}
+              name={focused ? "gift" : "gift-outline"}
               size={size}
               color={color}
             />
@@ -90,6 +90,21 @@ export default function TabsLayout() {
               color={color}
             />
           ),
+        }}
+      />
+      {/* Hidden routes — still navigable via push */}
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null,
+          title: "Sessions",
+        }}
+      />
+      <Tabs.Screen
+        name="bookings"
+        options={{
+          href: null,
+          title: "Bookings",
         }}
       />
     </Tabs>

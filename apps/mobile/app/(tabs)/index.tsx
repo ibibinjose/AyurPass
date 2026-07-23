@@ -114,7 +114,7 @@ export default function Discover() {
         </Body>
 
         <Pressable
-          onPress={() => router.push("/offers")}
+          onPress={() => router.push("/(tabs)/offers")}
           className="mt-4 flex-row items-center gap-3 rounded-2xl bg-forest px-4 py-3.5 active:opacity-90"
         >
           <View className="h-9 w-9 items-center justify-center rounded-full bg-white/10">

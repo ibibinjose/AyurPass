@@ -313,16 +313,17 @@ export default function Profile() {
           )}
 
           <Card className="mt-3.5 overflow-hidden rounded-2xl p-0">
-            <Row icon="calendar-outline" label="My bookings" onPress={() => router.push("/(tabs)/bookings")} />
-            <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/offers")} />
+            <Row icon="calendar-outline" label="Calendar" onPress={() => router.push("/(tabs)/calendar")} />
+            <Row icon="list-outline" label="All bookings" onPress={() => router.push("/(tabs)/bookings")} />
+            <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/(tabs)/offers")} />
             <Row
               icon="compass-outline"
               label={scores ? "Retake energy quiz" : "Energy quiz"}
               onPress={() => router.push("/assessment")}
             />
             <Row
-              icon="search-outline"
-              label="Browse sessions"
+              icon="add-circle-outline"
+              label="Book a session"
               onPress={() => router.push("/(tabs)/explore")}
             />
             <Row

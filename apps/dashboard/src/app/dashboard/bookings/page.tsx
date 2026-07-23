@@ -16,8 +16,22 @@ import {
   useConsumerBookings,
   useInvalidateConsumerBookings,
 } from "@/hooks/useConsumerBookings";
+import {
+  colorForServiceCategory,
+  softColorForServiceCategory,
+  serviceCategoryColor,
+} from "@ayurpass/shared";
 
 type TabId = "upcoming" | "past" | "unpaid" | "all";
+
+const CATEGORY_LEGEND = [
+  { id: "AYURVEDA", label: "Ayurveda" },
+  { id: "YOGA", label: "Yoga" },
+  { id: "SPA", label: "Spa" },
+  { id: "MEDITATION", label: "Meditation" },
+  { id: "FITNESS", label: "Fitness" },
+  { id: "CONSULTATION", label: "Consult" },
+] as const;
 
 function isCancellable(b: Booking) {
   return (
@@ -163,8 +177,8 @@ export default function BookingsPage() {
     <div className="space-y-6">
       <DashHeader
         eyebrow="My wellness"
-        title="My bookings"
-        description="Pay, cancel or add sessions to your calendar. Unpaid bookings stay open until you settle or cancel."
+        title="Calendar"
+        description="Your sessions colour-coded by discipline (Ayurveda, Yoga, Spa…). Pay, cancel or add to your device calendar."
         action={
           <Link
             href="/explore"
@@ -187,6 +201,20 @@ export default function BookingsPage() {
       />
 
       <ErrorNote message={error} />
+
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-hairline bg-surface/80 px-4 py-3">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">Colour key</p>
+        {CATEGORY_LEGEND.map((c) => (
+          <span key={c.id} className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: serviceCategoryColor[c.id] }}
+              aria-hidden
+            />
+            {c.label}
+          </span>
+        ))}
+      </div>
 
       <div>
         {isLoading && bookings === null ? (
@@ -224,13 +252,26 @@ export default function BookingsPage() {
           />
         ) : (
           <ul className="space-y-3">
-            {filtered.map((b) => (
+            {filtered.map((b) => {
+              const cat = b.service?.category;
+              const bar = colorForServiceCategory(cat);
+              const soft = softColorForServiceCategory(cat);
+              return (
               <li
                 key={b.id}
                 className="rounded-2xl border border-hairline bg-surface px-5 py-4 shadow-[0_1px_0_rgba(36,56,46,0.04)]"
+                style={{ borderLeftWidth: 4, borderLeftColor: bar, backgroundColor: soft }}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
+                    {cat ? (
+                      <span
+                        className="mb-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+                        style={{ backgroundColor: bar }}
+                      >
+                        {cat.replace(/_/g, " ")}
+                      </span>
+                    ) : null}
                     <p className="font-medium text-foreground">
                       {b.service?.name ?? "Session"}
                     </p>
@@ -300,7 +341,8 @@ export default function BookingsPage() {
                   </p>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>

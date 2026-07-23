@@ -38,9 +38,9 @@ export default function Explore() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="px-5 pt-3">
-        <Display>Book a session</Display>
+        <Display>Sessions</Display>
         <Body muted className="mt-1 text-[14px] leading-5">
-          Treatments and classes you can book online.
+          Book Ayurveda, Yoga, Spa and more — they land on your Calendar.
         </Body>
         <ScrollView
           horizontal

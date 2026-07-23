@@ -83,11 +83,26 @@ const CONSUMER_GROUPS: NavGroup[] = [
         chip: true,
       },
       {
-        href: "/explore",
-        label: "Book a session",
-        shortLabel: "Book",
+        href: "/dashboard/bookings",
+        label: "Calendar",
+        shortLabel: "Calendar",
         icon: CalendarIcon,
-        hint: "Treatments & classes",
+        hint: "Colour-coded sessions",
+        chip: true,
+      },
+      {
+        href: "/explore",
+        label: "Sessions",
+        shortLabel: "Sessions",
+        icon: SparkleIcon,
+        hint: "Book treatments & classes",
+        chip: true,
+      },
+      {
+        href: "/offers",
+        label: "Offers",
+        icon: GiftIcon,
+        hint: "Specials & packages",
         chip: true,
       },
       {
@@ -95,19 +110,12 @@ const CONSUMER_GROUPS: NavGroup[] = [
         label: "Shop",
         icon: LotusIcon,
         hint: "Oils & formulations",
-        chip: true,
       },
       {
         href: "/retreats",
         label: "Retreats",
         icon: MoonIcon,
         hint: "Immersive programmes",
-      },
-      {
-        href: "/offers",
-        label: "Offers",
-        icon: GiftIcon,
-        hint: "Specials & packages",
       },
       {
         href: "/careers",
@@ -124,10 +132,9 @@ const CONSUMER_GROUPS: NavGroup[] = [
       {
         href: "/dashboard/bookings",
         label: "My bookings",
-        shortLabel: "Bookings",
+        shortLabel: "List",
         icon: CalendarIcon,
-        hint: "Pay & calendar",
-        chip: true,
+        hint: "Pay & manage",
       },
       {
         href: "/dashboard/assessment",
@@ -444,7 +451,7 @@ const CAREERS_GROUPS: NavGroup[] = [
 
 const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
   { test: (p) => p === "/dashboard", title: "Overview" },
-  { test: (p) => p.startsWith("/dashboard/bookings"), title: "Bookings" },
+  { test: (p) => p.startsWith("/dashboard/bookings"), title: "Calendar" },
   { test: (p) => p.startsWith("/dashboard/assessment"), title: "Dosha" },
   { test: (p) => p.startsWith("/dashboard/plans"), title: "Plans" },
   { test: (p) => p.startsWith("/dashboard/purchases"), title: "Orders" },

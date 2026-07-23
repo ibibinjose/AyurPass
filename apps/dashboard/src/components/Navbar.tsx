@@ -9,9 +9,9 @@ import { MenuIcon, XIcon } from "./icons";
 
 const PRIMARY_LINKS = [
   { href: "/discover", label: "Discover" },
-  { href: "/retreats", label: "Retreats" },
   { href: "/offers", label: "Offers" },
-  { href: "/explore", label: "Book" },
+  { href: "/dashboard/bookings", label: "Calendar" },
+  { href: "/explore", label: "Sessions" },
 ] as const;
 
 const MORE_LINKS = [

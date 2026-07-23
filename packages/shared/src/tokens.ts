@@ -37,6 +37,44 @@ export const doshaColor = {
   kapha: colors.kapha,
 } as const;
 
+/**
+ * Calendar / booking colour codes by service category.
+ * Used on mobile + web calendars so Ayurveda, Yoga, Spa etc. are scannable.
+ */
+export const serviceCategoryColor: Record<string, string> = {
+  AYURVEDA: "#2f5a44", // leaf green
+  YOGA: "#4a3aa7", // purple
+  SPA: "#c45c26", // warm copper
+  MEDITATION: "#2a6f97", // calm blue
+  FITNESS: "#1b7f5a", // sport green
+  NUTRITION: "#b8860b", // dark gold
+  COACHING: "#5c6bc0", // indigo
+  CONSULTATION: "#007aff", // system blue
+  PACKAGE: "#a67a24", // gold
+};
+
+export const serviceCategoryColorSoft: Record<string, string> = {
+  AYURVEDA: "#e4efe8",
+  YOGA: "#ebe7f7",
+  SPA: "#fce9df",
+  MEDITATION: "#e4f0f7",
+  FITNESS: "#e0f2ea",
+  NUTRITION: "#f7efd6",
+  COACHING: "#e8eaf6",
+  CONSULTATION: "#e5f1ff",
+  PACKAGE: "#f5edd9",
+};
+
+export function colorForServiceCategory(category?: string | null): string {
+  if (!category) return colors.forest;
+  return serviceCategoryColor[category.toUpperCase()] ?? colors.forest;
+}
+
+export function softColorForServiceCategory(category?: string | null): string {
+  if (!category) return colors.clay;
+  return serviceCategoryColorSoft[category.toUpperCase()] ?? colors.clay;
+}
+
 export const radius = {
   sm: 10,
   md: 16,
@@ -72,6 +110,8 @@ export const cssVariables = {
 } as const;
 
 /** Tailwind / NativeWind theme.extend.colors fragment */
+// Note: serviceCategoryColor is also exported for calendar UIs (see above).
+
 export const tailwindColors = {
   background: colors.background,
   surface: colors.surface,
