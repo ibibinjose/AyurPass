@@ -192,6 +192,10 @@ export interface Order {
   providerId: string;
   status: OrderStatus;
   subtotal: string | number;
+  taxAmount?: string | number | null;
+  taxRate?: string | number | null;
+  taxName?: string | null;
+  taxExclusive?: boolean | null;
   platformCommission?: string | number | null;
   providerPayout?: string | number | null;
   paymentStatus: PaymentStatus;

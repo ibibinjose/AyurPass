@@ -304,6 +304,10 @@ export interface Booking {
   timezone?: string | null;
   status: BookingStatus;
   totalAmount?: string | number | null;
+  taxAmount?: string | number | null;
+  taxRate?: string | number | null;
+  taxName?: string | null;
+  taxExclusive?: boolean | null;
   paymentStatus: PaymentStatus;
   pointsEarned?: number;
   notes?: string | null;

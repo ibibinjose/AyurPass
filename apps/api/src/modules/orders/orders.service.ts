@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderDto } from '../../dtos/order.dto';
+import { calculateTaxForCountry } from '../payments/tax.utility';
 
 /** Marketplace commission on product sales (docs: 10–15%). */
 const PRODUCT_COMMISSION_RATE = 0.12;
@@ -59,15 +60,27 @@ export class OrdersService {
         }
       }
 
+      const provider = await tx.provider.findUnique({
+        where: { id: products[0].providerId },
+        select: { address: true },
+      });
+      const country = (provider?.address as Record<string, any> | null)?.country;
+      const tax = calculateTaxForCountry(country, subtotal);
+      
+      const finalSubtotal = tax.inclusive ? subtotal : subtotal + tax.amount;
       const platformCommission = Math.round(subtotal * PRODUCT_COMMISSION_RATE * 100) / 100;
 
       return tx.order.create({
         data: {
           consumerId: data.consumerId,
           providerId: products[0].providerId,
-          subtotal,
+          subtotal: finalSubtotal,
+          taxAmount: tax.amount,
+          taxRate: tax.rate,
+          taxName: tax.name,
+          taxExclusive: !tax.inclusive,
           platformCommission,
-          providerPayout: Math.round((subtotal - platformCommission) * 100) / 100,
+          providerPayout: Math.round((finalSubtotal - platformCommission) * 100) / 100,
           shippingAddress: data.shippingAddress as object | undefined,
           notes: data.notes,
           paymentMethod: data.paymentMethod,

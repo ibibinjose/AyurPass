@@ -116,6 +116,34 @@ export default function BuyProductPage() {
           ) : (
             <div className="mt-6 space-y-4 text-left">
               <RedeemPanel amountDue={Number(order.subtotal)} onChange={setRedemption} />
+
+              {order.taxAmount && Number(order.taxAmount) > 0 && (
+                <div className="rounded-xl bg-clay/35 p-3.5 space-y-2 border border-clay/60 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-ink-secondary">Subtotal</span>
+                    <span className="font-medium text-ink">
+                      {formatMoney(
+                        Number(order.subtotal) - Number(order.taxAmount),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-secondary">
+                      {order.taxName ?? "Tax"} ({Number(order.taxRate ?? 0) * 100}%)
+                    </span>
+                    <span className="font-medium text-ink">
+                      {formatMoney(order.taxAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t border-clay/60 pt-2 font-semibold">
+                    <span className="text-ink">Total</span>
+                    <span className="text-ink">
+                      {formatMoney(order.subtotal)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {redemption.discount > 0 && (
                 <p className="mb-2 flex justify-between text-sm">
                   <span className="text-ink-muted">You pay today</span>

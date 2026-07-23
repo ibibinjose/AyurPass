@@ -152,6 +152,35 @@ export default function BookServicePage() {
                 amountDue={Number(confirmed.totalAmount ?? service.price)}
                 onChange={setRedemption}
               />
+
+              {confirmed.taxAmount && Number(confirmed.taxAmount) > 0 && (
+                <div className="rounded-xl bg-clay/35 p-3.5 space-y-2 border border-clay/60 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-ink-secondary">Subtotal</span>
+                    <span className="font-medium text-ink">
+                      {formatMoney(
+                        Number(confirmed.totalAmount ?? 0) - Number(confirmed.taxAmount ?? 0),
+                        service.currency,
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-ink-secondary">
+                      {confirmed.taxName ?? "Tax"} ({Number(confirmed.taxRate ?? 0) * 100}%)
+                    </span>
+                    <span className="font-medium text-ink">
+                      {formatMoney(confirmed.taxAmount, service.currency)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t border-clay/60 pt-2 font-semibold">
+                    <span className="text-ink">Total</span>
+                    <span className="text-ink">
+                      {formatMoney(confirmed.totalAmount, service.currency)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <PayWithStripe
                 mock={stripePay?.mock ?? true}
                 clientSecret={stripePay?.clientSecret}

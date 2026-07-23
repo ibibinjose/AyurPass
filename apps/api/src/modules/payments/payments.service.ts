@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PaymentMethod } from '@prisma/client';
+import { PaymentMethod, Prisma } from '@prisma/client';
 import type Stripe from 'stripe';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
+import { calculateTaxForCountry } from './tax.utility';
 import { StripeService } from './stripe.service';
 import { PaymentSettlementService } from './payment-settlement.service';
 import { StripeConnectService } from './stripe-connect.service';
@@ -25,9 +26,9 @@ export class PaymentsService {
   }
 
   async checkout(bookingId: string, redemption: RedemptionInput = {}) {
-    const booking = await this.prisma.booking.findUnique({
+    let booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { provider: { select: { stripeAccountId: true } } },
+      include: { provider: true },
     });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.status === 'CANCELLED') {
@@ -35,6 +36,31 @@ export class PaymentsService {
     }
     if (booking.paymentStatus === 'paid') {
       throw new BadRequestException('Booking is already paid');
+    }
+
+    // Dynamic tax calculation fallback for legacy/existing bookings
+    if (booking.taxAmount === null || booking.taxAmount === undefined) {
+      const address = booking.provider?.address as Record<string, any> | null;
+      const country = address?.country;
+      const currentTotal = Number(booking.totalAmount ?? 0);
+      const tax = calculateTaxForCountry(country, currentTotal);
+      
+      const finalTotalAmount = tax.inclusive ? currentTotal : currentTotal + tax.amount;
+      const platformCommission = Math.round(currentTotal * 0.18 * 100) / 100;
+
+      booking = await this.prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          totalAmount: finalTotalAmount,
+          taxAmount: tax.amount,
+          taxRate: tax.rate,
+          taxName: tax.name,
+          taxExclusive: !tax.inclusive,
+          platformCommission,
+          providerPayout: Math.round((finalTotalAmount - platformCommission) * 100) / 100,
+        },
+        include: { provider: true },
+      });
     }
 
     const settled = await this.settlement.settle(
@@ -155,9 +181,9 @@ export class PaymentsService {
   }
 
   async checkoutOrder(orderId: string, redemption: RedemptionInput = {}) {
-    const order = await this.prisma.order.findUnique({
+    let order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { provider: { select: { stripeAccountId: true } } },
+      include: { provider: true },
     });
     if (!order) throw new NotFoundException('Order not found');
     if (order.status === 'CANCELLED') {
@@ -165,6 +191,31 @@ export class PaymentsService {
     }
     if (order.paymentStatus === 'paid') {
       throw new BadRequestException('Order is already paid');
+    }
+
+    // Dynamic tax calculation fallback for legacy/existing orders
+    if (order.taxAmount === null || order.taxAmount === undefined) {
+      const address = order.provider?.address as Record<string, any> | null;
+      const country = address?.country;
+      const currentSubtotal = Number(order.subtotal);
+      const tax = calculateTaxForCountry(country, currentSubtotal);
+      
+      const finalSubtotal = tax.inclusive ? currentSubtotal : currentSubtotal + tax.amount;
+      const platformCommission = Math.round(currentSubtotal * 0.12 * 100) / 100;
+
+      order = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          subtotal: finalSubtotal,
+          taxAmount: tax.amount,
+          taxRate: tax.rate,
+          taxName: tax.name,
+          taxExclusive: !tax.inclusive,
+          platformCommission,
+          providerPayout: Math.round((finalSubtotal - platformCommission) * 100) / 100,
+        },
+        include: { provider: true },
+      });
     }
 
     const settled = await this.settlement.settle(
@@ -432,12 +483,40 @@ export class PaymentsService {
   }
 
   async payCounter(bookingId: string, paymentMethod: PaymentMethod, posTransactionId?: string) {
-    const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
+    let booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { provider: true },
+    });
     if (!booking) throw new NotFoundException('Booking not found');
     if (booking.paymentStatus === 'paid') {
       return this.prisma.booking.findUnique({
         where: { id: bookingId },
         include: { service: true, room: true },
+      });
+    }
+
+    // Dynamic tax calculation fallback for legacy/existing bookings
+    if (booking.taxAmount === null || booking.taxAmount === undefined) {
+      const address = booking.provider?.address as Record<string, any> | null;
+      const country = address?.country;
+      const currentTotal = Number(booking.totalAmount ?? 0);
+      const tax = calculateTaxForCountry(country, currentTotal);
+      
+      const finalTotalAmount = tax.inclusive ? currentTotal : currentTotal + tax.amount;
+      const platformCommission = Math.round(currentTotal * 0.18 * 100) / 100;
+
+      booking = await this.prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          totalAmount: finalTotalAmount,
+          taxAmount: tax.amount,
+          taxRate: tax.rate,
+          taxName: tax.name,
+          taxExclusive: !tax.inclusive,
+          platformCommission,
+          providerPayout: Math.round((finalTotalAmount - platformCommission) * 100) / 100,
+        },
+        include: { provider: true },
       });
     }
 
@@ -463,12 +542,40 @@ export class PaymentsService {
   }
 
   async payOrderCounter(orderId: string, paymentMethod: PaymentMethod, posTransactionId?: string) {
-    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    let order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { provider: true },
+    });
     if (!order) throw new NotFoundException('Order not found');
     if (order.paymentStatus === 'paid') {
       return this.prisma.order.findUnique({
         where: { id: orderId },
         include: { items: { include: { product: true } } },
+      });
+    }
+
+    // Dynamic tax calculation fallback for legacy/existing orders
+    if (order.taxAmount === null || order.taxAmount === undefined) {
+      const address = order.provider?.address as Record<string, any> | null;
+      const country = address?.country;
+      const currentSubtotal = Number(order.subtotal);
+      const tax = calculateTaxForCountry(country, currentSubtotal);
+      
+      const finalSubtotal = tax.inclusive ? currentSubtotal : currentSubtotal + tax.amount;
+      const platformCommission = Math.round(currentSubtotal * 0.12 * 100) / 100;
+
+      order = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          subtotal: finalSubtotal,
+          taxAmount: tax.amount,
+          taxRate: tax.rate,
+          taxName: tax.name,
+          taxExclusive: !tax.inclusive,
+          platformCommission,
+          providerPayout: Math.round((finalSubtotal - platformCommission) * 100) / 100,
+        },
+        include: { provider: true },
       });
     }
 

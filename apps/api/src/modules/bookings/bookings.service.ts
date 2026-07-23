@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
+import { calculateTaxForCountry } from '../payments/tax.utility';
 
 /** Marketplace commission on bookings (see docs/01-BUSINESS-STRATEGY.md: 15–22%). */
 const PLATFORM_COMMISSION_RATE = 0.18;
@@ -110,6 +111,16 @@ export class BookingsService {
         professionalId = service.professionalId;
       }
     }
+
+    const provider = await this.prisma.provider.findUnique({
+      where: { id: data.providerId },
+      select: { address: true },
+    });
+    const country = (provider?.address as Record<string, any> | null)?.country;
+    const tax = calculateTaxForCountry(country, totalAmount);
+    
+    // For tax exclusive, tax is added on top of the base totalAmount.
+    const finalTotalAmount = tax.inclusive ? totalAmount : totalAmount + tax.amount;
     const platformCommission =
       Math.round(totalAmount * PLATFORM_COMMISSION_RATE * 100) / 100;
 
@@ -125,9 +136,13 @@ export class BookingsService {
       data: {
         ...data,
         professionalId,
-        totalAmount,
+        totalAmount: finalTotalAmount,
+        taxAmount: tax.amount,
+        taxRate: tax.rate,
+        taxName: tax.name,
+        taxExclusive: !tax.inclusive,
         platformCommission,
-        providerPayout: Math.round((totalAmount - platformCommission) * 100) / 100,
+        providerPayout: Math.round((finalTotalAmount - platformCommission) * 100) / 100,
       },
       include: BOOKING_INCLUDES,
     });
