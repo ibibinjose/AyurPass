@@ -18,24 +18,23 @@ import { Public } from '../../common/public.decorator';
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
-  /** List all staff members for a provider. Requires manage_staff permission. */
+  /**
+   * List all staff for a provider.
+   * Access: platform admin, accepted staff member, or provider account owner.
+   * Legacy providers without an OWNER staff row are backfilled on access.
+   */
   @Get('provider/:providerId')
   async listStaff(@Param('providerId') providerId: string, @Req() req: AuthedRequest) {
-    // Platform admins can always view
-    if (req.user.role !== 'PLATFORM_ADMIN') {
-      const hasAccess = await this.staffService.hasPermission(req.user.sub, providerId, 'manage_staff');
-      // Staff members can at least see the team list (but not modify)
-      const membership = await this.staffService.getMembership(req.user.sub, providerId);
-      if (!hasAccess && !membership) {
-        return { error: 'Access denied', statusCode: 403 };
-      }
-    }
+    await this.staffService.assertCanViewStaff(providerId, req.user.sub, req.user.role);
     return this.staffService.listStaff(providerId);
   }
 
   /** Get the current user's staff membership for a provider. */
   @Get('provider/:providerId/me')
   async myMembership(@Param('providerId') providerId: string, @Req() req: AuthedRequest) {
+    // Backfill OWNER row for practice owners who predate the staff table
+    await this.staffService.ensureOwnerIfPracticeOwner(providerId, req.user.sub);
+
     const membership = await this.staffService.getMembership(req.user.sub, providerId);
     if (!membership) return null;
     return {

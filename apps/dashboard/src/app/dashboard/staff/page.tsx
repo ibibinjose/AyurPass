@@ -41,11 +41,19 @@ export default function StaffPage() {
 
   const staffQ = useProviderStaff(provider?.id);
   const invalidateStaff = useInvalidateProviderStaff(provider?.id);
-  const staff = staffQ.isLoading && !staffQ.data ? null : (staffQ.data ?? []);
+  // Always coerce to array — never call .filter on a non-array API body
+  const staffList = Array.isArray(staffQ.data) ? staffQ.data : [];
+  const staff = staffQ.isLoading && !staffQ.data ? null : staffList;
   const [showInvite, setShowInvite] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const loadError =
+    staffQ.isError && staffQ.error instanceof Error
+      ? staffQ.error.message
+      : staffQ.isError
+        ? "Failed to load staff list."
+        : null;
 
   // Invite form
   const [inviteEmail, setInviteEmail] = useState("");
@@ -138,8 +146,8 @@ export default function StaffPage() {
     }
   }
 
-  const activeStaff = staff?.filter((s) => s.inviteStatus === "ACCEPTED") ?? [];
-  const pendingStaff = staff?.filter((s) => s.inviteStatus === "PENDING") ?? [];
+  const activeStaff = (staff ?? []).filter((s) => s.inviteStatus === "ACCEPTED");
+  const pendingStaff = (staff ?? []).filter((s) => s.inviteStatus === "PENDING");
 
   return (
     <div>
@@ -162,7 +170,14 @@ export default function StaffPage() {
       </div>
 
       <SuccessNote message={success} />
-      <ErrorNote message={error} />
+      <ErrorNote message={error ?? loadError} />
+      {loadError && (
+        <div className="mt-3">
+          <Button variant="ghost" onClick={() => void staffQ.refetch()}>
+            Retry loading staff
+          </Button>
+        </div>
+      )}
 
       {/* Invite form */}
       {showInvite && (

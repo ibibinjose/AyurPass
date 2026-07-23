@@ -120,11 +120,8 @@ export class StaffService {
 
   /** Invite a new staff member. Only OWNER/MANAGER can invite. */
   async invite(providerId: string, inviterId: string, dto: InviteStaffDto) {
-    // Verify inviter has manage_staff permission
-    const inviter = await this.getMembership(inviterId, providerId);
-    if (!inviter || inviter.inviteStatus !== 'ACCEPTED') {
-      throw new ForbiddenException('You are not a staff member of this practice.');
-    }
+    // Verify inviter has manage_staff permission (seed OWNER for legacy practice owners)
+    const inviter = await this.requireAcceptedMembership(providerId, inviterId);
     const inviterPerms = this.getPermissions(inviter.role, inviter.permissions as Record<string, boolean> | null);
     if (!inviterPerms.manage_staff) {
       throw new ForbiddenException('You do not have permission to manage staff.');
@@ -230,10 +227,7 @@ export class StaffService {
 
   /** Update a staff member's role or permissions. */
   async updateStaff(providerId: string, staffId: string, updaterId: string, dto: UpdateStaffDto) {
-    const updater = await this.getMembership(updaterId, providerId);
-    if (!updater || updater.inviteStatus !== 'ACCEPTED') {
-      throw new ForbiddenException('You are not a staff member of this practice.');
-    }
+    const updater = await this.requireAcceptedMembership(providerId, updaterId);
     const updaterPerms = this.getPermissions(updater.role, updater.permissions as Record<string, boolean> | null);
     if (!updaterPerms.manage_staff) {
       throw new ForbiddenException('You do not have permission to manage staff.');
@@ -272,10 +266,7 @@ export class StaffService {
 
   /** Remove a staff member (revoke access). */
   async removeStaff(providerId: string, staffId: string, removerId: string) {
-    const remover = await this.getMembership(removerId, providerId);
-    if (!remover || remover.inviteStatus !== 'ACCEPTED') {
-      throw new ForbiddenException('You are not a staff member of this practice.');
-    }
+    const remover = await this.requireAcceptedMembership(providerId, removerId);
     const removerPerms = this.getPermissions(remover.role, remover.permissions as Record<string, boolean> | null);
     if (!removerPerms.manage_staff) {
       throw new ForbiddenException('You do not have permission to manage staff.');
@@ -320,7 +311,23 @@ export class StaffService {
     const existing = await this.prisma.providerStaff.findUnique({
       where: { providerId_userId: { providerId, userId } },
     });
-    if (existing) return existing;
+    if (existing) {
+      // Revive a previously revoked/declined owner row for the practice creator
+      if (existing.inviteStatus !== 'ACCEPTED' || existing.role !== 'OWNER') {
+        return this.prisma.providerStaff.update({
+          where: { id: existing.id },
+          data: {
+            role: 'OWNER',
+            inviteStatus: 'ACCEPTED',
+            acceptedAt: existing.acceptedAt ?? new Date(),
+            revokedAt: null,
+            inviteToken: null,
+            displayName: existing.displayName ?? displayName ?? null,
+          },
+        });
+      }
+      return existing;
+    }
 
     return this.prisma.providerStaff.create({
       data: {
@@ -332,5 +339,51 @@ export class StaffService {
         displayName: displayName || null,
       },
     });
+  }
+
+  /**
+   * If this user owns the Provider row (userId on Provider), ensure they have
+   * an OWNER staff membership. No-op for non-owners.
+   */
+  async ensureOwnerIfPracticeOwner(providerId: string, userId: string) {
+    const provider = await this.prisma.provider.findUnique({
+      where: { id: providerId },
+      select: {
+        userId: true,
+        user: { select: { fullName: true } },
+      },
+    });
+    if (!provider || provider.userId !== userId) return null;
+    return this.ensureOwnerRecord(providerId, userId, provider.user?.fullName ?? undefined);
+  }
+
+  /**
+   * Authorize viewing the staff list. Seeds OWNER for legacy practice owners
+   * who have no ProviderStaff row yet.
+   */
+  async assertCanViewStaff(providerId: string, userId: string, userRole: string) {
+    if (userRole === 'PLATFORM_ADMIN') return;
+
+    // Practice account owner — always allowed; backfill OWNER membership
+    const ownerSeeded = await this.ensureOwnerIfPracticeOwner(providerId, userId);
+    if (ownerSeeded) return;
+
+    const membership = await this.getMembership(userId, providerId);
+    if (membership && membership.inviteStatus === 'ACCEPTED') return;
+
+    throw new ForbiddenException('You do not have access to this practice staff list.');
+  }
+
+  /**
+   * Resolve the actor's membership for mutating staff, seeding OWNER for
+   * practice owners who predate the staff table.
+   */
+  async requireAcceptedMembership(providerId: string, userId: string) {
+    await this.ensureOwnerIfPracticeOwner(providerId, userId);
+    const membership = await this.getMembership(userId, providerId);
+    if (!membership || membership.inviteStatus !== 'ACCEPTED') {
+      throw new ForbiddenException('You are not a staff member of this practice.');
+    }
+    return membership;
   }
 }
