@@ -838,9 +838,9 @@ export const api = {
     value: "like" | "dislike" | "none";
   }) => request<QualitySummary>("/quality/reactions", { method: "PUT", body: data, auth: true }),
 
-  /** Report abuse or send a product suggestion (guests OK with email). */
+  /** Report abuse, send a product suggestion, or submit a business claim request. */
   submitFeedback: (data: {
-    kind: "abuse" | "suggestion";
+    kind: "abuse" | "suggestion" | "claim";
     category: string;
     message: string;
     targetType?: string;

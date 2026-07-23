@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   ABUSE_CATEGORIES,
+  CLAIM_CATEGORIES,
   CreateFeedbackDto,
   QUALITY_TARGET_TYPES,
   SetReactionDto,
@@ -299,7 +300,9 @@ export class QualityService {
     const cats =
       dto.kind === 'abuse'
         ? (ABUSE_CATEGORIES as readonly string[])
-        : (SUGGESTION_CATEGORIES as readonly string[]);
+        : dto.kind === 'claim'
+          ? (CLAIM_CATEGORIES as readonly string[])
+          : (SUGGESTION_CATEGORIES as readonly string[]);
     if (!cats.includes(dto.category)) {
       throw new BadRequestException(
         `Invalid category for ${dto.kind}. Allowed: ${cats.join(', ')}.`,

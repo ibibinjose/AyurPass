@@ -22,11 +22,13 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
 import { RetreatCard } from "@/components/RetreatCard";
 import { EnquireModal } from "@/components/EnquireModal";
+import { ClaimBusinessModal } from "@/components/profile/ClaimBusinessModal";
 import {
   CheckIcon,
   ExternalLinkIcon,
   MailIcon,
   MapPinIcon,
+  ShieldIcon,
 } from "@/components/icons";
 import {
   AffiliatedPageCard,
@@ -144,6 +146,7 @@ export default function ProviderProfilePage({
   const [retreats, setRetreats] = useState<Retreat[]>(initialProfile?.retreats ?? []);
   const [team, setTeam] = useState<Professional[]>(initialProfile?.team ?? []);
   const [enquireOpen, setEnquireOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [tab, setTab] = useState("about");
   const [lightbox, setLightbox] = useState<string | null>(null);
 
@@ -411,7 +414,18 @@ END:VCARD`;
           <ProfileHeroInfo>
             <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
               <span>{provider.businessName}</span>
-              {verified ? <ProfileVerifiedMark size="lg" /> : null}
+              {verified ? (
+                <ProfileVerifiedMark size="lg" />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setClaimOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 dark:bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                >
+                  <ShieldIcon className="h-3.5 w-3.5" />
+                  <span>Claim this Business</span>
+                </button>
+              )}
             </h1>
 
             <ProfileMetaLine
@@ -559,10 +573,24 @@ END:VCARD`;
                   )}
 
                   {aboutEmpty ? (
-                    <ProfileEmptyState
-                      title="Profile coming soon"
-                      body="This practice is setting up their full listing. Use Enquire to introduce yourself."
-                    />
+                    <div className="space-y-4">
+                      <ProfileEmptyState
+                        title="Profile coming soon"
+                        body="This practice is setting up their full listing. If you manage this practice, claim it now to update details."
+                      />
+                      {!verified ? (
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => setClaimOpen(true)}
+                            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-600/40 bg-emerald-50 dark:bg-emerald-950/40 px-5 text-sm font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                          >
+                            <ShieldIcon className="h-4 w-4" />
+                            Claim this Business
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   ) : null}
                 </>
               ) : null}
@@ -835,6 +863,27 @@ END:VCARD`;
                   Open link-in-bio →
                 </Link>
               </div>
+
+              {!verified ? (
+                <div className="rounded-2xl border border-emerald-600/30 bg-emerald-50/70 dark:bg-emerald-950/30 px-4 py-4 space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
+                    <ShieldIcon className="h-4 w-4 shrink-0" />
+                    <p className="text-xs font-bold uppercase tracking-wider">
+                      Is this your business?
+                    </p>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed text-ink-secondary">
+                    Claim this listing to verify ownership, manage profile details, and respond to enquiries.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setClaimOpen(true)}
+                    className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white shadow-sm hover:bg-emerald-800 transition-colors"
+                  >
+                    Claim this Business
+                  </button>
+                </div>
+              ) : null}
             </>
           }
         />
@@ -845,6 +894,12 @@ END:VCARD`;
         onClose={() => setEnquireOpen(false)}
         providerId={provider.id}
         businessName={provider.businessName}
+      />
+
+      <ClaimBusinessModal
+        open={claimOpen}
+        onClose={() => setClaimOpen(false)}
+        provider={provider}
       />
 
       {lightbox ? (

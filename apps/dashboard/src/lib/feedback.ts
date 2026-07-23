@@ -1,6 +1,6 @@
 /** Shared report / suggestion config — keep in sync with backend quality.dto.ts */
 
-export type FeedbackKind = "abuse" | "suggestion";
+export type FeedbackKind = "abuse" | "suggestion" | "claim";
 
 export type FeedbackStatus = "open" | "reviewing" | "resolved" | "dismissed";
 
@@ -24,6 +24,14 @@ export const SUGGESTION_OPTIONS = [
   { id: "other", label: "Other" },
 ] as const;
 
+export const CLAIM_OPTIONS = [
+  { id: "domain", label: "Email / Website domain match" },
+  { id: "document", label: "Business registration / licence document" },
+  { id: "phone", label: "Phone / SMS verification call" },
+  { id: "verification", label: "Official practitioner authority" },
+  { id: "other", label: "Other proof" },
+] as const;
+
 export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
   open: "Open",
   reviewing: "Reviewing",
@@ -32,7 +40,12 @@ export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
 };
 
 export function feedbackCategoryLabel(kind: string, category: string): string {
-  const list = kind === "suggestion" ? SUGGESTION_OPTIONS : ABUSE_OPTIONS;
+  const list =
+    kind === "suggestion"
+      ? SUGGESTION_OPTIONS
+      : kind === "claim"
+        ? CLAIM_OPTIONS
+        : ABUSE_OPTIONS;
   return list.find((o) => o.id === category)?.label ?? category;
 }
 

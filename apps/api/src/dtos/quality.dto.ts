@@ -44,6 +44,14 @@ export const SUGGESTION_CATEGORIES = [
   'other',
 ] as const;
 
+export const CLAIM_CATEGORIES = [
+  'domain',
+  'document',
+  'phone',
+  'verification',
+  'other',
+] as const;
+
 export class UpsertReviewDto {
   @IsIn(QUALITY_TARGET_TYPES)
   targetType: QualityTargetType;
@@ -85,8 +93,8 @@ export const FEEDBACK_STATUSES = ['open', 'reviewing', 'resolved', 'dismissed'] 
 export type FeedbackStatus = (typeof FEEDBACK_STATUSES)[number];
 
 export class CreateFeedbackDto {
-  @IsIn(['abuse', 'suggestion'])
-  kind: 'abuse' | 'suggestion';
+  @IsIn(['abuse', 'suggestion', 'claim'])
+  kind: 'abuse' | 'suggestion' | 'claim';
 
   @IsString()
   @MaxLength(40)
