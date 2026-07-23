@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: "AyurPass",
     slug: "ayurpass",
     scheme: "ayurpass",
-    version: "1.0.0",
+    version: "1.1.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
