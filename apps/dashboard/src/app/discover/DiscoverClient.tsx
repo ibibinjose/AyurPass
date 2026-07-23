@@ -14,6 +14,7 @@ import type {
   Professional,
 } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
+import { useLocation } from "@/context/LocationContext";
 import { useDirectoryUrlState } from "@/hooks/useDirectoryUrlState";
 import { useNearMe } from "@/hooks/useNearMe";
 import {
@@ -169,6 +170,7 @@ function primaryDoshaName(scores: {
 
 function DiscoverInner() {
   const { user } = useAuth();
+  const { countryName: activeCountryName, flag: activeFlag, openModal } = useLocation();
   const { values, set, clear, sharePath } = useDirectoryUrlState(URL_DEFAULTS);
 
   const tab = (["providers", "services", "products", "professionals"].includes(values.tab)
@@ -362,21 +364,60 @@ function DiscoverInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providers, services, products, professionals, q, loc, verifiedOnly, doshaOnly, myDosha]);
 
+  const getProximityScore = useCallback(
+    (addrText?: string | null, isVirtual?: boolean) => {
+      const targetCountry = (activeCountryName || "").toLowerCase();
+      const targetCity = (loc || "").toLowerCase();
+      if (!addrText) return isVirtual ? 1 : 2;
+      const lower = addrText.toLowerCase();
+      if (targetCity && lower.includes(targetCity)) return 0;
+      if (targetCountry && lower.includes(targetCountry)) return 0;
+      if (isVirtual) return 1;
+      return 2;
+    },
+    [activeCountryName, loc],
+  );
+
   const activeTypes = providerGroup
     ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
     : null;
 
-  const shownProviders = base.providers?.filter(
-    (p) => !activeTypes || activeTypes.includes(p.type),
-  );
-  const shownServices = base.services?.filter(
-    (s) => serviceCategory === "ALL" || s.category === serviceCategory,
-  );
-  const shownProducts = base.products?.filter(
-    (p) => productCategory === "ALL" || p.category === productCategory,
-  );
-  const professionalGroupTypes = professionalGroup
-    ? (PROVIDER_GROUPS.find((g) => g.label === professionalGroup)?.types ?? [])
+  const shownProviders = useMemo(() => {
+    const filtered = base.providers?.filter(
+      (p) => !activeTypes || activeTypes.includes(p.type),
+    );
+    if (!filtered) return null;
+    return [...filtered].sort(
+      (a, b) => getProximityScore(formatAddress(a.address)) - getProximityScore(formatAddress(b.address)),
+    );
+  }, [base.providers, activeTypes, getProximityScore]);
+
+  const shownServices = useMemo(() => {
+    const filtered = base.services?.filter(
+      (s) => serviceCategory === "ALL" || s.category === serviceCategory,
+    );
+    if (!filtered) return null;
+    return [...filtered].sort(
+      (a, b) =>
+        getProximityScore(providerLocation(a.providerId), a.isVirtual) -
+        getProximityScore(providerLocation(b.providerId), b.isVirtual),
+    );
+  }, [base.services, serviceCategory, getProximityScore, providerLocation]);
+
+  const shownProducts = useMemo(() => {
+    const filtered = base.products?.filter(
+      (p) => productCategory === "ALL" || p.category === productCategory,
+    );
+    if (!filtered) return null;
+    return [...filtered].sort(
+      (a, b) =>
+        getProximityScore(providerLocation(a.providerId)) -
+        getProximityScore(providerLocation(b.providerId)),
+    );
+  }, [base.products, productCategory, getProximityScore, providerLocation]);
+
+  const professionalGroupTypes = providerGroup
+    ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
     : null;
 
   const shownProfessionals = useMemo(() => {
@@ -388,8 +429,13 @@ function DiscoverInner() {
         (s) => s.toLowerCase().includes(needle) || needle.includes(s.toLowerCase()),
       );
     });
-    return sortProfessionals(filtered, proSort);
-  }, [base.professionals, professionalGroupTypes, professionalGroup, proSort]);
+    const sorted = sortProfessionals(filtered, proSort);
+    return [...sorted].sort(
+      (a, b) =>
+        getProximityScore(providerLocation(a.providerId)) -
+        getProximityScore(providerLocation(b.providerId)),
+    );
+  }, [base.professionals, professionalGroupTypes, professionalGroup, proSort, getProximityScore, providerLocation]);
 
   const productCategories = useMemo(() => {
     const set = new Set<string>();
@@ -779,7 +825,24 @@ function DiscoverInner() {
         />
       ) : loading ? (
         <ResultSkeleton />
-      ) : tab === "providers" ? (
+      ) : (
+        <>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-leaf/25 bg-leaf/5 px-4 py-2.5 text-xs font-medium text-forest shadow-sm backdrop-blur-sm sm:text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-base">{activeFlag}</span>
+              <span>
+                Showing results prioritized closest to <strong>{activeCountryName}</strong>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={openModal}
+              className="font-bold text-forest underline decoration-leaf/40 hover:text-leaf"
+            >
+              Change Region
+            </button>
+          </div>
+          {tab === "providers" ? (
         shownProviders && shownProviders.length > 0 ? (
           <DirectoryResultGrid>
             {shownProviders.map((p) => (
@@ -879,6 +942,8 @@ function DiscoverInner() {
             )
           }
         />
+      )}
+      </>
       )}
     </DirectoryLayout>
   );

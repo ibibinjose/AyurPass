@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { formatMoney } from "@/lib/api";
+import { formatLocalizedPrice } from "@/lib/api";
+import { useLocation } from "@/context/LocationContext";
 import { formatRetreatDates, RETREAT_CATEGORY_LABEL } from "@/lib/catalog";
 import type { Retreat } from "@/lib/types";
 import { VerifiedTick } from "./VerifiedTick";
@@ -13,6 +16,7 @@ import {
 } from "./icons";
 
 export function RetreatCard({ retreat }: { retreat: Retreat }) {
+  const { currency: userCurrency } = useLocation();
   const image = retreat.images?.[0];
   const location = [retreat.city, retreat.country].filter(Boolean).join(", ");
   const verified =
@@ -103,7 +107,7 @@ export function RetreatCard({ retreat }: { retreat: Retreat }) {
               <p className="text-sm font-medium text-ink-muted">
                 from{" "}
                 <span className="font-display text-lg font-semibold tabular-nums text-forest sm:text-xl">
-                  {formatMoney(retreat.priceFrom, retreat.currency)}
+                  {formatLocalizedPrice(retreat.priceFrom, userCurrency, retreat.currency || "AUD")}
                 </span>
               </p>
             ) : (

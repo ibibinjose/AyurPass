@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CalendarDays, Hash, MapPin, Users } from "lucide-react";
-import { formatMoney } from "@/lib/api";
+
 import {
   CATEGORY_LABEL,
   CATEGORY_TAG_CLASS,
@@ -15,6 +15,8 @@ import { BrandMark } from "./BrandMark";
 import { QualityCardStrip } from "./QualityControls";
 import { useDirectoryDensity } from "@/components/DirectoryLayout";
 import { CardListMedia } from "@/components/CardListMedia";
+import { formatLocalizedPrice } from "@/lib/api";
+import { useLocation } from "@/context/LocationContext";
 
 export function ServiceCard({
   service,
@@ -27,6 +29,7 @@ export function ServiceCard({
 }) {
   const density = useDirectoryDensity();
   const isList = density === "list";
+  const { currency: userCurrency } = useLocation();
 
   const practitioner = service.professional?.user?.fullName;
   const image = service.imageUrl;
@@ -41,7 +44,7 @@ export function ServiceCard({
     service.reviewCount != null && service.reviewCount > 0
       ? service.reviewCount
       : service.professional?.reviewCount;
-  const priceLabel = formatMoney(service.price, service.currency);
+  const priceLabel = formatLocalizedPrice(service.price, userCurrency, service.currency || "AUD");
   const durationLabel = formatDuration(service.durationMinutes);
   const uniqueCode = service.code ? formatCode(service.code) : null;
 

@@ -1023,7 +1023,11 @@ function PlatformAdminOverview() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatTile label="Product orders" value={stats.orders} />
-            <StatTile label="Products listed" value={stats.products} />
+            <StatTile
+              label="Active job listings"
+              value={stats.jobs ?? 0}
+              hint={`${stats.jobApplications ?? 0} total candidate applications`}
+            />
             <StatTile
               label="Gift cards issued"
               value={stats.giftCards}

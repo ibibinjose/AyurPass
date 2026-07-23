@@ -32,6 +32,8 @@ const linkClass = (active: boolean) =>
     active ? "font-medium text-forest" : "text-ink-secondary hover:text-forest"
   }`;
 
+import { LocationSelectorButton } from "./LocationSelectorButton";
+
 export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
@@ -157,6 +159,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <LocationSelectorButton />
           {loading ? (
             <span className="h-9 w-24 animate-pulse rounded-full bg-clay/80" aria-hidden />
           ) : user ? (
@@ -226,6 +229,9 @@ export function Navbar() {
               </Link>
             ))}
             <div className="mt-3 flex flex-col gap-2 border-t border-hairline pt-4">
+              <div className="pb-1">
+                <LocationSelectorButton className="w-full justify-between py-2 px-4 text-sm" />
+              </div>
               {loading ? null : user ? (
                 <>
                   <Link

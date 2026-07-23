@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
+import { LocationProvider } from "@/context/LocationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { JsonLd } from "@/components/JsonLd";
+import { LocationModal } from "@/components/LocationModal";
 import { BRAND_ASSET_VERSION } from "@/lib/brand";
 import { QueryProvider } from "@/providers/QueryProvider";
 import {
@@ -99,7 +101,12 @@ export default function RootLayout({
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <ErrorBoundary>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <LocationProvider>
+                {children}
+                <LocationModal />
+              </LocationProvider>
+            </AuthProvider>
           </QueryProvider>
         </ErrorBoundary>
       </body>

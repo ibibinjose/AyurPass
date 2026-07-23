@@ -245,21 +245,28 @@ export class ProvidersService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const locationNeedle = [query.city, query.country]
+    const locationNeedles = [query.city, query.country]
       .filter((v): v is string => Boolean(v && v.trim()))
       .map((v) => v.trim().toLowerCase());
 
-    const filtered = locationNeedle.length
-      ? providers.filter((p) => {
-          const haystack = addressText(p.address);
-          return locationNeedle.every((needle) => haystack.includes(needle));
-        })
-      : providers;
+    const countryNeedle = query.country?.trim().toLowerCase();
+    const cityNeedle = query.city?.trim().toLowerCase();
+
+    const locationScore = (p: (typeof providers)[number]) => {
+      const haystack = addressText(p.address);
+      if (cityNeedle && haystack.includes(cityNeedle)) return 0; // City match top priority
+      if (countryNeedle && haystack.includes(countryNeedle)) return 1; // Country match
+      if (locationNeedles.some((n) => haystack.includes(n))) return 2;
+      return 3; // Foreign / non-matching
+    };
 
     const verifiedRank = (status: string) => (status === 'verified' ? 0 : 1);
-    return filtered.sort(
-      (a, b) => verifiedRank(a.verificationStatus) - verifiedRank(b.verificationStatus),
-    );
+
+    return providers.sort((a, b) => {
+      const locDiff = locationScore(a) - locationScore(b);
+      if (locDiff !== 0) return locDiff;
+      return verifiedRank(a.verificationStatus) - verifiedRank(b.verificationStatus);
+    });
   }
 
   async findOne(id: string) {

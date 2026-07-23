@@ -10,8 +10,8 @@ import {
 /** Public payload — a visitor reaching out to a provider from their listing page. */
 export class CreateEnquiryDto {
   @IsString()
-  @IsNotEmpty()
-  providerId: string;
+  @IsOptional()
+  providerId?: string;
 
   /** Optional — attributes the lead to a specific retreat. */
   @IsString()

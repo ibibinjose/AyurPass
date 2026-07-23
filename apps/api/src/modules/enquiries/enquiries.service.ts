@@ -10,17 +10,29 @@ import { CreateEnquiryDto, UpdateEnquiryDto } from '../../dtos/enquiry.dto';
 export class EnquiriesService {
   constructor(private prisma: PrismaService) {}
 
-  /** Public: a visitor leaves a lead on a provider's listing page. */
+  /** Public: a visitor leaves a lead on a provider's listing page or partner form. */
   async create(dto: CreateEnquiryDto) {
-    const provider = await this.prisma.provider.findUnique({
-      where: { id: dto.providerId },
-      select: { id: true },
-    });
-    if (!provider) throw new NotFoundException('Provider not found');
+    let targetProviderId = dto.providerId;
+    if (targetProviderId) {
+      const provider = await this.prisma.provider.findUnique({
+        where: { id: targetProviderId },
+        select: { id: true },
+      });
+      if (!provider) throw new NotFoundException('Provider not found');
+    } else {
+      const sysProvider = await this.prisma.provider.findFirst({ select: { id: true } });
+      if (sysProvider) {
+        targetProviderId = sysProvider.id;
+      }
+    }
+
+    if (!targetProviderId) {
+      throw new NotFoundException('No active provider target found');
+    }
 
     return this.prisma.enquiry.create({
       data: {
-        providerId: dto.providerId,
+        providerId: targetProviderId,
         retreatId: dto.retreatId || null,
         name: dto.name.trim(),
         email: dto.email.trim(),

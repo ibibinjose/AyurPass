@@ -311,6 +311,13 @@ const ADMIN_GROUPS: NavGroup[] = [
         chip: true,
         hint: "Platform schedule",
       },
+      {
+        href: "/dashboard/jobs",
+        label: "Jobs & Careers",
+        icon: CompassIcon,
+        chip: true,
+        hint: "Openings & hiring",
+      },
       { href: "/dashboard/admin/users", label: "Users", icon: CompassIcon, hint: "Registered accounts" },
       { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true, hint: "Admin settings" },
     ],

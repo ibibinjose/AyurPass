@@ -290,6 +290,8 @@ export interface AdminOverview {
   giftCards: number;
   giftCardOutstanding: string | number;
   pointsOutstanding: number;
+  jobs?: number;
+  jobApplications?: number;
 }
 
 export interface AdminProvider extends Omit<import("@ayurpass/shared").Provider, "_count"> {

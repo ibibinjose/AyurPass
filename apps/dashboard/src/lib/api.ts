@@ -507,7 +507,7 @@ export const api = {
 
   // --- enquiries (leads from listing / retreat pages) ---
   createEnquiry: (data: {
-    providerId: string;
+    providerId?: string;
     retreatId?: string;
     name: string;
     email: string;
@@ -1017,14 +1017,22 @@ export type QualityReview = {
   };
 };
 
+import { convertCurrency, formatLocalizedPrice } from "./currency";
+
+export { convertCurrency, formatLocalizedPrice };
+
 export function formatMoney(value: string | number | null | undefined, currency = "AUD"): string {
   const n = Number(value ?? 0);
   // Whole amounts stay clean ($45); fractional amounts show cents ($0.05, $2.80).
   const fractionDigits = Number.isInteger(n) ? 0 : 2;
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  }).format(n);
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency || "AUD",
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(n);
+  } catch {
+    return `${currency || "AUD"} ${n}`;
+  }
 }

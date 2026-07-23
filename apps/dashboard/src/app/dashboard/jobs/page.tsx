@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { api, formatMoney } from "@/lib/api";
+import { useLocation } from "@/context/LocationContext";
+import { api, formatMoney, formatLocalizedPrice } from "@/lib/api";
 import type { ApplicationStatus, EmploymentType, JobApplication, JobListing, ServiceCategory } from "@/lib/types";
 import {
   DashCard,
@@ -64,6 +65,7 @@ const BLANK: FormState = {
 
 export default function JobsPage() {
   const { user } = useAuth();
+  const { currency: userCurrency } = useLocation();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,8 +288,8 @@ export default function JobsPage() {
                   <p className="text-xs text-ink-muted">
                     {[job.city, job.country].filter(Boolean).join(", ") || job.locationType} ·{" "}
                     {job.salaryMin
-                      ? `${formatMoney(job.salaryMin, job.currency)}${
-                          job.salaryMax ? ` - ${formatMoney(job.salaryMax, job.currency)}` : "+"
+                      ? `${formatLocalizedPrice(job.salaryMin, userCurrency, job.currency || "AUD")}${
+                          job.salaryMax ? ` - ${formatLocalizedPrice(job.salaryMax, userCurrency, job.currency || "AUD")}` : "+"
                         }`
                       : "Competitive salary"}
                   </p>
