@@ -277,10 +277,11 @@ export function DashboardBottomNav() {
             match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
           },
           {
-            href: "/careers",
-            label: "Jobs",
+            href: "/dashboard/rewards",
+            label: "Rewards",
             icon: TrophyIcon,
-            match: (p) => p.startsWith("/careers"),
+            match: (p) =>
+              p.startsWith("/dashboard/rewards") || p.startsWith("/dashboard/gift-cards"),
           },
           {
             href: "/dashboard/settings",

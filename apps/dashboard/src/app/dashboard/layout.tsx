@@ -109,6 +109,13 @@ const CONSUMER_GROUPS: NavGroup[] = [
         icon: GiftIcon,
         hint: "Specials & packages",
       },
+      {
+        href: "/careers",
+        label: "Careers",
+        shortLabel: "Jobs",
+        icon: SearchIcon,
+        hint: "Optional — open wellness roles",
+      },
     ],
   },
   {

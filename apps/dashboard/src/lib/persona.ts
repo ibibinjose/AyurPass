@@ -69,19 +69,38 @@ export function canAccessAdmin(user: UserProfile | null | undefined): boolean {
   return user?.role === "PLATFORM_ADMIN";
 }
 
-/** Modes this account may switch into. Seeker + Careers always available. */
+/**
+ * Modes this account may switch into.
+ * Pure seekers (CONSUMER, no practice/staff links) only get Seeker —
+ * no Admin/Hub/Jobs workspace chips. Careers is a page link inside Seeker, not a mode.
+ * Multi-role accounts (practice, staff, admin) can switch and also open Seeker.
+ */
 export function availableModes(
   user: UserProfile | null | undefined,
   opts?: { hasStaffMemberships?: boolean },
 ): WorkspaceMode[] {
   if (!user) return [];
+
+  const pureSeeker =
+    user.role === "CONSUMER" &&
+    !user.provider &&
+    !user.professional &&
+    !opts?.hasStaffMemberships;
+
+  if (pureSeeker) {
+    return ["seeker"];
+  }
+
   const modes: WorkspaceMode[] = [];
   if (canAccessAdmin(user)) modes.push("admin");
   if (canAccessPractice(user)) modes.push("practice");
   if (canAccessStaff(user) || opts?.hasStaffMemberships) modes.push("staff");
+  // Wellness seeker view for multi-role users (browse/book as a client)
   modes.push("seeker");
-  modes.push("careers");
-  // de-dupe while preserving order
+  // Hiring / job board workspace only for practice or admin (post & manage roles)
+  if (canAccessPractice(user) || canAccessAdmin(user)) {
+    modes.push("careers");
+  }
   return [...new Set(modes)];
 }
 
