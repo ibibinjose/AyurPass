@@ -104,7 +104,8 @@ export default function SettingsPage() {
       const next = {
         fullName: user.fullName ?? "",
         phone: user.phone ?? "",
-        avatarUrl: resolveMediaUrl(user.avatarUrl) ?? user.avatarUrl ?? "",
+        // Keep raw DB URL — MediaField resolves / heals preview; don't rewrite on load
+        avatarUrl: user.avatarUrl ?? "",
         title: "",
         titleKind: "",
         handle: "",
@@ -139,7 +140,7 @@ export default function SettingsPage() {
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
-          avatarUrl: resolveMediaUrl(user.avatarUrl) ?? user.avatarUrl ?? "",
+          avatarUrl: user.avatarUrl ?? "",
           title: me.title ?? "",
           titleKind: me.titleKind ?? "",
           handle: me.handle ?? me.slug ?? "",
@@ -299,8 +300,8 @@ export default function SettingsPage() {
     setSaved(false);
     setError(null);
     try {
-      const nextAvatar =
-        resolveMediaUrl(avatarUrl.trim()) || avatarUrl.trim() || undefined;
+      // Persist the URL the uploader returned (S3 in prod). Don't rewrite to a guessed path.
+      const nextAvatar = avatarUrl.trim() || undefined;
       await api.updateUser(user.id, {
         fullName: fullName.trim(),
         phone: phone.trim() || undefined,
@@ -409,7 +410,14 @@ export default function SettingsPage() {
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-sm font-bold text-forest">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+            <img
+              src={resolveMediaUrl(avatarUrl) || avatarUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
           ) : (
             initials
           )}

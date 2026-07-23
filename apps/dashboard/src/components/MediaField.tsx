@@ -3,7 +3,12 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { resolveMediaUrl, validateImageLink } from "@/lib/media";
+import {
+  getMediaUrlCandidates,
+  isEphemeralApiFileUrl,
+  resolveMediaUrl,
+  validateImageLink,
+} from "@/lib/media";
 import { Button, Field, Input } from "@/components/ui";
 
 type Mode = "upload" | "link";
@@ -57,9 +62,9 @@ export function MediaField({
   const inputId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const blobUrlRef = useRef<string | null>(null);
-  // Prefer Upload mode for local/blob or empty; Link only when a remote URL is already set
+  // Prefer Upload for empty/blob/legacy ephemeral files; Link only for healthy remote URLs
   const [mode, setMode] = useState<Mode>(() => {
-    if (!value || value.startsWith("blob:")) return "upload";
+    if (!value || value.startsWith("blob:") || isEphemeralApiFileUrl(value)) return "upload";
     return "link";
   });
   const [linkDraft, setLinkDraft] = useState(() =>
@@ -68,12 +73,15 @@ export function MediaField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewBroken, setPreviewBroken] = useState(false);
+  const [candidateIdx, setCandidateIdx] = useState(0);
 
-  const displayUrl = resolveMediaUrl(value) || value || "";
+  const candidates = getMediaUrlCandidates(value);
+  const displayUrl = candidates[candidateIdx] || resolveMediaUrl(value) || value || "";
 
   useEffect(() => {
     setPreviewBroken(false);
-  }, [displayUrl]);
+    setCandidateIdx(0);
+  }, [value]);
 
   // Keep link draft in sync when parent value changes from outside
   useEffect(() => {
@@ -81,6 +89,16 @@ export function MediaField({
       setLinkDraft(value);
     }
   }, [value, mode]);
+
+  function onPreviewError() {
+    // Try next candidate (S3 vs API /files, etc.)
+    if (candidateIdx + 1 < candidates.length) {
+      setCandidateIdx((i) => i + 1);
+      return;
+    }
+    setPreviewBroken(true);
+    setMode("upload");
+  }
 
   useEffect(() => {
     return () => {
@@ -132,11 +150,12 @@ export function MediaField({
       const res = await api.uploadImage(file);
       clearBlobPreview();
       onDeferredFile?.(null);
-      // Stay on Upload mode — show preview of the uploaded image, not a raw URL field
+      // Prefer durable URL from API (S3 in production)
       onChange(res.url);
       setLinkDraft(res.url);
       setMode("upload");
       setPreviewBroken(false);
+      setCandidateIdx(0);
     } catch (e) {
       setError(
         e instanceof ApiError || e instanceof Error
@@ -320,27 +339,50 @@ export function MediaField({
             src={displayUrl}
             alt=""
             className={`border border-hairline bg-clay ${previewClass}`}
-            onError={() => setPreviewBroken(true)}
+            onError={onPreviewError}
           />
-          {mode === "upload" ? (
-            <Button
-              type="button"
-              variant="ghost"
-              className="!text-xs"
-              disabled={disabled}
-              onClick={clearValue}
-            >
-              Remove
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            className="!text-xs"
+            disabled={disabled}
+            onClick={clearValue}
+          >
+            Remove
+          </Button>
         </div>
       ) : null}
 
       {previewBroken && value ? (
-        <div
-          className={`flex items-center justify-center border border-dashed border-hairline bg-clay/40 text-xs font-medium text-ink-muted ${previewClass}`}
-        >
-          Preview unavailable
+        <div className="space-y-2">
+          <div
+            className={`flex flex-col items-center justify-center gap-1 border border-dashed border-amber-300/80 bg-amber-50/80 px-3 text-center ${previewClass} ${
+              shape === "cover" ? "min-h-[7rem] w-full" : ""
+            }`}
+          >
+            <span className="text-[11px] font-bold text-amber-900">Photo needs re-upload</span>
+            <span className="text-[10px] font-medium leading-snug text-amber-800/90">
+              {isEphemeralApiFileUrl(value)
+                ? "This file was on temporary server storage and is no longer available."
+                : "This link can’t be loaded (blocked, expired, or removed)."}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={disabled || busy}
+              onClick={() => {
+                setMode("upload");
+                setPreviewBroken(false);
+                fileRef.current?.click();
+              }}
+            >
+              Upload a new photo
+            </Button>
+            <Button type="button" variant="ghost" disabled={disabled} onClick={clearValue}>
+              Clear
+            </Button>
+          </div>
         </div>
       ) : null}
 
