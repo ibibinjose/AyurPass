@@ -435,6 +435,8 @@ export interface StripeConnectStatus {
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
   accountId: string | null;
+  country?: string;
+  defaultCurrency?: string;
 }
 
 export interface BookingCheckout extends Booking {

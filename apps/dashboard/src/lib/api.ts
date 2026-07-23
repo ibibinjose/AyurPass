@@ -456,11 +456,11 @@ export const api = {
     }),
   stripeConnectOnboard: (
     providerId: string,
-    urls: { returnUrl: string; refreshUrl: string },
+    data: { returnUrl: string; refreshUrl: string; country?: string },
   ) =>
-    request<{ mock: boolean; url: string; accountId: string; message?: string }>(
+    request<{ mock: boolean; url: string; accountId: string; country?: string; message?: string }>(
       `/payments/connect/${providerId}/onboard`,
-      { method: "POST", body: urls, auth: true },
+      { method: "POST", body: data, auth: true },
     ),
   stripeConnectStatus: (providerId: string) =>
     request<StripeConnectStatus>(`/payments/connect/${providerId}/status`, { auth: true }),

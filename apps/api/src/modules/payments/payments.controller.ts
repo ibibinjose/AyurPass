@@ -41,6 +41,10 @@ export class ConnectOnboardDto {
 
   @IsUrl({ require_tld: false })
   refreshUrl: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
 }
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
@@ -131,7 +135,7 @@ export class PaymentsController {
     @Req() req: AuthedRequest,
   ) {
     await assertProviderAccess(this.prisma, req.user, providerId);
-    return this.service.connectOnboard(providerId, body.returnUrl, body.refreshUrl);
+    return this.service.connectOnboard(providerId, body.returnUrl, body.refreshUrl, body.country);
   }
 
   @Get('connect/:providerId/status')

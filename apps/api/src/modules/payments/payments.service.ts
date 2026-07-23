@@ -335,8 +335,8 @@ export class PaymentsService {
     });
   }
 
-  connectOnboard(providerId: string, returnUrl: string, refreshUrl: string) {
-    return this.connect.connectOnboard(providerId, returnUrl, refreshUrl);
+  connectOnboard(providerId: string, returnUrl: string, refreshUrl: string, country?: string) {
+    return this.connect.connectOnboard(providerId, returnUrl, refreshUrl, country);
   }
 
   connectStatus(providerId: string) {

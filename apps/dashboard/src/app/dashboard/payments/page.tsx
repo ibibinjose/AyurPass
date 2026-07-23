@@ -64,9 +64,11 @@ export default function PaymentsPage() {
     setError(null);
     try {
       const base = `${window.location.origin}/dashboard/payments`;
+      const providerCountry = (provider.address as { country?: string } | null)?.country;
       const result = await api.stripeConnectOnboard(provider.id, {
         returnUrl: `${base}?connected=1`,
         refreshUrl: base,
+        country: providerCountry,
       });
       if (result.url) window.location.href = result.url;
       else reload();
@@ -137,7 +139,9 @@ export default function PaymentsPage() {
               <ShieldIcon className="h-5.5 w-5.5" />
             </span>
             <div>
-              <p className="font-medium text-foreground">Your Stripe account</p>
+              <p className="font-medium text-foreground">
+                Your Stripe account {status?.country ? `(${status.country})` : ""}
+              </p>
               <p className="mt-1 text-sm text-ink-secondary">
                 {ready
                   ? "Ready to accept payments."
@@ -157,7 +161,11 @@ export default function PaymentsPage() {
           </span>
         </div>
 
-        <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+        <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-4">
+          <div className="rounded-xl bg-clay/50 px-4 py-3">
+            <dt className="text-ink-muted">Country</dt>
+            <dd className="font-medium text-forest">{status?.country ?? "AU"}</dd>
+          </div>
           <div className="rounded-xl bg-clay/50 px-4 py-3">
             <dt className="text-ink-muted">Charges</dt>
             <dd className="font-medium text-forest">{status?.chargesEnabled ? "Enabled" : "Pending"}</dd>

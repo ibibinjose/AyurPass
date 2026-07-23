@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StripeService } from './stripe.service';
 import { PaymentSettlementService } from './payment-settlement.service';
+import { resolveIsoCountry } from './tax.utility';
 
 @Injectable()
 export class StripeConnectService {
@@ -12,12 +13,20 @@ export class StripeConnectService {
     private settlement: PaymentSettlementService,
   ) {}
 
-  async connectOnboard(providerId: string, returnUrl: string, refreshUrl: string) {
+  async connectOnboard(
+    providerId: string,
+    returnUrl: string,
+    refreshUrl: string,
+    countryOverride?: string,
+  ) {
     const provider = await this.prisma.provider.findUnique({
       where: { id: providerId },
       include: { user: { select: { email: true } } },
     });
     if (!provider) throw new NotFoundException('Provider not found');
+
+    const providerCountry = (provider.address as Record<string, any> | null)?.country;
+    const country = resolveIsoCountry(countryOverride || providerCountry, provider.currency);
 
     let accountId = provider.stripeAccountId;
     if (!accountId) {
@@ -31,6 +40,7 @@ export class StripeConnectService {
           mock: true,
           url: returnUrl,
           accountId,
+          country,
           message: 'Mock Connect — add live Stripe keys to enable real onboarding',
         };
       }
@@ -38,6 +48,7 @@ export class StripeConnectService {
       const account = await this.stripe.createConnectAccount({
         email: provider.user?.email ?? 'provider@ayurpass.com',
         businessName: provider.businessName,
+        country,
       });
       accountId = account.id;
       await this.prisma.provider.update({
@@ -47,19 +58,22 @@ export class StripeConnectService {
     }
 
     if (this.settlement.mockMode) {
-      return { mock: true, url: returnUrl, accountId };
+      return { mock: true, url: returnUrl, accountId, country };
     }
 
     const link = await this.stripe.createAccountLink(accountId, returnUrl, refreshUrl);
-    return { mock: false, url: link.url, accountId };
+    return { mock: false, url: link.url, accountId, country };
   }
 
   async connectStatus(providerId: string) {
     const provider = await this.prisma.provider.findUnique({
       where: { id: providerId },
-      select: { stripeAccountId: true },
+      select: { stripeAccountId: true, address: true, currency: true },
     });
     if (!provider) throw new NotFoundException('Provider not found');
+
+    const providerCountry = (provider.address as Record<string, any> | null)?.country;
+    const country = resolveIsoCountry(providerCountry, provider.currency);
 
     if (!provider.stripeAccountId) {
       return {
@@ -69,6 +83,7 @@ export class StripeConnectService {
         payoutsEnabled: false,
         detailsSubmitted: false,
         accountId: null,
+        country,
       };
     }
 
@@ -81,6 +96,7 @@ export class StripeConnectService {
         payoutsEnabled: true,
         detailsSubmitted: true,
         accountId: provider.stripeAccountId,
+        country,
       };
     }
 
@@ -94,6 +110,8 @@ export class StripeConnectService {
       payoutsEnabled: Boolean(account.payouts_enabled),
       detailsSubmitted: Boolean(account.details_submitted),
       accountId: provider.stripeAccountId,
+      country: account.country ?? country,
+      defaultCurrency: account.default_currency ?? provider.currency.toLowerCase(),
     };
   }
 
