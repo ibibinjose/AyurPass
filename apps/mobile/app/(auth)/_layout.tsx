@@ -6,7 +6,9 @@ export default function AuthLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
+        // Dark base so a failed gradient never flashes white
+        contentStyle: { backgroundColor: colors.forestDeep, flex: 1 },
+        animation: "fade",
       }}
     />
   );
