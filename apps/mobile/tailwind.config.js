@@ -1,8 +1,13 @@
 const { tailwindColors } = require("../../packages/shared/tokens.cjs");
+const path = require("path");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}", "./App.tsx"],
+  content: [
+    path.join(__dirname, "./app/**/*.{js,jsx,ts,tsx}"),
+    path.join(__dirname, "./src/**/*.{js,jsx,ts,tsx}"),
+    path.join(__dirname, "./App.tsx"),
+  ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
