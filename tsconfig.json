@@ -8,10 +8,19 @@
     "skipLibCheck": true
   },
   "references": [
-    { "path": "apps/api" },
-    { "path": "apps/dashboard" },
-    { "path": "apps/mobile" },
-    { "path": "packages/shared" }
+    {
+      "path": "apps/api"
+    },
+    {
+      "path": "apps/dashboard"
+    },
+    {
+      "path": "apps/mobile"
+    },
+    {
+      "path": "packages/shared"
+    }
   ],
-  "files": []
+  "files": [],
+  "extends": "expo/tsconfig.base"
 }

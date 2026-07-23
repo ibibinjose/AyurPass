@@ -21,7 +21,8 @@ export default function Welcome() {
         <View className="mt-6">
           <Image
             source={require("../../assets/icon.png")}
-            className="mb-3 h-[72px] w-[72px] rounded-2xl"
+            style={{ width: 72, height: 72, borderRadius: 16 }}
+            className="mb-3 rounded-2xl"
             accessibilityLabel="AyurPass"
           />
           <Text className="font-display text-[26px] text-white">AyurPass</Text>

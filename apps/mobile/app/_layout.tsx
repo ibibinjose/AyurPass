@@ -1,4 +1,5 @@
 import "../global.css";
+import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
   Fraunces_500Medium,
@@ -21,10 +22,13 @@ import { StripeAppProvider } from "../src/payments/StripeAppProvider";
 import { createMobileQueryClient } from "../src/query-client";
 import { colors } from "../src/theme";
 
+// Keep native splash screen visible until fonts load
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 function FullScreenLoader() {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: "center" }}>
-      <ActivityIndicator color={colors.leaf} />
+    <View style={{ flex: 1, backgroundColor: colors.forestDeep, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size="large" color={colors.goldSoft} />
     </View>
   );
 }
@@ -76,13 +80,19 @@ export default function RootLayout() {
     Inter_600SemiBold,
   });
 
-  if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return <FullScreenLoader />;
 
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <StripeAppProvider>
-          <StatusBar style="dark" />
+          <StatusBar style="light" />
           <AuthProvider>
             <PushBootstrap />
             <RootNavigator />

@@ -41,9 +41,17 @@ async function bootstrap() {
       const url = new URL(origin);
       const hostname = url.hostname;
 
-      // In dev / non-strict env, allow any local host origin on any port
+      // In dev / non-strict env, allow any local host or LAN origin on any port
       if (!isStrictEnv()) {
-        if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+        if (
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          /^192\.168\.\d+\.\d+$/.test(hostname) ||
+          /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+          /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hostname)
+        ) {
+          return true;
+        }
       }
 
       // Automatically allow both apex and www if either is in the configured allowlist
@@ -119,8 +127,8 @@ async function bootstrap() {
     next();
   });
 
-  const port = process.env.PORT || 4000;
-  await app.listen(port);
+  const port = Number(process.env.PORT) || 4000;
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 AyurPass Backend running on port ${port}`);
   console.log(`🖼  Uploads served from ${uploadDir} at /files/`);
 }
