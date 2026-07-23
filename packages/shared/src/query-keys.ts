@@ -86,4 +86,15 @@ export const queryKeys = {
     overview: () => [...queryKeys.all, "admin", "overview"] as const,
     providers: () => [...queryKeys.all, "admin", "providers"] as const,
   },
+
+  jobs: {
+    all: () => [...queryKeys.all, "jobs"] as const,
+    list: (filters?: Record<string, unknown>) =>
+      [...queryKeys.jobs.all(), "list", filters ?? {}] as const,
+    byProvider: (providerId: string) =>
+      [...queryKeys.jobs.all(), "provider", providerId] as const,
+    detail: (id: string) => [...queryKeys.jobs.all(), "detail", id] as const,
+    applications: (jobId: string) => [...queryKeys.jobs.all(), "applications", jobId] as const,
+    myApplications: () => [...queryKeys.jobs.all(), "my-applications"] as const,
+  },
 } as const;

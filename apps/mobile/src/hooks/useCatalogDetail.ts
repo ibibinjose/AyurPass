@@ -76,3 +76,73 @@ export function usePaymentMode() {
     staleTime: 120_000,
   });
 }
+
+export function useProviderJobs(providerId: string | undefined) {
+  return useQuery({
+    queryKey: providerId
+      ? queryKeys.jobs.byProvider(providerId)
+      : [...queryKeys.jobs.all(), "provider", "none"],
+    queryFn: async () => {
+      if (!providerId) return [];
+      return api.providerJobs(providerId);
+    },
+    enabled: Boolean(providerId),
+    staleTime: 30_000,
+  });
+}
+
+export function useJobs(filters?: { category?: string; employmentType?: string; q?: string }) {
+  return useQuery({
+    queryKey: queryKeys.jobs.list(filters),
+    queryFn: () => api.jobs(filters),
+    staleTime: 30_000,
+  });
+}
+
+export function useJobDetail(id: string | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.jobs.detail(id) : [...queryKeys.jobs.all(), "detail", "none"],
+    queryFn: async () => {
+      if (!id) return null;
+      try {
+        return await api.job(id);
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(id),
+    staleTime: 60_000,
+  });
+}
+
+export function useApplyJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      data,
+    }: {
+      jobId: string;
+      data: {
+        fullName: string;
+        email: string;
+        phone?: string;
+        coverNote?: string;
+        resumeUrl?: string;
+        experienceYears?: number;
+      };
+    }) => api.applyJob(jobId, data),
+    onSuccess: async (_, { jobId }) => {
+      await qc.invalidateQueries({ queryKey: queryKeys.jobs.detail(jobId) });
+      await qc.invalidateQueries({ queryKey: queryKeys.jobs.myApplications() });
+    },
+  });
+}
+
+export function useMyApplications() {
+  return useQuery({
+    queryKey: queryKeys.jobs.myApplications(),
+    queryFn: () => api.myApplications(),
+    staleTime: 30_000,
+  });
+}

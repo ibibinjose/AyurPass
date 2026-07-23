@@ -13,13 +13,13 @@ import {
 } from "../../src/components/ui";
 import { ServiceCard } from "../../src/components/ServiceCard";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
-import { useProviderDetail, useProviderServices } from "../../src/hooks/useCatalogDetail";
+import { useProviderDetail, useProviderJobs, useProviderServices } from "../../src/hooks/useCatalogDetail";
 import { colors } from "../../src/theme";
 
-type TabId = "about" | "services";
+type TabId = "about" | "services" | "jobs";
 
 /**
- * Practice profile — gradient hero, verified tick, About / Services tabs.
+ * Practice profile — gradient hero, verified tick, hiring banner, About / Services / Jobs tabs.
  * NativeWind + TanStack Query.
  */
 export default function ProviderDetail() {
@@ -31,13 +31,16 @@ export default function ProviderDetail() {
 
   const providerQ = useProviderDetail(id);
   const servicesQ = useProviderServices(id);
+  const jobsQ = useProviderJobs(id);
   const provider = providerQ.data;
   const services = servicesQ.data ?? null;
+  const jobs = jobsQ.data ?? [];
 
   const location = provider ? formatAddress(provider.address) : "";
   const verified = provider?.verificationStatus === "verified";
   const about = provider?.brandProfile?.about;
   const typeLabel = provider ? PROVIDER_TYPE_LABEL[provider.type] : "";
+  const hasJobs = jobs.length > 0;
 
   const tabs = useMemo(
     () =>
@@ -48,8 +51,13 @@ export default function ProviderDetail() {
           label: "Services",
           count: services?.length,
         },
+        {
+          id: "jobs" as const,
+          label: "Careers",
+          count: jobs.length > 0 ? jobs.length : undefined,
+        },
       ] as const,
-    [services?.length],
+    [services?.length, jobs.length],
   );
 
   if (providerQ.isLoading && provider === undefined) {
@@ -106,6 +114,18 @@ export default function ProviderDetail() {
                 </Text>
               </View>
             ) : null}
+
+            {hasJobs ? (
+              <Pressable
+                onPress={() => setTab("jobs")}
+                className="mt-3 flex-row items-center gap-1.5 rounded-full border border-gold-soft/40 bg-gold-soft/20 px-3.5 py-1 active:opacity-90"
+              >
+                <Ionicons name="briefcase-outline" size={14} color={colors.goldSoft} />
+                <Text className="font-body-semi text-xs uppercase tracking-wider text-gold-soft">
+                  WE'RE HIRING · {jobs.length} OPEN {jobs.length === 1 ? "POSITION" : "POSITIONS"}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
@@ -127,7 +147,7 @@ export default function ProviderDetail() {
                     }`}
                   >
                     {t.label}
-                    {"count" in t && t.count != null ? ` ${t.count}` : ""}
+                    {"count" in t && t.count != null ? ` (${t.count})` : ""}
                   </Text>
                 </Pressable>
               );
@@ -191,6 +211,51 @@ export default function ProviderDetail() {
                     service={s}
                     onPress={() => router.push(`/service/${s.id}`)}
                   />
+                ))
+              )}
+            </View>
+          ) : null}
+
+          {tab === "jobs" ? (
+            <View className="mt-4 gap-3">
+              {jobsQ.isLoading ? (
+                <Loading />
+              ) : jobs.length === 0 ? (
+                <EmptyState
+                  title="No open vacancies"
+                  body="This practice is not actively hiring right now."
+                />
+              ) : (
+                jobs.map((job) => (
+                  <Pressable
+                    key={job.id}
+                    onPress={() => router.push(`/jobs/${job.id}`)}
+                    className="rounded-2xl border border-hairline bg-surface p-4 shadow-sm active:opacity-90"
+                  >
+                    <View className="flex-row items-center justify-between gap-2">
+                      <Badge tone="leaf">{job.category}</Badge>
+                      <Text className="font-body-semi text-xs uppercase text-leaf">
+                        {job.employmentType.replace("_", " ")}
+                      </Text>
+                    </View>
+                    <Text className="mt-2 font-display text-lg text-forest">{job.title}</Text>
+                    <Text className="mt-1 font-body text-sm text-ink-muted" numberOfLines={2}>
+                      {job.description}
+                    </Text>
+                    <View className="mt-3 flex-row items-center justify-between border-t border-hairline pt-3">
+                      <Text className="font-body-semi text-sm color-forest">
+                        {job.salaryMin
+                          ? `${job.currency} $${job.salaryMin}${
+                              job.salaryMax ? ` - $${job.salaryMax}` : "+"
+                            }`
+                          : "Competitive Salary"}
+                      </Text>
+                      <View className="flex-row items-center gap-1 rounded-full bg-forest px-3 py-1.5">
+                        <Text className="font-body-semi text-xs text-white">Apply Now</Text>
+                        <Ionicons name="chevron-forward" size={12} color="#fff" />
+                      </View>
+                    </View>
+                  </Pressable>
                 ))
               )}
             </View>

@@ -36,6 +36,7 @@ import { SearchModule } from './modules/search/search.module';
 import { MailModule } from './modules/mail/mail.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { JobsModule } from './modules/jobs/jobs.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     CrmModule,
     SearchModule,
     StaffModule,
+    JobsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

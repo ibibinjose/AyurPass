@@ -61,6 +61,15 @@ export const endpoints = {
   notifications: {
     devices: "/notifications/devices",
   },
+
+  jobs: {
+    list: "/jobs",
+    detail: (id: string) => `/jobs/${id}` as const,
+    apply: (id: string) => `/jobs/${id}/apply` as const,
+    applications: (id: string) => `/jobs/${id}/applications` as const,
+    providerJobs: (providerId: string) => `/providers/${providerId}/jobs` as const,
+    myApplications: "/jobs/my-applications",
+  },
 } as const;
 
 export type EndpointTree = typeof endpoints;

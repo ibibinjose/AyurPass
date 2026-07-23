@@ -26,6 +26,7 @@ model User {
   provider      Provider?
   staffMemberships ProviderStaff[]
   devicePushTokens DevicePushToken[]
+  jobApplications JobApplication[]
 }
 
 /** Expo / FCM / APNs device tokens for booking reminders and marketing. */
@@ -122,6 +123,7 @@ model Provider {
   retreats          Retreat[]
   clientRecords     ClientRecord[]
   staff             ProviderStaff[]
+  jobListings       JobListing[]
 }
 
 enum ProviderType {
@@ -755,4 +757,77 @@ model ClientNote {
   note           String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+model JobListing {
+  id               String           @id @default(uuid())
+  code             String           @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
+  providerId       String
+  provider         Provider         @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  title            String           // e.g. "Lead Ayurvedic Doctor", "Yoga Instructor"
+  category         ServiceCategory  // AYURVEDA | YOGA | SPA | MEDITATION | NUTRITION | COACHING | etc.
+  employmentType   EmploymentType   @default(FULL_TIME)
+  locationType     String           @default("on_site") // on_site | hybrid | remote
+  city             String?
+  country          String?
+  salaryMin        Decimal?         @db.Decimal(10, 2)
+  salaryMax        Decimal?         @db.Decimal(10, 2)
+  currency         String           @default("AUD")
+  experienceYears  Int?
+  description      String
+  requirements     String?
+  status           JobStatus        @default(OPEN)
+  featured         Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  applications     JobApplication[]
+
+  @@index([providerId, status])
+  @@index([category, status])
+  @@index([createdAt])
+}
+
+model JobApplication {
+  id               String            @id @default(uuid())
+  jobId            String
+  job              JobListing        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicantUserId  String
+  applicantUser    User              @relation(fields: [applicantUserId], references: [id], onDelete: Cascade)
+  fullName         String
+  email            String
+  phone            String?
+  coverNote        String?
+  resumeUrl        String?
+  experienceYears  Int?
+  status           ApplicationStatus @default(SUBMITTED)
+  adminNotes       String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([jobId, applicantUserId])
+  @@index([jobId, status])
+  @@index([applicantUserId])
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  LOCUM
+  CASUAL
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+  HIRED
 }

@@ -141,7 +141,7 @@ export class UploadsService {
       if (file.buffer && file.buffer.length) {
         body = file.buffer;
       } else if (file.path) {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+         
         body = require('fs').readFileSync(file.path) as Buffer;
       } else {
         throw new BadRequestException('Empty upload body.');

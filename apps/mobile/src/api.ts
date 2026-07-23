@@ -6,6 +6,8 @@ import type {
   Booking,
   BookingCheckout,
   HealthProfile,
+  JobApplication,
+  JobListing,
   LoyaltySummary,
   Offer,
   PaymentModeConfig,
@@ -277,6 +279,36 @@ export const api = {
   offers: (discipline?: string) =>
     request<Offer[]>(`/offers${discipline ? `?discipline=${encodeURIComponent(discipline)}` : ""}`),
   offer: (id: string) => request<Offer>(`/offers/${id}`),
+
+  // jobs & career listings
+  jobs: (params?: { category?: string; employmentType?: string; q?: string; providerId?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.category) search.append("category", params.category);
+    if (params?.employmentType) search.append("employmentType", params.employmentType);
+    if (params?.q) search.append("q", params.q);
+    if (params?.providerId) search.append("providerId", params.providerId);
+    const queryStr = search.toString();
+    return request<JobListing[]>(`/jobs${queryStr ? `?${queryStr}` : ""}`);
+  },
+  job: (id: string) => request<JobListing>(`/jobs/${id}`),
+  providerJobs: (providerId: string) => request<JobListing[]>(`/providers/${providerId}/jobs`),
+  applyJob: (
+    jobId: string,
+    data: {
+      fullName: string;
+      email: string;
+      phone?: string;
+      coverNote?: string;
+      resumeUrl?: string;
+      experienceYears?: number;
+    },
+  ) =>
+    request<JobApplication>(`/jobs/${jobId}/apply`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+  myApplications: () => request<JobApplication[]>("/jobs/my-applications", { auth: true }),
 
   // bookings
   createBooking: (data: {

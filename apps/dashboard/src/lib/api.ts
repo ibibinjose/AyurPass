@@ -18,6 +18,8 @@ import type {
   OfferInput,
   HealthAuthorityBadge,
   HealthProfile,
+  JobApplication,
+  JobListing,
   LoyaltySummary,
   Order,
   OrderCheckout,
@@ -268,6 +270,23 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 }
 
 export const api = {
+  // --- jobs & hiring ---
+  providerJobs: (providerId: string) => request<JobListing[]>(`/providers/${providerId}/jobs`),
+  createJob: (data: Record<string, unknown>) =>
+    request<JobListing>("/jobs", { method: "POST", body: data, auth: true }),
+  updateJob: (id: string, data: Record<string, unknown>) =>
+    request<JobListing>(`/jobs/${id}`, { method: "PATCH", body: data, auth: true }),
+  deleteJob: (id: string) =>
+    request<{ id: string }>(`/jobs/${id}`, { method: "DELETE", auth: true }),
+  jobApplications: (jobId: string) =>
+    request<JobApplication[]>(`/jobs/${jobId}/applications`, { auth: true }),
+  updateApplicationStatus: (applicationId: string, status: string, adminNotes?: string) =>
+    request<JobApplication>(`/jobs/applications/${applicationId}/status`, {
+      method: "PATCH",
+      body: { status, adminNotes },
+      auth: true,
+    }),
+
   // --- auth ---
   register: (payload: RegisterPayload) =>
     request<AuthResponse>("/auth/register", { method: "POST", body: payload }),

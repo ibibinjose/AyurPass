@@ -454,3 +454,49 @@ export interface Offer {
   createdAt: string;
   updatedAt: string;
 }
+
+export type EmploymentType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "LOCUM" | "CASUAL";
+export type JobStatus = "OPEN" | "CLOSED" | "DRAFT";
+export type ApplicationStatus = "SUBMITTED" | "REVIEWING" | "SHORTLISTED" | "REJECTED" | "HIRED";
+
+export interface JobListing {
+  id: string;
+  code?: string;
+  providerId: string;
+  provider?: Partial<Provider> | null;
+  title: string;
+  category: ServiceCategory;
+  employmentType: EmploymentType;
+  locationType: "on_site" | "hybrid" | "remote" | string;
+  city?: string | null;
+  country?: string | null;
+  salaryMin?: number | string | null;
+  salaryMax?: number | string | null;
+  currency: string;
+  experienceYears?: number | null;
+  description: string;
+  requirements?: string | null;
+  status: JobStatus;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+  applicationCount?: number;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  job?: Partial<JobListing> | null;
+  applicantUserId: string;
+  applicantUser?: Partial<User> | null;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  coverNote?: string | null;
+  resumeUrl?: string | null;
+  experienceYears?: number | null;
+  status: ApplicationStatus;
+  adminNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

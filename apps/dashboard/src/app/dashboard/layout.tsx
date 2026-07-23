@@ -210,6 +210,13 @@ const PROVIDER_GROUPS: NavGroup[] = [
         hint: "Staff profiles",
       },
       {
+        href: "/dashboard/jobs",
+        label: "Jobs & Hiring",
+        icon: UsersIcon,
+        chip: true,
+        hint: "Post vacancies & applications",
+      },
+      {
         href: "/dashboard/clients",
         label: "Clients",
         icon: UsersIcon,
