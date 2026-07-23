@@ -1061,7 +1061,37 @@ function PlatformAdminOverview() {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  if (user?.role === "PLATFORM_ADMIN") return <PlatformAdminOverview />;
-  const isProvider = user?.role === "PROVIDER_ADMIN" || user?.role === "PROFESSIONAL";
-  return isProvider ? <ProviderOverview /> : <ConsumerOverview />;
+  const [mode, setMode] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored =
+        window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
+        window.localStorage.getItem("ayurpass.dashboard.viewModeOverride");
+      setMode(stored);
+    } catch {
+      setMode(null);
+    }
+  }, [user?.id, user?.role]);
+
+  // Workspace switcher can override role: admin ↔ seeker ↔ practice
+  if (mode === "admin" || (!mode && user?.role === "PLATFORM_ADMIN")) {
+    return <PlatformAdminOverview />;
+  }
+  if (
+    mode === "practice" ||
+    mode === "staff" ||
+    mode === "provider" ||
+    (!mode &&
+      (user?.role === "PROVIDER_ADMIN" ||
+        user?.role === "PROFESSIONAL" ||
+        Boolean(user?.provider)))
+  ) {
+    return <ProviderOverview />;
+  }
+  if (mode === "careers") {
+    // Careers board lives at /careers — overview still shows seeker home with a link
+    return <ConsumerOverview />;
+  }
+  return <ConsumerOverview />;
 }

@@ -9,6 +9,7 @@ import {
   CompassIcon,
   LotusIcon,
   MoonIcon,
+  SearchIcon,
   SparkleIcon,
   TrophyIcon,
   UsersIcon,
@@ -141,8 +142,30 @@ export function DashboardBottomNav() {
   const { user } = useAuth();
   if (!user) return null;
 
-  const isProvider = user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL";
-  const isAdmin = user.role === "PLATFORM_ADMIN";
+  // Honour workspace mode switcher (admin can use seeker/practice tabs too)
+  let mode = "seeker";
+  try {
+    mode =
+      (typeof window !== "undefined" &&
+        (window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
+          window.localStorage.getItem("ayurpass.dashboard.viewModeOverride"))) ||
+      (user.role === "PLATFORM_ADMIN"
+        ? "admin"
+        : user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL"
+          ? "practice"
+          : "seeker");
+  } catch {
+    mode =
+      user.role === "PLATFORM_ADMIN"
+        ? "admin"
+        : user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL"
+          ? "practice"
+          : "seeker";
+  }
+
+  const isAdmin = mode === "admin";
+  const isProvider = mode === "practice" || mode === "staff" || mode === "provider";
+  const isCareers = mode === "careers";
 
   const tabs: Tab[] = isAdmin
     ? [
@@ -171,6 +194,33 @@ export function DashboardBottomNav() {
           match: (p) => p.startsWith("/dashboard/settings"),
         },
       ]
+    : isCareers
+      ? [
+          {
+            href: "/careers",
+            label: "Roles",
+            icon: SearchIcon,
+            match: (p) => p.startsWith("/careers"),
+          },
+          {
+            href: "/dashboard/jobs",
+            label: "Hiring",
+            icon: UsersIcon,
+            match: (p) => p.startsWith("/dashboard/jobs"),
+          },
+          {
+            href: "/discover",
+            label: "Practices",
+            icon: CompassIcon,
+            match: (p) => p.startsWith("/discover"),
+          },
+          {
+            href: "/dashboard/settings",
+            label: "You",
+            icon: UsersIcon,
+            match: (p) => p.startsWith("/dashboard/settings"),
+          },
+        ]
     : isProvider
       ? [
           {
@@ -227,11 +277,10 @@ export function DashboardBottomNav() {
             match: (p) => p.startsWith("/explore") || p.startsWith("/book"),
           },
           {
-            href: "/dashboard/rewards",
-            label: "Rewards",
+            href: "/careers",
+            label: "Jobs",
             icon: TrophyIcon,
-            match: (p) =>
-              p.startsWith("/dashboard/rewards") || p.startsWith("/dashboard/gift-cards"),
+            match: (p) => p.startsWith("/careers"),
           },
           {
             href: "/dashboard/settings",

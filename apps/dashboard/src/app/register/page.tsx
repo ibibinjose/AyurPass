@@ -9,7 +9,7 @@ import { Button, ErrorNote, Field, Input, Select } from "@/components/ui";
 import { AuthBanner } from "@/components/auth/AuthBanner";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
-import { loginUrl, safeNextPath } from "@/lib/auth-redirect";
+import { loginUrl, postAuthHome, safeNextPath } from "@/lib/auth-redirect";
 import type { ProviderType } from "@/lib/types";
 
 const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
@@ -59,14 +59,16 @@ function RegisterForm() {
     setError(null);
     setBusy(true);
     try {
-      await register({
+      const profile = await register({
         email,
         password,
         fullName,
         role: kind === "provider" ? "PROVIDER_ADMIN" : "CONSUMER",
         ...(kind === "provider" ? { businessName, providerType } : {}),
       });
-      const fallback = kind === "consumer" ? "/dashboard/assessment" : "/dashboard";
+      // New seekers → optional quiz; providers → practice hub; else role home
+      const fallback =
+        kind === "consumer" ? "/dashboard/assessment" : postAuthHome(profile);
       router.push(safeNextPath(nextParam, fallback));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";

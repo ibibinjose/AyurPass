@@ -271,6 +271,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const api = {
   // --- jobs & hiring ---
+  /** Public open roles (careers board). */
+  jobs: (params?: { category?: string; employmentType?: string; q?: string; providerId?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.category) q.set("category", params.category);
+    if (params?.employmentType) q.set("employmentType", params.employmentType);
+    if (params?.q) q.set("q", params.q);
+    if (params?.providerId) q.set("providerId", params.providerId);
+    const qs = q.toString();
+    return request<JobListing[]>(`/jobs${qs ? `?${qs}` : ""}`);
+  },
+  job: (id: string) => request<JobListing>(`/jobs/${id}`),
+  applyToJob: (
+    jobId: string,
+    data: { coverLetter?: string; resumeUrl?: string },
+  ) =>
+    request<unknown>(`/jobs/${jobId}/apply`, { method: "POST", body: data, auth: true }),
+  myJobApplications: () =>
+    request<unknown[]>("/jobs/my-applications", { auth: true }),
   providerJobs: (providerId: string) => request<JobListing[]>(`/providers/${providerId}/jobs`),
   createJob: (data: Record<string, unknown>) =>
     request<JobListing>("/jobs", { method: "POST", body: data, auth: true }),

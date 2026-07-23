@@ -11,6 +11,16 @@ import { loginUrl } from "@/lib/auth-redirect";
 import { resolveMediaUrl } from "@/lib/media";
 import { practicePath } from "@/lib/paths";
 import {
+  availableModes,
+  homeForMode,
+  MODE_META,
+  readStoredMode,
+  resolveMode,
+  roleDisplayLabel,
+  type WorkspaceMode,
+  writeStoredMode,
+} from "@/lib/persona";
+import {
   CalendarIcon,
   CompassIcon,
   ExternalLinkIcon,
@@ -324,12 +334,106 @@ const ADMIN_GROUPS: NavGroup[] = [
   },
 ];
 
-const ROLE_LABEL: Record<string, string> = {
-  CONSUMER: "Seeker",
-  PROFESSIONAL: "Practitioner",
-  PROVIDER_ADMIN: "Practice admin",
-  PLATFORM_ADMIN: "Platform admin",
-};
+const STAFF_GROUPS: NavGroup[] = [
+  {
+    label: "Home",
+    items: [
+      {
+        href: "/dashboard",
+        label: "Overview",
+        icon: LeafIcon,
+        exact: true,
+        chip: true,
+        hint: "Your day",
+      },
+    ],
+  },
+  {
+    label: "Work",
+    items: [
+      {
+        href: "/dashboard/calendar",
+        label: "Calendar",
+        icon: CalendarIcon,
+        chip: true,
+        hint: "Your schedule",
+      },
+      {
+        href: "/dashboard/schedule",
+        label: "Schedule",
+        icon: CalendarIcon,
+        hint: "List view",
+      },
+      {
+        href: "/dashboard/clients",
+        label: "Clients",
+        icon: UsersIcon,
+        chip: true,
+        hint: "People you care for",
+      },
+      {
+        href: "/dashboard/services",
+        label: "Sessions",
+        icon: CompassIcon,
+        chip: true,
+        hint: "What you deliver",
+      },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      {
+        href: "/dashboard/settings",
+        label: "Settings",
+        icon: PencilIcon,
+        chip: true,
+        hint: "Profile & photo",
+      },
+      {
+        href: "/careers",
+        label: "Careers board",
+        icon: SearchIcon,
+        hint: "Browse open roles",
+      },
+    ],
+  },
+];
+
+const CAREERS_GROUPS: NavGroup[] = [
+  {
+    label: "Careers",
+    items: [
+      {
+        href: "/careers",
+        label: "Open roles",
+        icon: SearchIcon,
+        chip: true,
+        hint: "Browse vacancies",
+      },
+      {
+        href: "/dashboard/jobs",
+        label: "Hiring (practice)",
+        icon: UsersIcon,
+        chip: true,
+        hint: "Post roles if you run a practice",
+      },
+      {
+        href: "/discover",
+        label: "Practices",
+        icon: CompassIcon,
+        hint: "Find employers",
+      },
+      {
+        href: "/dashboard/settings",
+        label: "Profile",
+        icon: PencilIcon,
+        chip: true,
+        hint: "Your account",
+      },
+    ],
+  },
+];
 
 const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
   { test: (p) => p === "/dashboard", title: "Overview" },
@@ -350,7 +454,7 @@ const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
 ];
 
 const COLLAPSE_KEY = "ayurpass.dashboard.sidebarCollapsed";
-const VIEW_MODE_KEY = "ayurpass.dashboard.viewModeOverride";
+
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact || href === "/dashboard") return pathname === href;
@@ -513,11 +617,11 @@ function UserFooter({
   collapsed,
   practiceName,
   publicHref,
-  isSeeker,
+  mode,
+  modes,
   onLogout,
   onNavigate,
-  hasBothProfiles,
-  onToggleViewMode,
+  onSelectMode,
 }: {
   user: {
     fullName?: string | null;
@@ -528,11 +632,11 @@ function UserFooter({
   collapsed?: boolean;
   practiceName?: string | null;
   publicHref?: string | null;
-  isSeeker?: boolean;
+  mode: WorkspaceMode;
+  modes: WorkspaceMode[];
   onLogout: () => void;
   onNavigate?: () => void;
-  hasBothProfiles?: boolean;
-  onToggleViewMode?: () => void;
+  onSelectMode?: (mode: WorkspaceMode) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -599,19 +703,35 @@ function UserFooter({
         </Link>
       )}
 
-      {hasBothProfiles && onToggleViewMode && (
-        <button
-          type="button"
-          onClick={() => {
-            closeMenu();
-            onToggleViewMode();
-          }}
-          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
-        >
-          <CompassIcon className="h-3.5 w-3.5" />
-          {isSeeker ? "Switch to Hub view" : "Switch to Seeker view"}
-        </button>
-      )}
+      {modes.length > 1 && onSelectMode ? (
+        <div className="border-b border-hairline px-2 py-2 mb-1">
+          <p className="px-1 pb-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+            Switch workspace
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {modes.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  onSelectMode(m);
+                }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                  m === mode
+                    ? "bg-forest text-white"
+                    : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
+                }`}
+              >
+                <span>{MODE_META[m].label}</span>
+                {m === mode ? (
+                  <span className="text-[10px] font-bold uppercase opacity-80">Active</span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <button
         type="button"
@@ -690,7 +810,7 @@ function UserFooter({
           </p>
           <p className="truncate text-[11px] font-medium text-ink-muted">{user.email}</p>
           <span className="mt-1 inline-flex rounded-full bg-leaf/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-            {ROLE_LABEL[user.role] ?? user.role.replace(/_/g, " ")}
+            {roleDisplayLabel(user.role)}
           </span>
         </div>
         <svg
@@ -716,7 +836,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [viewModeOverride, setViewModeOverride] = useState<"seeker" | "provider" | null>(null);
+  const [mode, setMode] = useState<WorkspaceMode>("seeker");
 
   useEffect(() => {
     if (!loading && !user) router.replace(loginUrl(pathname));
@@ -730,11 +850,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const storedCollapse = window.localStorage.getItem(COLLAPSE_KEY);
         if (storedCollapse === "1") setCollapsed(true);
-
-        const storedViewMode = window.localStorage.getItem(VIEW_MODE_KEY);
-        if (storedViewMode === "seeker" || storedViewMode === "provider") {
-          setViewModeOverride(storedViewMode);
-        }
       } catch {
         /* ignore */
       }
@@ -744,6 +859,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       active = false;
     };
   }, []);
+
+  // Resolve workspace mode from role + saved preference
+  useEffect(() => {
+    if (!user) return;
+    setMode(resolveMode(user, readStoredMode()));
+  }, [user]);
 
   useEffect(() => {
     let active = true;
@@ -783,38 +904,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
   }
 
-  const handleToggleViewMode = useCallback(() => {
-    setViewModeOverride((prev) => {
-      const next = prev === "seeker" ? "provider" : "seeker";
-      try {
-        window.localStorage.setItem(VIEW_MODE_KEY, next);
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }, []);
+  const modes = useMemo(() => availableModes(user), [user]);
 
-  const hasBothProfiles =
-    user?.role === "PROVIDER_ADMIN" ||
-    user?.role === "PROFESSIONAL" ||
-    Boolean(user?.provider || user?.professional);
+  const handleSelectMode = useCallback(
+    (next: WorkspaceMode) => {
+      setMode(next);
+      writeStoredMode(next);
+      const home = homeForMode(next);
+      // Land on that workspace's home so nav + content match
+      if (pathname !== home) router.push(home);
+    },
+    [pathname, router],
+  );
 
-  const isProvider =
-    viewModeOverride === "provider" ||
-    (viewModeOverride !== "seeker" &&
-      (user?.role === "PROVIDER_ADMIN" || user?.role === "PROFESSIONAL"));
-  const isAdmin = user?.role === "PLATFORM_ADMIN";
-  const isSeeker =
-    viewModeOverride === "seeker" ||
-    (viewModeOverride !== "provider" && Boolean(user && !isProvider && !isAdmin));
+  const isAdmin = mode === "admin";
+  const isProvider = mode === "practice";
+  const isStaff = mode === "staff";
+  const isSeeker = mode === "seeker";
+  const isCareers = mode === "careers";
 
   const groups = useMemo(() => {
     if (!user) return [];
-    if (isAdmin) return ADMIN_GROUPS;
-    if (isProvider) return PROVIDER_GROUPS;
+    if (mode === "admin") return ADMIN_GROUPS;
+    if (mode === "practice") return PROVIDER_GROUPS;
+    if (mode === "staff") return STAFF_GROUPS;
+    if (mode === "careers") return CAREERS_GROUPS;
     return CONSUMER_GROUPS;
-  }, [user, isAdmin, isProvider]);
+  }, [user, mode]);
 
   const chipNav = useMemo(() => {
     const items = groups.flatMap((g) => g.items).filter((i) => i.chip);
@@ -856,12 +972,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push("/");
   }
 
-  const hubLabel = isAdmin ? "Admin console" : isProvider ? "Practice hub" : "Your wellness";
-  const hubSubtext = isAdmin
-    ? "Manage platform parameters & users"
-    : isProvider
-    ? "Grow & run your wellness practice"
-    : "Your personalized health sanctuary";
+  const hubLabel = MODE_META[mode].label;
+  const hubSubtext = MODE_META[mode].description;
 
   return (
     <div className="dash-shell flex bg-background">
@@ -912,15 +1024,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
                 {hubLabel}
               </p>
-              {isSeeker ? (
-                <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                  Seeker
-                </span>
-              ) : null}
+              <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+                {MODE_META[mode].short}
+              </span>
             </div>
             <p className="text-[10px] text-ink-muted/85 mt-0.5 font-medium leading-relaxed">
               {hubSubtext}
             </p>
+            {modes.length > 1 && !collapsed ? (
+              <div className="mt-2.5 flex flex-wrap gap-1">
+                {modes.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => handleSelectMode(m)}
+                    className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
+                      m === mode
+                        ? "bg-forest text-white"
+                        : "bg-clay/70 text-ink-secondary hover:bg-clay hover:text-forest"
+                    }`}
+                    title={MODE_META[m].description}
+                  >
+                    {MODE_META[m].short}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="my-2 h-px w-full bg-hairline" />
@@ -953,10 +1082,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             collapsed={collapsed}
             practiceName={practiceName}
             publicHref={publicHref}
-            isSeeker={isSeeker}
+            mode={mode}
+            modes={modes}
             onLogout={handleLogout}
-            hasBothProfiles={hasBothProfiles}
-            onToggleViewMode={handleToggleViewMode}
+            onSelectMode={handleSelectMode}
           />
         </div>
       </aside>
@@ -992,15 +1121,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
                   {hubLabel}
                 </p>
-                {isSeeker ? (
-                  <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                    Seeker
-                  </span>
-                ) : null}
+                <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+                  {MODE_META[mode].short}
+                </span>
               </div>
               <p className="text-[10px] text-ink-muted/85 mt-0.5 font-medium leading-relaxed">
                 {hubSubtext}
               </p>
+              {modes.length > 1 ? (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {modes.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        handleSelectMode(m);
+                        setMobileOpen(false);
+                      }}
+                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                        m === mode
+                          ? "bg-forest text-white"
+                          : "bg-clay/70 text-ink-secondary"
+                      }`}
+                    >
+                      {MODE_META[m].short}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="flex min-h-0 flex-1 flex-col">
               {isSeeker ? (
@@ -1033,11 +1181,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 user={user}
                 practiceName={practiceName}
                 publicHref={publicHref}
-                isSeeker={isSeeker}
+                mode={mode}
+                modes={modes}
                 onLogout={handleLogout}
                 onNavigate={() => setMobileOpen(false)}
-                hasBothProfiles={hasBothProfiles}
-                onToggleViewMode={handleToggleViewMode}
+                onSelectMode={handleSelectMode}
               />
             </div>
           </aside>
@@ -1061,7 +1209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {title}
               </p>
               <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
-                {isSeeker ? "Wellness seeker" : hubLabel}
+                {MODE_META[mode].label}
               </p>
             </div>
           </div>

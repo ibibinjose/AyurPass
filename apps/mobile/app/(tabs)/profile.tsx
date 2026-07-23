@@ -6,6 +6,7 @@ import { useCallback, useState } from "react";
 import {
   Alert,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -21,6 +22,7 @@ import { resolveMediaUrl } from "../../src/media";
 import { useHealthProfile, useLoyalty } from "../../src/hooks/useProfileExtras";
 import type { Dosha } from "../../src/dosha";
 import type { HealthProfile } from "../../src/types";
+import { isPracticeRole, isStaffRole, roleLabel } from "../../src/persona";
 import { colors } from "../../src/theme";
 
 function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: number; primary: Dosha } {
@@ -85,6 +87,10 @@ export default function Profile() {
   const scores = health ? toScores(health) : null;
   const avatarUri = resolveMediaUrl(user?.avatarUrl);
   const isPlatformAdmin = user?.role === "PLATFORM_ADMIN";
+  const showPracticeLink = isPracticeRole(user) || isStaffRole(user);
+  const webHub =
+    (process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://ayurpass.com") +
+    "/dashboard";
   const initials =
     user?.fullName
       ?.split(" ")
@@ -229,13 +235,11 @@ export default function Profile() {
               <Text className="shrink font-display text-[26px] text-white" numberOfLines={1}>
                 {user?.fullName ?? "Wellness seeker"}
               </Text>
-              {isPlatformAdmin ? (
-                <View className="rounded-full bg-white/20 px-2 py-0.5">
-                  <Text className="font-body-semi text-[10px] uppercase tracking-wide text-white">
-                    Admin
-                  </Text>
-                </View>
-              ) : null}
+              <View className="rounded-full bg-white/20 px-2 py-0.5">
+                <Text className="font-body-semi text-[10px] uppercase tracking-wide text-white">
+                  {roleLabel(user?.role)}
+                </Text>
+              </View>
             </View>
             <Text className="mt-1 font-body-medium text-sm text-white/85" numberOfLines={1}>
               {user?.email}
@@ -323,9 +327,24 @@ export default function Profile() {
             />
             <Row
               icon="briefcase-outline"
-              label="Careers"
+              label="Careers / jobs"
               onPress={() => router.push("/jobs")}
             />
+            {showPracticeLink ? (
+              <Row
+                icon="business-outline"
+                label={
+                  isPlatformAdmin
+                    ? "Open admin hub (web)"
+                    : isPracticeRole(user)
+                      ? "Open practice hub (web)"
+                      : "Open staff schedule (web)"
+                }
+                onPress={() => {
+                  void Linking.openURL(webHub);
+                }}
+              />
+            ) : null}
           </Card>
 
           <Pressable onPress={confirmLogout} className="mt-6 items-center py-3.5 active:opacity-70">

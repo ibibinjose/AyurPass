@@ -3,6 +3,9 @@
  * Only allows same-origin relative paths (blocks open redirects).
  */
 
+import { homeForUser } from "@/lib/persona";
+import type { UserProfile } from "@/lib/types";
+
 export function safeNextPath(path: string | null | undefined, fallback = "/dashboard"): string {
   if (!path) return fallback;
   const trimmed = path.trim();
@@ -10,6 +13,14 @@ export function safeNextPath(path: string | null | undefined, fallback = "/dashb
   // Block protocol-relative and scheme-like tricks
   if (trimmed.includes("://")) return fallback;
   return trimmed;
+}
+
+/**
+ * Where to send the user after login/register when `next` is absent.
+ * Platform admin → admin home · practice → hub · practitioner → calendar · seeker → dashboard.
+ */
+export function postAuthHome(user: UserProfile | null | undefined): string {
+  return homeForUser(user);
 }
 
 /** Build /login?next=… preserving the page the user was on. */

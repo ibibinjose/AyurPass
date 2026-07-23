@@ -10,13 +10,13 @@ import { AuthBanner } from "@/components/auth/AuthBanner";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 import { ApiError } from "@/lib/api";
-import { registerUrl, safeNextPath } from "@/lib/auth-redirect";
+import { postAuthHome, registerUrl, safeNextPath } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const search = useSearchParams();
-  const next = safeNextPath(search.get("next"), "/dashboard");
+  const nextParam = search.get("next");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,8 +28,12 @@ function LoginForm() {
     setError(null);
     setBusy(true);
     try {
-      await login(email.trim(), password);
-      router.push(next);
+      const profile = await login(email.trim(), password);
+      // Explicit ?next= wins; otherwise role-based home (admin / practice / seeker)
+      const dest = nextParam
+        ? safeNextPath(nextParam, postAuthHome(profile))
+        : postAuthHome(profile);
+      router.push(dest);
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       setError(
@@ -115,7 +119,7 @@ function LoginForm() {
 
           <p className="mt-6 text-center text-sm text-ink-muted">
             New to AyurPass?{" "}
-            <Link href={registerUrl(next)} className="font-semibold text-forest hover:underline">
+            <Link href={registerUrl(nextParam)} className="font-semibold text-forest hover:underline">
               Create an account
             </Link>
           </p>
