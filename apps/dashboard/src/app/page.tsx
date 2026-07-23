@@ -68,14 +68,14 @@ const PILLARS = [
     icon: LotusIcon,
     Art: YogaArt,
     name: "Yoga",
-    body: "Studios, private sessions and retreats matched to your constitution.",
+    body: "Studios, private sessions and retreats you can filter by goal and level.",
   },
   {
     href: "/discover?group=Spa",
     icon: FlameIcon,
     Art: SpaArt,
     name: "Luxury spa",
-    body: "Signature treatments from vetted spas, tagged for dosha fit.",
+    body: "Signature treatments from spas — many tagged for energy fit when you use the quiz.",
   },
   {
     href: "/discover?group=Meditation",
@@ -96,26 +96,19 @@ const PILLARS = [
 const STEPS = [
   {
     icon: CompassIcon,
-    title: "Discover your constitution",
-    body: "A guided Prakriti assessment maps Vata, Pitta and Kapha — the lens for every match.",
+    title: "Learn how you tick",
+    body: "A short quiz maps your energy pattern (called Prakriti in Ayurveda) — the filter for better matches.",
   },
   {
     icon: SparkleIcon,
     title: "Find the right places",
-    body: "Browse verified practices, retreats and sessions filtered by city, discipline and goals.",
+    body: "Browse practices, retreats and sessions by city, discipline and goals — free to explore.",
   },
   {
     icon: ShieldIcon,
     title: "Book with confidence",
-    body: "Health data stays private. Credentials and authority marks help you choose wisely.",
+    body: "Health data stays private. Practitioners can show credentials and authority marks on their profile.",
   },
-] as const;
-
-const TRUST = [
-  { label: "Disciplines", value: "5+" },
-  { label: "Free listings", value: "Open" },
-  { label: "Privacy-first", value: "Consent" },
-  { label: "Credentials", value: "Verified" },
 ] as const;
 
 const PROVIDER_PERKS = [
@@ -129,6 +122,7 @@ const TIERS: {
   price: string;
   cadence: string;
   blurb: string;
+  note?: string;
   features: string[];
   cta: string;
   href: string;
@@ -138,7 +132,7 @@ const TIERS: {
   {
     name: "Free listing",
     price: "$0",
-    cadence: "",
+    cadence: " forever",
     blurb: "Get discovered — no card required.",
     features: [
       "Public practice profile",
@@ -154,16 +148,15 @@ const TIERS: {
     price: "$369",
     cadence: "/month",
     highlight: true,
-    badge: "Most popular",
-    blurb: "For clinics & multi-practitioner studios.",
+    badge: "Clinic ops",
+    blurb: "Full booking stack for multi-practitioner clinics.",
+    note: "Built for clinics replacing separate booking + calendar tools. Start free; upgrade when you need online bookings.",
     features: [
       "Everything in Free",
-      "Bookable sessions & calendar",
-      "Team & rooms",
-      "Payments & analytics",
-      "Social media management",
-      "One Page WebSite",
-      "1 Podcast",
+      "Online bookings & availability",
+      "Team calendar, rooms & staff roles",
+      "Payments, reports & client records",
+      "Credential badges on your profile",
     ],
     cta: "Start free, upgrade later",
     href: "/list-your-business",
@@ -173,16 +166,45 @@ const TIERS: {
     price: "Custom",
     cadence: "",
     blurb: "Multi-location brands & franchises.",
+    note: "Marketing extras (sites, social, content) and white-label are scoped here — not bolted onto Growth.",
     features: [
       "Multi-location brands",
-      "White-label options",
-      "Dedicated success",
-      "Custom integrations",
+      "White-label & custom domains",
+      "Dedicated success partner",
+      "Integrations & marketing add-ons",
     ],
     cta: "Talk to us",
     href: "/contact",
   },
 ];
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+async function getMarketplaceStats(): Promise<{
+  practices: number;
+  practitioners: number;
+}> {
+  try {
+    const [providersRes, prosRes] = await Promise.all([
+      fetch(`${API_URL}/providers`, { next: { revalidate: 300 } }),
+      fetch(`${API_URL}/professionals`, { next: { revalidate: 300 } }),
+    ]);
+    const providers = providersRes.ok ? await providersRes.json() : [];
+    const pros = prosRes.ok ? await prosRes.json() : [];
+    return {
+      practices: Array.isArray(providers) ? providers.length : 0,
+      practitioners: Array.isArray(pros) ? pros.length : 0,
+    };
+  } catch {
+    return { practices: 0, practitioners: 0 };
+  }
+}
+
+function formatCount(n: number, minLabel: string): string {
+  if (n <= 0) return minLabel;
+  if (n >= 50) return `${Math.floor(n / 10) * 10}+`;
+  return `${n}+`;
+}
 
 function SearchDiscoverForm() {
   return (
@@ -214,7 +236,18 @@ function SearchDiscoverForm() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const stats = await getMarketplaceStats();
+  const practiceLabel = formatCount(stats.practices, "Growing");
+  const practitionerLabel = formatCount(stats.practitioners, "Open");
+
+  const trustStrip = [
+    { label: "Practices listed", value: practiceLabel },
+    { label: "Practitioners", value: practitionerLabel },
+    { label: "Disciplines", value: "5" },
+    { label: "Seeker access", value: "Free" },
+  ] as const;
+
   return (
     <LayoutWrapper>
       <main>
@@ -247,8 +280,14 @@ export default function Home() {
                 </h1>
 
                 <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-ink-secondary sm:text-lg">
-                  Find &amp; book verified Ayurveda, Yoga &amp; Wellness — clinics, studios, spas
-                  and retreats personalised by a guided Prakriti assessment.
+                  Find clinics, studios, spas and retreats that fit how your body works — not a
+                  one-size-fits-all list. A short quiz maps your energy pattern so matches feel
+                  personal.
+                </p>
+                <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-ink-muted">
+                  In Ayurveda that pattern is called{" "}
+                  <span className="text-ink-secondary">Prakriti</span> (Vata · Pitta · Kapha). New to
+                  it? Browse free first — jargon optional.
                 </p>
 
                 <div className="mt-8">
@@ -260,7 +299,7 @@ export default function Home() {
                     href="/register"
                     className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
                   >
-                    Take the dosha assessment
+                    Take the free quiz
                     <ArrowRightIcon className="h-4 w-4" />
                   </Link>
                   <Link
@@ -316,7 +355,8 @@ export default function Home() {
                         <ShieldIcon className="h-4 w-4" />
                       </span>
                       <p className="text-xs font-medium leading-snug text-ink-secondary">
-                        Verified credentials & authority marks on public profiles
+                        Practitioners can display credentials (e.g. AAA / local authority marks) on
+                        their public profile
                       </p>
                     </div>
                   </div>
@@ -324,9 +364,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Trust strip */}
+            {/* Trust strip — live marketplace stats when available */}
             <ul className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-              {TRUST.map((t) => (
+              {trustStrip.map((t) => (
                 <li
                   key={t.label}
                   className="rounded-2xl border border-hairline bg-surface/80 px-4 py-3.5 text-center backdrop-blur-sm"
@@ -340,6 +380,9 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+            <p className="mt-4 text-center text-xs font-medium text-ink-muted">
+              Privacy-first health data · Credential badges on profiles · Free to browse
+            </p>
           </div>
         </section>
 
@@ -397,8 +440,8 @@ export default function Home() {
                 Five paths, one journey
               </h2>
               <p className="mt-2 text-sm font-medium leading-relaxed text-ink-secondary sm:text-base">
-                Every offering is listed for authenticity and discovery — many tagged for dosha
-                compatibility.
+                One directory for classical and modern wellness. Listings stay discoverable; many
+                can be filtered by goals and energy fit when you use the quiz.
               </p>
             </div>
 
@@ -484,25 +527,25 @@ export default function Home() {
               ))}
             </ol>
 
-            {/* Dosha CTA band */}
+            {/* Dosha CTA band — plain language first */}
             <div className="mt-10 overflow-hidden rounded-3xl border border-hairline bg-surface shadow-[0_8px_28px_rgba(36,56,46,0.06)] sm:flex">
               <div className="flex flex-1 flex-col justify-center p-6 sm:p-8">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
-                  Prakriti
+                  Optional quiz
                 </p>
                 <h3 className="mt-1 font-display text-2xl text-forest">
-                  Know your dosha before you book
+                  Match places to how you feel day to day
                 </h3>
                 <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-ink-secondary">
-                  A short assessment maps Vata, Pitta and Kapha so recommendations and listings feel
-                  personal — not generic.
+                  A few minutes maps three energy patterns (Vata, Pitta, Kapha) so listings and tips
+                  can feel personal. Skip it anytime — browsing stays free.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link
                     href="/register"
                     className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-deep"
                   >
-                    Start assessment
+                    Start free quiz
                     <ArrowRightIcon className="h-4 w-4" />
                   </Link>
                   <Link
@@ -515,9 +558,9 @@ export default function Home() {
               </div>
               <div className="grid grid-cols-3 gap-px border-t border-hairline bg-hairline sm:w-64 sm:border-l sm:border-t-0">
                 {[
-                  { name: "Vata", color: "bg-[var(--vata)]", tone: "Air · space" },
-                  { name: "Pitta", color: "bg-[var(--pitta)]", tone: "Fire · water" },
-                  { name: "Kapha", color: "bg-[var(--kapha)]", tone: "Earth · water" },
+                  { name: "Vata", color: "bg-[var(--vata)]", tone: "Light · mobile" },
+                  { name: "Pitta", color: "bg-[var(--pitta)]", tone: "Warm · sharp" },
+                  { name: "Kapha", color: "bg-[var(--kapha)]", tone: "Steady · calm" },
                 ].map((d) => (
                   <div
                     key={d.name}
@@ -529,6 +572,37 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Verification made tangible */}
+            <div className="mt-8 rounded-2xl border border-hairline bg-surface/90 px-5 py-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-6">
+              <div className="flex gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest text-gold-soft">
+                  <ShieldIcon className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-bold text-forest">What “verified” means here</p>
+                  <p className="mt-1 text-sm font-medium leading-relaxed text-ink-secondary">
+                    Practices can show registration numbers and authority marks on their profile —
+                    including associations such as the{" "}
+                    <a
+                      href="https://www.ayurved.org.au/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-forest underline underline-offset-2 hover:text-forest-deep"
+                    >
+                      Australasian Association of Ayurveda (AAA)
+                    </a>
+                    . Always confirm credentials that matter to you before treatment.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/discover"
+                className="mt-4 inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-hairline px-4 text-sm font-semibold text-forest hover:border-leaf sm:mt-0"
+              >
+                Browse practices
+              </Link>
             </div>
           </div>
         </section>
@@ -556,8 +630,11 @@ export default function Home() {
                   Get discovered. Grow when you&apos;re ready.
                 </h2>
                 <p className="mt-4 leading-relaxed text-white/75">
-                  Start with a free public page in the AyurPass directory. Add bookable sessions,
-                  team calendars and payments when your practice needs them.
+                  Start with a free public page in the AyurPass directory
+                  {stats.practices > 0
+                    ? ` — alongside ${formatCount(stats.practices, "dozens of")} practices already listed`
+                    : ""}
+                  . Add bookable sessions, team calendars and payments only when you need them.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
                   {PROVIDER_PERKS.map((perk) => (
@@ -617,6 +694,13 @@ export default function Home() {
                       {t.cadence}
                     </span>
                   </p>
+                  {t.note ? (
+                    <p
+                      className={`mt-2 text-xs font-medium leading-relaxed ${t.highlight ? "text-ink-muted" : "text-white/50"}`}
+                    >
+                      {t.note}
+                    </p>
+                  ) : null}
                   <ul
                     className={`mt-5 flex-1 space-y-2.5 text-sm ${t.highlight ? "text-ink-secondary" : "text-white/75"}`}
                   >
@@ -644,7 +728,8 @@ export default function Home() {
               ))}
             </div>
             <p className="mt-10 text-center text-xs font-medium text-white/55">
-              Free listing forever · Paid plans only when you need bookings · Cancel anytime
+              Free listing forever · Growth is clinic booking software (~$12/day), not a marketing
+              agency · Cancel anytime
             </p>
             <p className="mt-3 text-center text-xs text-white/45">
               <Link href="/partners" className="underline-offset-2 hover:text-white/70 hover:underline">
@@ -668,7 +753,8 @@ export default function Home() {
               Ready when you are
             </h2>
             <p className="mx-auto mt-2 max-w-lg text-sm font-medium text-ink-secondary">
-              Browse the directory, take the dosha assessment, or list your practice in minutes.
+              Browse the directory free, take the optional energy quiz, or list your practice in
+              minutes.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <Link
