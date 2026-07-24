@@ -52,8 +52,8 @@ const OG_IMAGE = `/og-wellness.jpg?v=${BRAND_ASSET_VERSION}`;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
+    template: `%s | ${SITE_NAME}`,
     default: SITE_TITLE_DEFAULT,
-    template: "%s | AyurPass",
   },
   description: SITE_TAGLINE,
   keywords: DEFAULT_KEYWORDS,

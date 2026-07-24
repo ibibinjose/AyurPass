@@ -32,6 +32,13 @@ export const DEFAULT_KEYWORDS = [
   "Health club",
   "Wellness directory",
   "wellness booking",
+  "Ayurvedic treatment near me",
+  "best yoga studios",
+  "wellness spa bookings",
+  "holistic health directory",
+  "Panchakarma centers",
+  "Ayurvedic massage",
+  "Yoga instructor",
 ];
 
 /** Absolute URL for a site-relative path — needed for canonical & OG tags. */
@@ -52,6 +59,7 @@ export function organizationJsonLd() {
     description: SITE_TAGLINE,
     logo: abs(`/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`),
     image: abs(`/brand/ayurpass-logo.png?v=${BRAND_ASSET_VERSION}`),
+    knowsAbout: ["Ayurveda", "Yoga", "Wellness", "Spa", "Meditation", "Holistic Health", "Panchakarma"],
   };
 }
 
