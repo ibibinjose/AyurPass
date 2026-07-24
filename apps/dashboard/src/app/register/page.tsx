@@ -22,6 +22,7 @@ const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
   { value: "MEDITATION_CENTER", label: "Meditation center" },
   { value: "HEALTH_CLUB", label: "Health club" },
   { value: "NUTRITIONIST", label: "Nutritionist" },
+  { value: "WELLNESS_KITCHEN", label: "Wellness kitchen / cooking school" },
   { value: "HYBRID", label: "Hybrid wellness center" },
 ];
 

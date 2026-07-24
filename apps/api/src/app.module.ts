@@ -37,6 +37,8 @@ import { MailModule } from './modules/mail/mail.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { EventsModule } from './modules/events/events.module';
+import { WellnessPassModule } from './modules/wellness-pass/wellness-pass.module';
 
 @Module({
   imports: [
@@ -88,6 +90,8 @@ import { JobsModule } from './modules/jobs/jobs.module';
     SearchModule,
     StaffModule,
     JobsModule,
+    EventsModule,
+    WellnessPassModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

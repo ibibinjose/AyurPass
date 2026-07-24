@@ -62,6 +62,7 @@ const PROVIDER_GROUPS: { label: string; types: ProviderType[]; icon: typeof Leaf
   { label: "Meditation", types: ["MEDITATION_CENTER"], icon: MoonIcon },
   { label: "Health Club", types: ["HEALTH_CLUB"], icon: UsersIcon },
   { label: "Nutrition", types: ["NUTRITIONIST"], icon: LeafIcon },
+  { label: "Cooking", types: ["WELLNESS_KITCHEN"], icon: SparkleIcon },
   { label: "Retreats", types: ["WELLNESS_RETREAT"], icon: CompassIcon },
 ];
 
@@ -72,6 +73,7 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   "MEDITATION",
   "FITNESS",
   "NUTRITION",
+  "COOKING",
   "COACHING",
   "CONSULTATION",
   "PACKAGE",

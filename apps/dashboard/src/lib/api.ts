@@ -48,6 +48,10 @@ import type {
   StaffMember,
   StaffMembershipSummary,
   StaffRole,
+  WellnessEvent,
+  EventTicket,
+  WellnessPass,
+  EventCategory,
 } from "./types";
 import { resolveMediaUrl } from "@/lib/media";
 
@@ -578,6 +582,70 @@ export const api = {
     request<Retreat>(`/retreats/${id}`, { method: "DELETE", auth: true }),
   curateRetreat: (id: string, data: { featured?: boolean; verificationStatus?: string }) =>
     request<Retreat>(`/retreats/${id}/curation`, { method: "PATCH", body: data, auth: true }),
+
+  // --- wellness events ---
+  events: (params?: {
+    q?: string;
+    category?: EventCategory | string;
+    city?: string;
+    country?: string;
+    from?: string;
+    to?: string;
+    free?: boolean;
+    providerId?: string;
+  }) => {
+    const s = new URLSearchParams();
+    if (params?.q) s.set("q", params.q);
+    if (params?.category) s.set("category", params.category);
+    if (params?.city) s.set("city", params.city);
+    if (params?.country) s.set("country", params.country);
+    if (params?.from) s.set("from", params.from);
+    if (params?.to) s.set("to", params.to);
+    if (params?.free) s.set("free", "1");
+    if (params?.providerId) s.set("providerId", params.providerId);
+    const qs = s.toString();
+    return request<WellnessEvent[]>(`/events${qs ? `?${qs}` : ""}`);
+  },
+  eventBySlug: (slug: string) => request<WellnessEvent>(`/events/slug/${slug}`),
+  event: (id: string) => request<WellnessEvent>(`/events/${id}`),
+  myEvents: () => request<WellnessEvent[]>("/events/mine", { auth: true }),
+  createEvent: (data: Record<string, unknown>) =>
+    request<WellnessEvent>("/events", { method: "POST", body: data, auth: true }),
+  updateEvent: (id: string, data: Record<string, unknown>) =>
+    request<WellnessEvent>(`/events/${id}`, { method: "PUT", body: data, auth: true }),
+  deleteEvent: (id: string) =>
+    request<{ id: string; deleted: boolean }>(`/events/${id}`, { method: "DELETE", auth: true }),
+  registerForEvent: (id: string, data?: { quantity?: number; notes?: string }) =>
+    request<EventTicket>(`/events/${id}/register`, { method: "POST", body: data ?? {}, auth: true }),
+  myEventTickets: () => request<EventTicket[]>("/events/tickets/mine", { auth: true }),
+  eventTickets: (eventId: string) =>
+    request<EventTicket[]>(`/events/${eventId}/tickets`, { auth: true }),
+  cancelEventTicket: (ticketId: string) =>
+    request<EventTicket>(`/events/tickets/${ticketId}/cancel`, { method: "POST", auth: true }),
+
+  // --- permanent wellness pass (Apple / Google Wallet) ---
+  myWellnessPass: () =>
+    request<
+      WellnessPass & {
+        qrPayload: string;
+        wallet: {
+          qrPayload: string;
+          apple: { available: boolean; passJson: unknown; downloadPath: string; note: string };
+          google: { available: boolean; object: unknown; saveUrl: string | null; note: string };
+        };
+        entitlements: {
+          upcomingBookings: Booking[];
+          upcomingTickets: EventTicket[];
+        };
+      }
+    >("/wellness-pass/me", { auth: true }),
+  issueWellnessPass: () => request<WellnessPass>("/wellness-pass/issue", { method: "POST", auth: true }),
+  scanWellnessPass: (payload: string, opts?: { eventId?: string; bookingId?: string }) =>
+    request<Record<string, unknown>>("/wellness-pass/scan", {
+      method: "POST",
+      body: { payload, ...opts },
+      auth: true,
+    }),
 
   // --- offers & promotions ---
   offers: (discipline?: string) =>

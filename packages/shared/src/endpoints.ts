@@ -70,6 +70,24 @@ export const endpoints = {
     providerJobs: (providerId: string) => `/providers/${providerId}/jobs` as const,
     myApplications: "/jobs/my-applications",
   },
+
+  events: {
+    list: "/events",
+    mine: "/events/mine",
+    myTickets: "/events/tickets/mine",
+    detail: (id: string) => `/events/${id}` as const,
+    bySlug: (slug: string) => `/events/slug/${slug}` as const,
+    register: (id: string) => `/events/${id}/register` as const,
+    tickets: (id: string) => `/events/${id}/tickets` as const,
+  },
+
+  wellnessPass: {
+    me: "/wellness-pass/me",
+    issue: "/wellness-pass/issue",
+    apple: "/wellness-pass/wallet/apple",
+    google: "/wellness-pass/wallet/google",
+    scan: "/wellness-pass/scan",
+  },
 } as const;
 
 export type EndpointTree = typeof endpoints;

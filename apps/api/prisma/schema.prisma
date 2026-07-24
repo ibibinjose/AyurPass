@@ -67,6 +67,9 @@ model Consumer {
   orders            Order[]
   loyaltyAccount    LoyaltyAccount?
   clientRecords     ClientRecord[]
+  /** Permanent AyurPass wallet identity — one per seeker. */
+  wellnessPass      WellnessPass?
+  eventTickets      EventTicket[]
 }
 
 model Provider {
@@ -126,6 +129,7 @@ model Provider {
   clientRecords     ClientRecord[]
   staff             ProviderStaff[]
   jobListings       JobListing[]
+  wellnessEvents    WellnessEvent[]
 }
 
 enum ProviderType {
@@ -139,6 +143,8 @@ enum ProviderType {
   HEALTH_CLUB
   NUTRITIONIST
   COACHING
+  /** Ayurvedic / plant-based / mindful cooking kitchens & schools. */
+  WELLNESS_KITCHEN
   HYBRID
 }
 
@@ -356,6 +362,8 @@ enum ServiceCategory {
   COACHING
   CONSULTATION
   PACKAGE
+  /** Wellness cooking classes (Ayurvedic, plant-based, mindful kitchen). */
+  COOKING
 }
 
 model Booking {
@@ -370,6 +378,15 @@ model Booking {
   provider            Provider  @relation(fields: [providerId], references: [id])
   roomId              String?
   room                Room?     @relation(fields: [roomId], references: [id])
+  /**
+   * Permanent Wellness Pass this appointment is linked to (for Apple/Google Wallet + door scan).
+   */
+  wellnessPassId      String?
+  wellnessPass        WellnessPass? @relation(fields: [wellnessPassId], references: [id], onDelete: SetNull)
+  /** Unique scan token embedded in wallet / QR for this appointment entitlement. */
+  checkInToken        String?   @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 12))"))
+  checkedInAt         DateTime?
+  checkedInByUserId   String?
   startTime           DateTime
   endTime             DateTime
   timezone            String?
@@ -390,6 +407,9 @@ model Booking {
   createdAt           DateTime  @default(now())
   paymentMethod       PaymentMethod?
   posTransactionId    String?
+
+  @@index([wellnessPassId])
+  @@index([checkInToken])
 }
 
 model Room {
@@ -840,4 +860,175 @@ enum ApplicationStatus {
   SHORTLISTED
   REJECTED
   HIRED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wellness Events + permanent Wellness Pass (Apple / Google Wallet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Short-form wellness events providers host:
+ * workshops, cooking classes, sound baths, open days, community circles.
+ * Distinct from multi-day Retreats.
+ */
+model WellnessEvent {
+  id                 String        @id @default(uuid())
+  code               String        @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 7))"))
+  slug               String        @unique
+  providerId         String
+  provider           Provider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  hostProfessionalId String?
+  title              String
+  summary            String?
+  description        String?
+  category           EventCategory
+  /** Free-form tags, e.g. ["dosha-balancing", "family-friendly"]. */
+  tags               Json?
+  startTime          DateTime
+  endTime            DateTime
+  timezone           String?
+  isVirtual          Boolean       @default(false)
+  meetingUrl         String?
+  venueName          String?
+  address            Json?
+  capacity           Int?
+  waitlistEnabled    Boolean       @default(true)
+  price              Decimal       @default(0) @db.Decimal(10, 2)
+  currency           String        @default("AUD")
+  isFree             Boolean       @default(false)
+  images             Json?
+  coverImageUrl      String?
+  whatToBring        Json?
+  inclusions         Json?
+  skillLevel         String?
+  status             EventStatus   @default(DRAFT)
+  publishedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  tickets            EventTicket[]
+
+  @@index([providerId, startTime])
+  @@index([category, startTime])
+  @@index([status, startTime])
+}
+
+enum EventCategory {
+  AYURVEDA
+  YOGA
+  SPA
+  MEDITATION
+  FITNESS
+  NUTRITION
+  COACHING
+  COOKING_CLASS
+  SOUND_HEALING
+  COMMUNITY
+  WORKSHOP
+  OPEN_DAY
+  RETREAT_PREVIEW
+  OTHER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum TicketStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CANCELLED
+  REFUNDED
+  NO_SHOW
+  WAITLISTED
+}
+
+/**
+ * Permanent digital identity for a wellness seeker.
+ * One pass per consumer — survives across appointments and event tickets.
+ * Backed by Apple Wallet / Google Wallet when credentials are configured;
+ * always has a scannable QR payload for venue check-in.
+ */
+model WellnessPass {
+  id              String    @id @default(uuid())
+  consumerId      String    @unique
+  consumer        Consumer  @relation(fields: [consumerId], references: [userId], onDelete: Cascade)
+  /** Human-readable serial, e.g. AP-7F3A2C1 */
+  serialNumber    String    @unique @default(dbgenerated("('AP-' || upper(substr(md5(random()::text), 1, 7)))"))
+  /**
+   * Stable public token embedded in wallet barcode / QR.
+   * Format: AYPASS:{serial}:{secret}
+   */
+  publicToken     String    @unique @default(dbgenerated("md5(random()::text || clock_timestamp()::text)"))
+  status          String    @default("ACTIVE") // ACTIVE | SUSPENDED | REVOKED
+  holderName      String?
+  /** Apple Wallet pass type identifier when using real certs. */
+  applePassTypeId String?
+  appleSerial     String?
+  /** Google Wallet object id when issued. */
+  googleObjectId  String?
+  appleUpdatedAt  DateTime?
+  googleUpdatedAt DateTime?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tickets         EventTicket[]
+  bookings        Booking[]
+  scanLogs        PassScanLog[]
+
+  @@index([serialNumber])
+  @@index([publicToken])
+}
+
+model EventTicket {
+  id                String        @id @default(uuid())
+  code              String        @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 8))"))
+  eventId           String
+  event             WellnessEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  consumerId        String
+  consumer          Consumer      @relation(fields: [consumerId], references: [userId], onDelete: Cascade)
+  wellnessPassId    String?
+  wellnessPass      WellnessPass? @relation(fields: [wellnessPassId], references: [id], onDelete: SetNull)
+  status            TicketStatus  @default(CONFIRMED)
+  quantity          Int           @default(1)
+  totalAmount       Decimal       @default(0) @db.Decimal(10, 2)
+  currency          String        @default("AUD")
+  paymentStatus     String        @default("unpaid") // unpaid | paid | free | refunded
+  paymentIntentId   String?
+  /** Unique scan token for this ticket (also listed on the permanent pass). */
+  checkInToken      String        @unique @default(dbgenerated("upper(substr(md5(random()::text), 1, 12))"))
+  checkedInAt       DateTime?
+  checkedInByUserId String?
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([eventId, consumerId])
+  @@index([eventId, status])
+  @@index([consumerId])
+  @@index([wellnessPassId])
+  @@index([checkInToken])
+}
+
+/** Audit trail when a provider scans a pass / ticket / booking QR. */
+model PassScanLog {
+  id             String        @id @default(uuid())
+  wellnessPassId String?
+  wellnessPass   WellnessPass? @relation(fields: [wellnessPassId], references: [id], onDelete: SetNull)
+  providerId     String?
+  scannedByUserId String?
+  /** booking | ticket | pass */
+  targetKind     String
+  targetId       String?
+  result         String        // ok | already_checked_in | invalid | expired | wrong_venue
+  rawPayload     String?
+  createdAt      DateTime      @default(now())
+
+  @@index([wellnessPassId, createdAt])
+  @@index([providerId, createdAt])
 }

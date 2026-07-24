@@ -11,6 +11,7 @@ export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   HEALTH_CLUB: "Health Club",
   NUTRITIONIST: "Nutritionist",
   COACHING: "Health & Lifestyle Coach",
+  WELLNESS_KITCHEN: "Wellness Kitchen",
   HYBRID: "Wellness Center",
 };
 
@@ -24,6 +25,7 @@ export const CATEGORY_LABEL: Record<ServiceCategory, string> = {
   COACHING: "Coaching",
   CONSULTATION: "Consultation",
   PACKAGE: "Package",
+  COOKING: "Cooking Class",
 };
 
 /** Tag colors per category — muted washes so text stays readable. */
@@ -37,7 +39,27 @@ export const CATEGORY_TAG_CLASS: Record<ServiceCategory, string> = {
   COACHING: "bg-gold-soft text-forest",
   CONSULTATION: "bg-gold-soft text-forest",
   PACKAGE: "bg-forest text-white",
+  COOKING: "bg-gold-soft text-forest",
 };
+
+export const EVENT_CATEGORY_LABEL: Record<string, string> = {
+  AYURVEDA: "Ayurveda",
+  YOGA: "Yoga",
+  SPA: "Spa",
+  MEDITATION: "Meditation",
+  FITNESS: "Fitness",
+  NUTRITION: "Nutrition",
+  COACHING: "Coaching",
+  COOKING_CLASS: "Cooking Class",
+  SOUND_HEALING: "Sound Healing",
+  COMMUNITY: "Community",
+  WORKSHOP: "Workshop",
+  OPEN_DAY: "Open Day",
+  RETREAT_PREVIEW: "Retreat Preview",
+  OTHER: "Other",
+};
+
+export const EVENT_CATEGORIES = Object.keys(EVENT_CATEGORY_LABEL);
 
 export const RETREAT_CATEGORY_LABEL: Record<RetreatCategory, string> = {
   YOGA_RETREAT: "Yoga Retreat",
@@ -63,7 +85,9 @@ export const OFFER_DISCIPLINES = [
   "Meditation",
   "Health Club",
   "Nutrition",
+  "Cooking",
   "Retreat",
+  "Events",
   "Coaching",
   "General",
 ] as const;

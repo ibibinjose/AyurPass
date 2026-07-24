@@ -112,6 +112,13 @@ const CONSUMER_GROUPS: NavGroup[] = [
         hint: "Oils & formulations",
       },
       {
+        href: "/events",
+        label: "Events",
+        icon: FlameIcon,
+        hint: "Classes, workshops & open days",
+        chip: true,
+      },
+      {
         href: "/retreats",
         label: "Retreats",
         icon: MoonIcon,
@@ -129,6 +136,14 @@ const CONSUMER_GROUPS: NavGroup[] = [
   {
     label: "My wellness",
     items: [
+      {
+        href: "/dashboard/pass",
+        label: "Wellness Pass",
+        shortLabel: "Pass",
+        icon: TrophyIcon,
+        hint: "Apple & Google Wallet",
+        chip: true,
+      },
       {
         href: "/dashboard/bookings",
         label: "My bookings",
@@ -260,6 +275,13 @@ const PROVIDER_GROUPS: NavGroup[] = [
         hint: "Bookable sessions",
       },
       { href: "/dashboard/packages", label: "Packages", icon: SparkleIcon, hint: "Bundled sessions" },
+      {
+        href: "/dashboard/events",
+        label: "Events",
+        icon: FlameIcon,
+        chip: true,
+        hint: "Host workshops & classes",
+      },
       { href: "/dashboard/retreats", label: "Retreats", icon: MoonIcon, hint: "Sanctuary escapes" },
       { href: "/dashboard/products", label: "Products", icon: LotusIcon, hint: "Store inventory" },
     ],
@@ -274,6 +296,13 @@ const PROVIDER_GROUPS: NavGroup[] = [
         icon: MailIcon,
         chip: true,
         hint: "Client messaging",
+      },
+      {
+        href: "/dashboard/scan",
+        label: "Scan Pass",
+        icon: SearchIcon,
+        chip: true,
+        hint: "Door & desk check-in",
       },
       { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon, hint: "Accept payments" },
       { href: "/dashboard/payments", label: "Payments", icon: TrophyIcon, hint: "Counter checkouts" },

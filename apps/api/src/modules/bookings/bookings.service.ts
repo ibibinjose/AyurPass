@@ -132,10 +132,36 @@ export class BookingsService {
       roomId: data.roomId,
     });
 
+    // Link to permanent Wellness Pass (Apple/Google Wallet identity).
+    let wellnessPassId: string | undefined;
+    try {
+      const consumer = await this.prisma.consumer.findUnique({
+        where: { userId: data.consumerId },
+        include: {
+          wellnessPass: true,
+          user: { select: { fullName: true } },
+        },
+      });
+      if (consumer?.wellnessPass) {
+        wellnessPassId = consumer.wellnessPass.id;
+      } else if (consumer) {
+        const pass = await this.prisma.wellnessPass.create({
+          data: {
+            consumerId: data.consumerId,
+            holderName: consumer.user?.fullName || null,
+          },
+        });
+        wellnessPassId = pass.id;
+      }
+    } catch {
+      /* pass linking is best-effort — never block booking */
+    }
+
     const booking = await this.prisma.booking.create({
       data: {
         ...data,
         professionalId,
+        wellnessPassId,
         totalAmount: finalTotalAmount,
         taxAmount: tax.amount,
         taxRate: tax.rate,

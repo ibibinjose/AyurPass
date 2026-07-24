@@ -21,6 +21,7 @@ export const PROVIDER_TYPE_LABEL: Record<ProviderType, string> = {
   HEALTH_CLUB: "Health Club",
   NUTRITIONIST: "Nutritionist",
   COACHING: "Coaching",
+  WELLNESS_KITCHEN: "Wellness Kitchen",
   HYBRID: "Wellness Center",
 };
 
@@ -34,6 +35,24 @@ export const SERVICE_CATEGORY_LABEL: Record<ServiceCategory, string> = {
   COACHING: "Coaching",
   CONSULTATION: "Consultation",
   PACKAGE: "Package",
+  COOKING: "Cooking Class",
+};
+
+export const EVENT_CATEGORY_LABEL: Record<string, string> = {
+  AYURVEDA: "Ayurveda",
+  YOGA: "Yoga",
+  SPA: "Spa",
+  MEDITATION: "Meditation",
+  FITNESS: "Fitness",
+  NUTRITION: "Nutrition",
+  COACHING: "Coaching",
+  COOKING_CLASS: "Cooking Class",
+  SOUND_HEALING: "Sound Healing",
+  COMMUNITY: "Community",
+  WORKSHOP: "Workshop",
+  OPEN_DAY: "Open Day",
+  RETREAT_PREVIEW: "Retreat Preview",
+  OTHER: "Other",
 };
 
 export const PROVIDER_TYPE_ICON: Record<ProviderType, IoniconName> = {
@@ -47,6 +66,7 @@ export const PROVIDER_TYPE_ICON: Record<ProviderType, IoniconName> = {
   HEALTH_CLUB: "barbell-outline",
   NUTRITIONIST: "nutrition-outline",
   COACHING: "compass-outline",
+  WELLNESS_KITCHEN: "restaurant-outline",
   HYBRID: "sparkles-outline",
 };
 
@@ -60,6 +80,7 @@ export const SERVICE_CATEGORY_ICON: Record<ServiceCategory, IoniconName> = {
   COACHING: "compass-outline",
   CONSULTATION: "chatbubbles-outline",
   PACKAGE: "gift-outline",
+  COOKING: "restaurant-outline",
 };
 
 /** Ordered legend for calendar colour codes */

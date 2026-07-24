@@ -26,6 +26,7 @@ export const PROVIDER_TYPE_ICON: Record<ProviderType, IconType> = {
   HEALTH_CLUB: DumbbellIcon,
   NUTRITIONIST: LeafIcon,
   COACHING: CoachIcon,
+  WELLNESS_KITCHEN: FlameIcon,
   HYBRID: SparkleIcon,
 };
 

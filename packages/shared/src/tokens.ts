@@ -51,6 +51,7 @@ export const serviceCategoryColor: Record<string, string> = {
   COACHING: "#5c6bc0", // indigo
   CONSULTATION: "#007aff", // system blue
   PACKAGE: "#a67a24", // gold
+  COOKING: "#c4782a", // kitchen amber
 };
 
 export const serviceCategoryColorSoft: Record<string, string> = {
@@ -63,6 +64,7 @@ export const serviceCategoryColorSoft: Record<string, string> = {
   COACHING: "#e8eaf6",
   CONSULTATION: "#e5f1ff",
   PACKAGE: "#f5edd9",
+  COOKING: "#f8ead8",
 };
 
 export function colorForServiceCategory(category?: string | null): string {

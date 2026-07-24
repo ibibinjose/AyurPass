@@ -13,6 +13,7 @@ export type ProviderType =
   | "HEALTH_CLUB"
   | "NUTRITIONIST"
   | "COACHING"
+  | "WELLNESS_KITCHEN"
   | "HYBRID";
 
 export type BookingStatus =
@@ -32,7 +33,36 @@ export type ServiceCategory =
   | "NUTRITION"
   | "COACHING"
   | "CONSULTATION"
-  | "PACKAGE";
+  | "PACKAGE"
+  | "COOKING";
+
+/** Short-form wellness events (workshops, cooking classes, open days…). */
+export type EventCategory =
+  | "AYURVEDA"
+  | "YOGA"
+  | "SPA"
+  | "MEDITATION"
+  | "FITNESS"
+  | "NUTRITION"
+  | "COACHING"
+  | "COOKING_CLASS"
+  | "SOUND_HEALING"
+  | "COMMUNITY"
+  | "WORKSHOP"
+  | "OPEN_DAY"
+  | "RETREAT_PREVIEW"
+  | "OTHER";
+
+export type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
+
+export type TicketStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CHECKED_IN"
+  | "CANCELLED"
+  | "REFUNDED"
+  | "NO_SHOW"
+  | "WAITLISTED";
 
 export type PaymentStatus = "unpaid" | "paid" | "refunded";
 
@@ -516,4 +546,72 @@ export interface JobApplication {
   adminNotes?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Permanent seeker identity pass for Apple/Google Wallet + venue scan. */
+export interface WellnessPass {
+  id: string;
+  consumerId: string;
+  serialNumber: string;
+  publicToken: string;
+  status: string;
+  holderName?: string | null;
+  qrPayload?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WellnessEvent {
+  id: string;
+  code?: string;
+  slug: string;
+  providerId: string;
+  hostProfessionalId?: string | null;
+  title: string;
+  summary?: string | null;
+  description?: string | null;
+  category: EventCategory;
+  tags?: string[] | null;
+  startTime: string;
+  endTime: string;
+  timezone?: string | null;
+  isVirtual: boolean;
+  meetingUrl?: string | null;
+  venueName?: string | null;
+  address?: BusinessAddress | null;
+  capacity?: number | null;
+  waitlistEnabled: boolean;
+  price: string | number;
+  currency: string;
+  isFree: boolean;
+  images?: string[] | null;
+  coverImageUrl?: string | null;
+  whatToBring?: string[] | null;
+  inclusions?: string[] | null;
+  skillLevel?: string | null;
+  status: EventStatus;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  provider?: Provider | null;
+  _count?: { tickets?: number };
+}
+
+export interface EventTicket {
+  id: string;
+  code: string;
+  eventId: string;
+  consumerId: string;
+  wellnessPassId?: string | null;
+  status: TicketStatus;
+  quantity: number;
+  totalAmount: string | number;
+  currency: string;
+  paymentStatus: string;
+  checkInToken: string;
+  checkedInAt?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  event?: WellnessEvent | null;
+  wellnessPass?: Pick<WellnessPass, "id" | "serialNumber" | "publicToken"> | null;
 }

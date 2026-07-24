@@ -24,6 +24,12 @@ export type {
   PaymentCheckout,
   PaymentModeConfig,
   StripeConnectStatus,
+  EventCategory,
+  EventStatus,
+  TicketStatus,
+  WellnessEvent,
+  EventTicket,
+  WellnessPass,
 } from "@ayurpass/shared";
 
 import type {
