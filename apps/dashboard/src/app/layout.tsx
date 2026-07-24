@@ -8,6 +8,7 @@ import { LocationModal } from "@/components/LocationModal";
 import { BRAND_ASSET_VERSION } from "@/lib/brand";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { DevEnvBanner } from "@/components/DevEnvBanner";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import {
   DEFAULT_KEYWORDS,
   organizationJsonLd,
@@ -110,6 +111,7 @@ export default function RootLayout({
             <AuthProvider>
               <LocationProvider>
                 <DevEnvBanner />
+                <InstallPrompt />
                 {children}
                 <LocationModal />
               </LocationProvider>
