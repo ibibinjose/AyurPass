@@ -317,6 +317,13 @@ export const api = {
     request<{ message: string }>("/auth/forgot-password", { method: "POST", body: { email } }),
   resetPassword: (token: string, password: string) =>
     request<{ message: string }>("/auth/reset-password", { method: "POST", body: { token, password } }),
+  verifyEmail: (token: string) =>
+    request<{ message: string; user?: UserProfile }>("/auth/verify-email", {
+      method: "POST",
+      body: { token },
+    }),
+  resendVerification: () =>
+    request<{ message: string }>("/auth/resend-verification", { method: "POST", auth: true }),
   /**
    * Create a free directory listing for the currently signed-in user
    * (no second account / password). Returns tokens when role is upgraded.

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
+import { CATEGORY_LABEL, formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { matchesDoshaText, type ActiveFilterChip } from "@/lib/directory";
 import type {
   Product,
@@ -24,7 +24,9 @@ import {
   FilterSearch,
   FilterSection,
   FilterStack,
+  useDirectoryDensity,
 } from "@/components/DirectoryLayout";
+import { DirectoryMapView, type MapMarkerItem } from "@/components/DirectoryMapView";
 import { ProviderCard } from "@/components/ProviderCard";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -40,6 +42,8 @@ import {
   SparkleIcon,
   UsersIcon,
 } from "@/components/icons";
+import { haversineKm, readCoordsFromAddress, type LatLng } from "@/lib/geo";
+import { practicePath, practitionerPath } from "@/lib/paths";
 
 type Tab = "providers" | "services" | "products" | "professionals";
 type ProSortKey = "recommended" | "rating" | "experience" | "name";
@@ -90,6 +94,9 @@ const URL_DEFAULTS = {
   verified: "",
   dosha: "",
   sort: "recommended",
+  /** Near-me coordinates (stringified for URL state). */
+  lat: "",
+  lng: "",
 };
 
 function sortProfessionals(list: Professional[], sort: ProSortKey): Professional[] {
@@ -171,7 +178,7 @@ function primaryDoshaName(scores: {
 function DiscoverInner() {
   const { user } = useAuth();
   const { countryName: activeCountryName, flag: activeFlag, openModal } = useLocation();
-  const { values, set, clear, sharePath } = useDirectoryUrlState(URL_DEFAULTS);
+  const { values, set, setMany, clear, sharePath } = useDirectoryUrlState(URL_DEFAULTS);
 
   const tab = (["providers", "services", "products", "professionals"].includes(values.tab)
     ? values.tab
@@ -197,7 +204,27 @@ function DiscoverInner() {
   const [error, setError] = useState(false);
   const [myDosha, setMyDosha] = useState<string | null>(null);
 
-  const nearMe = useNearMe((label) => set("loc", label));
+  const userCoords: LatLng | null = useMemo(() => {
+    const lat = Number(values.lat);
+    const lng = Number(values.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return { lat, lng };
+    }
+    return null;
+  }, [values.lat, values.lng]);
+
+  const nearMe = useNearMe(
+    useCallback(
+      (result) => {
+        setMany({
+          loc: result.label,
+          lat: String(result.lat),
+          lng: String(result.lng),
+        });
+      },
+      [setMany],
+    ),
+  );
 
   const load = useCallback(() => {
     setError(false);
@@ -276,8 +303,20 @@ function DiscoverInner() {
   const base = useMemo(() => {
     const filterProviders = (list: Provider[]) =>
       list.filter((p) => {
-        if (q && !includesText(p.businessName, q)) return false;
-        if (loc && !includesText(formatAddress(p.address), loc)) return false;
+        if (q) {
+          const typeLabel = PROVIDER_TYPE_LABEL[p.type] ?? p.type;
+          const hay = [
+            p.businessName,
+            typeLabel,
+            p.code ?? "",
+            formatAddress(p.address),
+            p.brandProfile?.about ?? "",
+            (p.brandProfile?.tags ?? []).join(" "),
+          ].join(" ");
+          if (!includesText(hay, q)) return false;
+        }
+        // When Near Me coords are set, don't hard-filter by city string — sort by distance instead.
+        if (loc && !userCoords && !includesText(formatAddress(p.address), loc)) return false;
         if (verifiedOnly && p.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
@@ -293,14 +332,21 @@ function DiscoverInner() {
 
     const filterServices = (list: Service[]) =>
       list.filter((s) => {
-        if (
-          q &&
-          !includesText(s.name, q) &&
-          !includesText(s.provider?.businessName ?? "", q) &&
-          !includesText(s.professional?.user?.fullName ?? "", q)
-        )
-          return false;
-        if (loc && !includesText(providerLocation(s.providerId), loc)) return false;
+        if (q) {
+          const cat = CATEGORY_LABEL[s.category] ?? s.category;
+          const hay = [
+            s.name,
+            s.description ?? "",
+            cat,
+            s.category,
+            s.code ?? "",
+            s.provider?.businessName ?? "",
+            s.professional?.user?.fullName ?? "",
+            providerLocation(s.providerId),
+          ].join(" ");
+          if (!includesText(hay, q)) return false;
+        }
+        if (loc && !userCoords && !includesText(providerLocation(s.providerId), loc)) return false;
         if (verifiedOnly && s.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
@@ -313,14 +359,18 @@ function DiscoverInner() {
 
     const filterProducts = (list: Product[]) =>
       list.filter((p) => {
-        if (
-          q &&
-          !includesText(p.name, q) &&
-          !includesText(p.provider?.businessName ?? "", q) &&
-          !includesText(p.category ?? "", q)
-        )
-          return false;
-        if (loc && !includesText(providerLocation(p.providerId), loc)) return false;
+        if (q) {
+          const hay = [
+            p.name,
+            p.description ?? "",
+            p.category ?? "",
+            p.code ?? "",
+            p.provider?.businessName ?? "",
+            providerLocation(p.providerId),
+          ].join(" ");
+          if (!includesText(hay, q)) return false;
+        }
+        if (loc && !userCoords && !includesText(providerLocation(p.providerId), loc)) return false;
         if (verifiedOnly && p.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
@@ -333,15 +383,22 @@ function DiscoverInner() {
 
     const filterProfessionals = (list: Professional[]) =>
       list.filter((prof) => {
-        if (
-          q &&
-          !includesText(prof.user?.fullName ?? "", q) &&
-          !includesText(prof.title ?? "", q) &&
-          !includesText(prof.specializations.join(" "), q) &&
-          !includesText(prof.provider?.businessName ?? "", q)
-        )
-          return false;
-        if (loc && !includesText(providerLocation(prof.providerId), loc)) return false;
+        if (q) {
+          const typeLabel = prof.provider?.type
+            ? PROVIDER_TYPE_LABEL[prof.provider.type] ?? prof.provider.type
+            : "";
+          const hay = [
+            prof.user?.fullName ?? "",
+            prof.title ?? "",
+            prof.specializations.join(" "),
+            prof.code ?? "",
+            prof.provider?.businessName ?? "",
+            typeLabel,
+            providerLocation(prof.providerId),
+          ].join(" ");
+          if (!includesText(hay, q)) return false;
+        }
+        if (loc && !userCoords && !includesText(providerLocation(prof.providerId), loc)) return false;
         if (verifiedOnly && prof.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
@@ -362,10 +419,18 @@ function DiscoverInner() {
       professionals: professionals ? filterProfessionals(professionals) : null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providers, services, products, professionals, q, loc, verifiedOnly, doshaOnly, myDosha]);
+  }, [providers, services, products, professionals, q, loc, userCoords, verifiedOnly, doshaOnly, myDosha]);
 
   const getProximityScore = useCallback(
-    (addrText?: string | null, isVirtual?: boolean) => {
+    (addr?: { city?: string; state?: string; country?: string; lat?: number | null; lng?: number | null } | null, isVirtual?: boolean) => {
+      const addrText = formatAddress(addr);
+      if (userCoords) {
+        const c = readCoordsFromAddress(addr);
+        if (c) return haversineKm(userCoords, c);
+        // No coords: soft-boost city string match, else deprioritise.
+        if (loc && addrText && includesText(addrText, loc.split(",")[0] || loc)) return 50;
+        return isVirtual ? 200 : 500;
+      }
       const targetCountry = (activeCountryName || "").toLowerCase();
       const targetCity = (loc || "").toLowerCase();
       if (!addrText) return isVirtual ? 1 : 2;
@@ -375,7 +440,7 @@ function DiscoverInner() {
       if (isVirtual) return 1;
       return 2;
     },
-    [activeCountryName, loc],
+    [activeCountryName, loc, userCoords],
   );
 
   const activeTypes = providerGroup
@@ -388,7 +453,7 @@ function DiscoverInner() {
     );
     if (!filtered) return null;
     return [...filtered].sort(
-      (a, b) => getProximityScore(formatAddress(a.address)) - getProximityScore(formatAddress(b.address)),
+      (a, b) => getProximityScore(a.address) - getProximityScore(b.address),
     );
   }, [base.providers, activeTypes, getProximityScore]);
 
@@ -399,10 +464,10 @@ function DiscoverInner() {
     if (!filtered) return null;
     return [...filtered].sort(
       (a, b) =>
-        getProximityScore(providerLocation(a.providerId), a.isVirtual) -
-        getProximityScore(providerLocation(b.providerId), b.isVirtual),
+        getProximityScore(providersById.get(a.providerId)?.address, a.isVirtual) -
+        getProximityScore(providersById.get(b.providerId)?.address, b.isVirtual),
     );
-  }, [base.services, serviceCategory, getProximityScore, providerLocation]);
+  }, [base.services, serviceCategory, getProximityScore, providersById]);
 
   const shownProducts = useMemo(() => {
     const filtered = base.products?.filter(
@@ -411,10 +476,10 @@ function DiscoverInner() {
     if (!filtered) return null;
     return [...filtered].sort(
       (a, b) =>
-        getProximityScore(providerLocation(a.providerId)) -
-        getProximityScore(providerLocation(b.providerId)),
+        getProximityScore(providersById.get(a.providerId)?.address) -
+        getProximityScore(providersById.get(b.providerId)?.address),
     );
-  }, [base.products, productCategory, getProximityScore, providerLocation]);
+  }, [base.products, productCategory, getProximityScore, providersById]);
 
   const professionalGroupTypes = providerGroup
     ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
@@ -432,10 +497,10 @@ function DiscoverInner() {
     const sorted = sortProfessionals(filtered, proSort);
     return [...sorted].sort(
       (a, b) =>
-        getProximityScore(providerLocation(a.providerId)) -
-        getProximityScore(providerLocation(b.providerId)),
+        getProximityScore(a.provider?.address ?? providersById.get(a.providerId)?.address) -
+        getProximityScore(b.provider?.address ?? providersById.get(b.providerId)?.address),
     );
-  }, [base.professionals, professionalGroupTypes, professionalGroup, proSort, getProximityScore, providerLocation]);
+  }, [base.professionals, professionalGroupTypes, professionalGroup, proSort, getProximityScore, providersById]);
 
   const productCategories = useMemo(() => {
     const set = new Set<string>();
@@ -526,8 +591,12 @@ function DiscoverInner() {
   const activeFilters: ActiveFilterChip[] = [];
   if (q)
     activeFilters.push({ id: "q", label: `“${q}”`, onRemove: () => set("q", "") });
-  if (loc)
-    activeFilters.push({ id: "loc", label: loc, onRemove: () => set("loc", "") });
+  if (loc || userCoords)
+    activeFilters.push({
+      id: "loc",
+      label: userCoords ? `Near me · ${loc || "your area"}` : loc,
+      onRemove: () => setMany({ loc: "", lat: "", lng: "" }),
+    });
   if (values.group)
     activeFilters.push({
       id: "group",
@@ -662,17 +731,21 @@ function DiscoverInner() {
                   onChange={(e) => set("q", e.target.value)}
                   placeholder={
                     tab === "professionals"
-                      ? "Name, title, specialisation…"
-                      : "Name, treatment…"
+                      ? "Name, title, category…"
+                      : tab === "products"
+                        ? "Product, brand, category…"
+                        : "Name, category, treatment…"
                   }
-                  aria-label="Search by name"
+                  aria-label="Search by name or category"
                 />
               </FilterSearch>
               <FilterSearch icon={<MapPinIcon className="h-4 w-4" />}>
                 <Input
                   value={location}
-                  onChange={(e) => set("loc", e.target.value)}
-                  placeholder="City or country"
+                  onChange={(e) => {
+                    setMany({ loc: e.target.value, lat: "", lng: "" });
+                  }}
+                  placeholder="City, region or country"
                   aria-label="Search by location"
                 />
               </FilterSearch>
@@ -831,7 +904,17 @@ function DiscoverInner() {
             <div className="flex items-center gap-2">
               <span className="text-base">{activeFlag}</span>
               <span>
-                Showing results prioritized closest to <strong>{activeCountryName}</strong>
+                {userCoords
+                  ? (
+                    <>
+                      Showing results nearest to <strong>{loc || "your location"}</strong>
+                    </>
+                  )
+                  : (
+                    <>
+                      Showing results prioritized closest to <strong>{activeCountryName}</strong>
+                    </>
+                  )}
               </span>
             </div>
             <button
@@ -842,110 +925,217 @@ function DiscoverInner() {
               Change Region
             </button>
           </div>
-          {tab === "providers" ? (
-        shownProviders && shownProviders.length > 0 ? (
-          <DirectoryResultGrid>
-            {shownProviders.map((p) => (
-              <ProviderCard key={p.id} provider={p} />
-            ))}
-          </DirectoryResultGrid>
-        ) : (
-          <EmptyState
-            title={filterActive ? "No practices match those filters" : "No practices yet"}
-            body="Try a broader search, a different discipline, or clear your location filter."
-            action={
-              filterActive ? (
-                <Button type="button" variant="ghost" onClick={clear}>
-                  Clear filters
-                </Button>
-              ) : undefined
-            }
+          <DiscoverResults
+            tab={tab}
+            filterActive={filterActive}
+            shownProviders={shownProviders}
+            shownServices={shownServices}
+            shownProducts={shownProducts}
+            shownProfessionals={shownProfessionals}
+            userCoords={userCoords}
+            proSort={proSort}
+            onClear={clear}
+            onBrowsePractices={() => set("tab", "providers")}
           />
-        )
-      ) : tab === "services" ? (
-        shownServices && shownServices.length > 0 ? (
-          <DirectoryResultGrid>
-            {shownServices.map((s) => (
-              <ServiceCard key={s.id} service={s} />
-            ))}
-          </DirectoryResultGrid>
-        ) : (
-          <EmptyState
-            title={filterActive ? "No sessions match those filters" : "No sessions yet"}
-            body="Try a broader search or clear filters."
-            action={
-              filterActive ? (
-                <Button type="button" variant="ghost" onClick={clear}>
-                  Clear filters
-                </Button>
-              ) : undefined
-            }
-          />
-        )
-      ) : tab === "products" ? (
-        shownProducts && shownProducts.length > 0 ? (
-          <DirectoryResultGrid>
-            {shownProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </DirectoryResultGrid>
-        ) : (
-          <EmptyState
-            title={filterActive ? "No products match those filters" : "No products yet"}
-            body="Try a broader search or clear filters."
-            action={
-              filterActive ? (
-                <Button type="button" variant="ghost" onClick={clear}>
-                  Clear filters
-                </Button>
-              ) : undefined
-            }
-          />
-        )
-      ) : shownProfessionals.length > 0 ? (
-        <>
-          {tab === "professionals" && !filterActive && shownProfessionals.length >= 4 ? (
-            <p className="mb-1 text-sm font-medium text-ink-muted">
-              Sorted by{" "}
-              <span className="font-semibold text-forest">
-                {PRO_SORT.find((s) => s.key === proSort)?.label ?? "Recommended"}
-              </span>
-              {" · "}
-              change sort above to prioritise ratings or experience.
-            </p>
-          ) : null}
-          <DirectoryResultGrid>
-            {shownProfessionals.map((prof) => (
-              <ProfessionalCard key={prof.id} professional={prof} />
-            ))}
-          </DirectoryResultGrid>
         </>
-      ) : (
-        <EmptyState
-          title={
-            filterActive ? "No practitioners match those filters" : "No practitioners yet"
-          }
-          body={
-            filterActive
-              ? "Try another discipline, clear location, or turn off Verified only."
-              : "Practitioners appear here once practices add their team."
-          }
-          action={
-            filterActive ? (
-              <Button type="button" variant="ghost" onClick={clear}>
-                Clear filters
-              </Button>
-            ) : (
-              <Button type="button" variant="soft" onClick={() => set("tab", "providers")}>
-                Browse practices
-              </Button>
-            )
-          }
-        />
-      )}
-      </>
       )}
     </DirectoryLayout>
+  );
+}
+
+function DiscoverResults({
+  tab,
+  filterActive,
+  shownProviders,
+  shownServices,
+  shownProducts,
+  shownProfessionals,
+  userCoords,
+  proSort,
+  onClear,
+  onBrowsePractices,
+}: {
+  tab: Tab;
+  filterActive: boolean;
+  shownProviders: Provider[] | null;
+  shownServices: Service[] | null;
+  shownProducts: Product[] | null;
+  shownProfessionals: Professional[];
+  userCoords: LatLng | null;
+  proSort: ProSortKey;
+  onClear: () => void;
+  onBrowsePractices: () => void;
+}) {
+  const density = useDirectoryDensity();
+
+  const mapItems: MapMarkerItem[] = useMemo(() => {
+    if (tab === "providers") {
+      return (shownProviders ?? []).map((p) => ({
+        id: p.id,
+        title: p.businessName,
+        subtitle: PROVIDER_TYPE_LABEL[p.type] ?? p.type,
+        href: practicePath(p),
+        address: p.address,
+        coords: readCoordsFromAddress(p.address),
+      }));
+    }
+    if (tab === "professionals") {
+      return shownProfessionals.map((prof) => ({
+        id: prof.id,
+        title: prof.user?.fullName || prof.title || "Practitioner",
+        subtitle: prof.provider?.businessName,
+        href:
+          prof.slug || prof.handle || prof.vanityHandle
+            ? practitionerPath(prof)
+            : prof.provider
+              ? practicePath(prof.provider)
+              : "/discover",
+        address: prof.provider?.address,
+        coords: readCoordsFromAddress(prof.provider?.address),
+      }));
+    }
+    if (tab === "services") {
+      return (shownServices ?? [])
+        .filter((s) => s.provider)
+        .map((s) => ({
+          id: s.id,
+          title: s.name,
+          subtitle: s.provider?.businessName,
+          href: `/book/${s.id}`,
+          address: undefined,
+          coords: null,
+        }));
+    }
+    return (shownProducts ?? [])
+      .filter((p) => p.provider)
+      .map((p) => ({
+        id: p.id,
+        title: p.name,
+        subtitle: p.provider?.businessName,
+        href: `/shop/${p.id}`,
+        address: undefined,
+        coords: null,
+      }));
+  }, [tab, shownProviders, shownProfessionals, shownServices, shownProducts]);
+
+  if (density === "map") {
+    return (
+      <DirectoryMapView
+        items={mapItems}
+        userCoords={userCoords}
+        emptyLabel="No locations match these filters"
+      />
+    );
+  }
+
+  if (tab === "providers") {
+    return shownProviders && shownProviders.length > 0 ? (
+      <DirectoryResultGrid>
+        {shownProviders.map((p) => (
+          <ProviderCard key={p.id} provider={p} />
+        ))}
+      </DirectoryResultGrid>
+    ) : (
+      <EmptyState
+        title={filterActive ? "No practices match those filters" : "No practices yet"}
+        body="Try a broader search, a different discipline, or clear your location filter."
+        action={
+          filterActive ? (
+            <Button type="button" variant="ghost" onClick={onClear}>
+              Clear filters
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
+  if (tab === "services") {
+    return shownServices && shownServices.length > 0 ? (
+      <DirectoryResultGrid>
+        {shownServices.map((s) => (
+          <ServiceCard key={s.id} service={s} />
+        ))}
+      </DirectoryResultGrid>
+    ) : (
+      <EmptyState
+        title={filterActive ? "No sessions match those filters" : "No sessions yet"}
+        body="Try a broader search or clear filters."
+        action={
+          filterActive ? (
+            <Button type="button" variant="ghost" onClick={onClear}>
+              Clear filters
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
+  if (tab === "products") {
+    return shownProducts && shownProducts.length > 0 ? (
+      <DirectoryResultGrid>
+        {shownProducts.map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
+      </DirectoryResultGrid>
+    ) : (
+      <EmptyState
+        title={filterActive ? "No products match those filters" : "No products yet"}
+        body="Try a broader search or clear filters."
+        action={
+          filterActive ? (
+            <Button type="button" variant="ghost" onClick={onClear}>
+              Clear filters
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  }
+
+  if (shownProfessionals.length > 0) {
+    return (
+      <>
+        {!filterActive && shownProfessionals.length >= 4 ? (
+          <p className="mb-1 text-sm font-medium text-ink-muted">
+            Sorted by{" "}
+            <span className="font-semibold text-forest">
+              {PRO_SORT.find((s) => s.key === proSort)?.label ?? "Recommended"}
+            </span>
+            {" · "}
+            change sort above to prioritise ratings or experience.
+          </p>
+        ) : null}
+        <DirectoryResultGrid>
+          {shownProfessionals.map((prof) => (
+            <ProfessionalCard key={prof.id} professional={prof} />
+          ))}
+        </DirectoryResultGrid>
+      </>
+    );
+  }
+
+  return (
+    <EmptyState
+      title={filterActive ? "No practitioners match those filters" : "No practitioners yet"}
+      body={
+        filterActive
+          ? "Try another discipline, clear location, or turn off Verified only."
+          : "Practitioners appear here once practices add their team."
+      }
+      action={
+        filterActive ? (
+          <Button type="button" variant="ghost" onClick={onClear}>
+            Clear filters
+          </Button>
+        ) : (
+          <Button type="button" variant="soft" onClick={onBrowsePractices}>
+            Browse practices
+          </Button>
+        )
+      }
+    />
   );
 }
 

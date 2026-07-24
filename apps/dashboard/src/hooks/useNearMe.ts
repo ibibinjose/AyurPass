@@ -2,13 +2,22 @@
 
 import { useCallback, useState } from "react";
 
+export type NearMeResult = {
+  label: string;
+  city: string;
+  country: string;
+  lat: number;
+  lng: number;
+};
+
 /**
- * Resolve browser geolocation → city/country string via Nominatim (OSM).
+ * Resolve browser geolocation → city/country + coords via Nominatim (OSM).
  * Used by directory "Near me" controls. Fails softly with a message.
  */
-export function useNearMe(onResolved: (label: string) => void) {
+export function useNearMe(onResolved: (result: NearMeResult) => void) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const locate = useCallback(() => {
     setError(null);
@@ -21,39 +30,76 @@ export function useNearMe(onResolved: (label: string) => void) {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
-          const res = await fetch(url, {
-            headers: { Accept: "application/json" },
+          setCoords({ lat: latitude, lng: longitude });
+
+          // Prefer reverse-geocode for a friendly city label; always keep coords.
+          let city = "";
+          let country = "";
+          try {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
+            const res = await fetch(url, {
+              headers: {
+                Accept: "application/json",
+                // Nominatim usage policy: identify the app.
+                "User-Agent": "AyurPass/1.0 (wellness directory)",
+              },
+            });
+            if (res.ok) {
+              const data = (await res.json()) as {
+                address?: {
+                  city?: string;
+                  town?: string;
+                  village?: string;
+                  municipality?: string;
+                  county?: string;
+                  state?: string;
+                  country?: string;
+                };
+              };
+              const a = data.address ?? {};
+              city = a.city || a.town || a.village || a.municipality || a.county || a.state || "";
+              country = a.country || "";
+            }
+          } catch {
+            /* reverse geocode optional */
+          }
+
+          const label =
+            [city, country].filter(Boolean).join(", ") ||
+            `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`;
+
+          onResolved({
+            label,
+            city,
+            country,
+            lat: latitude,
+            lng: longitude,
           });
-          if (!res.ok) throw new Error("lookup failed");
-          const data = (await res.json()) as {
-            address?: {
-              city?: string;
-              town?: string;
-              village?: string;
-              state?: string;
-              country?: string;
-            };
-          };
-          const a = data.address ?? {};
-          const city = a.city || a.town || a.village || a.state || "";
-          const country = a.country || "";
-          const label = [city, country].filter(Boolean).join(", ");
-          if (!label) throw new Error("empty");
-          onResolved(label);
         } catch {
-          setError("Couldn’t resolve your city. Try typing a location.");
+          setError("Couldn’t resolve your location. Try typing a city.");
         } finally {
           setBusy(false);
         }
       },
-      () => {
+      (err) => {
         setBusy(false);
-        setError("Location permission denied. Type a city instead.");
+        if (err.code === err.PERMISSION_DENIED) {
+          setError("Location permission denied. Type a city instead.");
+        } else if (err.code === err.TIMEOUT) {
+          setError("Location timed out. Try again or type a city.");
+        } else {
+          setError("Couldn’t get your location. Type a city instead.");
+        }
       },
-      { enableHighAccuracy: false, timeout: 12000, maximumAge: 300_000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 120_000 },
     );
   }, [onResolved]);
 
-  return { locate, busy, error, clearError: () => setError(null) };
+  return {
+    locate,
+    busy,
+    error,
+    coords,
+    clearError: () => setError(null),
+  };
 }

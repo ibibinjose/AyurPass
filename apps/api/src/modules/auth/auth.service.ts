@@ -128,30 +128,61 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const role = registerDto.role || 'CONSUMER';
 
     const user = await this.usersService.createUser({
       email: registerDto.email,
       fullName: registerDto.fullName,
-      role: registerDto.role || 'CONSUMER',
+      role,
       passwordHash: hashedPassword,
       phone: registerDto.phone,
+      emailVerifiedAt: null,
     });
 
-    if (registerDto.role === 'CONSUMER') {
+    const locationPrefs: Record<string, unknown> = {};
+    if (registerDto.city?.trim()) locationPrefs.city = registerDto.city.trim();
+    if (registerDto.country?.trim()) locationPrefs.country = registerDto.country.trim();
+    if (typeof registerDto.lat === 'number' && Number.isFinite(registerDto.lat)) {
+      locationPrefs.lat = registerDto.lat;
+    }
+    if (typeof registerDto.lng === 'number' && Number.isFinite(registerDto.lng)) {
+      locationPrefs.lng = registerDto.lng;
+    }
+
+    if (role === 'CONSUMER') {
+      const basePrefs =
+        registerDto.preferences && typeof registerDto.preferences === 'object'
+          ? (registerDto.preferences as Record<string, unknown>)
+          : {};
+      const preferences: Record<string, unknown> = { ...basePrefs };
+      if (Object.keys(locationPrefs).length) {
+        preferences.location = locationPrefs;
+      }
       await this.prisma.consumer.create({
         data: {
           userId: user.id,
           prakritiScores: registerDto.prakritiScores || {},
-          preferences: registerDto.preferences || {},
+          preferences: preferences as object,
         },
       });
-    } else if (registerDto.role === 'PROFESSIONAL' || registerDto.role === 'PROVIDER_ADMIN') {
+    } else if (role === 'PROFESSIONAL' || role === 'PROVIDER_ADMIN') {
+      const address =
+        Object.keys(locationPrefs).length > 0
+          ? {
+              city: (locationPrefs.city as string) || undefined,
+              country: (locationPrefs.country as string) || undefined,
+              lat: locationPrefs.lat as number | undefined,
+              lng: locationPrefs.lng as number | undefined,
+            }
+          : undefined;
+
       const provider = await this.prisma.provider.create({
         data: {
           userId: user.id,
           businessName: registerDto.businessName || `${registerDto.fullName}'s Practice`,
           type: registerDto.providerType || 'AYURVEDA_CLINIC',
           listingTier: registerDto.listingTier === 'FREE_LISTING' ? 'FREE_LISTING' : 'BOOKING',
+          ...(address ? { address } : {}),
         },
       });
 
@@ -165,7 +196,6 @@ export class AuthService {
         },
       });
 
-      // Create OWNER staff record for the provider creator
       await this.prisma.providerStaff.create({
         data: {
           providerId: provider.id,
@@ -178,8 +208,94 @@ export class AuthService {
       });
     }
 
+    // Fire-and-forget verification email (never block registration).
+    void this.sendVerificationEmail(user.id, user.email, user.fullName || 'there');
+
     const tokens = await this.generateTokens(user.id, user.email, user.role);
-    return { user: sanitizeUser(user), ...tokens };
+    return {
+      user: sanitizeUser(user),
+      ...tokens,
+      emailVerificationSent: true,
+    };
+  }
+
+  private emailVerifySecret(userId: string, email: string) {
+    return `${accessSecret()}:email-verify:${userId}:${email.toLowerCase()}`;
+  }
+
+  private async sendVerificationEmail(userId: string, email: string, fullName: string) {
+    try {
+      const token = this.jwtService.sign(
+        { sub: userId, email, purpose: 'email_verify' },
+        {
+          expiresIn: '48h',
+          secret: this.emailVerifySecret(userId, email),
+        },
+      );
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const verifyLink = `${frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+      await this.mailService.sendEmailVerification(email, fullName, verifyLink);
+    } catch (err) {
+      // Logged in mail service; registration must still succeed.
+    }
+  }
+
+  async verifyEmail(token: string) {
+    type VerifyPayload = { sub?: string; email?: string; purpose?: string };
+    let decoded: VerifyPayload | null = null;
+    try {
+      decoded = this.jwtService.decode(token) as VerifyPayload | null;
+    } catch {
+      throw new UnauthorizedException('Invalid verification link');
+    }
+    if (!decoded?.sub || !decoded?.email || decoded.purpose !== 'email_verify') {
+      throw new UnauthorizedException('Invalid verification link');
+    }
+
+    const user = await this.usersService.findById(decoded.sub);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.email.toLowerCase() !== decoded.email.toLowerCase()) {
+      throw new UnauthorizedException('Verification link does not match this account');
+    }
+    if (user.emailVerifiedAt) {
+      return {
+        message: 'Email already verified',
+        user: sanitizeUser(user),
+      };
+    }
+
+    try {
+      await this.jwtService.verifyAsync(token, {
+        secret: this.emailVerifySecret(user.id, user.email),
+      });
+    } catch {
+      throw new UnauthorizedException('Verification link is invalid or has expired');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date() },
+      include: {
+        consumer: true,
+        provider: true,
+        professional: { include: { provider: true } },
+      },
+    });
+
+    return {
+      message: 'Email verified successfully',
+      user: sanitizeUser(updated),
+    };
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.emailVerifiedAt) {
+      return { message: 'Email is already verified' };
+    }
+    await this.sendVerificationEmail(user.id, user.email, user.fullName || 'there');
+    return { message: 'Verification email sent' };
   }
 
   async login(email: string, password: string) {

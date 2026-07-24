@@ -45,6 +45,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             "Allow AyurPass to use the camera for your profile picture.",
         },
       ],
+      [
+        "expo-location",
+        {
+          locationWhenInUsePermission:
+            "Allow AyurPass to use your location to show practices near you.",
+        },
+      ],
       // Push: enable "Push Notifications" on the App ID in Apple Developer, then
       // re-add this plugin and regenerate the provisioning profile.
       // "expo-notifications",
@@ -76,6 +83,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           "AyurPass uses the camera so you can add a profile photo.",
         NSPhotoLibraryUsageDescription:
           "AyurPass needs photo library access so you can set a profile photo.",
+        NSLocationWhenInUseUsageDescription:
+          "AyurPass uses your location to show wellness practices near you.",
         ITSAppUsesNonExemptEncryption: false,
       },
       privacyManifests: {
@@ -101,6 +110,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "POST_NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
       ],
       intentFilters: [
         {

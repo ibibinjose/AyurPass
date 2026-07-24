@@ -65,6 +65,23 @@ export class RegisterDto {
 
   @IsOptional()
   preferences?: any;
+
+  /** Seeker / provider home city for Near Me defaults. */
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  country?: string;
+
+  @IsOptional()
+  lat?: number;
+
+  @IsOptional()
+  lng?: number;
 }
 
 export class LoginDto {
@@ -162,6 +179,22 @@ export class RegisterPayload {
 
   @IsOptional()
   preferences?: any;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  country?: string;
+
+  @IsOptional()
+  lat?: number;
+
+  @IsOptional()
+  lng?: number;
 }
 
 export class ForgotPasswordDto {
@@ -179,4 +212,10 @@ export class ResetPasswordDto {
   @MinLength(PASSWORD_MIN, { message: 'Password must be at least 8 characters' })
   @MaxLength(PASSWORD_MAX)
   password: string;
+}
+
+export class VerifyEmailDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
 }

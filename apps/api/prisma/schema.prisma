@@ -18,6 +18,8 @@ model User {
   role          Role
   fullName      String?
   avatarUrl     String?
+  /** When the user confirmed their email via the verification link. */
+  emailVerifiedAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

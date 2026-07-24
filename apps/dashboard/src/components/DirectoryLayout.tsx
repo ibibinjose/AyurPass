@@ -302,30 +302,28 @@ export function DirectoryLayout({
                   <div
                     className="inline-flex items-center rounded-full border border-[var(--separator)] bg-surface p-0.5"
                     role="group"
-                    aria-label="Result density"
+                    aria-label="Result view"
                   >
-                    <button
-                      type="button"
-                      onClick={() => setDensityMode("grid")}
-                      className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                        densityMode === "grid"
-                          ? "bg-forest text-white"
-                          : "text-ink-muted hover:text-foreground"
-                      }`}
-                    >
-                      Grid
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDensityMode("list")}
-                      className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                        densityMode === "list"
-                          ? "bg-forest text-white"
-                          : "text-ink-muted hover:text-foreground"
-                      }`}
-                    >
-                      List
-                    </button>
+                    {(
+                      [
+                        ["grid", "Grid"],
+                        ["list", "List"],
+                        ["map", "Map"],
+                      ] as const
+                    ).map(([mode, label]) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setDensityMode(mode)}
+                        className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                          densityMode === mode
+                            ? "bg-forest text-white"
+                            : "text-ink-muted hover:text-foreground"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -480,6 +478,10 @@ export function DirectoryResultGrid({
 }) {
   const ctx = useDirectoryDensity();
   const density = densityProp ?? ctx;
+  if (density === "map") {
+    // Map view renders its own layout; children still mount for accessibility fallbacks.
+    return <div className="flex w-full flex-col gap-3">{children}</div>;
+  }
   return (
     <div
       className={

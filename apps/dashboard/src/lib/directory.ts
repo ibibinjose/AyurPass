@@ -1,6 +1,6 @@
 /** Shared directory UX: URL state helpers, density, recent views, saved searches. */
 
-export type DensityMode = "grid" | "list";
+export type DensityMode = "grid" | "list" | "map";
 
 const DENSITY_KEY = "ayurpass.directory.density";
 const FILTERS_OPEN_KEY = "ayurpass.directory.filtersOpen";
@@ -37,7 +37,8 @@ export function readDensity(): DensityMode {
   if (typeof window === "undefined") return "grid";
   try {
     const v = window.localStorage.getItem(DENSITY_KEY);
-    return v === "list" ? "list" : "grid";
+    if (v === "list" || v === "map" || v === "grid") return v;
+    return "grid";
   } catch {
     return "grid";
   }

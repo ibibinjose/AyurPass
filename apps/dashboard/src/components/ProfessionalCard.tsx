@@ -149,7 +149,15 @@ export function ProfessionalCard({ professional }: { professional: Professional 
               <span className="truncate">{name}</span>
               {verified ? <VerifiedTick size="sm" /> : null}
             </h3>
-            <p className="mt-0.5 truncate text-sm font-medium text-ink-secondary">{title}</p>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm font-medium text-ink-secondary">
+              <span className="truncate">{title}</span>
+              {code ? (
+                <span className="inline-flex items-center gap-0.5 font-mono text-[10px] font-bold text-ink-muted">
+                  <Hash className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
+                  {code}
+                </span>
+              ) : null}
+            </p>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-ink-muted">
               {years != null && years > 0 ? (
                 <span className="rounded-full bg-clay px-2 py-0.5 tabular-nums">
@@ -284,7 +292,15 @@ export function ProfessionalCard({ professional }: { professional: Professional 
             <span className="truncate">{name}</span>
             {verified ? <VerifiedTick size="sm" /> : null}
           </h3>
-          <p className="mt-0.5 line-clamp-1 text-sm font-medium text-ink-secondary">{title}</p>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-ink-secondary">
+            <span className="line-clamp-1">{title}</span>
+            {code ? (
+              <span className="inline-flex items-center gap-0.5 rounded-full border border-dashed border-hairline bg-clay/40 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide text-ink-muted">
+                <Hash className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
+                {code}
+              </span>
+            ) : null}
+          </p>
         </div>
 
         {disciplineTags.length > 0 || authorities.length > 0 ? (

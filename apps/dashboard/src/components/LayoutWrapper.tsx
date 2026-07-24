@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { EmailVerifyBanner } from "./EmailVerifyBanner";
 
 interface LayoutWrapperProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
         Skip to content
       </a>
       <Navbar />
+      <EmailVerifyBanner />
       <div
         id="main-content"
         className="flex-grow pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:pb-0"

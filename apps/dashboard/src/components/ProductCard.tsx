@@ -55,23 +55,30 @@ export function ProductCard({
           alt=""
           fallback={<LotusIcon className="h-8 w-8 text-gold-soft/90" />}
           badge={
-            <>
-              {product.category ? (
-                <span className="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest shadow-sm">
-                  {product.category}
-                </span>
-              ) : null}
-              {soldOut ? (
-                <span className="rounded-full bg-ink-muted/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                  Sold out
-                </span>
-              ) : null}
-            </>
+            soldOut ? (
+              <span className="rounded-full bg-ink-muted/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                Sold out
+              </span>
+            ) : null
           }
         />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3 sm:p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
+              {(product.category || product.code) ? (
+                <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                  {product.category ? (
+                    <span className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+                      {product.category}
+                    </span>
+                  ) : null}
+                  {product.code ? (
+                    <span className="font-mono text-[10px] font-bold text-ink-muted">
+                      {formatCode(product.code)}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
               <h3 className="line-clamp-1 font-display text-base font-semibold text-forest sm:text-lg">
                 {product.name}
               </h3>
@@ -133,11 +140,6 @@ export function ProductCard({
           className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"
         />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-          {product.category ? (
-            <span className="rounded-full bg-surface/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-forest shadow-sm backdrop-blur-sm">
-              {product.category}
-            </span>
-          ) : null}
           {soldOut ? (
             <span className="rounded-full bg-ink-muted/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
               Sold out
@@ -148,14 +150,21 @@ export function ProductCard({
             </span>
           ) : null}
         </div>
-        {product.code ? (
-          <span className="absolute bottom-3 right-3 rounded-full bg-surface/95 px-2 py-1 font-mono text-[10px] font-semibold tracking-wide text-ink-muted shadow-sm backdrop-blur-sm">
-            {formatCode(product.code)}
-          </span>
-        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+          {product.category ? (
+            <span className="rounded-full bg-clay px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-forest">
+              {product.category}
+            </span>
+          ) : null}
+          {product.code ? (
+            <span className="inline-flex items-center rounded-full border border-dashed border-hairline bg-clay/40 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide text-ink-muted">
+              {formatCode(product.code)}
+            </span>
+          ) : null}
+        </div>
         <h3 className="type-title text-[1.125rem] leading-snug sm:text-xl">{product.name}</h3>
 
         {product.provider ? (

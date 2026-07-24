@@ -49,6 +49,8 @@ function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [providerType, setProviderType] = useState<ProviderType>("AYURVEDA_CLINIC");
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +59,10 @@ function RegisterForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!city.trim()) {
+      setError("Please add your city so we can show practices near you.");
+      return;
+    }
     setBusy(true);
     try {
       const profile = await register({
@@ -64,11 +70,13 @@ function RegisterForm() {
         password,
         fullName,
         role: kind === "provider" ? "PROVIDER_ADMIN" : "CONSUMER",
+        city: city.trim(),
+        country: country.trim() || undefined,
         ...(kind === "provider" ? { businessName, providerType } : {}),
       });
-      // New seekers → optional quiz; providers → practice hub; else role home
+      // New seekers → verify notice + quiz; providers → practice hub
       const fallback =
-        kind === "consumer" ? "/dashboard/assessment" : postAuthHome(profile);
+        kind === "consumer" ? "/dashboard/assessment?verify=1" : postAuthHome(profile);
       router.push(safeNextPath(nextParam, fallback));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
@@ -180,6 +188,26 @@ function RegisterForm() {
                 />
               </Field>
 
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="City" hint="Used for Near me & local results.">
+                  <Input
+                    required
+                    autoComplete="address-level2"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Melbourne"
+                  />
+                </Field>
+                <Field label="Country">
+                  <Input
+                    autoComplete="country-name"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    placeholder="Australia"
+                  />
+                </Field>
+              </div>
+
               <div>
                 <Field label="Password" hint="At least 8 characters.">
                   <PasswordInput
@@ -219,6 +247,9 @@ function RegisterForm() {
               <Button type="submit" disabled={busy} className="w-full">
                 {busy ? "Creating account…" : "Create account"}
               </Button>
+              <p className="text-center text-[11px] font-medium leading-relaxed text-ink-muted">
+                We’ll email a verification link to confirm your address. You can browse right away.
+              </p>
             </form>
           </div>
 

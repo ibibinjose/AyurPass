@@ -152,11 +152,6 @@ export function ProviderCard({ provider }: { provider: Provider }) {
         {verified ? (
           <VerifiedLogoBadge size="md" className="absolute right-2.5 top-2.5 z-[1]" />
         ) : null}
-        {provider.code ? (
-          <span className="absolute bottom-3 right-3 z-[1] rounded-full bg-surface/95 px-2 py-1 font-mono text-[10px] font-semibold tracking-wide text-ink-muted shadow-sm backdrop-blur-sm">
-            {formatCode(provider.code)}
-          </span>
-        ) : null}
         {brand?.priceBand ? (
           <span className="absolute bottom-3 left-3 z-[1] rounded-full bg-surface/95 px-2.5 py-1 text-xs font-bold text-forest shadow-sm backdrop-blur-sm">
             {brand.priceBand}
@@ -178,8 +173,13 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           {verified ? <VerifiedTick size="md" /> : null}
         </h3>
 
-        <p className="mt-1.5 text-sm font-medium text-ink-secondary">
-          {PROVIDER_TYPE_LABEL[provider.type] ?? provider.type}
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-ink-secondary">
+          <span>{PROVIDER_TYPE_LABEL[provider.type] ?? provider.type}</span>
+          {provider.code ? (
+            <span className="inline-flex items-center rounded-full border border-dashed border-hairline bg-clay/40 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide text-ink-muted">
+              {formatCode(provider.code)}
+            </span>
+          ) : null}
         </p>
 
         {location ? (

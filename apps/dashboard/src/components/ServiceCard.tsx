@@ -187,11 +187,6 @@ export function ServiceCard({
             {priceLabel}
           </span>
         </div>
-        {uniqueCode ? (
-          <span className="absolute bottom-3 right-3 rounded-full bg-surface/95 px-2 py-1 font-mono text-[10px] font-semibold tracking-wide text-ink-muted shadow-sm backdrop-blur-sm">
-            {uniqueCode}
-          </span>
-        ) : null}
       </div>
 
       <div className={`flex flex-1 flex-col ${compact ? "gap-2 p-4" : "gap-2.5 p-4 sm:p-5"}`}>
@@ -200,6 +195,17 @@ export function ServiceCard({
         </h3>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${CATEGORY_TAG_CLASS[service.category]}`}
+          >
+            {CATEGORY_LABEL[service.category]}
+          </span>
+          {uniqueCode ? (
+            <span className="inline-flex items-center gap-0.5 rounded-full border border-dashed border-hairline bg-clay/40 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide text-ink-muted">
+              <Hash className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
+              {uniqueCode.replace(/^#/, "")}
+            </span>
+          ) : null}
           <span className="inline-flex items-center rounded-full bg-clay px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-ink-secondary">
             {service.isVirtual ? "Virtual" : "In person"}
           </span>

@@ -10,6 +10,8 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -18,6 +20,7 @@ export default function Register() {
     if (!fullName.trim()) return setError("Please enter your name.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError("Please enter a valid email.");
     if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (!city.trim()) return setError("Please add your city for Near me results.");
 
     setBusy(true);
     try {
@@ -26,6 +29,8 @@ export default function Register() {
         email: email.trim(),
         password,
         role: "CONSUMER",
+        city: city.trim(),
+        country: country.trim() || undefined,
       });
       router.replace("/assessment");
     } catch (err) {
@@ -49,7 +54,7 @@ export default function Register() {
         <View className="mb-7 mt-6">
           <Display>Begin your journey</Display>
           <Body secondary className="mt-1.5">
-            Create an account and discover your dosha.
+            Create an account and discover your dosha. We’ll send a verification email.
           </Body>
         </View>
 
@@ -71,6 +76,20 @@ export default function Register() {
             placeholder="you@example.com"
           />
           <Field
+            label="City"
+            value={city}
+            onChangeText={setCity}
+            autoComplete="postal-address"
+            placeholder="Melbourne"
+          />
+          <Field
+            label="Country"
+            value={country}
+            onChangeText={setCountry}
+            autoComplete="country"
+            placeholder="Australia"
+          />
+          <Field
             label="Password"
             value={password}
             onChangeText={setPassword}
@@ -79,6 +98,9 @@ export default function Register() {
           />
           <ErrorNote message={error} />
           <Button title="Create account" onPress={onSubmit} loading={busy} />
+          <Text className="text-center font-body text-[12px] leading-5 text-ink-muted">
+            We’ll email a link to verify your address. You can browse immediately.
+          </Text>
         </View>
 
         <View className="mt-6 flex-row items-center justify-center gap-1">

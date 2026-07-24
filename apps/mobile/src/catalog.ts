@@ -88,3 +88,8 @@ export function formatAddress(address?: BusinessAddress | null): string | null {
   const parts = [address.city, address.state, address.country].filter(Boolean);
   return parts.length ? parts.join(", ") : null;
 }
+
+/** Render entity code badge, e.g. "#FEA8B75". */
+export function formatCode(code?: string | null): string {
+  return code ? `#${code}` : "";
+}

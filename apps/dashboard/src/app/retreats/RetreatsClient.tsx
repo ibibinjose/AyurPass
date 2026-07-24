@@ -148,7 +148,7 @@ function RetreatsInner({ initialQuery = "" }: { initialQuery?: string }) {
   const handpicked = values.handpicked === "1";
   const sort = (values.sort || "featured") as SortKey;
   const verifiedOnly = values.verified === "1";
-  const nearMe = useNearMe((label) => set("loc", label));
+  const nearMe = useNearMe((result) => set("loc", result.label));
 
   useEffect(() => {
     api

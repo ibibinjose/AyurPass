@@ -2,7 +2,14 @@ import { Controller, Post, Body, Get, Req, NotFoundException } from '@nestjs/com
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
-import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto } from '../../dtos/auth.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  RefreshTokenDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  VerifyEmailDto,
+} from '../../dtos/auth.dto';
 import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
@@ -21,6 +28,19 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('resend-verification')
+  async resendVerification(@Req() req: AuthedRequest) {
+    return this.authService.resendVerification(req.user.sub);
   }
 
   /**

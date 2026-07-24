@@ -311,6 +311,10 @@ export interface RegisterPayload extends SharedRegisterPayload {
   title?: string;
   specializations?: string[];
   bio?: string;
+  city?: string;
+  country?: string;
+  lat?: number;
+  lng?: number;
 }
 
 /** A lead captured from a provider's public listing page. */

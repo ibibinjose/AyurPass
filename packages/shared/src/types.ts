@@ -43,6 +43,8 @@ export interface User {
   role: Role;
   fullName?: string | null;
   avatarUrl?: string | null;
+  /** Set when the user has confirmed their email. Null = pending verification. */
+  emailVerifiedAt?: string | null;
   createdAt: string;
 }
 
@@ -135,6 +137,9 @@ export interface BusinessAddress {
   state?: string;
   postcode?: string;
   country?: string;
+  /** Optional WGS84 coordinates for map / Near Me. */
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface Provider {
@@ -409,6 +414,12 @@ export interface RegisterPayload {
   fullName: string;
   phone?: string;
   role?: Role;
+  /** City / suburb for seekers (stored on consumer preferences). */
+  city?: string;
+  /** Country name or ISO code. */
+  country?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface PaymentCheckout {
