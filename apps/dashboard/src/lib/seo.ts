@@ -13,10 +13,10 @@ export const SITE_NAME = "AyurPass";
 
 /** Primary brand promise — find *and* book trusted wellness. */
 export const SITE_TAGLINE =
-  "Find & book Ayurveda, Yoga & Wellness with verified practices worldwide.";
+  "Find & book Ayurveda, Yoga, Spa, Meditation & Wellness with verified practices worldwide.";
 
 export const SITE_TITLE_DEFAULT =
-  "AyurPass — Find & book Ayurveda, Yoga & Wellness";
+  "AyurPass — Global Ayurveda, Yoga & Wellness Booking";
 
 export const DEFAULT_KEYWORDS = [
   "Ayurveda",
@@ -39,7 +39,26 @@ export const DEFAULT_KEYWORDS = [
   "Panchakarma centers",
   "Ayurvedic massage",
   "Yoga instructor",
+  "wellness app",
+  "global wellness marketplace",
+  "book spa online",
+  "meditation classes near me",
+  "Ayurveda Australia",
+  "Ayurveda India",
+  "yoga UAE",
+  "wellness UK",
+  "wellness USA",
 ];
+
+/** Open Graph locales for a global English-first product. */
+export const OG_LOCALES = [
+  "en_AU",
+  "en_US",
+  "en_GB",
+  "en_IN",
+  "en_SG",
+  "en_AE",
+] as const;
 
 /** Absolute URL for a site-relative path — needed for canonical & OG tags. */
 export function abs(path: string): string {

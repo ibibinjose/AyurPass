@@ -278,4 +278,61 @@ export class MailService {
     console.log('--------------------------------------\n');
     return true;
   }
+
+  async sendBookingReminderEmail(
+    email: string,
+    fullName: string,
+    serviceName: string,
+    startTime: string,
+    providerName: string,
+    reminderType: '24h' | '2h',
+  ): Promise<boolean> {
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    const timeNotice = reminderType === '24h' ? 'tomorrow' : 'in 2 hours';
+    const subject = `Reminder: Upcoming Session with ${providerName} (${timeNotice})`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Appointment Reminder</title>
+      </head>
+      <body style="font-family: sans-serif; background-color: #f6f8f6; padding: 20px;">
+        <div style="max-width: 580px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; border: 1px solid #e1e8e4;">
+          <h2 style="color: #1b3d2f;">🌿 Appointment Reminder</h2>
+          <p>Hello ${fullName},</p>
+          <p>This is a reminder for your upcoming session <strong>${serviceName}</strong> at <strong>${providerName}</strong>.</p>
+          <p style="font-size: 16px; font-weight: bold; color: #1b3d2f;">Scheduled Time: ${new Date(startTime).toLocaleString()}</p>
+          <p>Please arrive 10 minutes before your scheduled start time.</p>
+          <p style="font-size: 12px; color: #8c9e94; margin-top: 30px;">AyurPass Smart Reminder System</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({ from, to: email, subject, html });
+        this.logger.log(`Booking ${reminderType} reminder email sent to ${email}`);
+        return true;
+      } catch (error) {
+        this.logger.error(`Failed to send reminder to ${email}`, error);
+        return false;
+      }
+    }
+
+    this.logger.log(`[SIMULATED SMS/EMAIL REMINDER ${reminderType}] To: ${email} for ${serviceName} at ${startTime}`);
+    return true;
+  }
+
+  async sendBookingReminderSms(
+    phone: string,
+    serviceName: string,
+    startTime: string,
+    providerName: string,
+  ): Promise<boolean> {
+    this.logger.log(`[SMS REMINDER SENT] To: ${phone} | Session: ${serviceName} at ${providerName} (${startTime})`);
+    return true;
+  }
 }

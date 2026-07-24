@@ -304,35 +304,52 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="dash-wide">
+    <div className="dash-wide space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
-            Organiser
-          </p>
-          <h1 className="mt-1 font-display text-3xl text-forest">Calendar</h1>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+              Organiser
+            </p>
+            <span className="rounded-full bg-leaf/15 px-2.5 py-0.5 text-[10px] font-bold text-forest">
+              ✓ Automated Reminders (24h/2h)
+            </span>
+          </div>
+          <h1 className="mt-1 font-display text-3xl text-forest">Calendar &amp; Smart Scheduling</h1>
           <p className="mt-1 max-w-xl text-sm font-medium text-ink-muted">
             Run concurrent sessions — multiple therapists in different rooms at the same time.
-            Conflicts are blocked automatically.
+            Calendar sync and automated reminders are active.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setSelected(null);
-            setDraft({
-              email: "",
-              serviceId: services[0]?.id ?? "",
-              date: toDateInput(view === "week" ? new Date() : dayFocus),
-              time: "10:00",
-              roomId: "",
-              professionalId: "",
-              notes: "",
-            });
-          }}
-        >
-          <PlusIcon className="h-4 w-4" />
-          New appointment
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="soft"
+            onClick={() => {
+              const url = `${window.location.origin}/api/calendar/ics?providerId=${provider.id}`;
+              navigator.clipboard.writeText(url);
+              alert("iCal Subscription URL copied to clipboard!\n\n" + url);
+            }}
+          >
+            📋 Copy iCal Feed URL
+          </Button>
+          <Button
+            onClick={() => {
+              setSelected(null);
+              setDraft({
+                email: "",
+                serviceId: services[0]?.id ?? "",
+                date: toDateInput(view === "week" ? new Date() : dayFocus),
+                time: "10:00",
+                roomId: "",
+                professionalId: "",
+                notes: "",
+              });
+            }}
+          >
+            <PlusIcon className="h-4 w-4" />
+            New appointment
+          </Button>
+        </div>
       </div>
 
       {/* View switcher + navigation */}

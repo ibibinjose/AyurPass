@@ -11,6 +11,7 @@ import { DevEnvBanner } from "@/components/DevEnvBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import {
   DEFAULT_KEYWORDS,
+  OG_LOCALES,
   organizationJsonLd,
   SITE_NAME,
   SITE_TAGLINE,
@@ -79,6 +80,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: "website",
     locale: "en_AU",
+    alternateLocale: [...OG_LOCALES.filter((l) => l !== "en_AU")],
     images: [
       {
         url: OG_IMAGE,
@@ -95,6 +97,13 @@ export const metadata: Metadata = {
     images: [OG_IMAGE],
   },
   robots: { index: true, follow: true },
+  category: "health",
+  other: {
+    "geo.region": "AU",
+    "geo.placename": "Global",
+    "application-name": SITE_NAME,
+    "apple-mobile-web-app-title": SITE_NAME,
+  },
 };
 
 export default function RootLayout({

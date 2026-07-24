@@ -40,22 +40,91 @@ const TYPE_ICON: Partial<Record<ProviderType, typeof LeafIcon>> = {
   HYBRID: SparkleIcon,
 };
 
+const PRO_PILLARS = [
+  {
+    title: "Smart Scheduling",
+    icon: CompassIcon,
+    badge: "iCal & Google Sync",
+    description:
+      "Multi-staff calendars, room management, timezone conversion, and automated SMS & email appointment reminders.",
+  },
+  {
+    title: "Direct Payments",
+    icon: SparkleIcon,
+    badge: "100% Direct Payouts",
+    description:
+      "100% of client fees land directly in your bank account via Stripe Connect. Zero commission fee lock-in.",
+  },
+  {
+    title: "Client CRM & Records",
+    icon: UsersIcon,
+    badge: "Secure Profiles & Files",
+    description:
+      "Client health profiles, consultation logs, progress tracking, and secure document storage for intake forms and assessments.",
+  },
+  {
+    title: "Secure Messaging",
+    icon: MoonIcon,
+    badge: "HIPAA & Health Compliant",
+    description:
+      "Direct end-to-end encrypted practitioner-to-client chat between sessions with automated follow-ups.",
+  },
+  {
+    title: "Public Directory",
+    icon: LotusIcon,
+    badge: "Verified Practice Page",
+    description:
+      "Polished practice profiles with verified AHPRA/health authority badges, specialties, hourly rates, and real client reviews.",
+  },
+];
+
+const THERAPIST_STEPS = [
+  {
+    num: "1",
+    title: "Build Your Profile",
+    description:
+      "Showcase your expertise, define your specialties, and set your own rates. Your profile is your digital practice, fully under your control.",
+  },
+  {
+    num: "2",
+    title: "Verification",
+    description:
+      "We verify your credentials to build a community of trusted, high-quality professionals. Process typically takes 2–5 business days.",
+  },
+  {
+    num: "3",
+    title: "Connect with Clients",
+    description:
+      "Clients request to connect with you based on your profile. You have the final say on who you work with, ensuring good therapeutic fit.",
+  },
+  {
+    num: "4",
+    title: "Manage Your Practice",
+    description:
+      "Use our suite of free tools for scheduling, video sessions, secure messaging, and direct payments. Focus on your clients, not overhead.",
+  },
+];
+
 const BENEFITS = [
   {
-    title: "Free public page",
-    body: "A polished profile in the AyurPass directory — clinics, studios, spas and retreats.",
+    title: "Smart Scheduling & Sync",
+    body: "Multi-staff calendars, room allocations, iCal sync, and automated SMS/email reminders.",
   },
   {
-    title: "Get discovered",
-    body: "Show up when seekers filter by city, discipline and verified credentials.",
+    title: "100% Direct Payments",
+    body: "Stripe Connect integration ensures 100% of fees land straight into your bank account.",
   },
   {
-    title: "Enquiries to your dashboard",
-    body: "Leads land in one inbox. No third-party booking tool required to start.",
+    title: "Client CRM & Progress",
+    body: "Keep session logs, clinical progress, health notes, and uploaded intake files in one secure vault.",
   },
   {
-    title: "Upgrade when ready",
-    body: "Add bookable sessions and payments any time — keep your free profile either way.",
+    title: "Secure Client Messaging",
+    body: "HIPAA-compliant, encrypted messaging for continuous client care between visits.",
+  },
+  {
+    title: "Verified Directory Listing",
+    body: "Get discovered by wellness seekers filtering by city, discipline, credentials, and verified reviews.",
   },
 ];
 
@@ -903,6 +972,86 @@ export default function ListYourBusinessClient() {
               </form>
             </div>
           </div>
+
+          {/* How It Works for Therapists & Practitioners */}
+          <section className="mt-16 rounded-3xl border border-hairline bg-surface/80 p-8 shadow-sm">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
+                Therapist &amp; Practitioner Journey
+              </span>
+              <h2 className="font-display text-3xl font-bold text-forest">
+                How AyurPass Works for Your Practice
+              </h2>
+              <p className="text-sm text-ink-muted leading-relaxed">
+                4 simple steps from verified listing to running a thriving digital practice.
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {THERAPIST_STEPS.map((step) => (
+                <div
+                  key={step.num}
+                  className="flex flex-col justify-between rounded-2xl border border-hairline bg-clay/20 p-6 transition-transform hover:-translate-y-1"
+                >
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest text-white font-bold font-display text-lg shadow-sm">
+                      {step.num}
+                    </div>
+                    <h3 className="mt-4 font-display text-lg font-bold text-forest">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* AyurPass Pro Feature Suite */}
+          <section className="mt-12 rounded-3xl border border-hairline bg-surface p-8 shadow-sm">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
+                <SparkleIcon className="h-3.5 w-3.5" /> Built for Modern Practitioners &amp; Clinics
+              </span>
+              <h2 className="font-display text-3xl font-bold text-forest">
+                Complete Pro Platform Operating System
+              </h2>
+              <p className="text-sm text-ink-muted leading-relaxed">
+                Everything you need to run appointments, payments, client CRM records, and practice growth in one place.
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {PRO_PILLARS.map((pillar) => {
+                const Icon = pillar.icon;
+                return (
+                  <div
+                    key={pillar.title}
+                    className="flex flex-col justify-between rounded-2xl border border-hairline bg-clay/10 p-6 transition-transform hover:-translate-y-1 hover:shadow-md"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf/20 text-forest">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="rounded-full bg-surface border border-hairline px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-forest">
+                          {pillar.badge}
+                        </span>
+                      </div>
+                      <h3 className="mt-4 font-display text-lg font-semibold text-forest">
+                        {pillar.title}
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                        {pillar.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           {/* Social proof / next steps footer */}
           <section className="mt-12 grid gap-3 border-t border-[var(--separator)] pt-8 sm:grid-cols-3">

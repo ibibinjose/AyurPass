@@ -6,3 +6,4 @@ export * from "./endpoints";
 export * from "./http";
 export * from "./query-keys";
 export * from "./ayurveda-treatments";
+export * from "./locale";

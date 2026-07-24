@@ -1,21 +1,29 @@
 {
+  "id": "/",
   "name": "AyurPass",
   "short_name": "AyurPass",
-  "description": "Find & book Ayurveda, Yoga & Wellness with verified practices worldwide.",
-  "start_url": "/",
+  "description": "Find & book Ayurveda, Yoga, Spa, Meditation and Wellness with verified practices worldwide.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#182720",
-  "theme_color": "#24382e",
+  "display_override": ["standalone", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#1e3228",
+  "theme_color": "#1e3228",
+  "categories": ["health", "lifestyle", "medical", "travel"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "512x512",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
+      "src": "/icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
@@ -24,6 +32,30 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "short_name": "Discover",
+      "description": "Find practices near you",
+      "url": "/discover?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calendar",
+      "short_name": "Calendar",
+      "description": "Your appointments and events",
+      "url": "/dashboard/bookings?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Wellness Pass",
+      "short_name": "Pass",
+      "description": "Your permanent wellness pass",
+      "url": "/dashboard/pass?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

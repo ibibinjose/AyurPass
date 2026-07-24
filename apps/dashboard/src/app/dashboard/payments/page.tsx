@@ -84,17 +84,21 @@ export default function PaymentsPage() {
 
   return (
     <div>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-forest">
-        <SparkleIcon className="h-3.5 w-3.5" />
-        Stripe Connect
-      </span>
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
-        Sales
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-forest">
+          <SparkleIcon className="h-3.5 w-3.5" />
+          100% Direct Payouts via Stripe Connect
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2.5 py-0.5 text-[11px] font-bold text-forest">
+          Zero Platform Commission
+        </span>
+      </div>
+      <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+        Sales &amp; Financials
       </p>
-      <h1 className="mt-1 font-display text-3xl text-forest">Payments &amp; payouts</h1>
-      <p className="mt-1 max-w-2xl text-ink-muted">
-        Accept card payments on AyurPass. Platform commission is collected automatically; the rest
-        pays out to your connected Stripe account.
+      <h1 className="mt-1 font-display text-3xl text-forest">Direct Payments &amp; Payouts</h1>
+      <p className="mt-1 max-w-2xl text-ink-muted leading-relaxed">
+        Accept online card payments for sessions, packages, and retreats. 100% of client fees land directly in your connected Stripe bank account with automated payout schedules.
       </p>
 
       {justConnected && (
