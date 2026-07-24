@@ -58,7 +58,12 @@ export const metadata: Metadata = {
   keywords: DEFAULT_KEYWORDS,
   applicationName: SITE_NAME,
   alternates: { canonical: "/" },
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AyurPass",
+  },
   icons: {
     icon: [
       { url: `/icon.png?v=${BRAND_ASSET_VERSION}`, sizes: "512x512", type: "image/png" },

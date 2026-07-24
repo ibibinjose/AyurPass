@@ -1,0 +1,16 @@
+{
+  "name": "AyurPass",
+  "short_name": "AyurPass",
+  "description": "Wellness Management Dashboard for Providers and Staff",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2F5A44",
+  "icons": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

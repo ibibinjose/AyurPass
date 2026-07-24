@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { loginUrl } from "@/lib/auth-redirect";
 import { api, tokenStore } from "@/lib/api";
@@ -421,18 +422,23 @@ export default function ListYourBusinessClient() {
     <LayoutWrapper>
       <div className="flex-1 pb-12">
         {/* Hero band */}
-        <section className="relative overflow-hidden border-b border-[var(--separator)]">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(47,90,68,0.14),_transparent_55%),radial-gradient(ellipse_at_top_right,_rgba(212,175,55,0.12),_transparent_50%),linear-gradient(180deg,var(--clay)_0%,var(--background)_75%)]"
+        <section className="relative min-h-[380px] overflow-hidden border-b border-[var(--separator)] flex flex-col justify-center">
+          <img
+            src="/images/heroes/spa.png"
+            alt="Wellness Practice"
+            className="absolute inset-0 h-full w-full object-cover opacity-70"
           />
-          <div className="page-shell relative !pb-8 !pt-8 sm:!pt-10">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--system-blue)]">
+          <div className="absolute inset-0 bg-gradient-to-r from-surface/90 via-surface/60 to-transparent" />
+          
+          <div className="page-shell relative !pb-12 !pt-12 sm:!pt-16">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-forest">
               <SparkleIcon className="h-3.5 w-3.5" />
               Free forever · no card required
             </p>
-            <h1 className="type-display mt-2 max-w-2xl">List your wellness practice</h1>
-            <p className="type-body mt-2.5 max-w-xl font-medium">
+            <h1 className="type-display mt-3 max-w-2xl text-forest" style={{ textShadow: "0 0 20px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,0.8)" }}>
+              List your wellness practice
+            </h1>
+            <p className="type-body mt-4 max-w-xl font-semibold text-ink-secondary" style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}>
               Ayurveda clinics, yoga studios, spas, meditation centers, health clubs and retreats —
               get a public page and start receiving enquiries in minutes.
             </p>
@@ -463,7 +469,7 @@ export default function ListYourBusinessClient() {
           <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-start lg:gap-12">
             {/* Left column — benefits + progress (sticky) */}
             <aside className={`lg:sticky lg:self-start ${STICKY_BELOW_NAV}`}>
-              <div className="rounded-[1.25rem] border border-[var(--separator)] bg-surface/90 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.04)] sm:p-6">
+              <div className="rounded-[1.25rem] border border-[var(--separator)] bg-surface/90 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.04)] sm:p-6 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
                   Why list on AyurPass
                 </p>
@@ -560,9 +566,19 @@ export default function ListYourBusinessClient() {
                         goNext();
                       }
                 }
-                className="space-y-5 px-5 py-6 sm:px-7 sm:py-7"
+                className="space-y-5 px-5 py-6 sm:px-7 sm:py-7 min-h-[400px] flex flex-col"
               >
-                {step === 0 ? (
+                <div className="flex-1">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={step}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-5"
+                    >
+                      {step === 0 ? (
                   <>
                     <Field label="Business name">
                       <Input
@@ -585,7 +601,7 @@ export default function ListYourBusinessClient() {
                               key={t}
                               type="button"
                               onClick={() => setProviderType(t)}
-                              className={`profile-spring flex flex-col items-start gap-2 rounded-2xl border px-3 py-3 text-left transition-all ${
+                              className={`profile-spring flex flex-col items-start gap-2 rounded-2xl border px-3 py-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
                                 active
                                   ? "border-[var(--system-blue)] bg-[var(--system-blue)] text-white shadow-[0_4px_14px_rgba(0,122,255,0.25)]"
                                   : "border-[var(--separator)] bg-surface text-foreground hover:border-[var(--system-blue)]/35"
@@ -849,6 +865,9 @@ export default function ListYourBusinessClient() {
                     </p>
                   </>
                 ) : null}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
 
                 <ErrorNote message={error} />
 
