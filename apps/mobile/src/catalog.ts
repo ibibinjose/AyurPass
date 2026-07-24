@@ -10,6 +10,15 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 
 export { colorForServiceCategory, softColorForServiceCategory, serviceCategoryColor };
 
+export {
+  AYURVEDA_CATALOG,
+  AYURVEDA_THERAPIES,
+  AYURVEDA_CONDITIONS,
+  AYURVEDA_TREATMENT_LABELS,
+  searchAyurvedaCatalog,
+  type AyurvedaCatalogItem,
+} from "@ayurpass/shared";
+
 export const PROVIDER_TYPE_LABEL: Record<ProviderType, string> = {
   AYURVEDA_CLINIC: "Ayurveda Clinic",
   AYURVEDA_RESORT: "Ayurvedic Resort",

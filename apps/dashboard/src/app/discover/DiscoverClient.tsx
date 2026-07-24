@@ -3,7 +3,17 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
-import { CATEGORY_LABEL, formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
+import {
+  AYURVEDA_CATALOG_BY_ID,
+  AYURVEDA_CONDITIONS,
+  AYURVEDA_KIND_LABEL,
+  AYURVEDA_THERAPIES,
+  CATEGORY_LABEL,
+  formatAddress,
+  listingMatchesAyurveda,
+  PROVIDER_TYPE_LABEL,
+  searchAyurvedaCatalog,
+} from "@/lib/catalog";
 import { matchesDoshaText, type ActiveFilterChip } from "@/lib/directory";
 import type {
   Product,
@@ -99,6 +109,8 @@ const URL_DEFAULTS = {
   /** Near-me coordinates (stringified for URL state). */
   lat: "",
   lng: "",
+  /** Ayurvedic treatment / condition catalog id */
+  tx: "",
 };
 
 function sortProfessionals(list: Professional[], sort: ProSortKey): Professional[] {
@@ -193,6 +205,8 @@ function DiscoverInner() {
   const productCategory = values.pcat || "ALL";
   const verifiedOnly = values.verified === "1";
   const doshaOnly = values.dosha === "1";
+  const treatmentId = values.tx || "";
+  const treatmentItem = treatmentId ? AYURVEDA_CATALOG_BY_ID[treatmentId] : undefined;
   const proSort = (
     ["recommended", "rating", "experience", "name"].includes(values.sort)
       ? values.sort
@@ -303,30 +317,32 @@ function DiscoverInner() {
   const loc = location.trim();
 
   const base = useMemo(() => {
+    const ayurOpts = { treatmentId: treatmentId || null, query: q || null };
+
     const filterProviders = (list: Provider[]) =>
       list.filter((p) => {
+        const typeLabel = PROVIDER_TYPE_LABEL[p.type] ?? p.type;
+        const hay = [
+          p.businessName,
+          typeLabel,
+          p.code ?? "",
+          formatAddress(p.address),
+          p.brandProfile?.about ?? "",
+          (p.brandProfile?.tags ?? []).join(" "),
+        ].join(" ");
         if (q) {
-          const typeLabel = PROVIDER_TYPE_LABEL[p.type] ?? p.type;
-          const hay = [
-            p.businessName,
-            typeLabel,
-            p.code ?? "",
-            formatAddress(p.address),
-            p.brandProfile?.about ?? "",
-            (p.brandProfile?.tags ?? []).join(" "),
-          ].join(" ");
-          if (!includesText(hay, q)) return false;
+          const plain = includesText(hay, q);
+          const ayur = listingMatchesAyurveda(hay, ayurOpts);
+          if (!plain && !ayur) return false;
         }
+        if (treatmentId && !listingMatchesAyurveda(hay, { treatmentId })) return false;
         // When Near Me coords are set, don't hard-filter by city string — sort by distance instead.
         if (loc && !userCoords && !includesText(formatAddress(p.address), loc)) return false;
         if (verifiedOnly && p.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
           myDosha &&
-          !matchesDoshaText(
-            `${p.businessName} ${p.brandProfile?.about ?? ""} ${(p.brandProfile?.tags ?? []).join(" ")}`,
-            myDosha,
-          )
+          !matchesDoshaText(hay, myDosha)
         )
           return false;
         return true;
@@ -334,26 +350,29 @@ function DiscoverInner() {
 
     const filterServices = (list: Service[]) =>
       list.filter((s) => {
+        const cat = CATEGORY_LABEL[s.category] ?? s.category;
+        const hay = [
+          s.name,
+          s.description ?? "",
+          cat,
+          s.category,
+          s.code ?? "",
+          s.provider?.businessName ?? "",
+          s.professional?.user?.fullName ?? "",
+          providerLocation(s.providerId),
+        ].join(" ");
         if (q) {
-          const cat = CATEGORY_LABEL[s.category] ?? s.category;
-          const hay = [
-            s.name,
-            s.description ?? "",
-            cat,
-            s.category,
-            s.code ?? "",
-            s.provider?.businessName ?? "",
-            s.professional?.user?.fullName ?? "",
-            providerLocation(s.providerId),
-          ].join(" ");
-          if (!includesText(hay, q)) return false;
+          const plain = includesText(hay, q);
+          const ayur = listingMatchesAyurveda(hay, ayurOpts);
+          if (!plain && !ayur) return false;
         }
+        if (treatmentId && !listingMatchesAyurveda(hay, { treatmentId })) return false;
         if (loc && !userCoords && !includesText(providerLocation(s.providerId), loc)) return false;
         if (verifiedOnly && s.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
           myDosha &&
-          !matchesDoshaText(`${s.name} ${s.description ?? ""} ${s.category}`, myDosha)
+          !matchesDoshaText(hay, myDosha)
         )
           return false;
         return true;
@@ -361,23 +380,26 @@ function DiscoverInner() {
 
     const filterProducts = (list: Product[]) =>
       list.filter((p) => {
+        const hay = [
+          p.name,
+          p.description ?? "",
+          p.category ?? "",
+          p.code ?? "",
+          p.provider?.businessName ?? "",
+          providerLocation(p.providerId),
+        ].join(" ");
         if (q) {
-          const hay = [
-            p.name,
-            p.description ?? "",
-            p.category ?? "",
-            p.code ?? "",
-            p.provider?.businessName ?? "",
-            providerLocation(p.providerId),
-          ].join(" ");
-          if (!includesText(hay, q)) return false;
+          const plain = includesText(hay, q);
+          const ayur = listingMatchesAyurveda(hay, ayurOpts);
+          if (!plain && !ayur) return false;
         }
+        if (treatmentId && !listingMatchesAyurveda(hay, { treatmentId })) return false;
         if (loc && !userCoords && !includesText(providerLocation(p.providerId), loc)) return false;
         if (verifiedOnly && p.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
           myDosha &&
-          !matchesDoshaText(`${p.name} ${p.description ?? ""} ${p.category ?? ""}`, myDosha)
+          !matchesDoshaText(hay, myDosha)
         )
           return false;
         return true;
@@ -385,30 +407,31 @@ function DiscoverInner() {
 
     const filterProfessionals = (list: Professional[]) =>
       list.filter((prof) => {
+        const typeLabel = prof.provider?.type
+          ? PROVIDER_TYPE_LABEL[prof.provider.type] ?? prof.provider.type
+          : "";
+        const hay = [
+          prof.user?.fullName ?? "",
+          prof.title ?? "",
+          prof.specializations.join(" "),
+          prof.bio ?? "",
+          prof.code ?? "",
+          prof.provider?.businessName ?? "",
+          typeLabel,
+          providerLocation(prof.providerId),
+        ].join(" ");
         if (q) {
-          const typeLabel = prof.provider?.type
-            ? PROVIDER_TYPE_LABEL[prof.provider.type] ?? prof.provider.type
-            : "";
-          const hay = [
-            prof.user?.fullName ?? "",
-            prof.title ?? "",
-            prof.specializations.join(" "),
-            prof.code ?? "",
-            prof.provider?.businessName ?? "",
-            typeLabel,
-            providerLocation(prof.providerId),
-          ].join(" ");
-          if (!includesText(hay, q)) return false;
+          const plain = includesText(hay, q);
+          const ayur = listingMatchesAyurveda(hay, ayurOpts);
+          if (!plain && !ayur) return false;
         }
+        if (treatmentId && !listingMatchesAyurveda(hay, { treatmentId })) return false;
         if (loc && !userCoords && !includesText(providerLocation(prof.providerId), loc)) return false;
         if (verifiedOnly && prof.provider?.verificationStatus !== "verified") return false;
         if (
           doshaOnly &&
           myDosha &&
-          !matchesDoshaText(
-            `${prof.title ?? ""} ${prof.specializations.join(" ")}`,
-            myDosha,
-          )
+          !matchesDoshaText(hay, myDosha)
         )
           return false;
         return true;
@@ -421,7 +444,7 @@ function DiscoverInner() {
       professionals: professionals ? filterProfessionals(professionals) : null,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providers, services, products, professionals, q, loc, userCoords, verifiedOnly, doshaOnly, myDosha]);
+  }, [providers, services, products, professionals, q, loc, userCoords, verifiedOnly, doshaOnly, myDosha, treatmentId]);
 
   const getProximityScore = useCallback(
     (addr?: { city?: string; state?: string; country?: string; lat?: number | null; lng?: number | null } | null, isVirtual?: boolean) => {
@@ -574,12 +597,17 @@ function DiscoverInner() {
   }, [base.products, productCategories]);
 
   const filterActive =
-    Boolean(q || loc) ||
+    Boolean(q || loc || treatmentId) ||
     Boolean(providerGroup) ||
     serviceCategory !== "ALL" ||
     productCategory !== "ALL" ||
     verifiedOnly ||
     doshaOnly;
+
+  const treatmentSuggestions = useMemo(
+    () => (q.length >= 2 ? searchAyurvedaCatalog(q, 6) : []),
+    [q],
+  );
 
   const resultLabel =
     tab === "providers"
@@ -593,6 +621,12 @@ function DiscoverInner() {
   const activeFilters: ActiveFilterChip[] = [];
   if (q)
     activeFilters.push({ id: "q", label: `“${q}”`, onRemove: () => set("q", "") });
+  if (treatmentItem)
+    activeFilters.push({
+      id: "tx",
+      label: treatmentItem.label,
+      onRemove: () => set("tx", ""),
+    });
   if (loc || userCoords)
     activeFilters.push({
       id: "loc",
@@ -733,14 +767,30 @@ function DiscoverInner() {
                   onChange={(e) => set("q", e.target.value)}
                   placeholder={
                     tab === "professionals"
-                      ? "Name, title, category…"
+                      ? "Name, Shirodhara, diabetes…"
                       : tab === "products"
                         ? "Product, brand, category…"
-                        : "Name, category, treatment…"
+                        : "Abhyanga, Panchakarma, IBS…"
                   }
-                  aria-label="Search by name or category"
+                  aria-label="Search by name, treatment or condition"
                 />
               </FilterSearch>
+              {treatmentSuggestions.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 px-0.5">
+                  {treatmentSuggestions.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setMany({ tx: t.id, q: "" });
+                      }}
+                      className="rounded-full border border-leaf/30 bg-leaf/10 px-2.5 py-1 text-[11px] font-bold text-forest hover:bg-leaf/20"
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <FilterSearch icon={<MapPinIcon className="h-4 w-4" />}>
                 <Input
                   value={location}
@@ -751,6 +801,38 @@ function DiscoverInner() {
                   aria-label="Search by location"
                 />
               </FilterSearch>
+            </div>
+          </FilterSection>
+
+          <FilterSection title="Ayurvedic treatments">
+            <div className="max-h-48 space-y-2 overflow-y-auto overscroll-contain pr-0.5">
+              <FilterOption active={!treatmentId} onClick={() => set("tx", "")}>
+                All treatments
+              </FilterOption>
+              <p className="px-2.5 pt-1 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+                {AYURVEDA_KIND_LABEL.therapy}
+              </p>
+              {AYURVEDA_THERAPIES.map((t) => (
+                <FilterOption
+                  key={t.id}
+                  active={treatmentId === t.id}
+                  onClick={() => set("tx", treatmentId === t.id ? "" : t.id)}
+                >
+                  {t.label}
+                </FilterOption>
+              ))}
+              <p className="px-2.5 pt-2 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+                {AYURVEDA_KIND_LABEL.condition}
+              </p>
+              {AYURVEDA_CONDITIONS.map((t) => (
+                <FilterOption
+                  key={t.id}
+                  active={treatmentId === t.id}
+                  onClick={() => set("tx", treatmentId === t.id ? "" : t.id)}
+                >
+                  {t.label}
+                </FilterOption>
+              ))}
             </div>
           </FilterSection>
 

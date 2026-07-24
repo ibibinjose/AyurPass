@@ -14,42 +14,42 @@ const THERAPIES = [
     title: "Shirodhara",
     subtitle: "Mind Calm & Neurological Restorative",
     desc: "A continuous, gentle stream of warm medicated herbal oil or buttermilk poured rhythmically onto the third eye (forehead). Relieves anxiety, insomnia, hypertension, and mental fatigue.",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur1/1200/800",
     benefits: ["Relieves stress & insomnia", "Enhances mental clarity", "Nourishes the nervous system"],
   },
   {
     title: "Abhyangam",
     subtitle: "Full Body Medicated Oil Massage",
     desc: "Synchronised full-body massage using warm, custom-blended Dosha-specific herbs and oils. Stimulates lymphatic circulation, tones muscles, and flushes deep-seated toxins.",
-    image: "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur2/1200/800",
     benefits: ["Flushes tissue toxins", "Improves skin elasticity", "Improves joint lubrication"],
   },
   {
     title: "Njavarakizhi",
     subtitle: "Njavara Rice Poultice Therapy",
     desc: "Rejuvenating massage using boluses of special Njavara rice cooked in milk and herbal decoctions. Deeply nourishes tissues, ideal for neuromuscular conditions.",
-    image: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur3/1200/800",
     benefits: ["Restores muscular strength", "Improves skin luster", "Relieves stiffness"],
   },
   {
     title: "Pizhichil",
     subtitle: "Royal Medicated Oil Bath",
     desc: "Warm medicated oils are rhythmically squeezed over the body while being gently massaged by twin therapists. Known as the king of Ayurvedic rejuvenation.",
-    image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur4/1200/800",
     benefits: ["Combats premature aging", "Relieves arthritic pain", "Strengthens immunity"],
   },
   {
     title: "Nasyam",
     subtitle: "Nasal Herbal Cleansing",
     desc: "Administration of purified herbal oils or powders through the nasal passages to clear head congestion, improve sinus health, and sharpen sensory perception.",
-    image: "https://images.unsplash.com/photo-1512290900673-700249257e53?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur5/1200/800",
     benefits: ["Clears sinus passages", "Relieves chronic headaches", "Improves voice & sensory clarity"],
   },
   {
     title: "Kashayadhara",
     subtitle: "Herbal Decoction Bath",
     desc: "Pouring of warm, potent herbal extracts across the body in a steady flow to soothe severe skin conditions, inflammation, and chronic fatigue.",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur6/1200/800",
     benefits: ["Soothes eczema & psoriasis", "Purifies blood tissue", "Cools inflammatory Pitta"],
   },
 ];
@@ -85,22 +85,31 @@ export default function AyurvedaPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative min-h-[480px] overflow-hidden bg-forestDeep text-white">
+        <section className="relative min-h-[480px] overflow-hidden bg-surface">
           <img
-            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=2000&q=80"
+            src="/images/heroes/ayurveda.png"
             alt="Ayurveda Treatment"
-            className="absolute inset-0 h-full w-full object-cover opacity-30"
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-forestDeep via-forestDeep/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
 
           <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-[var(--space-page-x)] py-20 sm:py-28">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/40 bg-goldSoft/20 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-goldSoft">
+            <span 
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-forest/20 bg-white/80 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-forest"
+              style={{ boxShadow: "0 0 10px rgba(255,255,255,0.8)" }}
+            >
               🌿 Science of Life
             </span>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white sm:text-6xl sm:leading-tight">
+            <h1 
+              className="mt-4 font-display text-4xl font-bold tracking-tight text-forest sm:text-6xl sm:leading-tight"
+              style={{ textShadow: "0 0 20px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,0.8)" }}
+            >
               Ayurveda — Harmony of Body, Mind & Soul
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-goldSoft/90 sm:text-lg">
+            <p 
+              className="mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-secondary sm:text-lg"
+              style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}
+            >
               Originated over 5,000 years ago in ancient India, Ayurveda is the world’s oldest
               holistic healing system. Experience authentic Panchakarma rejuvenation and
               constitutional care.
@@ -108,7 +117,7 @@ export default function AyurvedaPage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/discover?group=Ayurveda"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Find Ayurveda Clinics
               </Link>
@@ -266,7 +275,7 @@ export default function AyurvedaPage() {
               <div className="lg:col-span-6">
                 <div className="relative overflow-hidden rounded-3xl border border-hairline shadow-lg">
                   <img
-                    src="https://images.unsplash.com/photo-1512290900673-700249257e53?auto=format&fit=crop&w=1200&q=80"
+                    src="https://picsum.photos/seed/ayur8/1200/800"
                     alt="Ayurvedic Pulse Diagnosis"
                     className="h-full w-full object-cover"
                   />
@@ -289,7 +298,7 @@ export default function AyurvedaPage() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/discover?group=Ayurveda"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Browse Verified Clinics
               </Link>

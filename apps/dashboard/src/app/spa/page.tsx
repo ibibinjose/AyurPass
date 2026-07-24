@@ -14,25 +14,25 @@ const SPA_TREATMENTS = [
     title: "Abhyangam & Steam Bath",
     subtitle: "Warm Herbal Massage & Detox Steam",
     desc: "A synchronized full-body massage using warm organic oils followed by a traditional Swedana herbal steam bath to open pores and flush metabolic toxins.",
-    image: "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur21/1200/800",
   },
   {
     title: "Udwarthanam",
     subtitle: "Herbal Powder Body Scrub",
     desc: "A vigorous dry powder massage using herbal pastes that exfoliates dead skin cells, stimulates subcutaneous fat breakdown, and improves skin tone.",
-    image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur22/1200/800",
   },
   {
     title: "Mukha Lepanam & Saundarya",
     subtitle: "Ayurvedic Herbal Facial",
     desc: "Nutrient-rich facials using saffron, sandalwood, aloe vera, and fresh botanicals to restore natural radiance, elasticity, and youthfulness.",
-    image: "https://images.unsplash.com/photo-1512290900673-700249257e53?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur23/1200/800",
   },
   {
     title: "Padabhyanga",
     subtitle: "Reflexology Foot Therapy",
     desc: "Soothing foot and leg massage using brass Kansa bowls and medicated ghees to activate vital Marma points, relieve fatigue, and ground nervous tension.",
-    image: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur24/1200/800",
   },
 ];
 
@@ -43,29 +43,29 @@ export default function SpaPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative min-h-[480px] overflow-hidden bg-forestDeep text-white">
+        <section className="relative min-h-[480px] overflow-hidden bg-surface">
           <img
-            src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&w=2000&q=80"
+            src="/images/heroes/spa.png"
             alt="Ayurvedic Wellness Spa"
-            className="absolute inset-0 h-full w-full object-cover opacity-35"
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-forestDeep via-forestDeep/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
 
           <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-[var(--space-page-x)] py-20 sm:py-28">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-gold/40 bg-goldSoft/20 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-goldSoft">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-forest/20 bg-white/80 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-forest" style={{  boxShadow: "0 0 10px rgba(255,255,255,0.8)"  }}>
               💆 Luxury Ayurvedic Spa
             </span>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white sm:text-6xl sm:leading-tight">
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-forest sm:text-6xl sm:leading-tight" style={{ textShadow: "0 0 20px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,0.8)" }}>
               Ayurvedic Wellness Spa & Body Therapies
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-goldSoft/90 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-secondary sm:text-lg" style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}>
               Indulge in botanical bodywork, warm herbal oils, facial therapies, and restorative
               hydrotherapy designed to nourish skin and calm the spirit.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/discover?group=Spa"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Find Wellness Spas
               </Link>
@@ -123,7 +123,7 @@ export default function SpaPage() {
             <div className="mt-8 flex justify-center">
               <Link
                 href="/discover?group=Spa"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Browse Ayurvedic Spas
               </Link>

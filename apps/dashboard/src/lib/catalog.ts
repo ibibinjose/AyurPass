@@ -1,5 +1,20 @@
 import type { BusinessAddress, RetreatCategory, ServiceCategory } from "./types";
 
+export {
+  AYURVEDA_CATALOG,
+  AYURVEDA_THERAPIES,
+  AYURVEDA_CONDITIONS,
+  AYURVEDA_TOPICS,
+  AYURVEDA_TREATMENT_LABELS,
+  AYURVEDA_KIND_LABEL,
+  AYURVEDA_CATALOG_BY_ID,
+  searchAyurvedaCatalog,
+  matchesAyurvedaItem,
+  listingMatchesAyurveda,
+  type AyurvedaCatalogItem,
+  type AyurvedaItemKind,
+} from "@ayurpass/shared";
+
 export const PROVIDER_TYPE_LABEL: Record<string, string> = {
   AYURVEDA_CLINIC: "Ayurveda Clinic",
   AYURVEDA_RESORT: "Ayurvedic Resort",

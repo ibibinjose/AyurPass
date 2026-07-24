@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
-import { CATEGORY_LABEL } from "@/lib/catalog";
+import {
+  AYURVEDA_CONDITIONS,
+  AYURVEDA_THERAPIES,
+  CATEGORY_LABEL,
+} from "@/lib/catalog";
 import type { Service, ServiceCategory } from "@/lib/types";
 import {
   DashCard,
@@ -28,8 +32,10 @@ const CATEGORIES: ServiceCategory[] = [
   "MEDITATION",
   "FITNESS",
   "NUTRITION",
+  "COOKING",
   "COACHING",
   "CONSULTATION",
+  "PACKAGE",
 ];
 
 interface FormState {
@@ -205,9 +211,68 @@ export default function ProviderServicesPage() {
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="What happens in this session, and who is it for?"
+                placeholder="What happens in this session, and who is it for? Mention therapies (Shirodhara) or conditions (IBS) so seekers can find you."
               />
             </Field>
+            {form.category === "AYURVEDA" || form.category === "SPA" || form.category === "CONSULTATION" ? (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
+                  Quick Ayurvedic therapies
+                </p>
+                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+                  {AYURVEDA_THERAPIES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setForm((f) => {
+                          if (!f) return f;
+                          const name = f.name.trim() || t.label;
+                          const desc = f.description.includes(t.label)
+                            ? f.description
+                            : [f.description.trim(), t.label].filter(Boolean).join(" · ");
+                          return {
+                            ...f,
+                            name,
+                            category: f.category === "SPA" ? f.category : "AYURVEDA",
+                            description: desc,
+                          };
+                        });
+                      }}
+                      className="rounded-full border border-hairline bg-clay/40 px-2.5 py-1 text-[11px] font-semibold text-forest hover:border-leaf hover:bg-leaf/10"
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
+                  Conditions often supported
+                </p>
+                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+                  {AYURVEDA_CONDITIONS.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setForm((f) => {
+                          if (!f) return f;
+                          if (f.description.includes(t.label)) return f;
+                          return {
+                            ...f,
+                            description: [f.description.trim(), `Supports: ${t.label}`]
+                              .filter(Boolean)
+                              .join(". "),
+                          };
+                        });
+                      }}
+                      className="rounded-full border border-hairline bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink-secondary hover:border-leaf hover:text-forest"
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Duration (minutes)">
                 <Input

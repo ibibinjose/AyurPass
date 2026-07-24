@@ -169,25 +169,101 @@ async function main() {
     });
   }
 
-  // Demo bookable cooking session
-  const cooking = await prisma.service.findFirst({
-    where: { providerId: provider.id, category: 'COOKING' },
-  });
-  if (!cooking) {
-    await prisma.service.create({
-      data: {
-        providerId: provider.id,
-        category: 'COOKING',
-        name: 'Demo Ayurvedic Cooking Class',
-        description: 'Local-only demo session for calendar and booking tests.',
-        durationMinutes: 90,
-        price: 45,
-        currency: 'AUD',
-        isVirtual: false,
-        maxParticipants: 12,
-      },
+  // Demo bookable sessions (Ayurvedic therapies + cooking)
+  const demoServices: {
+    category: 'AYURVEDA' | 'COOKING' | 'SPA';
+    name: string;
+    description: string;
+    durationMinutes: number;
+    price: number;
+  }[] = [
+    {
+      category: 'AYURVEDA',
+      name: 'Abhyanga',
+      description:
+        'Full body Ayurvedic oil massage. Supports chronic pain, stress and insomnia.',
+      durationMinutes: 60,
+      price: 120,
+    },
+    {
+      category: 'AYURVEDA',
+      name: 'Shirodhara',
+      description:
+        'Warm oil forehead pour. Supports anxiety and stress, migraines and headaches, insomnia.',
+      durationMinutes: 45,
+      price: 95,
+    },
+    {
+      category: 'AYURVEDA',
+      name: 'Panchakarma – Detox',
+      description:
+        'Ayurvedic detox cleanse programme introduction. Supports gastritis, IBS and fatty liver care pathways.',
+      durationMinutes: 90,
+      price: 180,
+    },
+    {
+      category: 'AYURVEDA',
+      name: 'Nasya',
+      description: 'Ayurveda Nasya treatment for sinusitis, allergies and head congestion.',
+      durationMinutes: 30,
+      price: 75,
+    },
+    {
+      category: 'SPA',
+      name: 'Full Body Massage',
+      description: 'Relaxing full body massage with optional Champi (head massage).',
+      durationMinutes: 60,
+      price: 110,
+    },
+    {
+      category: 'COOKING',
+      name: 'Demo Ayurvedic Cooking Class',
+      description: 'Local-only demo cooking class for calendar and booking tests.',
+      durationMinutes: 90,
+      price: 45,
+    },
+  ];
+
+  for (const s of demoServices) {
+    const exists = await prisma.service.findFirst({
+      where: { providerId: provider.id, name: s.name },
     });
+    if (!exists) {
+      await prisma.service.create({
+        data: {
+          providerId: provider.id,
+          category: s.category,
+          name: s.name,
+          description: s.description,
+          durationMinutes: s.durationMinutes,
+          price: s.price,
+          currency: 'AUD',
+          isVirtual: false,
+          maxParticipants: s.category === 'COOKING' ? 12 : 1,
+        },
+      });
+    }
   }
+
+  // Brand tags so Discover treatment filters match the practice
+  await prisma.provider.update({
+    where: { id: provider.id },
+    data: {
+      brandProfile: {
+        about:
+          'Local development demo practice offering Abhyanga, Shirodhara, Nasya, Panchakarma and more.',
+        tags: [
+          'Abhyanga',
+          'Shirodhara',
+          'Nasya',
+          'Panchakarma',
+          'Chronic Pain',
+          'Anxiety and Stress',
+          'Insomnia',
+        ],
+      },
+    },
+  });
 
   console.log('\n✅ Local dev seed complete (database is local only).\n');
   console.log('  Seeker:   ', SEEKER_EMAIL);

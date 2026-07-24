@@ -13,37 +13,37 @@ const STYLES = [
   {
     title: "Hatha Yoga",
     desc: "Classical slow-paced practice focusing on static postures, alignment, breath awareness, and balancing solar (Ha) and lunar (Tha) energies.",
-    image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur9/1200/800",
     tags: ["Alignment", "Breathwork", "Mindful Pace"],
   },
   {
     title: "Vinyasa Flow",
     desc: "Dynamic, fluid sequences connecting continuous breath with movement. Builds cardiovascular endurance, flexibility, and internal heat.",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur10/1200/800",
     tags: ["Dynamic", "Stamina", "Fluid Flow"],
   },
   {
     title: "Yin & Restorative",
     desc: "Gentle, long-held passive floor postures supported by props. Targets deep connective tissues, fascia, and calms the parasympathetic nervous system.",
-    image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur11/1200/800",
     tags: ["Fascia Release", "Deep Calm", "Nervous System"],
   },
   {
     title: "Ashtanga Yoga",
     desc: "A rigorous, structured classical sequence of postures paired with Ujjayi breathing, bandhas (energy locks), and drishti (gaze points).",
-    image: "https://images.unsplash.com/photo-1599447421416-3414500d18a5?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur12/1200/800",
     tags: ["Traditional Sequence", "Strength", "Discipline"],
   },
   {
     title: "Pranayama & Kriya",
     desc: "Specialized yogic breath control exercises (Nadi Shodhana, Kapalabhati, Bhastrika) designed to cleanse energy channels and elevate vital prana.",
-    image: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur13/1200/800",
     tags: ["Vital Energy", "Lungs & Mind", "Channel Cleansing"],
   },
   {
     title: "Yoga Retreats & YTT",
     desc: "Immersive residential programs in serene natural settings. 200hr/500hr teacher training and restorative weekend wellness retreats.",
-    image: "https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?auto=format&fit=crop&w=1200&q=80",
+    image: "https://picsum.photos/seed/ayur14/1200/800",
     tags: ["Immersion", "RYS Certification", "Nature Retreat"],
   },
 ];
@@ -55,29 +55,29 @@ export default function YogaPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative min-h-[480px] overflow-hidden bg-forestDeep text-white">
+        <section className="relative min-h-[480px] overflow-hidden bg-surface">
           <img
-            src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=2000&q=80"
+            src="/images/heroes/yoga.png"
             alt="Yoga Practice"
-            className="absolute inset-0 h-full w-full object-cover opacity-35"
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-forestDeep via-forestDeep/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
 
           <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-[var(--space-page-x)] py-20 sm:py-28">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-leaf/40 bg-leaf/20 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-goldSoft">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-forest/20 bg-white/80 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-forest" style={{  boxShadow: "0 0 10px rgba(255,255,255,0.8)"  }}>
               🧘 Union of Body & Breath
             </span>
-            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white sm:text-6xl sm:leading-tight">
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-forest sm:text-6xl sm:leading-tight" style={{ textShadow: "0 0 20px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,0.8)" }}>
               Yoga — Movement, Alignment & Inner Stillness
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-goldSoft/90 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-secondary sm:text-lg" style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}>
               More than physical exercise, Yoga is a sacred science of self-realisation. Discover
               accredited studios, master teachers, and immersive retreats tailored to your flow.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/discover?group=Yoga"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Find Yoga Studios
               </Link>
@@ -152,7 +152,7 @@ export default function YogaPage() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/discover?group=Yoga"
-                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forestDeep transition-colors hover:bg-goldSoft"
+                className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 py-3 text-sm font-semibold text-forest-deep transition-colors hover:bg-goldSoft"
               >
                 Browse Yoga Studios
               </Link>
