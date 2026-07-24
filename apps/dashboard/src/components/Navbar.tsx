@@ -34,6 +34,7 @@ const linkClass = (active: boolean) =>
   }`;
 
 import { LocationSelectorButton } from "./LocationSelectorButton";
+import { InstallAppButton } from "./InstallPrompt";
 
 export function Navbar() {
   const { user, loading, logout } = useAuth();
@@ -154,6 +155,13 @@ export function Navbar() {
                     {l.label}
                   </Link>
                 ))}
+                <div className="mt-1 border-t border-hairline px-1.5 pt-1.5">
+                  <InstallAppButton
+                    compact
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-forest hover:bg-clay/50"
+                    label="Add to Home Screen"
+                  />
+                </div>
               </div>
             ) : null}
           </div>
@@ -233,6 +241,10 @@ export function Navbar() {
               <div className="pb-1">
                 <LocationSelectorButton className="w-full justify-between py-2 px-4 text-sm" />
               </div>
+              <InstallAppButton
+                label="Add to Home Screen"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-forest/20 bg-leaf/10 px-4 text-sm font-bold text-forest"
+              />
               {loading ? null : user ? (
                 <>
                   <Link

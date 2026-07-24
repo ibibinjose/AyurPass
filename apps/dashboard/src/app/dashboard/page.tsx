@@ -48,6 +48,7 @@ import {
   TrophyIcon,
 } from "@/components/icons";
 import { EmptyState, InlineSpinner } from "@/components/ui";
+import { InstallAppButton } from "@/components/InstallPrompt";
 
 function firstName(full?: string | null) {
   return full?.split(" ")[0] ?? "there";
@@ -265,6 +266,11 @@ function ConsumerOverview() {
               <CompassIcon className="h-4 w-4" />
               Discover
             </Link>
+            <InstallAppButton
+              compact
+              label="Add to Home Screen"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-leaf/30 bg-leaf/10 px-4 text-sm font-semibold text-forest hover:bg-leaf/15"
+            />
           </div>
         }
       />
