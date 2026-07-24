@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "../../src/components/ui";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
 import { api, ApiError } from "../../src/api";
@@ -205,7 +206,10 @@ export default function Profile() {
             className="absolute inset-0 opacity-95"
             style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.95 }}
           />
-          <View className="items-center pt-7" style={{ paddingHorizontal: pad }}>
+          <View className="w-full flex-row justify-end px-4 pt-2 z-10">
+            <HeaderLogo />
+          </View>
+          <View className="items-center pt-2" style={{ paddingHorizontal: pad }}>
             <Pressable
               onPress={openAvatarOptions}
               disabled={avatarBusy}

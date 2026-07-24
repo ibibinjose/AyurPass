@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Body, Display, EmptyState, Loading } from "../../src/components/ui";
 import { OfflineBanner } from "../../src/components/OfflineBanner";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useAuth } from "../../src/auth";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
 import { useDebouncedValue } from "../../src/hooks/useDebouncedValue";
@@ -105,10 +106,15 @@ export default function Discover() {
           />
         }
       >
-        <Body muted className="text-[13px]">
-          {firstName ? `Hi, ${firstName}` : "Welcome"}
-        </Body>
-        <Display className="mt-0.5">Discover</Display>
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Body muted className="text-[13px]">
+              {firstName ? `Hi, ${firstName}` : "Welcome"}
+            </Body>
+            <Display className="mt-0.5">Discover</Display>
+          </View>
+          <HeaderLogo />
+        </View>
         <Body muted className="mt-1 text-[14px] leading-5">
           Clinics, studios and spas — free to browse.
         </Body>

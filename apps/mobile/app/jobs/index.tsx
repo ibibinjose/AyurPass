@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Badge, EmptyState, Loading } from "../../src/components/ui";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useJobs } from "../../src/hooks/useCatalogDetail";
 import { colors } from "../../src/theme";
 
@@ -47,6 +48,7 @@ export default function JobsFeedScreen() {
               </Text>
             </View>
           </View>
+          <HeaderLogo size={34} />
         </View>
 
         {/* Search Bar */}

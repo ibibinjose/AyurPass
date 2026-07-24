@@ -13,6 +13,7 @@ import {
   Loading,
 } from "../../src/components/ui";
 import { OfflineBanner } from "../../src/components/OfflineBanner";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useAuth } from "../../src/auth";
 import { formatMoney } from "../../src/api";
 import {
@@ -192,7 +193,10 @@ export default function Bookings() {
           />
         }
       >
-        <Display>Bookings</Display>
+        <View className="flex-row items-center justify-between">
+          <Display>Bookings</Display>
+          <HeaderLogo />
+        </View>
         <Body muted className="mt-1 text-[14px]">
           Upcoming and past sessions.
         </Body>

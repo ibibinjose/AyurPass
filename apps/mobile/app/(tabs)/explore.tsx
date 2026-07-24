@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Body, Display, EmptyState, Loading } from "../../src/components/ui";
 import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { ServiceCard } from "../../src/components/ServiceCard";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { SERVICE_CATEGORY_LABEL } from "../../src/catalog";
 import { useServices } from "../../src/hooks/useServices";
 import type { ServiceCategory } from "../../src/types";
@@ -38,7 +39,10 @@ export default function Explore() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="px-5 pt-3">
-        <Display>Sessions</Display>
+        <View className="flex-row items-center justify-between">
+          <Display>Sessions</Display>
+          <HeaderLogo />
+        </View>
         <Body muted className="mt-1 text-[14px] leading-5">
           Book Ayurveda, Yoga, Spa and more — they land on your Calendar.
         </Body>

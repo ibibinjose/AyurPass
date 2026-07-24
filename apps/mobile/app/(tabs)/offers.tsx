@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Body, Display, EmptyState, ErrorNote, Loading } from "../../src/components/ui";
+import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useOffers } from "../../src/hooks/useCatalogDetail";
 import type { Offer } from "../../src/types";
 import { colors } from "../../src/theme";
@@ -96,7 +97,10 @@ export default function OffersTab() {
           />
         }
       >
-        <Display>Offers</Display>
+        <View className="flex-row items-center justify-between">
+          <Display>Offers</Display>
+          <HeaderLogo />
+        </View>
         <Body muted className="mt-1">
           Deals across Ayurveda, Yoga, Spa and more.
         </Body>
