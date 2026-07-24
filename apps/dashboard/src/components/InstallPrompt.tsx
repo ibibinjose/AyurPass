@@ -94,7 +94,11 @@ export function InstallPrompt() {
             
             <div className="flex items-center gap-2">
               {!isIos && (
-                <Button size="sm" variant="primary" className="bg-white text-forest hover:bg-white/90 whitespace-nowrap" onClick={handleInstallClick}>
+                <Button
+                  variant="primary"
+                  className="min-h-8 bg-white px-3 py-1.5 text-xs text-forest hover:bg-white/90 whitespace-nowrap"
+                  onClick={handleInstallClick}
+                >
                   Install
                 </Button>
               )}
