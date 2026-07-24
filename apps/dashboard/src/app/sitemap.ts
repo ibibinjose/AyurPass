@@ -10,6 +10,11 @@ export const revalidate = 3600;
 const STATIC_ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { path: "/", priority: 1, freq: "daily" },
   { path: "/about", priority: 0.8, freq: "monthly" },
+  { path: "/ayurveda", priority: 0.9, freq: "weekly" },
+  { path: "/yoga", priority: 0.9, freq: "weekly" },
+  { path: "/meditation", priority: 0.9, freq: "weekly" },
+  { path: "/spa", priority: 0.9, freq: "weekly" },
+  { path: "/fitness", priority: 0.9, freq: "weekly" },
   { path: "/discover", priority: 0.9, freq: "daily" },
   { path: "/retreats", priority: 0.9, freq: "daily" },
   { path: "/offers", priority: 0.8, freq: "weekly" },

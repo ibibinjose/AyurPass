@@ -264,11 +264,11 @@ export function Footer({ compact = false }: { compact?: boolean }) {
             </h3>
             <ul className="mt-3.5 space-y-2.5">
               {[
-                { href: "/discover?group=Ayurveda", label: "Ayurveda" },
-                { href: "/discover?group=Yoga", label: "Yoga" },
-                { href: "/discover?group=Spa", label: "Spa" },
-                { href: "/discover?group=Meditation", label: "Meditation" },
-                { href: "/discover?group=Health%20Club", label: "Health club" },
+                { href: "/ayurveda", label: "Ayurveda" },
+                { href: "/yoga", label: "Yoga" },
+                { href: "/meditation", label: "Meditation" },
+                { href: "/spa", label: "Ayurvedic Spa" },
+                { href: "/fitness", label: "Health Club" },
               ].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className={linkClass}>

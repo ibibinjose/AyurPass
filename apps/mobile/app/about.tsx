@@ -97,7 +97,7 @@ export default function AboutScreen() {
 
         {/* CTA */}
         <Pressable
-          onPress={() => router.push("/(tabs)/index")}
+          onPress={() => router.push("/(tabs)")}
           className="flex-row items-center justify-center gap-2 rounded-full bg-forest py-4 active:opacity-90 mt-2"
         >
           <Ionicons name="search-outline" size={18} color="#fff" />
