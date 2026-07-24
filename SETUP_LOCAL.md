@@ -1,142 +1,84 @@
 # AyurPass Local Development Setup Guide
 
-This guide will help you set up the AyurPass application for local development.
+Secure default: **local web + local API + local database**.  
+Real accounts stay on https://ayurpass.com only. See [docs/ENVIRONMENTS.md](./docs/ENVIRONMENTS.md).
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- npm or yarn
-- PostgreSQL database (local installation or Docker)
+- npm
+- PostgreSQL (local install or Docker)
 - Git
 
 ## Step-by-Step Setup
 
-### 1. Clone and Navigate to Project
+### 1. Clone and navigate
 
 ```bash
-git clone <your-repo-url> # if applicable
 cd AyurPass
 ```
 
-### 2. Set Up Database
+### 2. Database
 
-Choose one of the following options:
+**Docker (recommended):**
 
-#### Option A: Local PostgreSQL Installation
-1. Install PostgreSQL on your system
-2. Create a database for AyurPass:
-   ```sql
-   CREATE DATABASE ayurpass_dev;
-   ```
+```bash
+docker run --name ayurpass-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=ayurpass_dev \
+  -p 5432:5432 -d postgres:15
+```
 
-#### Option B: Using Docker
-1. Install Docker Desktop
-2. Run PostgreSQL with Docker:
-   ```bash
-   docker run --name ayurpass-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=ayurpass_dev -p 5432:5432 -d postgres:15
-   ```
+Or create `ayurpass_dev` on a local Postgres install.
 
-### 3. Configure Environment Variables
-
-Copy env templates (or edit existing files):
+### 3. Environment variables
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/dashboard/.env.example apps/dashboard/.env.local
 ```
 
-The API `.env` in `apps/api` should include:
+Confirm dashboard points **only** at local API:
 
 ```
-DATABASE_URL="postgresql://localhost:5432/ayurpass_dev"
-PORT=4000
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+API `.env` should include local `DATABASE_URL` and:
+
+```
 CORS_ORIGIN="http://localhost:3000"
-JWT_ACCESS_SECRET="ayurpass_access_secret_key"
-JWT_REFRESH_SECRET="ayurpass_refresh_secret_key"
-JWT_ACCESS_EXPIRES="15m"
-JWT_REFRESH_EXPIRES="7d"
+FRONTEND_URL="http://localhost:3000"
 ```
 
-### 4. Install Dependencies
-
-Navigate to the backend directory and install dependencies:
+### 4. Install, migrate, seed
 
 ```bash
-cd backend
 npm install
+npm run prisma:generate
+cd apps/api && npx prisma migrate deploy && cd ../..
+npm run seed:local
 ```
 
-### 5. Generate Prisma Client
-
-After installing dependencies, generate the Prisma client:
+### 5. Start
 
 ```bash
-npx prisma generate
+npm start
 ```
 
-### 6. Run Database Migrations
+- Web: http://localhost:3000  
+- API: http://localhost:4000  
 
-Apply the database schema to your local database:
+### Local demo logins
 
-```bash
-npx prisma migrate dev --name init
-```
+| Role | Email | Password |
+|------|-------|----------|
+| Seeker | `seeker@local.ayurpass.dev` | `LocalDev!23456` |
+| Practice | `provider@local.ayurpass.dev` | `LocalDev!23456` |
 
-### 7. Start the Application
+`seed:local` refuses to run against RDS / production-looking databases.
 
-Start the development server:
+## Production login
 
-```bash
-npm run start:dev
-```
-
-The application will be available at `http://localhost:4000`.
-
-## Running the Application
-
-Once set up, you can start the application anytime with:
-
-```bash
-cd backend
-npm run start:dev
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Database Connection Error**: Make sure PostgreSQL is running and the DATABASE_URL in `.env` matches your database configuration.
-
-2. **Port Already in Use**: Change the PORT variable in `.env` if port 4000 is already being used.
-
-3. **Missing Dependencies**: Run `npm install` in the backend directory to reinstall dependencies.
-
-### Resetting the Database
-
-If you need to reset the database:
-
-```bash
-npx prisma migrate reset
-```
-
-## API Endpoints
-
-After starting the application, the following endpoints will be available:
-
-- Auth: `POST /auth/register`, `POST /auth/login`
-- Users: `GET /users/:id`, `GET /users/email/:email`
-- Bookings: `POST /bookings`, `GET /bookings/consumer/:id`
-- Health Profiles: `POST /health-profiles/consumer/:id`, `GET /health-profiles/consumer/:id`
-- Professionals: `GET /professionals/provider/:id`
-- Packages: `POST /packages`, `GET /packages/provider/:id`
-- Treatment Plans: `POST /treatment-plans`, `GET /treatment-plans/consumer/:id`
-- Consents: `POST /consents`, `GET /consents/consumer/:id`
-
-## Next Steps
-
-Once you have the local setup working, you can:
-
-1. Develop frontend applications that connect to the API
-2. Implement additional features
-3. Set up testing environments
-4. Prepare for deployment to hosting platforms
+Use https://ayurpass.com with your real email — not localhost.

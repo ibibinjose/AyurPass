@@ -1,5 +1,16 @@
 # Running AyurPass Application
 
+## Environments (secure default)
+
+| | Local | Production |
+|--|--------|------------|
+| Web | http://localhost:3000 | https://ayurpass.com |
+| API | http://localhost:4000 | https://api.ayurpass.com |
+| Login | Seeded demo users | Your real account |
+
+**Do not point localhost at the production API for daily work.**  
+Full policy: [docs/ENVIRONMENTS.md](./docs/ENVIRONMENTS.md).
+
 ## Monorepo layout
 
 ```text
@@ -19,10 +30,20 @@ cp apps/dashboard/.env.example apps/dashboard/.env.local
 npm install
 npm run prisma:generate
 npm run prisma:migrate
+npm run seed:local    # demo seeker + practice owner (local DB only)
 npm start
 ```
 
 This starts the API (http://localhost:4000) and the dashboard (http://localhost:3000). `Ctrl+C` stops both.
+
+### Local demo logins
+
+| Role | Email | Password |
+|------|-------|----------|
+| Seeker | `seeker@local.ayurpass.dev` | `LocalDev!23456` |
+| Practice | `provider@local.ayurpass.dev` | `LocalDev!23456` |
+
+Use your **real** email only on https://ayurpass.com.
 
 ## Run individually
 
@@ -40,7 +61,8 @@ cd apps/mobile
 npm run dev:mobile
 ```
 
-Set `EXPO_PUBLIC_API_URL` (see `apps/mobile/.env.example`) for physical devices / EAS builds.
+Set `EXPO_PUBLIC_API_URL` (see `apps/mobile/.env.example`) for physical devices / EAS builds.  
+Local device: point at your LAN IP API, not production, unless using a dedicated staging stack.
 
 ## Turbo
 
