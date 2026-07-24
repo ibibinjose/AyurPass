@@ -85,24 +85,28 @@ export const SERVICE_CATEGORY_ICON: Record<ServiceCategory, IoniconName> = {
 
 /** Ordered legend for calendar colour codes */
 export const CALENDAR_CATEGORY_LEGEND: {
-  id: ServiceCategory;
+  id: string;
   label: string;
   color: string;
-}[] = (
-  [
-    "AYURVEDA",
-    "YOGA",
-    "SPA",
-    "MEDITATION",
-    "FITNESS",
-    "NUTRITION",
-    "CONSULTATION",
-  ] as ServiceCategory[]
-).map((id) => ({
-  id,
-  label: SERVICE_CATEGORY_LABEL[id],
-  color: colorForServiceCategory(id),
-}));
+}[] = [
+  ...(
+    [
+      "AYURVEDA",
+      "YOGA",
+      "SPA",
+      "MEDITATION",
+      "FITNESS",
+      "CONSULTATION",
+      "COOKING",
+      "NUTRITION",
+    ] as ServiceCategory[]
+  ).map((id) => ({
+    id,
+    label: id === "CONSULTATION" ? "Consult" : SERVICE_CATEGORY_LABEL[id],
+    color: colorForServiceCategory(id),
+  })),
+  { id: "EVENT", label: "Events", color: colorForServiceCategory("EVENT") },
+];
 
 export function formatAddress(address?: BusinessAddress | null): string | null {
   if (!address) return null;

@@ -727,6 +727,12 @@ export const api = {
 
   // --- loyalty (AyurPass Rewards) ---
   loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
+  redeemLoyaltyReward: (rewardId: string) =>
+    request<LoyaltySummary>("/loyalty/redeem", {
+      method: "POST",
+      body: { rewardId },
+      auth: true,
+    }),
 
   // --- gift cards ---
   purchaseGiftCard: (data: { amount: number; recipientEmail?: string; message?: string }) =>

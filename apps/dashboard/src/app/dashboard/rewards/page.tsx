@@ -1,39 +1,60 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import type { LoyaltySummary } from "@/lib/types";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { SparkleIcon } from "@/components/icons";
-import { EmptyState } from "@/components/ui";
+import { Button, EmptyState, ErrorNote } from "@/components/ui";
 
 const TIER_META: Record<string, { blurb: string; ring: string }> = {
-  SEEDLING: { blurb: "Your journey begins.", ring: "from-leaf/30 to-clay" },
-  BLOOM: { blurb: "You're flourishing.", ring: "from-gold/30 to-clay" },
-  RADIANCE: { blurb: "Our most radiant members.", ring: "from-gold/50 to-gold-soft" },
+  SEEDLING: { blurb: "Your journey begins.", ring: "from-leaf/25 via-clay to-surface" },
+  BLOOM: { blurb: "You're flourishing.", ring: "from-gold/30 via-gold-soft/40 to-surface" },
+  RADIANCE: { blurb: "Our most radiant members.", ring: "from-gold/40 via-leaf/20 to-surface" },
 };
 
 export default function RewardsPage() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<LoyaltySummary | null | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!user) return;
+    setError(null);
     api
       .loyalty()
       .then(setSummary)
-      .catch(() => setSummary(null));
+      .catch((err) => {
+        setSummary(null);
+        setError(err instanceof Error ? err.message : "Could not load rewards.");
+      });
   }, [user]);
 
-  if (user && user.role !== "CONSUMER") {
-    return (
-      <EmptyState
-        title="Rewards are for wellness seekers"
-        body="Provider accounts don't collect points."
-      />
-    );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function redeem(rewardId: string) {
+    setRedeeming(rewardId);
+    setError(null);
+    setFlash(null);
+    try {
+      const next = await api.redeemLoyaltyReward(rewardId);
+      setSummary(next);
+      setFlash("Reward redeemed — credit is saved on your account for checkout.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Redeem failed.");
+    } finally {
+      setRedeeming(null);
+    }
+  }
+
+  if (user && user.role !== "CONSUMER" && user.role !== "PLATFORM_ADMIN") {
+    // Providers can still hold a seeker loyalty account if they book as guests
   }
 
   if (summary === undefined) {
@@ -41,7 +62,15 @@ export default function RewardsPage() {
   }
   if (summary === null) {
     return (
-      <EmptyState title="Rewards unavailable" body="We couldn't load your rewards right now." />
+      <EmptyState
+        title="Rewards unavailable"
+        body={error || "We couldn't load your rewards right now."}
+        action={
+          <Button type="button" onClick={load}>
+            Retry
+          </Button>
+        }
+      />
     );
   }
 
@@ -55,6 +84,9 @@ export default function RewardsPage() {
           ),
         )
       : 100;
+
+  const catalog = summary.catalog ?? [];
+  const earnRules = summary.earnRules ?? [];
 
   return (
     <div className="space-y-6">
@@ -80,8 +112,16 @@ export default function RewardsPage() {
         }
       />
 
+      <ErrorNote message={error} />
+      {flash ? (
+        <p className="rounded-xl border border-leaf/30 bg-leaf/10 px-3.5 py-2.5 text-sm font-medium text-forest">
+          {flash}
+        </p>
+      ) : null}
+
+      {/* Balance hero */}
       <div
-        className={`overflow-hidden rounded-3xl border border-hairline bg-gradient-to-br ${tierMeta.ring} p-8`}
+        className={`overflow-hidden rounded-3xl border border-hairline bg-gradient-to-br ${tierMeta.ring} p-6 sm:p-8`}
       >
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
@@ -89,7 +129,7 @@ export default function RewardsPage() {
               {tierMeta.blurb}
             </p>
             <p className="mt-2 font-display text-2xl text-forest">{summary.tier} member</p>
-            <p className="mt-4 text-5xl font-semibold text-forest">
+            <p className="mt-4 text-5xl font-semibold tabular-nums text-forest">
               {summary.pointsBalance.toLocaleString()}
               <span className="ml-2 text-lg font-normal text-forest/70">points</span>
             </p>
@@ -97,52 +137,111 @@ export default function RewardsPage() {
               worth {formatMoney(summary.pointsValue)} off your next booking or order
             </p>
           </div>
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface/70 text-forest">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface/80 text-forest shadow-sm">
             <SparkleIcon className="h-8 w-8" />
           </span>
         </div>
 
         {summary.nextTier ? (
           <div className="mt-6">
-            <div className="flex justify-between text-xs text-forest/70">
+            <div className="flex justify-between text-xs font-medium text-forest/70">
               <span>{summary.lifetimePoints.toLocaleString()} lifetime points</span>
               <span>
                 {summary.pointsToNextTier.toLocaleString()} to {summary.nextTier}
               </span>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface/60">
-              <div className="h-full rounded-full bg-forest" style={{ width: `${progress}%` }} />
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-surface/70">
+              <div
+                className="h-full rounded-full bg-forest transition-all"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
-        ) : null}
+        ) : (
+          <p className="mt-4 text-sm font-semibold text-forest">Top tier — thank you for staying with AyurPass.</p>
+        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          [
-            "Earn",
-            "1 point per $1 spent on bookings and shop orders, on the amount you pay by card.",
-          ],
-          [
-            "Redeem",
-            `Apply points at checkout — every point is worth ${formatMoney(summary.pointRedemptionValue)}.`,
-          ],
-          ["Rise", "Reach Bloom at 500 lifetime points, and Radiance at 2,000."],
-        ].map(([title, body]) => (
-          <div key={title} className="rounded-2xl border border-hairline bg-surface p-5">
-            <p className="font-display text-lg text-forest">{title}</p>
-            <p className="mt-1.5 text-sm text-ink-secondary">{body}</p>
+      {/* How to earn */}
+      <section>
+        <h2 className="font-display text-lg font-semibold text-forest">How you earn</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {(earnRules.length
+            ? earnRules
+            : [
+                { label: "Earn", detail: "1 point per $1 on card-paid bookings and shop orders." },
+                { label: "Redeem", detail: `Every point is worth ${formatMoney(summary.pointRedemptionValue)}.` },
+                { label: "Bloom", detail: "500 lifetime points." },
+                { label: "Radiance", detail: "2,000 lifetime points." },
+              ]
+          ).map((r) => (
+            <div key={r.label} className="rounded-2xl border border-hairline bg-surface p-4">
+              <p className="text-sm font-bold text-forest">{r.label}</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-secondary">{r.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Redeem catalog */}
+      <section>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-forest">Redeem rewards</h2>
+            <p className="mt-0.5 text-sm text-ink-muted">
+              Convert points into credits used at booking or shop checkout.
+            </p>
           </div>
-        ))}
-      </div>
+        </div>
+        {catalog.length === 0 ? (
+          <p className="mt-3 text-sm text-ink-muted">Catalog loading…</p>
+        ) : (
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {catalog.map((item) => {
+              const can = summary.pointsBalance >= item.pointsCost;
+              return (
+                <li
+                  key={item.id}
+                  className="flex flex-col rounded-2xl border border-hairline bg-surface p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-display text-base font-semibold text-forest">{item.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
+                        {item.description}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-leaf/15 px-2.5 py-1 text-xs font-bold tabular-nums text-forest">
+                      {item.pointsCost} pts
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!can || redeeming === item.id}
+                    onClick={() => void redeem(item.id)}
+                    className="mt-4 inline-flex min-h-9 items-center justify-center rounded-full bg-forest px-4 text-xs font-bold text-white hover:bg-forest-deep disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    {redeeming === item.id
+                      ? "Redeeming…"
+                      : can
+                        ? `Redeem · ${formatMoney(item.dollarValue)}`
+                        : `Need ${item.pointsCost - summary.pointsBalance} more pts`}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
-      <div>
-        <h2 className="font-display text-xl text-forest">Points history</h2>
-        <div className="mt-4">
-          {summary.transactions.length === 0 ? (
+      {/* History */}
+      <section>
+        <h2 className="font-display text-lg font-semibold text-forest">Points history</h2>
+        <div className="mt-3">
+          {!summary.transactions?.length ? (
             <EmptyState
               title="No activity yet"
-              body="Points you earn and redeem will show up here. Make a booking or a purchase to get started."
+              body="Points you earn and redeem show up here. Book a session or shop to start earning."
               action={
                 <Link
                   href="/explore"
@@ -155,19 +254,20 @@ export default function RewardsPage() {
           ) : (
             <ul className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface">
               {summary.transactions.map((t) => (
-                <li key={t.id} className="flex items-center justify-between px-5 py-3.5">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{t.reason}</p>
+                <li key={t.id} className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{t.reason}</p>
                     <p className="text-xs text-ink-muted">
                       {new Date(t.createdAt).toLocaleString(undefined, {
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
+                      {t.type ? ` · ${t.type}` : ""}
                     </p>
                   </div>
                   <span
-                    className={`text-sm font-semibold tabular-nums ${
-                      t.points >= 0 ? "text-forest" : "text-ink-secondary"
+                    className={`shrink-0 text-sm font-bold tabular-nums ${
+                      t.points >= 0 ? "text-leaf" : "text-ink-secondary"
                     }`}
                   >
                     {t.points >= 0 ? "+" : ""}
@@ -178,7 +278,7 @@ export default function RewardsPage() {
             </ul>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

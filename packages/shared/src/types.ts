@@ -421,14 +421,35 @@ export interface AccessAuditEntry {
   ipAddress?: string | null;
 }
 
+export interface LoyaltyTransaction {
+  id: string;
+  type: string;
+  points: number;
+  reason: string;
+  createdAt: string;
+}
+
+export interface LoyaltyRewardItem {
+  id: string;
+  title: string;
+  description: string;
+  pointsCost: number;
+  dollarValue: number;
+  kind: "booking_credit" | "shop_credit" | "perk";
+}
+
 export interface LoyaltySummary {
   pointsBalance: number;
   lifetimePoints: number;
   pointsValue: number;
+  pointRedemptionValue: number;
   tier: string;
   tierKey: string;
   nextTier: string | null;
   pointsToNextTier: number;
+  transactions: LoyaltyTransaction[];
+  catalog?: LoyaltyRewardItem[];
+  earnRules?: { label: string; detail: string }[];
 }
 
 export interface AuthTokens {

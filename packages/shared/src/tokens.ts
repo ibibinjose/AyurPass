@@ -52,6 +52,7 @@ export const serviceCategoryColor: Record<string, string> = {
   CONSULTATION: "#007aff", // system blue
   PACKAGE: "#a67a24", // gold
   COOKING: "#c4782a", // kitchen amber
+  EVENT: "#007aff", // system blue for wellness events
 };
 
 export const serviceCategoryColorSoft: Record<string, string> = {
@@ -65,6 +66,7 @@ export const serviceCategoryColorSoft: Record<string, string> = {
   CONSULTATION: "#e5f1ff",
   PACKAGE: "#f5edd9",
   COOKING: "#f8ead8",
+  EVENT: "#e5f1ff",
 };
 
 export function colorForServiceCategory(category?: string | null): string {

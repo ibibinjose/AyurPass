@@ -355,6 +355,32 @@ export const api = {
       auth: true,
     }),
   loyalty: () => request<LoyaltySummary>("/loyalty/me", { auth: true }),
+  redeemLoyaltyReward: (rewardId: string) =>
+    request<LoyaltySummary>("/loyalty/redeem", {
+      method: "POST",
+      body: { rewardId },
+      auth: true,
+    }),
+  myEventTickets: () =>
+    request<
+      {
+        id: string;
+        status: string;
+        code: string;
+        event?: {
+          id: string;
+          title: string;
+          category?: string;
+          startTime: string;
+          endTime?: string;
+          slug?: string;
+          provider?: { businessName?: string };
+        } | null;
+      }[]
+    >("/events/tickets/mine", { auth: true }),
+  myWellnessPass: () => request<Record<string, unknown>>("/wellness-pass/me", { auth: true }),
+  issueWellnessPass: () =>
+    request<Record<string, unknown>>("/wellness-pass/issue", { method: "POST", auth: true }),
 
   // push devices
   registerDevice: (token: string, platform?: "ios" | "android" | "web") =>

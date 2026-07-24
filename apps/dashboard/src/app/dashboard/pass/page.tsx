@@ -4,63 +4,116 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { EVENT_CATEGORY_LABEL } from "@/lib/catalog";
+import { useAuth } from "@/context/AuthContext";
 import { Button, EmptyState, ErrorNote } from "@/components/ui";
+import { loginUrl } from "@/lib/auth-redirect";
 
 type PassBundle = Awaited<ReturnType<typeof api.myWellnessPass>>;
 
 export default function WellnessPassPage() {
+  const { user, loading: authLoading } = useAuth();
   const [pass, setPass] = useState<PassBundle | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
+    if (!user) return;
     setError(null);
-    api
-      .myWellnessPass()
-      .then(setPass)
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Could not load pass.");
-        setPass(null);
-      });
-  }, []);
+    setBusy(true);
+    try {
+      // Issue is idempotent — ensures Consumer + Pass rows exist
+      await api.issueWellnessPass().catch(() => null);
+      const p = await api.myWellnessPass();
+      setPass(p);
+    } catch (err) {
+      setPass(null);
+      const msg = err instanceof Error ? err.message : "Could not load pass.";
+      // Friendlier P2022 / migration messaging
+      if (msg.includes("P2022") || msg.toLowerCase().includes("column")) {
+        setError(
+          "Pass tables are still updating on the server. Wait a minute and retry — or contact support if this persists.",
+        );
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (authLoading) return;
+    if (!user) {
+      setPass(null);
+      return;
+    }
+    void load();
+  }, [user, authLoading, load]);
 
-  if (pass === undefined) {
-    return <p className="text-sm text-ink-muted">Loading your Wellness Pass…</p>;
+  if (authLoading || (user && pass === undefined)) {
+    return (
+      <div className="space-y-4">
+        <div className="h-8 w-48 animate-pulse rounded bg-clay/70" />
+        <div className="h-56 animate-pulse rounded-3xl bg-clay/60" />
+      </div>
+    );
   }
 
-  if (!pass) {
+  if (!user) {
     return (
       <EmptyState
-        title="Pass unavailable"
-        body={error || "Sign in as a wellness seeker to issue your permanent pass."}
+        title="Sign in for your Wellness Pass"
+        body="Your permanent pass links appointments and event tickets for easy venue check-in."
         action={
-          <Button type="button" onClick={load}>
-            Retry
-          </Button>
+          <Link
+            href={loginUrl("/dashboard/pass")}
+            className="inline-flex min-h-10 items-center rounded-full bg-forest px-5 text-sm font-semibold text-white"
+          >
+            Sign in
+          </Link>
         }
       />
     );
   }
 
-  const qr = pass.qrPayload || pass.wallet?.qrPayload;
-  const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qr)}`;
+  if (!pass) {
+    return (
+      <div className="space-y-4">
+        <EmptyState
+          title="Pass unavailable"
+          body={error || "We couldn't load your permanent Wellness Pass."}
+          action={
+            <Button type="button" onClick={() => void load()} disabled={busy}>
+              {busy ? "Retrying…" : "Retry"}
+            </Button>
+          }
+        />
+        <ErrorNote message={error} />
+      </div>
+    );
+  }
+
+  const qr = pass.qrPayload || pass.wallet?.qrPayload || "";
+  const qrImg = qr
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(qr)}`
+    : "";
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-forest">Wellness Pass</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          Your permanent AyurPass identity. Appointments and event tickets stay linked here —
-          present the QR at the door or desk.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-forest">Wellness Pass</h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            Permanent identity for appointments and events. Present the QR at the door or desk.
+          </p>
+        </div>
+        <Button type="button" variant="ghost" onClick={() => void load()} disabled={busy}>
+          Refresh
+        </Button>
       </div>
 
       <ErrorNote message={error} />
 
-      {/* Digital pass card */}
       <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-forest via-forest-deep to-leaf p-6 text-white shadow-[0_16px_40px_rgba(30,50,40,0.35)]">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -68,30 +121,30 @@ export default function WellnessPassPage() {
               AyurPass · Permanent
             </p>
             <p className="mt-2 font-display text-2xl font-semibold">
-              {pass.holderName || "Wellness Member"}
+              {pass.holderName || user.fullName || "Wellness Member"}
             </p>
             <p className="mt-1 font-mono text-sm tracking-wider text-white/80">
               {pass.serialNumber}
             </p>
           </div>
-          <div className="rounded-2xl bg-white p-2 shadow-inner">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qrImg} alt="Pass QR code" width={120} height={120} className="rounded-lg" />
-          </div>
+          {qrImg ? (
+            <div className="rounded-2xl bg-white p-2 shadow-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrImg} alt="Pass QR code" width={120} height={120} className="rounded-lg" />
+            </div>
+          ) : null}
         </div>
         <p className="mt-6 text-xs leading-relaxed text-white/75">
-          Scan this code at wellness events and appointment centres. Providers only see what’s needed
-          for check-in — your full health profile stays private.
+          Scan at wellness events and appointment centres. Your health profile stays private —
+          staff only see check-in details for this venue.
         </p>
       </div>
 
-      {/* Wallet CTAs */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-hairline bg-surface p-4">
           <p className="text-sm font-bold text-forest">Apple Wallet</p>
           <p className="mt-1 text-xs text-ink-muted">
-            {pass.wallet?.apple?.note ||
-              "Pass payload ready. Device install requires Apple Pass Type ID certificates."}
+            {pass.wallet?.apple?.note || "Pass payload ready for signing."}
           </p>
           <button
             type="button"
@@ -114,8 +167,7 @@ export default function WellnessPassPage() {
         <div className="rounded-2xl border border-hairline bg-surface p-4">
           <p className="text-sm font-bold text-forest">Google Wallet</p>
           <p className="mt-1 text-xs text-ink-muted">
-            {pass.wallet?.google?.note ||
-              "Object ready. Configure Google Wallet issuer for one-tap Save."}
+            {pass.wallet?.google?.note || "Object ready for issuer configuration."}
           </p>
           <button
             type="button"
@@ -137,7 +189,6 @@ export default function WellnessPassPage() {
         </div>
       </div>
 
-      {/* Linked entitlements */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide text-ink-muted">
           Linked appointments
@@ -203,7 +254,7 @@ export default function WellnessPassPage() {
       </section>
 
       <p className="text-center text-[11px] text-ink-muted">
-        Status: {pass.status} · Token ends …{pass.publicToken?.slice(-6)}
+        Status: {pass.status} · {pass.serialNumber}
       </p>
     </div>
   );

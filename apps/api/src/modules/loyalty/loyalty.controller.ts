@@ -1,9 +1,15 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { LoyaltyService } from './loyalty.service';
-import { JwtAuthGuard, AuthedRequest } from '../../common/jwt-auth.guard';
+import { AuthedRequest } from '../../common/jwt-auth.guard';
+
+class RedeemCatalogDto {
+  @IsString()
+  @IsNotEmpty()
+  rewardId: string;
+}
 
 @Controller('loyalty')
-@UseGuards(JwtAuthGuard)
 export class LoyaltyController {
   constructor(private readonly service: LoyaltyService) {}
 
@@ -11,5 +17,11 @@ export class LoyaltyController {
   @Get('me')
   me(@Req() req: AuthedRequest) {
     return this.service.summary(req.user.sub);
+  }
+
+  /** Redeem a catalog reward (points → booking/shop credit). */
+  @Post('redeem')
+  redeem(@Req() req: AuthedRequest, @Body() dto: RedeemCatalogDto) {
+    return this.service.redeemCatalog(req.user.sub, dto.rewardId);
   }
 }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -10,108 +11,103 @@ import * as crypto from 'crypto';
 
 /**
  * Permanent AyurPass Wellness Pass.
- *
- * Product model:
- * - One pass per seeker (Consumer), lifelong serial AP-XXXXXXX
- * - Every booking & event ticket is *associated* with the pass
- * - QR payload encodes pass serial + optional entitlement token
- * - Providers scan at appointment desk or event door
- * - Apple Wallet / Google Wallet: pass.json / save URL when certs configured;
- *   always works as in-app digital pass with QR
+ * One pass per seeker; bookings & event tickets attach for venue scan.
  */
 @Injectable()
 export class WellnessPassService {
+  private readonly logger = new Logger(WellnessPassService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async ensureForConsumer(userId: string) {
-    let consumer = await this.prisma.consumer.findUnique({
-      where: { userId },
-      include: { user: { select: { fullName: true, email: true } }, wellnessPass: true },
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, fullName: true, email: true },
     });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Ensure Consumer row exists (seekers; also providers who attend events)
+    let consumer = await this.prisma.consumer.findUnique({ where: { userId } });
     if (!consumer) {
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-      if (!user) throw new NotFoundException('User not found');
       consumer = await this.prisma.consumer.create({
         data: {
           userId,
           preferences: {},
           prakritiScores: {},
         },
-        include: {
-          user: { select: { fullName: true, email: true } },
-          wellnessPass: true,
-        },
       });
     }
-    if (consumer.wellnessPass) {
-      if (!consumer.wellnessPass.holderName && consumer.user?.fullName) {
+
+    const existing = await this.prisma.wellnessPass.findUnique({
+      where: { consumerId: userId },
+    });
+    if (existing) {
+      if (!existing.holderName && user.fullName) {
         return this.prisma.wellnessPass.update({
-          where: { id: consumer.wellnessPass.id },
-          data: { holderName: consumer.user.fullName },
+          where: { id: existing.id },
+          data: { holderName: user.fullName },
         });
       }
-      return consumer.wellnessPass;
+      return existing;
     }
-    return this.prisma.wellnessPass.create({
-      data: {
-        consumerId: userId,
-        holderName: consumer.user?.fullName || null,
-      },
-    });
+
+    try {
+      return await this.prisma.wellnessPass.create({
+        data: {
+          consumerId: userId,
+          holderName: user.fullName || null,
+        },
+      });
+    } catch (err) {
+      // Race: another request created the pass
+      const again = await this.prisma.wellnessPass.findUnique({
+        where: { consumerId: userId },
+      });
+      if (again) return again;
+      this.logger.error('Failed to create WellnessPass', err);
+      throw err;
+    }
   }
 
   async getMyPass(userId: string) {
     const pass = await this.ensureForConsumer(userId);
     const now = new Date();
-    const [bookings, tickets] = await Promise.all([
-      this.prisma.booking.findMany({
-        where: {
-          consumerId: userId,
-          status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
-          endTime: { gte: now },
-        },
-        include: {
-          service: { select: { id: true, name: true, category: true } },
-          provider: { select: { id: true, businessName: true } },
-        },
-        orderBy: { startTime: 'asc' },
-        take: 20,
-      }),
-      this.prisma.eventTicket.findMany({
-        where: {
-          consumerId: userId,
-          status: { in: ['CONFIRMED', 'PENDING', 'WAITLISTED'] },
-          event: { endTime: { gte: now } },
-        },
-        include: {
-          event: {
-            select: {
-              id: true,
-              title: true,
-              category: true,
-              startTime: true,
-              endTime: true,
-              venueName: true,
-              slug: true,
-              provider: { select: { id: true, businessName: true } },
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-      }),
-    ]);
 
-    // Attach any bookings missing pass link
-    await this.prisma.booking.updateMany({
-      where: { consumerId: userId, wellnessPassId: null },
-      data: { wellnessPassId: pass.id },
-    });
+    let bookings: Awaited<ReturnType<typeof this.loadBookings>> = [];
+    let tickets: Awaited<ReturnType<typeof this.loadTickets>> = [];
+
+    try {
+      bookings = await this.loadBookings(userId, now);
+    } catch (err) {
+      this.logger.warn(`Bookings load for pass failed: ${String(err)}`);
+    }
+    try {
+      tickets = await this.loadTickets(userId, now);
+    } catch (err) {
+      this.logger.warn(`Tickets load for pass failed: ${String(err)}`);
+    }
+
+    // Best-effort: attach unlinked bookings to this pass
+    try {
+      await this.prisma.booking.updateMany({
+        where: { consumerId: userId, wellnessPassId: null },
+        data: { wellnessPassId: pass.id },
+      });
+    } catch {
+      /* column may be mid-migration on older deploys */
+    }
 
     const qrPayload = this.buildPassPayload(pass.serialNumber, pass.publicToken);
 
     return {
-      ...pass,
+      id: pass.id,
+      consumerId: pass.consumerId,
+      serialNumber: pass.serialNumber,
+      publicToken: pass.publicToken,
+      status: pass.status,
+      holderName: pass.holderName,
+      createdAt: pass.createdAt,
+      updatedAt: pass.updatedAt,
       qrPayload,
       wallet: this.buildWalletDescriptors(pass, bookings, tickets),
       entitlements: {
@@ -121,8 +117,49 @@ export class WellnessPassService {
     };
   }
 
+  private loadBookings(userId: string, now: Date) {
+    return this.prisma.booking.findMany({
+      where: {
+        consumerId: userId,
+        status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
+        endTime: { gte: now },
+      },
+      include: {
+        service: { select: { id: true, name: true, category: true } },
+        provider: { select: { id: true, businessName: true } },
+      },
+      orderBy: { startTime: 'asc' },
+      take: 20,
+    });
+  }
+
+  private loadTickets(userId: string, now: Date) {
+    return this.prisma.eventTicket.findMany({
+      where: {
+        consumerId: userId,
+        status: { in: ['CONFIRMED', 'PENDING', 'WAITLISTED'] },
+        event: { endTime: { gte: now } },
+      },
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            startTime: true,
+            endTime: true,
+            venueName: true,
+            slug: true,
+            provider: { select: { id: true, businessName: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+  }
+
   buildPassPayload(serialNumber: string, publicToken: string, entitlement?: string) {
-    // AYPASS:serial:token[:entitlement]
     const base = `AYPASS:${serialNumber}:${publicToken}`;
     return entitlement ? `${base}:${entitlement}` : base;
   }
@@ -145,7 +182,6 @@ export class WellnessPassService {
         raw: s,
       };
     }
-    // Bare check-in token (12+ hex/alnum)
     if (/^[A-Z0-9]{8,16}$/i.test(s)) {
       return { kind: 'unknown', entitlement: s.toUpperCase(), raw: s };
     }
@@ -154,7 +190,12 @@ export class WellnessPassService {
 
   private buildWalletDescriptors(
     pass: { id: string; serialNumber: string; publicToken: string; holderName: string | null },
-    bookings: { id: string; startTime: Date; service: { name: string } | null; provider: { businessName: string } | null; checkInToken: string | null }[],
+    bookings: {
+      id: string;
+      startTime: Date;
+      service: { name: string } | null;
+      provider: { businessName: string } | null;
+    }[],
     tickets: {
       id: string;
       checkInToken: string;
@@ -171,7 +212,6 @@ export class WellnessPassService {
           ? `Next: ${nextBooking.service.name}`
           : 'Your permanent AyurPass';
 
-    // Apple Wallet pass.json skeleton (signed .pkpass when certs present)
     const applePassJson = {
       formatVersion: 1,
       passTypeIdentifier:
@@ -199,23 +239,15 @@ export class WellnessPassService {
           },
         ],
         secondaryFields: [
-          {
-            key: 'serial',
-            label: 'PASS ID',
-            value: pass.serialNumber,
-          },
-          {
-            key: 'next',
-            label: 'UPCOMING',
-            value: secondary.slice(0, 48),
-          },
+          { key: 'serial', label: 'PASS ID', value: pass.serialNumber },
+          { key: 'next', label: 'UPCOMING', value: secondary.slice(0, 48) },
         ],
         backFields: [
           {
             key: 'info',
             label: 'About',
             value:
-              'This is your permanent AyurPass. Appointments and event tickets are linked automatically. Present this pass at the venue for check-in.',
+              'Permanent AyurPass. Appointments and event tickets are linked automatically. Present this pass at the venue for check-in.',
           },
           {
             key: 'bookings',
@@ -245,7 +277,6 @@ export class WellnessPassService {
       },
     };
 
-    // Google Wallet generic pass object skeleton
     const googleObject = {
       id: `${process.env.GOOGLE_WALLET_ISSUER_ID || '3388000000000000000'}.${pass.serialNumber}`,
       classId: `${process.env.GOOGLE_WALLET_ISSUER_ID || '3388000000000000000'}.ayurpass_wellness`,
@@ -266,15 +297,8 @@ export class WellnessPassService {
         alternateText: pass.serialNumber,
       },
       hexBackgroundColor: '#1e3228',
-      textModulesData: [
-        { id: 'upcoming', header: 'Upcoming', body: secondary },
-      ],
+      textModulesData: [{ id: 'upcoming', header: 'Upcoming', body: secondary }],
     };
-
-    const googleSaveUrl =
-      process.env.GOOGLE_WALLET_SAVE_ENABLED === 'true' && process.env.GOOGLE_WALLET_ISSUER_ID
-        ? null // real JWT URL issued when service account configured
-        : null;
 
     return {
       qrPayload,
@@ -289,7 +313,7 @@ export class WellnessPassService {
       google: {
         available: Boolean(process.env.GOOGLE_WALLET_SERVICE_ACCOUNT),
         object: googleObject,
-        saveUrl: googleSaveUrl,
+        saveUrl: null as string | null,
         note: process.env.GOOGLE_WALLET_SERVICE_ACCOUNT
           ? 'Save to Google Wallet available'
           : 'Object ready — configure GOOGLE_WALLET_SERVICE_ACCOUNT for Save button',
@@ -297,10 +321,6 @@ export class WellnessPassService {
     };
   }
 
-  /**
-   * Provider scans a QR at the door / appointment desk.
-   * Accepts full AYPASS payload, pass serial, or entitlement check-in token.
-   */
   async scan(scannerUserId: string, dto: ScanPassDto) {
     const provider = await this.prisma.user.findUnique({
       where: { id: scannerUserId },
@@ -323,14 +343,13 @@ export class WellnessPassService {
     let targetId: string | null = null;
     let detail: Record<string, unknown> = {};
 
-    // Resolve pass
     let pass =
       parsed.serial
         ? await this.prisma.wellnessPass.findFirst({
             where: {
               OR: [
                 { serialNumber: parsed.serial },
-                { publicToken: parsed.token },
+                ...(parsed.token ? [{ publicToken: parsed.token }] : []),
               ],
             },
             include: {
@@ -352,8 +371,12 @@ export class WellnessPassService {
       });
     }
 
-    // Entitlement: ticket token
-    const token = parsed.entitlement || (parsed.kind === 'unknown' ? parsed.raw.toUpperCase() : null);
+    const token =
+      parsed.entitlement ||
+      (parsed.kind === 'unknown' && /^[A-Z0-9]{8,16}$/i.test(parsed.raw)
+        ? parsed.raw.toUpperCase()
+        : null);
+
     if (token) {
       const ticket = await this.prisma.eventTicket.findFirst({
         where: { checkInToken: token },
@@ -362,7 +385,6 @@ export class WellnessPassService {
           consumer: {
             include: { user: { select: { id: true, fullName: true, email: true } } },
           },
-          wellnessPass: true,
         },
       });
       if (ticket) {
@@ -408,7 +430,6 @@ export class WellnessPassService {
             consumer: {
               include: { user: { select: { id: true, fullName: true, email: true } } },
             },
-            wellnessPass: true,
           },
         });
         if (booking) {
@@ -454,7 +475,6 @@ export class WellnessPassService {
       }
     }
 
-    // Pure pass scan (identify holder + list today's entitlements at this venue)
     if (result === 'invalid' && pass) {
       wellnessPassId = pass.id;
       targetKind = 'pass';
@@ -499,20 +519,26 @@ export class WellnessPassService {
       };
     }
 
-    await this.prisma.passScanLog.create({
-      data: {
-        wellnessPassId,
-        providerId,
-        scannedByUserId: scannerUserId,
-        targetKind,
-        targetId,
-        result,
-        rawPayload: dto.payload.slice(0, 500),
-      },
-    });
+    try {
+      await this.prisma.passScanLog.create({
+        data: {
+          wellnessPassId,
+          providerId,
+          scannedByUserId: scannerUserId,
+          targetKind,
+          targetId,
+          result,
+          rawPayload: dto.payload.slice(0, 500),
+        },
+      });
+    } catch {
+      /* audit best-effort */
+    }
 
     if (result === 'invalid' && !pass) {
-      throw new BadRequestException('Unrecognised pass or ticket. Ask the guest to open AyurPass.');
+      throw new BadRequestException(
+        'Unrecognised pass or ticket. Ask the guest to open AyurPass.',
+      );
     }
 
     return {
@@ -524,7 +550,6 @@ export class WellnessPassService {
     };
   }
 
-  /** Link a new booking to the permanent pass (called from bookings create). */
   async attachBooking(userId: string, bookingId: string) {
     const pass = await this.ensureForConsumer(userId);
     return this.prisma.booking.update({
@@ -539,11 +564,6 @@ export class WellnessPassService {
 
   walletGooglePayload(userId: string) {
     return this.getMyPass(userId).then((p) => p.wallet.google);
-  }
-
-  /** Deterministic entitlement QR for a ticket or booking. */
-  entitlementPayload(passSerial: string, passToken: string, checkInToken: string) {
-    return this.buildPassPayload(passSerial, passToken, checkInToken);
   }
 
   hashForLog(value: string) {
