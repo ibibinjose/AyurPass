@@ -61,15 +61,15 @@ function TabBar({ tabs, ariaLabel }: { tabs: Tab[]; ariaLabel: string }) {
 
   return (
     <nav
-      className="dash-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/92 backdrop-blur-xl md:hidden"
+      className="dash-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/95 shadow-[0_-4px_24px_rgba(30,50,40,0.06)] backdrop-blur-xl md:hidden"
       style={{
-        paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 0px))",
-        paddingLeft: "env(safe-area-inset-left, 0px)",
-        paddingRight: "env(safe-area-inset-right, 0px)",
+        paddingBottom: "max(0.35rem, env(safe-area-inset-bottom, 0px))",
+        paddingLeft: "max(0.25rem, env(safe-area-inset-left, 0px))",
+        paddingRight: "max(0.25rem, env(safe-area-inset-right, 0px))",
       }}
       aria-label={ariaLabel}
     >
-      <ul className="mx-auto flex h-[3.35rem] max-w-lg items-stretch justify-between gap-0.5 px-1.5">
+      <ul className="mx-auto flex h-[3.5rem] max-w-lg items-stretch justify-between gap-0.5 px-1">
         {tabs.map((tab) => {
           const active = tab.match(pathname);
           const Icon = tab.icon;

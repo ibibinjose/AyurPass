@@ -18,7 +18,7 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
   }
 
   return (
-    <div className="flex min-h-[100dvh] min-h-screen flex-col">
+    <div className="flex min-h-[100dvh] min-h-screen flex-col overflow-x-clip">
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
@@ -26,7 +26,7 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
       <EmailVerifyBanner />
       <div
         id="main-content"
-        className="flex-grow pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:pb-0"
+        className="min-w-0 flex-grow pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:pb-0"
         tabIndex={-1}
       >
         {children}
@@ -35,7 +35,7 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
       <div className="hidden md:block">
         <Footer />
       </div>
-      <div className="md:hidden">
+      <div className="md:hidden border-t border-[var(--separator)]/60">
         <Footer compact />
       </div>
       <MobileBottomNav />

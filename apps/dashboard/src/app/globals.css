@@ -177,13 +177,60 @@ button {
   top: max(0.75rem, var(--safe-top));
 }
 
-/* Page container — mobile-first gutters */
+/* Page container — mobile-first gutters + safe areas */
 .page-shell {
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  padding-inline: var(--space-page-x);
+  padding-inline: max(var(--space-page-x), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
   padding-block: var(--space-page-y);
+  padding-left: max(var(--space-page-x), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-page-x), env(safe-area-inset-right, 0px));
+}
+
+/* Prevent horizontal “page shift” on mobile web */
+html {
+  overflow-x: clip;
+}
+body {
+  overflow-x: clip;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS Safari: avoid auto-zoom on focus (inputs must be ≥16px) */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  .page-shell {
+    padding-top: 1rem;
+    padding-bottom: 1.25rem;
+  }
+  .type-display {
+    font-size: 1.625rem;
+    line-height: 1.2;
+  }
+  .type-title {
+    font-size: 1.125rem;
+  }
+  /* Tighter marketing heroes on small screens */
+  .card-surface {
+    border-radius: 1rem;
+  }
+}
+
+/* Touch-friendly primary actions */
+@media (pointer: coarse) {
+  .profile-spring,
+  .chip-scroll button,
+  .directory-sidebar button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
 }
 
 /* Card surface — Apple-like continuous corner + soft elevation */

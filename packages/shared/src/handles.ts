@@ -111,12 +111,20 @@ export const PROFESSIONAL_TITLE_KINDS: {
   { id: "OTHER", label: "Other / Custom title", namespace: "pro", group: "Other" },
 ];
 
-/** First-path segments reserved for product routes — never available as root vanity. */
+/**
+ * First-path segments reserved for product / discipline routes.
+ * Never available as root vanity, practice slug, or professional handle.
+ * Protects paths like /ayurveda, /yoga, /spa, /meditation, /events, …
+ */
 export const RESERVED_ROOT_HANDLES = new Set([
+  // Core product
   "api",
   "admin",
   "login",
   "register",
+  "forgot-password",
+  "reset-password",
+  "verify-email",
   "dashboard",
   "discover",
   "explore",
@@ -129,6 +137,11 @@ export const RESERVED_ROOT_HANDLES = new Set([
   "providers",
   "practice",
   "me",
+  "events",
+  "careers",
+  "jobs",
+  "list-your-business",
+  // Professional namespaces
   "pro",
   "ayur",
   "yoga",
@@ -137,6 +150,31 @@ export const RESERVED_ROOT_HANDLES = new Set([
   "fitness",
   "nutrition",
   "coach",
+  // Discipline landing pages (must never be claimed as vanity)
+  "ayurveda",
+  "ayurvedic",
+  "ayurved",
+  "ayur",
+  "panchakarma",
+  "wellbeing",
+  "wellness",
+  "yoga",
+  "yogi",
+  "spa",
+  "spas",
+  "meditation",
+  "mindfulness",
+  "fitness",
+  "health-club",
+  "healthclub",
+  "nutrition",
+  "cooking",
+  "kitchen",
+  "coaching",
+  "coach",
+  "retreat",
+  "retreats",
+  // Legal / marketing / system
   "help",
   "faq",
   "contact",
@@ -145,7 +183,6 @@ export const RESERVED_ROOT_HANDLES = new Set([
   "cookies",
   "accessibility",
   "partners",
-  "list-your-business",
   "sitemap",
   "robots",
   "manifest",
@@ -155,9 +192,12 @@ export const RESERVED_ROOT_HANDLES = new Set([
   "assets",
   "static",
   "uploads",
+  "files",
   "auth",
   "www",
   "app",
+  "apps",
+  "mobile",
   "support",
   "about",
   "blog",
@@ -177,6 +217,15 @@ export const RESERVED_ROOT_HANDLES = new Set([
   "null",
   "undefined",
   "ayurpass",
+  "home",
+  "search",
+  "new",
+  "create",
+  "edit",
+  "delete",
+  "pass",
+  "rewards",
+  "loyalty",
 ]);
 
 export const HANDLE_NAMESPACES_SET = new Set<string>(HANDLE_NAMESPACES.map((n) => n.id));
@@ -199,7 +248,17 @@ export function isValidHandle(handle: string): boolean {
 }
 
 export function isReservedRootHandle(handle: string): boolean {
-  return RESERVED_ROOT_HANDLES.has(handle.toLowerCase());
+  const h = handle
+    .toLowerCase()
+    .replace(/^@+/, "")
+    .trim()
+    .replace(/^[._-]+|[._-]+$/g, "");
+  if (!h) return true;
+  if (RESERVED_ROOT_HANDLES.has(h)) return true;
+  // Block "ayur-veda" / "ayur.veda" when the compacted form is reserved
+  const compact = h.replace(/[._-]+/g, "");
+  if (compact !== h && RESERVED_ROOT_HANDLES.has(compact)) return true;
+  return false;
 }
 
 export function isHandleNamespace(value: string): value is HandleNamespace {

@@ -13,7 +13,7 @@ import { RegisterDto } from '../../dtos/auth.dto';
 import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { sanitizeUser } from '../../common/sanitize-user';
 import { accessSecret, refreshSecret } from '../../common/env';
-import { slugifyName, withSlugSuffix } from '../../common/slug';
+import { slugifyPublicName, withSlugSuffix } from '../../common/slug';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -108,7 +108,7 @@ export class AuthService {
   }
 
   private async uniqueProviderSlug(businessName: string): Promise<string> {
-    const base = slugifyName(businessName) || 'practice';
+    const base = slugifyPublicName(businessName, 'practice');
     let n = 0;
     while (true) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);

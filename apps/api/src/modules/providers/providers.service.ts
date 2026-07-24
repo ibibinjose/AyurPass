@@ -7,7 +7,7 @@ import {
 import { Prisma, ProviderType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProviderDto } from '../../dtos/provider.dto';
-import { slugifyName, withSlugSuffix } from '../../common/slug';
+import { slugifyPublicName, withSlugSuffix } from '../../common/slug';
 import {
   assertHandle,
   isReservedRoot,
@@ -211,7 +211,7 @@ export class ProvidersService {
   constructor(private prisma: PrismaService) {}
 
   async uniqueSlug(businessName: string, excludeId?: string): Promise<string> {
-    const base = slugifyName(businessName) || 'practice';
+    const base = slugifyPublicName(businessName, 'practice');
     let n = 0;
     while (true) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);

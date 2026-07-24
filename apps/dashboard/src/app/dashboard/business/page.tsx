@@ -889,7 +889,8 @@ export default function BusinessProfilePage() {
                       {normalizeHandle(vanityHandle) &&
                       isReservedRootHandle(normalizeHandle(vanityHandle)) ? (
                         <span className="mt-1 block font-semibold text-red-700">
-                          This handle is reserved.
+                          Reserved for AyurPass (ayurveda, yoga, spa, meditation, events…). Choose a
+                          unique brand name instead.
                         </span>
                       ) : null}
                       {normalizeHandle(vanityHandle) &&

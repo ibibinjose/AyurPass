@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { EventCategory, EventStatus, Prisma, TicketStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { slugifyName, withSlugSuffix } from '../../common/slug';
+import { slugifyPublicName, withSlugSuffix } from '../../common/slug';
 import {
   CreateEventDto,
   RegisterEventDto,
@@ -48,7 +48,7 @@ export class EventsService {
   ) {}
 
   private async uniqueSlug(title: string): Promise<string> {
-    const base = slugifyName(title) || 'event';
+    const base = slugifyPublicName(title, 'event');
     let n = 0;
     while (true) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);

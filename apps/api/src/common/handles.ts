@@ -1,5 +1,6 @@
 /**
- * Server-side handle validation (mirrors shared/handles.ts for Nest runtime).
+ * Server-side handle validation (mirrors packages/shared/src/handles.ts).
+ * Keep RESERVED_ROOT_HANDLES in sync with the shared package.
  */
 
 export type HandleNamespace =
@@ -23,11 +24,18 @@ export const HANDLE_NAMESPACES = new Set<string>([
   'coach',
 ]);
 
+/**
+ * First-path segments reserved for product / discipline routes.
+ * Never available as root vanity, practice slug, or professional handle.
+ */
 export const RESERVED_ROOT_HANDLES = new Set([
   'api',
   'admin',
   'login',
   'register',
+  'forgot-password',
+  'reset-password',
+  'verify-email',
   'dashboard',
   'discover',
   'explore',
@@ -40,6 +48,10 @@ export const RESERVED_ROOT_HANDLES = new Set([
   'providers',
   'practice',
   'me',
+  'events',
+  'careers',
+  'jobs',
+  'list-your-business',
   'pro',
   'ayur',
   'yoga',
@@ -48,6 +60,21 @@ export const RESERVED_ROOT_HANDLES = new Set([
   'fitness',
   'nutrition',
   'coach',
+  // Discipline landings — /ayurveda, /yoga, /spa, /meditation, …
+  'ayurveda',
+  'ayurvedic',
+  'ayurved',
+  'panchakarma',
+  'wellbeing',
+  'yogi',
+  'spas',
+  'mindfulness',
+  'health-club',
+  'healthclub',
+  'cooking',
+  'kitchen',
+  'coaching',
+  'retreat',
   'help',
   'faq',
   'contact',
@@ -56,7 +83,6 @@ export const RESERVED_ROOT_HANDLES = new Set([
   'cookies',
   'accessibility',
   'partners',
-  'list-your-business',
   'sitemap',
   'robots',
   'manifest',
@@ -66,9 +92,12 @@ export const RESERVED_ROOT_HANDLES = new Set([
   'assets',
   'static',
   'uploads',
+  'files',
   'auth',
   'www',
   'app',
+  'apps',
+  'mobile',
   'support',
   'about',
   'blog',
@@ -88,6 +117,15 @@ export const RESERVED_ROOT_HANDLES = new Set([
   'null',
   'undefined',
   'ayurpass',
+  'home',
+  'search',
+  'new',
+  'create',
+  'edit',
+  'delete',
+  'pass',
+  'rewards',
+  'loyalty',
 ]);
 
 export const TITLE_KINDS = new Set([
@@ -148,7 +186,16 @@ export function isValidHandle(handle: string): boolean {
 }
 
 export function isReservedRoot(handle: string): boolean {
-  return RESERVED_ROOT_HANDLES.has(handle.toLowerCase());
+  const h = handle
+    .toLowerCase()
+    .replace(/^@+/, '')
+    .trim()
+    .replace(/^[._-]+|[._-]+$/g, '');
+  if (!h) return true;
+  if (RESERVED_ROOT_HANDLES.has(h)) return true;
+  const compact = h.replace(/[._-]+/g, '');
+  if (compact !== h && RESERVED_ROOT_HANDLES.has(compact)) return true;
+  return false;
 }
 
 export function assertHandle(raw: string): string {
@@ -156,6 +203,11 @@ export function assertHandle(raw: string): string {
   if (!isValidHandle(h)) {
     throw new Error(
       'Handle must be 3–32 characters: letters, numbers, dots, underscores or hyphens.',
+    );
+  }
+  if (isReservedRoot(h)) {
+    throw new Error(
+      'That name is reserved for AyurPass (e.g. ayurveda, yoga, spa, meditation). Choose another.',
     );
   }
   return h;

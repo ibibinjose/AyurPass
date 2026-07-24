@@ -7,7 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
-import { slugifyName, withSlugSuffix } from '../../common/slug';
+import { slugifyPublicName, withSlugSuffix } from '../../common/slug';
 import {
   assertHandle,
   HANDLE_NAMESPACES,
@@ -41,7 +41,7 @@ export class ProfessionalsService {
   constructor(private prisma: PrismaService) {}
 
   private async uniqueSlug(name: string, excludeId?: string): Promise<string> {
-    const base = slugifyName(name) || 'practitioner';
+    const base = slugifyPublicName(name, 'practitioner');
     let n = 0;
     while (true) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);
