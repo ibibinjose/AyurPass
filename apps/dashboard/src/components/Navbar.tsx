@@ -15,6 +15,7 @@ const PRIMARY_LINKS = [
 ] as const;
 
 const MORE_LINKS = [
+  { href: "/about", label: "About us & Mission" },
   { href: "/shop", label: "Shop" },
   { href: "/packages", label: "Packages" },
   { href: "/wellness", label: "Wellness guide" },

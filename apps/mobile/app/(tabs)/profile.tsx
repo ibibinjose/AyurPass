@@ -335,6 +335,11 @@ export default function Profile() {
               label="Careers / jobs"
               onPress={() => router.push("/jobs")}
             />
+            <Row
+              icon="information-circle-outline"
+              label="About AyurPass"
+              onPress={() => router.push("/about")}
+            />
             {showPracticeLink ? (
               <Row
                 icon="business-outline"

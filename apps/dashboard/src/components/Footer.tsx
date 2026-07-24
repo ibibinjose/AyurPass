@@ -14,6 +14,7 @@ const EXPLORE = [
 ] as const;
 
 const SUPPORT = [
+  { href: "/about", label: "About us & Mission" },
   { href: "/help", label: "Help centre" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact us" },
