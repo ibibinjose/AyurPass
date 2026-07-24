@@ -17,11 +17,19 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { CalendarIcon, CheckIcon, ShieldIcon } from "@/components/icons";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
-import { Button, EmptyState, ErrorNote, Textarea } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
+import {
+  COUNTRIES_WITH_DIAL,
+  dialForCountryCode,
+  formatInternationalPhone,
+  isValidPhone,
+} from "@/lib/countries";
+import { useLocation } from "@/context/LocationContext";
 
 export default function BookServicePage() {
   const { serviceId } = useParams<{ serviceId: string }>();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
+  const { countryCode: regionCode } = useLocation();
   const router = useRouter();
 
   const [service, setService] = useState<Service | null | undefined>(undefined);
@@ -29,11 +37,30 @@ export default function BookServicePage() {
   const [dayIso, setDayIso] = useState(days[0].iso);
   const [slot, setSlot] = useState<SlotOption | null>(null);
   const [notes, setNotes] = useState("");
+  const [phoneDial, setPhoneDial] = useState(() => dialForCountryCode(regionCode || "AU"));
+  const [phoneNational, setPhoneNational] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
   const [stripePay, setStripePay] = useState<PaymentCheckout | null>(null);
   const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
+
+  useEffect(() => {
+    setPhoneDial(dialForCountryCode(regionCode || "AU"));
+  }, [regionCode]);
+
+  useEffect(() => {
+    if (!user?.phone) return;
+    // Prefill national digits if user already has a phone on file
+    const raw = user.phone.trim();
+    const match = COUNTRIES_WITH_DIAL.find((c) => raw.startsWith(c.dial));
+    if (match) {
+      setPhoneDial(match.dial);
+      setPhoneNational(raw.slice(match.dial.length).replace(/\D/g, ""));
+    } else {
+      setPhoneNational(raw.replace(/\D/g, ""));
+    }
+  }, [user?.phone]);
 
   useEffect(() => {
     if (!serviceId) return;
@@ -57,8 +84,13 @@ export default function BookServicePage() {
 
   async function confirmBooking() {
     if (!user || !service || !slot) return;
+    if (!isValidPhone(phoneDial, phoneNational)) {
+      setError("Please enter a valid mobile number with country code so the practice can reach you.");
+      return;
+    }
     setBusy(true);
     setError(null);
+    const contactPhone = formatInternationalPhone(phoneDial, phoneNational);
     const end = new Date(slot.start.getTime() + service.durationMinutes * 60_000);
     try {
       const booking = await api.createBooking({
@@ -70,7 +102,9 @@ export default function BookServicePage() {
         endTime: end.toISOString(),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         notes: notes.trim() || undefined,
+        contactPhone,
       });
+      void refreshProfile?.();
       setConfirmed(booking);
       window.scrollTo({ top: 0 });
     } catch {
@@ -309,6 +343,47 @@ export default function BookServicePage() {
           )}
 
           <h2 className="mt-6 text-sm font-semibold uppercase tracking-wider text-ink-muted">
+            Mobile number
+          </h2>
+          <p className="mt-1 text-xs text-ink-muted">
+            Required — the practice uses this for confirmations and day-of contact.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+            <Field label="Country code" className="sm:w-44">
+              <Select
+                value={phoneDial}
+                onChange={(e) => setPhoneDial(e.target.value)}
+                aria-label="Phone country code"
+              >
+                {COUNTRIES_WITH_DIAL.map((c) => (
+                  <option key={c.code} value={c.dial}>
+                    {c.flag} {c.dial} · {c.code}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Phone number" className="min-w-0 flex-1">
+              <Input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel-national"
+                required
+                value={phoneNational}
+                onChange={(e) => setPhoneNational(e.target.value)}
+                placeholder="412 345 678"
+              />
+            </Field>
+          </div>
+          {phoneNational.trim() ? (
+            <p className="mt-1.5 text-xs font-medium text-ink-muted">
+              Will send as{" "}
+              <span className="font-mono text-forest">
+                {formatInternationalPhone(phoneDial, phoneNational)}
+              </span>
+            </p>
+          ) : null}
+
+          <h2 className="mt-6 text-sm font-semibold uppercase tracking-wider text-ink-muted">
             Anything the practitioner should know?
           </h2>
           <Textarea
@@ -372,10 +447,16 @@ export default function BookServicePage() {
               <ErrorNote message={error} />
               <Button
                 className="mt-5 w-full"
-                disabled={!slot || busy}
+                disabled={!slot || busy || !phoneNational.trim()}
                 onClick={confirmBooking}
               >
-                {busy ? "Booking…" : slot ? "Confirm booking" : "Select a time to book"}
+                {busy
+                  ? "Booking…"
+                  : !slot
+                    ? "Select a time to book"
+                    : !phoneNational.trim()
+                      ? "Add your mobile number"
+                      : "Confirm booking"}
               </Button>
             </>
           )}

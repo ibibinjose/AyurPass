@@ -10,6 +10,7 @@ import { AuthBanner } from "@/components/auth/AuthBanner";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 import { loginUrl, postAuthHome, safeNextPath } from "@/lib/auth-redirect";
+import { COUNTRIES_WITH_DIAL, countryByCode } from "@/lib/countries";
 import type { ProviderType } from "@/lib/types";
 
 const PROVIDER_TYPES: { value: ProviderType; label: string }[] = [
@@ -51,7 +52,7 @@ function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
+  const [countryCode, setCountryCode] = useState("AU");
   const [businessName, setBusinessName] = useState("");
   const [providerType, setProviderType] = useState<ProviderType>("AYURVEDA_CLINIC");
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +65,11 @@ function RegisterForm() {
       setError("Please add your city so we can show practices near you.");
       return;
     }
+    if (!countryCode) {
+      setError("Please select your country.");
+      return;
+    }
+    const countryName = countryByCode(countryCode)?.name || countryCode;
     setBusy(true);
     try {
       const profile = await register({
@@ -72,10 +78,11 @@ function RegisterForm() {
         fullName,
         role: kind === "provider" ? "PROVIDER_ADMIN" : "CONSUMER",
         city: city.trim(),
-        country: country.trim() || undefined,
+        country: countryName,
+        countryCode,
         ...(kind === "provider" ? { businessName, providerType } : {}),
       });
-      // New seekers → verify notice + quiz; providers → practice hub
+      // New seekers → verify email notice + dosha quiz; providers → practice hub
       const fallback =
         kind === "consumer" ? "/dashboard/assessment?verify=1" : postAuthHome(profile);
       router.push(safeNextPath(nextParam, fallback));
@@ -199,13 +206,19 @@ function RegisterForm() {
                     placeholder="Melbourne"
                   />
                 </Field>
-                <Field label="Country">
-                  <Input
-                    autoComplete="country-name"
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    placeholder="Australia"
-                  />
+                <Field label="Country" hint="Required — sets currency & region defaults.">
+                  <Select
+                    required
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    autoComplete="country"
+                  >
+                    {COUNTRIES_WITH_DIAL.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.name}
+                      </option>
+                    ))}
+                  </Select>
                 </Field>
               </div>
 
@@ -249,7 +262,8 @@ function RegisterForm() {
                 {busy ? "Creating account…" : "Create account"}
               </Button>
               <p className="text-center text-[11px] font-medium leading-relaxed text-ink-muted">
-                We’ll email a verification link to confirm your address. You can browse right away.
+                We’ll send a verification link to your email. Please confirm it to keep your account
+                secure — you can still browse while you verify.
               </p>
             </form>
           </div>

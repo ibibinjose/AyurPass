@@ -157,11 +157,32 @@ export class BookingsService {
       /* pass linking is best-effort — never block booking */
     }
 
+    // Contact phone for the appointment (required by clients; optional for legacy API)
+    const contactPhone = data.contactPhone?.trim();
+    if (contactPhone) {
+      try {
+        await this.prisma.user.update({
+          where: { id: data.consumerId },
+          data: { phone: contactPhone.slice(0, 40) },
+        });
+      } catch {
+        /* non-fatal */
+      }
+    }
+
+    const { contactPhone: _drop, ...bookingFields } = data as CreateBookingDto & {
+      contactPhone?: string;
+    };
+    const noteParts = [data.notes?.trim(), contactPhone ? `Contact phone: ${contactPhone}` : '']
+      .filter(Boolean)
+      .join('\n');
+
     const booking = await this.prisma.booking.create({
       data: {
-        ...data,
+        ...bookingFields,
         professionalId,
         wellnessPassId,
+        notes: noteParts || data.notes,
         totalAmount: finalTotalAmount,
         taxAmount: tax.amount,
         taxRate: tax.rate,

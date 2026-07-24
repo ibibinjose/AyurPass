@@ -36,7 +36,20 @@ export default function BookScreen() {
   const [dayKey, setDayKey] = useState(days[0].key);
   const [hour, setHour] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
+  const [phoneDial, setPhoneDial] = useState("+61");
+  const [phoneNational, setPhoneNational] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const DIALS = [
+    { dial: "+61", label: "🇦🇺 +61" },
+    { dial: "+91", label: "🇮🇳 +91" },
+    { dial: "+1", label: "🇺🇸 +1" },
+    { dial: "+44", label: "🇬🇧 +44" },
+    { dial: "+971", label: "🇦🇪 +971" },
+    { dial: "+64", label: "🇳🇿 +64" },
+    { dial: "+65", label: "🇸🇬 +65" },
+    { dial: "+49", label: "🇩🇪 +49" },
+  ];
 
   if (isLoading && service === undefined) {
     return (
@@ -56,8 +69,13 @@ export default function BookScreen() {
   async function confirm() {
     if (!user || !service) return;
     if (hour === null) return setError("Please choose a time.");
+    const digits = phoneNational.replace(/\D/g, "").replace(/^0+/, "");
+    if (digits.length < 6) {
+      return setError("Please enter a valid mobile number with country code.");
+    }
     setError(null);
 
+    const contactPhone = `${phoneDial}${digits}`;
     const day = days.find((d) => d.key === dayKey)!;
     const start = new Date(day.date);
     start.setHours(hour, 0, 0, 0);
@@ -74,6 +92,7 @@ export default function BookScreen() {
         endTime: end.toISOString(),
         timezone,
         notes: notes.trim() || undefined,
+        contactPhone,
       });
 
       // Local reminder ~1 hour before (or 1 min for near-term demo slots).
@@ -150,6 +169,45 @@ export default function BookScreen() {
             );
           })}
         </View>
+
+        <Text className="mb-1.5 mt-6 font-body-semi text-[15px] text-forest">Mobile number</Text>
+        <Text className="mb-3 font-body text-[12px] text-ink-muted">
+          Required — country code + number so the practice can reach you.
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, marginBottom: 10 }}
+        >
+          {DIALS.map((d) => {
+            const active = d.dial === phoneDial;
+            return (
+              <Pressable
+                key={d.dial}
+                onPress={() => setPhoneDial(d.dial)}
+                className={`rounded-full border px-3 py-2 ${
+                  active ? "border-forest bg-forest" : "border-hairline bg-surface"
+                }`}
+              >
+                <Text
+                  className={`font-body-medium text-[13px] ${
+                    active ? "text-white" : "text-ink-secondary"
+                  }`}
+                >
+                  {d.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+        <TextInput
+          value={phoneNational}
+          onChangeText={setPhoneNational}
+          placeholder="412 345 678"
+          placeholderTextColor={colors.inkMuted}
+          keyboardType="phone-pad"
+          className="min-h-12 rounded-md border border-hairline bg-surface px-3.5 font-body text-[16px] text-foreground"
+        />
 
         <Text className="mb-3 mt-6 font-body-semi text-[15px] text-forest">
           Notes for the practitioner (optional)

@@ -418,6 +418,8 @@ export const api = {
     endTime: string;
     timezone?: string;
     notes?: string;
+    /** International phone e.g. +61412345678 */
+    contactPhone?: string;
     status?: BookingStatus;
   }) => request<Booking>("/bookings", { method: "POST", body: data, auth: true }),
   bookingsByConsumer: (consumerId: string) =>

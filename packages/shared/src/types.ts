@@ -467,8 +467,10 @@ export interface RegisterPayload {
   role?: Role;
   /** City / suburb for seekers (stored on consumer preferences). */
   city?: string;
-  /** Country name or ISO code. */
+  /** Country name (e.g. Australia). */
   country?: string;
+  /** ISO 3166-1 alpha-2 (AU, IN, …). */
+  countryCode?: string;
   lat?: number;
   lng?: number;
 }

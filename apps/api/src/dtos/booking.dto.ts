@@ -132,6 +132,11 @@ export class CreateBookingDto {
   @IsOptional()
   notes?: string;
 
+  /** International contact phone for this booking (e.g. +61412345678). */
+  @IsString()
+  @IsOptional()
+  contactPhone?: string;
+
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod?: PaymentMethod;

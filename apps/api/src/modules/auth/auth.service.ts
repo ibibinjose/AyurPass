@@ -142,6 +142,9 @@ export class AuthService {
     const locationPrefs: Record<string, unknown> = {};
     if (registerDto.city?.trim()) locationPrefs.city = registerDto.city.trim();
     if (registerDto.country?.trim()) locationPrefs.country = registerDto.country.trim();
+    if (registerDto.countryCode?.trim()) {
+      locationPrefs.countryCode = registerDto.countryCode.trim().toUpperCase().slice(0, 2);
+    }
     if (typeof registerDto.lat === 'number' && Number.isFinite(registerDto.lat)) {
       locationPrefs.lat = registerDto.lat;
     }
@@ -171,6 +174,7 @@ export class AuthService {
           ? {
               city: (locationPrefs.city as string) || undefined,
               country: (locationPrefs.country as string) || undefined,
+              countryCode: (locationPrefs.countryCode as string) || undefined,
               lat: locationPrefs.lat as number | undefined,
               lng: locationPrefs.lng as number | undefined,
             }

@@ -319,6 +319,7 @@ export interface RegisterPayload extends SharedRegisterPayload {
   bio?: string;
   city?: string;
   country?: string;
+  countryCode?: string;
   lat?: number;
   lng?: number;
 }

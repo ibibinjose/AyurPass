@@ -72,10 +72,17 @@ export class RegisterDto {
   @MaxLength(120)
   city?: string;
 
+  /** Country name (e.g. Australia) — required for seekers in UI; optional for legacy clients. */
   @IsString()
   @IsOptional()
   @MaxLength(120)
   country?: string;
+
+  /** ISO 3166-1 alpha-2 when available (AU, IN, …). */
+  @IsString()
+  @IsOptional()
+  @MaxLength(2)
+  countryCode?: string;
 
   @IsOptional()
   lat?: number;
@@ -189,6 +196,11 @@ export class RegisterPayload {
   @IsOptional()
   @MaxLength(120)
   country?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(2)
+  countryCode?: string;
 
   @IsOptional()
   lat?: number;

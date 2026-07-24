@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import {
@@ -17,8 +18,10 @@ import { Button, EmptyState, ErrorNote } from "@/components/ui";
 
 type Stage = "intro" | "quiz" | "result";
 
-export default function AssessmentPage() {
+function AssessmentInner() {
   const { user } = useAuth();
+  const search = useSearchParams();
+  const showVerify = search.get("verify") === "1";
   const [stage, setStage] = useState<Stage>("intro");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -27,6 +30,8 @@ export default function AssessmentPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasExisting, setHasExisting] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   const isConsumer = user?.role === "CONSUMER";
 
@@ -58,6 +63,19 @@ export default function AssessmentPage() {
         body="The Prakriti assessment maps a client's constitution. Provider accounts don't have a dosha profile."
       />
     );
+  }
+
+  async function resendVerify() {
+    setResendBusy(true);
+    setResendMsg(null);
+    try {
+      const r = await api.resendVerification();
+      setResendMsg(r.message || "Verification email sent — check your inbox.");
+    } catch (err) {
+      setResendMsg(err instanceof Error ? err.message : "Could not resend.");
+    } finally {
+      setResendBusy(false);
+    }
   }
 
   async function finish(finalAnswers: Record<string, number>) {
@@ -103,6 +121,30 @@ export default function AssessmentPage() {
 
     return (
       <div className="mx-auto max-w-xl space-y-6">
+        {(showVerify || (user && !user.emailVerifiedAt)) && (
+          <div className="rounded-2xl border border-leaf/30 bg-leaf/10 px-4 py-3.5">
+            <p className="text-sm font-bold text-forest">Check your email</p>
+            <p className="mt-1 text-sm text-ink-secondary">
+              We sent a verification link to{" "}
+              <strong className="text-foreground">{user?.email}</strong>. Confirm it so we can
+              secure your account and booking updates.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="soft"
+                className="min-h-9 text-xs"
+                disabled={resendBusy}
+                onClick={() => void resendVerify()}
+              >
+                {resendBusy ? "Sending…" : "Resend verification email"}
+              </Button>
+              {resendMsg ? (
+                <span className="text-xs font-medium text-ink-muted">{resendMsg}</span>
+              ) : null}
+            </div>
+          </div>
+        )}
         <DashHeader
           eyebrow="My wellness"
           title="Prakriti assessment"
@@ -238,5 +280,17 @@ export default function AssessmentPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function AssessmentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-48 animate-pulse rounded-2xl bg-clay/60" aria-hidden />
+      }
+    >
+      <AssessmentInner />
+    </Suspense>
   );
 }

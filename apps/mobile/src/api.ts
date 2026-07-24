@@ -320,6 +320,7 @@ export const api = {
     endTime: string;
     timezone?: string;
     notes?: string;
+    contactPhone?: string;
   }) => request<Booking>("/bookings", { method: "POST", body: data, auth: true }),
   bookingsByConsumer: (consumerId: string) =>
     request<Booking[]>(`/bookings/consumer/${consumerId}`, { auth: true }),
