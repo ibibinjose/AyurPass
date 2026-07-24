@@ -14,6 +14,7 @@ import {
 import { ServiceCard } from "../../src/components/ServiceCard";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
 import { useProviderDetail, useProviderJobs, useProviderServices } from "../../src/hooks/useCatalogDetail";
+import { ProviderMapView } from "../../src/components/ProviderMapView";
 import { colors } from "../../src/theme";
 
 type TabId = "about" | "services" | "jobs";
@@ -186,6 +187,13 @@ export default function ProviderDetail() {
                   ) : null}
                 </View>
               )}
+              <View className="mt-1 gap-2">
+                <Text className="font-body-semi text-xs uppercase tracking-widest text-ink-muted">
+                  Location & Map
+                </Text>
+                <ProviderMapView singleProvider={provider} height={200} />
+              </View>
+
               {provider.brandProfile?.tags && provider.brandProfile.tags.length > 0 ? (
                 <View className="flex-row flex-wrap gap-2">
                   {provider.brandProfile.tags.slice(0, 8).map((tag) => (

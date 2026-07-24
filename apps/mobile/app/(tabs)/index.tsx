@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Body, Display, EmptyState, Loading } from "../../src/components/ui";
 import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { HeaderLogo } from "../../src/components/HeaderLogo";
+import { ProviderMapView } from "../../src/components/ProviderMapView";
 import { useAuth } from "../../src/auth";
 import {
   formatAddress,
@@ -413,52 +414,8 @@ export default function Discover() {
               }
             />
           ) : providers.length === 0 ? null : viewMode === "map" ? (
-            <View className="gap-2">
-              <View className="rounded-2xl border border-hairline bg-leaf/10 px-4 py-5">
-                <View className="flex-row items-center gap-2">
-                  <Ionicons name="map" size={22} color={colors.forest} />
-                  <Text className="font-body-semi text-[15px] text-forest">Map view</Text>
-                </View>
-                <Text className="mt-1.5 font-body text-[13px] leading-5 text-ink-secondary">
-                  Tap a practice to open it on OpenStreetMap, or open the profile.
-                </Text>
-              </View>
-              {providers.map((p) => {
-                const loc = formatAddress(p.address);
-                return (
-                  <View
-                    key={p.id}
-                    className="rounded-2xl border border-hairline bg-surface p-3.5"
-                  >
-                    <Text className="font-body-semi text-[15px] text-forest" numberOfLines={1}>
-                      {p.businessName}
-                    </Text>
-                    <Text className="mt-0.5 font-body-medium text-[12px] text-ink-secondary">
-                      {PROVIDER_TYPE_LABEL[p.type]}
-                      {p.code ? ` · ${formatCode(p.code)}` : ""}
-                    </Text>
-                    {loc ? (
-                      <Text className="mt-1 font-body text-[12px] text-ink-muted" numberOfLines={1}>
-                        {loc}
-                      </Text>
-                    ) : null}
-                    <View className="mt-2.5 flex-row gap-2">
-                      <Pressable
-                        onPress={() => openMapsFor(p)}
-                        className="flex-1 items-center rounded-full bg-leaf/15 py-2.5 active:opacity-90"
-                      >
-                        <Text className="font-body-semi text-[13px] text-forest">Open map</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => router.push(`/provider/${p.id}`)}
-                        className="flex-1 items-center rounded-full bg-forest py-2.5 active:opacity-90"
-                      >
-                        <Text className="font-body-semi text-[13px] text-white">View</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                );
-              })}
+            <View className="mt-1">
+              <ProviderMapView providers={providers} height={480} />
             </View>
           ) : viewMode === "grid" ? (
             <View
