@@ -546,3 +546,4 @@ export interface StaffMembershipSummary {
     brandProfile?: Record<string, unknown> | null;
   };
 }
+

@@ -55,7 +55,7 @@ export default function HealthClubPage() {
               Constitutional Strength & Vitality
             </h1>
             <p className="mt-5 max-w-2xl text-base font-semibold leading-relaxed text-ink-secondary sm:text-lg" style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}>
-              Fitness that honors your body's energy. Discover Kalari Payattu movement, Dosha-tuned
+              Fitness that honors your body&apos;s energy. Discover Kalari Payattu movement, Dosha-tuned
               conditioning, and Marma muscle recovery sanctuaries.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

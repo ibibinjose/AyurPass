@@ -11,8 +11,6 @@ import { downloadBookingIcs, getGoogleCalendarUrl } from "@/lib/ics";
 import { CATEGORY_LABEL, formatDuration, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, PaymentCheckout, Service } from "@/lib/types";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { CalendarIcon, CheckIcon, ShieldIcon } from "@/components/icons";
@@ -46,7 +44,9 @@ export default function BookServicePage() {
   const [redemption, setRedemption] = useState<Redemption>({ discount: 0 });
 
   useEffect(() => {
-    setPhoneDial(dialForCountryCode(regionCode || "AU"));
+    queueMicrotask(() => {
+      setPhoneDial(dialForCountryCode(regionCode || "AU"));
+    });
   }, [regionCode]);
 
   useEffect(() => {
@@ -54,12 +54,14 @@ export default function BookServicePage() {
     // Prefill national digits if user already has a phone on file
     const raw = user.phone.trim();
     const match = COUNTRIES_WITH_DIAL.find((c) => raw.startsWith(c.dial));
-    if (match) {
-      setPhoneDial(match.dial);
-      setPhoneNational(raw.slice(match.dial.length).replace(/\D/g, ""));
-    } else {
-      setPhoneNational(raw.replace(/\D/g, ""));
-    }
+    queueMicrotask(() => {
+      if (match) {
+        setPhoneDial(match.dial);
+        setPhoneNational(raw.slice(match.dial.length).replace(/\D/g, ""));
+      } else {
+        setPhoneNational(raw.replace(/\D/g, ""));
+      }
+    });
   }, [user?.phone]);
 
   useEffect(() => {

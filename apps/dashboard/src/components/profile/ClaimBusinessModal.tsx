@@ -38,6 +38,8 @@ export function ClaimBusinessModal({
   const [registrationNumber, setRegistrationNumber] = useState(provider.registrationNumber || "");
   const [licenceNumber, setLicenceNumber] = useState(provider.licenceNumber || "");
   const [proofDetails, setProofDetails] = useState("");
+  const [docFiles, setDocFiles] = useState<{ url: string; name: string }[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export function ClaimBusinessModal({
       setRegistrationNumber(provider.registrationNumber || "");
       setLicenceNumber(provider.licenceNumber || "");
       setProofDetails("");
+      setDocFiles([]);
       setError(null);
       setDone(false);
       setRefId(null);
@@ -94,11 +97,32 @@ export function ClaimBusinessModal({
     canProceedStep1 &&
     Boolean(verificationMethod);
 
+  async function handleDocUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploadingDoc(true);
+    setError(null);
+    try {
+      for (const file of files) {
+        const res = await api.uploadImage(file);
+        setDocFiles((prev) => [...prev, { url: res.url, name: file.name }]);
+      }
+    } catch {
+      setError("Document upload failed. Please select a valid file.");
+    } finally {
+      setUploadingDoc(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit || busy) return;
     setBusy(true);
     setError(null);
+
+    const docUrlsFormatted = docFiles.length
+      ? docFiles.map((d) => `• ${d.name}: ${d.url}`).join("\n")
+      : null;
 
     const message = [
       `CLAIM BUSINESS REQUEST for "${provider.businessName}" (ID: ${provider.id})`,
@@ -109,6 +133,7 @@ export function ClaimBusinessModal({
       registrationNumber.trim() ? `Registration No: ${registrationNumber.trim()}` : null,
       licenceNumber.trim() ? `Licence No: ${licenceNumber.trim()}` : null,
       proofDetails.trim() ? `Proof / Additional Info: ${proofDetails.trim()}` : null,
+      docUrlsFormatted ? `Attached Verification Documents:\n${docUrlsFormatted}` : null,
     ]
       .filter(Boolean)
       .join("\n");
@@ -337,6 +362,30 @@ export function ClaimBusinessModal({
                     onChange={(e) => setProofDetails(e.target.value)}
                     placeholder="e.g. I am listed as principal practitioner on clinic website https://example.com/team..."
                   />
+                </Field>
+
+                <Field label="Attach Verification Documents" hint="Upload qualification certificates, photo ID, or operating permits (PDF, PNG, JPG)">
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept=".pdf,.png,.jpg,.jpeg"
+                      multiple
+                      onChange={handleDocUpload}
+                      disabled={uploadingDoc}
+                      className="block w-full text-xs text-ink-secondary file:mr-3 file:rounded-full file:border-0 file:bg-forest file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-forest-deep"
+                    />
+                    {uploadingDoc && <p className="text-xs text-forest animate-pulse">Uploading document...</p>}
+                    {docFiles.length > 0 && (
+                      <ul className="space-y-1 rounded-xl bg-clay/30 p-2 text-xs">
+                        {docFiles.map((d, i) => (
+                          <li key={i} className="flex items-center justify-between text-forest">
+                            <span className="truncate font-medium">📄 {d.name}</span>
+                            <span className="text-[10px] text-emerald-700 font-semibold">Uploaded</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </Field>
 
                 <div className="flex justify-between pt-2">
