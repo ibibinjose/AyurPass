@@ -491,66 +491,68 @@ export default function ListYourBusinessClient() {
     <LayoutWrapper>
       <div className="flex-1 pb-12">
         {/* Hero band */}
-        <section className="relative min-h-[380px] overflow-hidden border-b border-[var(--separator)] flex flex-col justify-center">
+        <section className="relative min-h-[380px] overflow-hidden border-b border-hairline/70 flex flex-col justify-center bg-surface">
           <img
             src="/images/heroes/spa.png"
             alt="Wellness Practice"
-            className="absolute inset-0 h-full w-full object-cover opacity-70"
+            className="absolute inset-0 h-full w-full object-cover opacity-35"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-surface/90 via-surface/60 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/85 to-surface/40" />
+          <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-gold/15 blur-3xl" />
+          <div className="pointer-events-none absolute -left-12 -bottom-12 h-64 w-64 rounded-full bg-forest/10 blur-3xl" />
+
           <div className="page-shell relative !pb-12 !pt-12 sm:!pt-16">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-forest">
-              <SparkleIcon className="h-3.5 w-3.5" />
-              Free forever · no card required
+            <p className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface/85 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-forest shadow-xs backdrop-blur-md">
+              <SparkleIcon className="h-4 w-4 text-gold" />
+              Free forever · no credit card required
             </p>
-            <h1 className="type-display mt-3 max-w-2xl text-forest" style={{ textShadow: "0 0 20px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,0.8)" }}>
+            <h1 className="type-display text-gradient-forest mt-4 max-w-2xl text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
               List your wellness practice
             </h1>
-            <p className="type-body mt-4 max-w-xl font-semibold text-ink-secondary" style={{ textShadow: "0 0 15px rgba(255,255,255,1), 0 0 5px rgba(255,255,255,0.8)" }}>
+            <p className="type-body mt-4 max-w-xl font-medium leading-relaxed text-ink-secondary text-base sm:text-lg">
               Ayurveda clinics, yoga studios, spas, meditation centers, health clubs and retreats —
-              get a public page and start receiving enquiries in minutes.
+              get a verified public page and start receiving client enquiries in minutes.
             </p>
             {authLoading ? null : isAuthed ? (
-              <p className="mt-3 text-sm font-semibold text-ink-muted">
+              <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-leaf/10 px-3.5 py-2 text-sm font-semibold text-forest">
                 Signed in as{" "}
-                <span className="font-bold text-forest">
+                <span className="font-bold underline decoration-leaf/40">
                   {user?.fullName || user?.email}
                 </span>
                 {" · "}
-                we&apos;ll publish on this account (no password again).
+                publishing to this account.
               </p>
             ) : (
-              <p className="mt-3 text-sm font-semibold text-ink-muted">
+              <p className="mt-4 text-sm font-semibold text-ink-muted">
                 Already on AyurPass?{" "}
                 <Link
                   href={loginUrl("/list-your-business")}
-                  className="font-bold text-[var(--system-blue)] hover:underline"
+                  className="font-bold text-forest hover:text-leaf hover:underline transition-colors"
                 >
-                  Sign in →
+                  Sign in to your account →
                 </Link>
               </p>
             )}
           </div>
         </section>
 
-        <div className="page-shell !pt-8">
+        <div className="page-shell !pt-10">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:items-start lg:gap-12">
             {/* Left column — benefits + progress (sticky) */}
             <aside className={`lg:sticky lg:self-start ${STICKY_BELOW_NAV}`}>
-              <div className="rounded-[1.25rem] border border-[var(--separator)] bg-surface/90 p-5 shadow-[0_8px_28px_rgba(0,0,0,0.04)] sm:p-6 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
-                  Why list on AyurPass
+              <div className="glass-surface card-lift rounded-3xl p-6 sm:p-7 shadow-md">
+                <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gold">
+                  ✨ Why list on AyurPass
                 </p>
-                <ul className="mt-4 space-y-4">
+                <ul className="mt-5 space-y-4.5">
                   {BENEFITS.map((b) => (
-                    <li key={b.title} className="flex gap-3">
-                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-leaf/15 text-forest">
-                        <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.2} />
+                    <li key={b.title} className="flex gap-3.5">
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-forest to-forest-deep text-white shadow-xs glow-forest">
+                        <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
                       </span>
                       <div>
                         <p className="text-sm font-bold text-forest">{b.title}</p>
-                        <p className="mt-0.5 text-sm font-medium leading-relaxed text-ink-secondary">
+                        <p className="mt-0.5 text-xs sm:text-sm font-medium leading-relaxed text-ink-secondary">
                           {b.body}
                         </p>
                       </div>
@@ -559,47 +561,47 @@ export default function ListYourBusinessClient() {
                 </ul>
               </div>
 
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <div className="mt-4 grid grid-cols-3 gap-2.5 text-center">
                 {[
                   { n: "2 min", l: "to publish" },
                   { n: "Free", l: "profile forever" },
-                  { n: "0%", l: "until you book" },
+                  { n: "0%", l: "commission fee" },
                 ].map((s) => (
                   <div
                     key={s.l}
-                    className="rounded-2xl border border-[var(--separator)] bg-surface/80 px-2 py-3"
+                    className="glass-surface rounded-2xl p-3 shadow-xs border border-hairline/80"
                   >
-                    <p className="text-sm font-bold text-forest">{s.n}</p>
-                    <p className="mt-0.5 text-[11px] font-medium text-ink-muted">{s.l}</p>
+                    <p className="text-sm sm:text-base font-extrabold text-forest">{s.n}</p>
+                    <p className="mt-0.5 text-[11px] font-semibold text-ink-muted">{s.l}</p>
                   </div>
                 ))}
               </div>
             </aside>
 
             {/* Form card */}
-            <div className="overflow-hidden rounded-[1.25rem] border border-[var(--separator)] bg-surface shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+            <div className="glass-surface rounded-3xl border border-hairline/80 shadow-xl overflow-hidden">
               {/* Progress */}
-              <div className="border-b border-[var(--separator)] px-5 py-4 sm:px-7">
+              <div className="border-b border-hairline/60 bg-surface/50 px-6 py-5 sm:px-8">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">
+                    <p className="text-xs font-bold uppercase tracking-wider text-ink-muted">
                       Step {step + 1} of {steps.length}
                     </p>
-                    <p className="mt-0.5 font-display text-lg font-semibold text-forest">
+                    <p className="mt-0.5 font-display text-xl font-bold text-forest">
                       {steps[step]?.label}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold tabular-nums text-ink-muted">
+                  <p className="text-sm font-extrabold tabular-nums text-forest">
                     {Math.round(progress)}%
                   </p>
                 </div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-clay">
+                <div className="mt-3.5 h-2 overflow-hidden rounded-full bg-clay/60">
                   <div
-                    className="h-full rounded-full bg-[var(--system-blue)] transition-all duration-300 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-forest via-gold to-leaf transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <ol className="mt-4 flex gap-1.5">
+                <ol className="mt-4.5 flex gap-2">
                   {steps.map((s) => (
                     <li key={s.id} className="min-w-0 flex-1">
                       <button
@@ -611,12 +613,12 @@ export default function ListYourBusinessClient() {
                           }
                         }}
                         disabled={s.id > step}
-                        className={`w-full truncate rounded-full px-2 py-1.5 text-center text-[11px] font-bold transition-colors ${
+                        className={`w-full truncate rounded-full px-2.5 py-1.5 text-center text-xs font-bold transition-all duration-200 ${
                           s.id === step
-                            ? "bg-[var(--system-blue)] text-white"
+                            ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-xs glow-forest scale-[1.02]"
                             : s.id < step
                               ? "bg-leaf/15 text-forest hover:bg-leaf/25"
-                              : "bg-clay text-ink-muted"
+                              : "bg-clay/50 text-ink-muted"
                         }`}
                       >
                         {s.label}
@@ -635,7 +637,7 @@ export default function ListYourBusinessClient() {
                         goNext();
                       }
                 }
-                className="space-y-5 px-5 py-6 sm:px-7 sm:py-7 min-h-[400px] flex flex-col"
+                className="space-y-6 px-6 py-7 sm:px-8 sm:py-8 min-h-[400px] flex flex-col"
               >
                 <div className="flex-1">
                   <AnimatePresence mode="wait">
@@ -660,8 +662,8 @@ export default function ListYourBusinessClient() {
                     </Field>
 
                     <div>
-                      <p className="mb-2 text-sm font-medium text-foreground">Category</p>
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      <p className="mb-2 text-sm font-semibold text-foreground">Category</p>
+                      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                         {PROVIDER_TYPES.map((t) => {
                           const Icon = TYPE_ICON[t] ?? LeafIcon;
                           const active = providerType === t;
@@ -670,14 +672,14 @@ export default function ListYourBusinessClient() {
                               key={t}
                               type="button"
                               onClick={() => setProviderType(t)}
-                              className={`profile-spring flex flex-col items-start gap-2 rounded-2xl border px-3 py-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                              className={`btn-press flex flex-col items-start gap-2 rounded-2xl border px-3.5 py-3 text-left transition-all duration-200 ${
                                 active
-                                  ? "border-[var(--system-blue)] bg-[var(--system-blue)] text-white shadow-[0_4px_14px_rgba(0,122,255,0.25)]"
-                                  : "border-[var(--separator)] bg-surface text-foreground hover:border-[var(--system-blue)]/35"
+                                  ? "border-forest bg-gradient-to-r from-forest to-forest-deep text-white shadow-md glow-forest scale-[1.02]"
+                                  : "border-hairline/80 bg-surface/80 text-foreground hover:border-leaf/50 hover:bg-surface"
                               }`}
                             >
                               <Icon
-                                className={`h-5 w-5 ${active ? "text-white" : "text-[var(--system-blue)]"}`}
+                                className={`h-5 w-5 ${active ? "text-white" : "text-forest"}`}
                               />
                               <span className="text-xs font-bold leading-snug">
                                 {PROVIDER_TYPE_LABEL[t]}
@@ -974,15 +976,15 @@ export default function ListYourBusinessClient() {
           </div>
 
           {/* How It Works for Therapists & Practitioners */}
-          <section className="mt-16 rounded-3xl border border-hairline bg-surface/80 p-8 shadow-sm">
+          <section className="mt-16 rounded-3xl border border-hairline/80 glass-surface p-8 sm:p-10 shadow-md">
             <div className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft/80 border border-gold/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-forest shadow-xs">
                 Therapist &amp; Practitioner Journey
               </span>
-              <h2 className="font-display text-3xl font-bold text-forest">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-forest">
                 How AyurPass Works for Your Practice
               </h2>
-              <p className="text-sm text-ink-muted leading-relaxed">
+              <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
                 4 simple steps from verified listing to running a thriving digital practice.
               </p>
             </div>
@@ -991,16 +993,16 @@ export default function ListYourBusinessClient() {
               {THERAPIST_STEPS.map((step) => (
                 <div
                   key={step.num}
-                  className="flex flex-col justify-between rounded-2xl border border-hairline bg-clay/20 p-6 transition-transform hover:-translate-y-1"
+                  className="card-lift flex flex-col justify-between rounded-2xl border border-hairline/70 bg-surface/80 p-6 shadow-xs"
                 >
                   <div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-forest text-white font-bold font-display text-lg shadow-sm">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-forest to-forest-deep text-white font-bold font-display text-lg shadow-sm glow-forest">
                       {step.num}
                     </div>
                     <h3 className="mt-4 font-display text-lg font-bold text-forest">
                       {step.title}
                     </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                    <p className="mt-2 text-xs sm:text-sm leading-relaxed text-ink-secondary">
                       {step.description}
                     </p>
                   </div>
@@ -1010,15 +1012,15 @@ export default function ListYourBusinessClient() {
           </section>
 
           {/* AyurPass Pro Feature Suite */}
-          <section className="mt-12 rounded-3xl border border-hairline bg-surface p-8 shadow-sm">
+          <section className="mt-12 rounded-3xl border border-hairline/80 glass-surface p-8 sm:p-10 shadow-md">
             <div className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
-                <SparkleIcon className="h-3.5 w-3.5" /> Built for Modern Practitioners &amp; Clinics
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 border border-leaf/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-forest shadow-xs">
+                <SparkleIcon className="h-4 w-4 text-gold" /> Built for Modern Practitioners &amp; Clinics
               </span>
-              <h2 className="font-display text-3xl font-bold text-forest">
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-forest">
                 Complete Pro Platform Operating System
               </h2>
-              <p className="text-sm text-ink-muted leading-relaxed">
+              <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
                 Everything you need to run appointments, payments, client CRM records, and practice growth in one place.
               </p>
             </div>
@@ -1029,21 +1031,21 @@ export default function ListYourBusinessClient() {
                 return (
                   <div
                     key={pillar.title}
-                    className="flex flex-col justify-between rounded-2xl border border-hairline bg-clay/10 p-6 transition-transform hover:-translate-y-1 hover:shadow-md"
+                    className="card-lift flex flex-col justify-between rounded-2xl border border-hairline/70 bg-surface/80 p-6 shadow-xs"
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf/20 text-forest">
-                          <Icon className="h-5 w-5" />
+                        <span className="flex h-10.5 w-10.5 items-center justify-center rounded-xl bg-leaf/15 text-forest">
+                          <Icon className="h-5.5 w-5.5" />
                         </span>
-                        <span className="rounded-full bg-surface border border-hairline px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-forest">
+                        <span className="rounded-full bg-surface border border-hairline px-3 py-0.5 text-[10px] font-extrabold tracking-wide uppercase text-forest shadow-2xs">
                           {pillar.badge}
                         </span>
                       </div>
-                      <h3 className="mt-4 font-display text-lg font-semibold text-forest">
+                      <h3 className="mt-4 font-display text-lg font-bold text-forest">
                         {pillar.title}
                       </h3>
-                      <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      <p className="mt-2 text-xs sm:text-sm leading-relaxed text-ink-secondary">
                         {pillar.description}
                       </p>
                     </div>
