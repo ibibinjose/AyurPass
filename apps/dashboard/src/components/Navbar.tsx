@@ -352,17 +352,20 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile menu trigger */}
-        <button
-          type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface text-forest transition-all hover:bg-clay/50 lg:hidden shadow-2xs"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-          aria-controls={menuId}
-        >
-          {mobileOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-        </button>
+        {/* Mobile top controls */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <InstallAppButton compact label="📱 App" />
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface text-forest transition-all hover:bg-clay/50 shadow-2xs btn-press"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls={menuId}
+          >
+            {mobileOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile navigation drawer */}
@@ -372,6 +375,10 @@ export function Navbar() {
           className="border-t border-hairline bg-surface/95 backdrop-blur-2xl lg:hidden shadow-xl"
         >
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
+            <InstallAppButton
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gold via-amber-500 to-gold px-4 py-3 text-sm font-extrabold text-forest-deep shadow-md btn-press"
+              label="📱 Add AyurPass to Home Screen"
+            />
             <Link
               href="/discover"
               onClick={() => setMobileOpen(false)}

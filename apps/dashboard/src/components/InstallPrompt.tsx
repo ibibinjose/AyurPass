@@ -328,20 +328,20 @@ export function InstallPrompt() {
               </div>
             )}
 
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col gap-2.5 sm:flex-row">
               <button
                 type="button"
                 onClick={() => void handleInstall()}
                 disabled={busy}
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-forest px-5 text-sm font-bold text-white shadow-[0_4px_14px_rgba(30,50,40,0.25)] transition hover:bg-forest-deep active:scale-[0.98] disabled:opacity-60"
+                className="btn-press inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-6 text-sm font-bold text-white shadow-md hover:from-forest-deep hover:to-forest glow-forest disabled:opacity-60"
               >
-                <HomeIcon className="h-4 w-4" />
+                <HomeIcon className="h-4.5 w-4.5 text-gold" />
                 {busy
                   ? "Opening…"
                   : ios || iosHelp
                     ? iosHelp && ios
-                      ? "Show steps again"
-                      : "How to add"
+                      ? "Show iPhone steps"
+                      : "How to add to Home Screen"
                     : canInstall
                       ? "Add to Home Screen"
                       : "Add to Home Screen"}
@@ -349,16 +349,17 @@ export function InstallPrompt() {
               <button
                 type="button"
                 onClick={() => close(true)}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-hairline bg-surface px-5 text-sm font-semibold text-ink-secondary hover:border-leaf hover:text-forest"
+                className="btn-press inline-flex min-h-12 items-center justify-center rounded-full border border-hairline/80 bg-surface/90 px-5 text-sm font-semibold text-ink-secondary hover:border-leaf hover:text-forest"
               >
                 Not now
               </button>
             </div>
 
-            {ios && !iosHelp ? (
-              <p className="text-center text-[11px] text-ink-muted">
-                Safari required on iPhone for “Add to Home Screen”.
-              </p>
+            {ios ? (
+              <div className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-gold/10 px-3 py-2 text-center text-xs font-semibold text-forest">
+                <ShareIosIcon className="h-4 w-4 animate-bounce text-gold" />
+                <span>Tap <strong>Share</strong> at the bottom of Safari, then choose <strong>Add to Home Screen</strong></span>
+              </div>
             ) : null}
           </div>
         </div>
@@ -370,7 +371,7 @@ export function InstallPrompt() {
 /** Compact control — open install sheet from nav, profile, footer, etc. */
 export function InstallAppButton({
   className = "",
-  label = "Add to Home Screen",
+  label = "Add to Phone",
   compact = false,
 }: {
   className?: string;
@@ -394,8 +395,8 @@ export function InstallAppButton({
       className={
         className ||
         (compact
-          ? "inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs font-bold text-forest hover:border-leaf"
-          : "inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-forest px-4 text-sm font-bold text-white hover:bg-forest-deep")
+          ? "btn-press inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-gold via-amber-500 to-gold px-3 py-1.5 text-xs font-bold text-forest-deep shadow-2xs hover:brightness-105"
+          : "btn-press inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-4 text-sm font-bold text-white shadow-xs hover:from-forest-deep hover:to-forest")
       }
     >
       <HomeIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
