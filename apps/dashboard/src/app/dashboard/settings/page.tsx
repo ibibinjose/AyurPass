@@ -751,6 +751,59 @@ export default function SettingsPage() {
                 </div>
               </div>
             </DashCard>
+
+            <DashCard
+              title="Languages Spoken"
+              description="Select the languages you and your consultation team speak fluently (e.g., English, Malayalam, Hindi, Tamil, Sanskrit)."
+            >
+              <div className="space-y-3">
+                <p className="text-xs font-medium leading-relaxed text-ink-muted">
+                  Tap languages to toggle. Spoken languages are highlighted on your public practice directory profile for seekers worldwide.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "English",
+                    "Malayalam",
+                    "Hindi",
+                    "Tamil",
+                    "Sanskrit",
+                    "Telugu",
+                    "Kannada",
+                    "Gujarati",
+                    "Marathi",
+                    "Bengali",
+                    "German",
+                    "French",
+                    "Spanish",
+                    "Arabic",
+                  ].map((lang) => {
+                    const active = authorityCodes.includes(`LANG_${lang}`) || lang === "English" || lang === "Malayalam" || lang === "Hindi";
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => {
+                          setAuthorityCodes((prev) =>
+                            prev.includes(`LANG_${lang}`)
+                              ? prev.filter((c) => c !== `LANG_${lang}`)
+                              : [...prev, `LANG_${lang}`],
+                          );
+                          markDirty();
+                        }}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                          active
+                            ? "bg-forest text-gold-soft shadow-sm ring-1 ring-gold/40"
+                            : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
+                        }`}
+                      >
+                        <span>🗣️</span>
+                        <span>{lang}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </DashCard>
             </>
           ) : null}
 

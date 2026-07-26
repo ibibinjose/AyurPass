@@ -408,6 +408,22 @@ END:VCARD`;
               </div>
             )}
 
+            {/* Languages Spoken */}
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5 md:justify-start">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-gold">Languages:</span>
+              {(professional.languagesSpoken && professional.languagesSpoken.length > 0
+                ? professional.languagesSpoken
+                : ["English", "Malayalam", "Hindi"]
+              ).map((lang) => (
+                <span
+                  key={lang}
+                  className="inline-flex items-center gap-1 rounded-full bg-clay/60 px-2.5 py-0.5 text-xs font-semibold text-forest border border-hairline/60"
+                >
+                  🗣️ {lang}
+                </span>
+              ))}
+            </div>
+
             {provider ? (
               <div className="mt-3">
                 <ProfileAffiliationPill

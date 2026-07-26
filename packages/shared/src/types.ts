@@ -242,6 +242,7 @@ export interface Professional {
   /** Structured title kind — Ayurvedic Doctor, Yoga Instructor, etc. */
   titleKind?: string | null;
   specializations: string[];
+  languagesSpoken?: string[];
   bio?: string | null;
   yearsExperience?: number | null;
   hourlyRate?: string | number | null;

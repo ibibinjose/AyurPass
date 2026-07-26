@@ -101,12 +101,17 @@ function HomeIcon({ className = "h-5 w-5" }: { className?: string }) {
  * PWA install: soft bottom sheet + optional manual open via InstallAppButton.
  */
 export function InstallPrompt() {
+  const [mounted, setMounted] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [open, setOpen] = useState(false);
   const [ios, setIos] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
   const [busy, setBusy] = useState(false);
   const [iosHelp, setIosHelp] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const close = useCallback((persist = true) => {
     setOpen(false);
@@ -191,7 +196,7 @@ export function InstallPrompt() {
     }
   };
 
-  if (isStandalone()) return null;
+  if (!mounted || isStandalone()) return null;
 
   return (
     <>

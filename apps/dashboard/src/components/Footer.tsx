@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { ArrowRightIcon, MailIcon } from "./icons";
 import { ReportSuggestTrigger } from "./ReportSuggestModal";
+import { LocationSelectorButton } from "./LocationSelectorButton";
+
 
 const EXPLORE = [
   { href: "/discover", label: "Discover places" },
@@ -282,9 +284,12 @@ export function Footer({ compact = false }: { compact?: boolean }) {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-hairline pt-6 sm:flex-row sm:items-center">
-          <p className="text-xs font-medium text-ink-muted">
-            © {year} AyurPass. All rights reserved.
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs font-medium text-ink-muted">
+              © {year} AyurPass. All rights reserved.
+            </p>
+            <LocationSelectorButton className="text-[11px] py-1 px-2.5" />
+          </div>
           <nav
             className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-ink-muted"
             aria-label="Legal"

@@ -48,6 +48,7 @@ import type {
 } from "@ayurpass/shared";
 
 export interface Professional extends SharedProfessional {
+  languagesSpoken?: string[];
   doshaExpertise?: Record<string, unknown> | null;
   certifications?: unknown;
   availabilityPreferences?: unknown;
@@ -516,6 +517,7 @@ export interface StaffMember {
   userId?: string | null;
   role: StaffRole;
   displayName?: string | null;
+  languagesSpoken?: string[];
   permissions?: Record<string, boolean> | null;
   effectivePermissions: Record<string, boolean>;
   inviteEmail?: string | null;

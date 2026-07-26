@@ -3,9 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { useLocation, SUPPORTED_COUNTRIES } from "@/context/LocationContext";
+import { SUPPORTED_LOCALES } from "@ayurpass/shared";
 import { GlobeIcon, XIcon } from "@/components/icons";
 
 const CURRENCIES = [
+
   { code: "AUD", label: "AUD ($) - Australian Dollar" },
   { code: "INR", label: "INR (₹) - Indian Rupee" },
   { code: "USD", label: "USD ($) - US Dollar" },
@@ -81,6 +83,7 @@ export function LocationModal() {
     countryCode,
     currency,
     timezone,
+    locale,
     updateLocation,
     autoDetect,
   } = useLocation();
@@ -88,6 +91,7 @@ export function LocationModal() {
   const [selectedCountry, setSelectedCountry] = useState(countryCode);
   const [selectedCurrency, setSelectedCurrency] = useState(currency);
   const [selectedTimezone, setSelectedTimezone] = useState(timezone);
+  const [selectedLocale, setSelectedLocale] = useState(locale || "en");
   const [currentTimeStr, setCurrentTimeStr] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
 
@@ -95,7 +99,8 @@ export function LocationModal() {
     setSelectedCountry(countryCode);
     setSelectedCurrency(currency);
     setSelectedTimezone(timezone);
-  }, [countryCode, currency, timezone, isModalOpen]);
+    setSelectedLocale(locale || "en");
+  }, [countryCode, currency, timezone, locale, isModalOpen]);
 
   useEffect(() => {
     try {
@@ -132,7 +137,7 @@ export function LocationModal() {
   };
 
   const handleSave = () => {
-    updateLocation(selectedCountry, selectedCurrency, selectedTimezone);
+    updateLocation(selectedCountry, selectedCurrency, selectedTimezone, selectedLocale);
   };
 
   return (
@@ -144,8 +149,8 @@ export function LocationModal() {
               <GlobeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-display text-xl font-semibold text-forest">Region & Location Preferences</h2>
-              <p className="text-xs text-ink-muted">Set your country, currency and local time display</p>
+              <h2 className="font-display text-xl font-semibold text-forest">Region & Language Preferences</h2>
+              <p className="text-xs text-ink-muted">Set your country, currency, timezone and preferred language</p>
             </div>
           </div>
           <button
@@ -158,6 +163,24 @@ export function LocationModal() {
         </div>
 
         <div className="mt-6 space-y-5">
+          {/* Language Selection */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-forest/70 mb-1.5">
+              Interface Language
+            </label>
+            <select
+              value={selectedLocale}
+              onChange={(e) => setSelectedLocale(e.target.value)}
+              className="w-full rounded-2xl border border-hairline bg-surface px-4 py-3 text-sm text-ink focus:border-forest focus:outline-none"
+            >
+              {SUPPORTED_LOCALES.map((loc) => (
+                <option key={loc.code} value={loc.code}>
+                  {loc.nativeName} ({loc.name})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Country Selection */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -172,7 +195,7 @@ export function LocationModal() {
               onChange={(e) => setCountryFilter(e.target.value)}
               className="mb-2.5 w-full rounded-2xl border border-hairline bg-surface px-4 py-2.5 text-xs text-ink placeholder:text-ink-muted focus:border-forest focus:outline-none"
             />
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
               {filteredCountries.map((c) => {
                 const active = selectedCountry === c.code;
                 return (

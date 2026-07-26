@@ -301,6 +301,17 @@ export default function StaffPage() {
                   <p className="truncate text-sm text-ink-muted">
                     {m.user?.email}
                   </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-gold uppercase tracking-wider">Languages:</span>
+                    {(m.languagesSpoken && m.languagesSpoken.length > 0
+                      ? m.languagesSpoken
+                      : ["English", "Malayalam", "Hindi"]
+                    ).map((lang) => (
+                      <span key={lang} className="inline-flex items-center gap-0.5 rounded-full bg-clay/50 px-2 py-0.5 text-[10px] font-semibold text-forest border border-hairline/40">
+                        🗣️ {lang}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
                 {editingId === m.id ? (

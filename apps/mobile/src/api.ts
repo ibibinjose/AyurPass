@@ -1,6 +1,8 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import { formatMoneyGlobal } from "@ayurpass/shared";
 import type {
+
   AuthResponse,
   AuthTokens,
   Booking,
@@ -400,17 +402,7 @@ export const api = {
 
 export function formatMoney(value: string | number | null | undefined, currency = "AUD"): string {
   const n = Number(value ?? 0);
-  const fractionDigits = Number.isInteger(n) ? 0 : 2;
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
-    }).format(n);
-  } catch {
-    return `$${n.toFixed(fractionDigits)}`;
-  }
+  return formatMoneyGlobal(n, currency);
 }
 
 /**

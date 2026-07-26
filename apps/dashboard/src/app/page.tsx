@@ -597,12 +597,71 @@ export default async function Home() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/discover"
-                className="mt-4 inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-hairline px-4 text-sm font-semibold text-forest hover:border-leaf sm:mt-0"
-              >
-                Browse practices
-              </Link>
+            </div>
+
+            {/* By The Numbers / The Platform Advantage */}
+            <div className="mt-16 rounded-3xl border border-hairline bg-surface p-8 shadow-sm">
+              <div className="text-center max-w-2xl mx-auto space-y-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
+                  By The Numbers
+                </span>
+                <h2 className="font-display text-3xl font-bold text-forest">
+                  The AyurPass Platform Advantage
+                </h2>
+                <p className="text-sm text-ink-muted leading-relaxed">
+                  Connecting verified practitioners, authentic Ayurvedic Vaidyas, and certified Yoga instructors with seekers worldwide.
+                </p>
+              </div>
+
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Growing Network</span>
+                    <h3 className="mt-2 font-display text-lg font-bold text-forest">
+                      Verified &amp; Licensed Ayurvedic Vaidyas &amp; Yoga Instructors
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      Independent practitioners committed to transparent, personalized, patient-first care.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-gold">5-Star Community</span>
+                    <h3 className="mt-2 font-display text-lg font-bold text-forest">
+                      Community-Rated Experience
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      Seekers value the personalized, authentic approach and community-verified client reviews.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Evidence-Based Care</span>
+                    <h3 className="mt-2 font-display text-lg font-bold text-forest">
+                      Classical &amp; Modern Therapeutic Approach
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      Built on proven Ayurvedic principles, holistic wellness science, and seeker empowerment.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Bank-Grade Privacy</span>
+                    <h3 className="mt-2 font-display text-lg font-bold text-forest">
+                      Secure Platform Architecture
+                    </h3>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-secondary">
+                      HIPAA &amp; health-privacy compliant, encrypted access to your practitioner when you need support.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

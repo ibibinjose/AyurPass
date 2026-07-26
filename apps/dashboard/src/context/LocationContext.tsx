@@ -2,6 +2,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { localeDir, localeFromBrowser } from "@ayurpass/shared";
 
 export interface CountryOption {
   code: string;
@@ -69,18 +70,20 @@ export interface LocationPreferences {
   flag: string;
   currency: string;
   timezone: string;
+  locale: string;
+  dir: "ltr" | "rtl";
   isCustomized: boolean;
 }
 
 interface LocationContextValue extends LocationPreferences {
-  updateLocation: (countryCode: string, currency?: string, timezone?: string) => void;
+  updateLocation: (countryCode: string, currency?: string, timezone?: string, locale?: string) => void;
   autoDetect: () => void;
   openModal: () => void;
   closeModal: () => void;
   isModalOpen: boolean;
 }
 
-const STORAGE_KEY = "ayurpass_location_preferences_v1";
+const STORAGE_KEY = "ayurpass_location_preferences_v2";
 
 const DEFAULT_PREFS: LocationPreferences = {
   countryCode: "AU",
@@ -88,6 +91,8 @@ const DEFAULT_PREFS: LocationPreferences = {
   flag: "🇦🇺",
   currency: "AUD",
   timezone: "Australia/Sydney",
+  locale: "en",
+  dir: "ltr",
   isCustomized: false,
 };
 
@@ -97,10 +102,11 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<LocationPreferences>(DEFAULT_PREFS);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Auto-detect based on browser timezone
+  // Auto-detect based on browser timezone & language
   const detectFromBrowser = useCallback((): LocationPreferences => {
     try {
       const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const browserLang = localeFromBrowser(typeof navigator !== "undefined" ? navigator.language : "en");
       const matched = SUPPORTED_COUNTRIES.find(
         (c) => c.timezone === browserTz || browserTz.startsWith(c.timezone.split("/")[0]),
       );
@@ -111,6 +117,8 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           flag: matched.flag,
           currency: matched.currency,
           timezone: browserTz || matched.timezone,
+          locale: browserLang,
+          dir: localeDir(browserLang),
           isCustomized: false,
         };
       }
@@ -127,6 +135,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(saved) as LocationPreferences;
         if (parsed && parsed.countryCode) {
           setPrefs(parsed);
+          if (typeof document !== "undefined") {
+            document.documentElement.lang = parsed.locale || "en";
+            document.documentElement.dir = parsed.dir || "ltr";
+          }
           return;
         }
       }
@@ -136,32 +148,45 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
     const detected = detectFromBrowser();
     setPrefs(detected);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = detected.locale || "en";
+      document.documentElement.dir = detected.dir || "ltr";
+    }
   }, [detectFromBrowser]);
 
-  const updateLocation = useCallback((countryCode: string, customCurrency?: string, customTimezone?: string) => {
+  const updateLocation = useCallback((countryCode: string, customCurrency?: string, customTimezone?: string, customLocale?: string) => {
     const matched = SUPPORTED_COUNTRIES.find((c) => c.code === countryCode) || SUPPORTED_COUNTRIES[0];
+    const newLocale = customLocale || prefs.locale || "en";
+    const dir = localeDir(newLocale);
     const updated: LocationPreferences = {
       countryCode: matched.code,
       countryName: matched.name,
       flag: matched.flag,
       currency: customCurrency || matched.currency,
       timezone: customTimezone || matched.timezone,
+      locale: newLocale,
+      dir,
       isCustomized: true,
     };
     setPrefs(updated);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = newLocale;
+      document.documentElement.dir = dir;
+    }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       document.cookie = `ayurpass_country=${matched.code}; path=/; max-age=31536000`;
       document.cookie = `ayurpass_currency=${updated.currency}; path=/; max-age=31536000`;
+      document.cookie = `ayurpass_locale=${newLocale}; path=/; max-age=31536000`;
     } catch {
       // Ignore storage errors
     }
     setIsModalOpen(false);
-  }, []);
+  }, [prefs.locale]);
 
   const autoDetect = useCallback(() => {
     const detected = detectFromBrowser();
-    updateLocation(detected.countryCode, detected.currency, detected.timezone);
+    updateLocation(detected.countryCode, detected.currency, detected.timezone, detected.locale);
   }, [detectFromBrowser, updateLocation]);
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
@@ -190,3 +215,4 @@ export function useLocation(): LocationContextValue {
   }
   return ctx;
 }
+

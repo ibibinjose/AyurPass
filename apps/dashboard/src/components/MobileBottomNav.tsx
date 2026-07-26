@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -11,9 +13,9 @@ import {
   LotusIcon,
   SearchIcon,
   SparkleIcon,
-  TrophyIcon,
   UsersIcon,
 } from "@/components/icons";
+
 
 type Tab = {
   href: string;
@@ -143,28 +145,29 @@ export function MobileBottomNav() {
  */
 export function DashboardBottomNav() {
   const { user } = useAuth();
+  const [overrideMode, setOverrideMode] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const mode =
+        window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
+        window.localStorage.getItem("ayurpass.dashboard.viewModeOverride");
+      if (mode) setOverrideMode(mode);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   if (!user) return null;
 
-  // Honour workspace mode switcher (admin can use seeker/practice tabs too)
-  let mode = "seeker";
-  try {
-    mode =
-      (typeof window !== "undefined" &&
-        (window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
-          window.localStorage.getItem("ayurpass.dashboard.viewModeOverride"))) ||
-      (user.role === "PLATFORM_ADMIN"
-        ? "admin"
-        : user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL"
-          ? "practice"
-          : "seeker");
-  } catch {
-    mode =
-      user.role === "PLATFORM_ADMIN"
-        ? "admin"
-        : user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL"
-          ? "practice"
-          : "seeker";
-  }
+  const defaultMode =
+    user.role === "PLATFORM_ADMIN"
+      ? "admin"
+      : user.role === "PROVIDER_ADMIN" || user.role === "PROFESSIONAL"
+        ? "practice"
+        : "seeker";
+
+  const mode = overrideMode || defaultMode;
 
   const isAdmin = mode === "admin";
   const isProvider = mode === "practice" || mode === "staff" || mode === "provider";
