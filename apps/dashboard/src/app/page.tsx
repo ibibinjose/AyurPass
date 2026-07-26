@@ -211,23 +211,23 @@ function SearchDiscoverForm() {
     <form
       action="/discover"
       method="get"
-      className="flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-stretch"
+      className="glass-surface flex w-full max-w-xl flex-col gap-2 rounded-3xl sm:rounded-full p-2 sm:flex-row sm:items-center shadow-lg"
       role="search"
     >
       <label className="relative min-w-0 flex-1">
         <span className="sr-only">Search wellness places</span>
-        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+        <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-forest" />
         <input
           name="q"
           type="search"
           placeholder="City, practice, or treatment…"
-          className="min-h-12 w-full rounded-full border border-hairline bg-surface py-3 pl-10 pr-4 text-sm font-medium text-foreground shadow-[0_2px_12px_rgba(36,56,46,0.06)] placeholder:font-normal placeholder:text-ink-muted/80 focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/20"
+          className="min-h-12 w-full rounded-full border-0 bg-transparent py-3 pl-11 pr-4 text-sm font-medium text-foreground placeholder:text-ink-muted/70 focus:outline-none focus:ring-0"
           autoComplete="off"
         />
       </label>
       <button
         type="submit"
-        className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-forest px-6 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(36,56,46,0.2)] transition-colors hover:bg-forest-deep"
+        className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-6 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:from-forest-deep hover:to-forest btn-press"
       >
         Search
         <ArrowRightIcon className="h-4 w-4" />

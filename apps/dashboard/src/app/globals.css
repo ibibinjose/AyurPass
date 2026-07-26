@@ -575,3 +575,72 @@ body {
     transition: none !important;
   }
 }
+
+/* ——— Premium Glassmorphism & Micro-Animations ——— */
+.glass-surface {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+  box-shadow: 0 4px 20px -2px rgba(30, 50, 40, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.glass-nav {
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 65%, transparent);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+.glass-pill {
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--hairline) 80%, transparent);
+}
+
+.glow-gold {
+  box-shadow: 0 0 30px -5px rgba(166, 122, 36, 0.25), 0 0 15px -3px rgba(166, 122, 36, 0.15);
+}
+
+.glow-forest {
+  box-shadow: 0 0 35px -5px rgba(30, 50, 40, 0.2), 0 0 15px -3px rgba(30, 50, 40, 0.12);
+}
+
+.glow-leaf {
+  box-shadow: 0 0 25px -4px rgba(47, 90, 68, 0.25);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--forest) 0%, var(--gold) 50%, var(--forest-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-forest {
+  background: linear-gradient(135deg, var(--forest-deep) 0%, var(--leaf) 55%, var(--forest) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.28s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px -8px rgba(30, 50, 40, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+    border-color: color-mix(in srgb, var(--leaf) 35%, var(--hairline));
+  }
+}
+
+.btn-press {
+  transition: transform 0.12s ease-out, filter 0.15s ease, background-color 0.15s ease;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+

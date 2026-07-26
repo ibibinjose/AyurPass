@@ -63,7 +63,7 @@ function TabBar({ tabs, ariaLabel }: { tabs: Tab[]; ariaLabel: string }) {
 
   return (
     <nav
-      className="dash-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-[var(--separator)] bg-surface/95 shadow-[0_-4px_24px_rgba(30,50,40,0.06)] backdrop-blur-xl md:hidden"
+      className="dash-tab-bar fixed inset-x-0 bottom-0 z-50 border-t border-hairline/70 bg-surface/85 shadow-lg backdrop-blur-2xl md:hidden"
       style={{
         paddingBottom: "max(0.35rem, env(safe-area-inset-bottom, 0px))",
         paddingLeft: "max(0.25rem, env(safe-area-inset-left, 0px))",
@@ -79,23 +79,23 @@ function TabBar({ tabs, ariaLabel }: { tabs: Tab[]; ariaLabel: string }) {
             <li key={tab.href + tab.label} className="flex min-w-0 flex-1">
               <Link
                 href={tab.href}
-                className={`touch-manipulation flex min-h-[var(--tap-min)] w-full flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition-colors active:scale-[0.97] ${
+                className={`touch-manipulation btn-press flex min-h-[var(--tap-min)] w-full flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition-all ${
                   active
-                    ? "text-forest"
-                    : "text-ink-muted active:bg-clay/50"
+                    ? "text-forest font-bold"
+                    : "text-ink-muted hover:text-forest active:bg-clay/50"
                 }`}
                 aria-current={active ? "page" : undefined}
               >
                 <span
-                  className={`flex h-7 w-10 items-center justify-center rounded-full transition-colors ${
-                    active ? "bg-forest/12 text-forest" : ""
+                  className={`flex h-7 w-11 items-center justify-center rounded-full transition-all duration-200 ${
+                    active ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-xs glow-forest scale-[1.05]" : ""
                   }`}
                 >
-                  <Icon className={`h-[22px] w-[22px] ${active ? "stroke-[1.9]" : ""}`} />
+                  <Icon className={`h-[20px] w-[20px] ${active ? "stroke-[2.2]" : ""}`} />
                 </span>
                 <span
                   className={`max-w-full truncate text-[10px] leading-none tracking-tight ${
-                    active ? "font-bold" : "font-medium"
+                    active ? "font-extrabold text-forest" : "font-semibold"
                   }`}
                 >
                   {tab.label}

@@ -53,15 +53,15 @@ export function ProviderCard({ provider }: { provider: Provider }) {
   );
 
   const cta = (
-    <span className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-full bg-forest px-3 text-xs font-bold text-white shadow-xs transition-colors group-hover:bg-forest-deep sm:min-h-9 sm:px-3.5">
+    <span className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-forest to-forest-deep px-3.5 text-xs font-bold text-white shadow-xs transition-all group-hover:from-forest-deep group-hover:to-forest group-hover:shadow-md sm:min-h-9 sm:px-4">
       View practice
-      <span aria-hidden>→</span>
+      <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>→</span>
     </span>
   );
 
   if (isList) {
     return (
-      <Link href={practicePath(provider)} className="card-surface card-list-row group">
+      <Link href={practicePath(provider)} className="card-surface card-list-row card-lift group rounded-2xl">
         <CardListMedia
           src={cover}
           alt={`${provider.businessName} cover`}
@@ -73,7 +73,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           badge={verified ? <VerifiedLogoBadge size="sm" /> : null}
           footer={
             brand?.priceBand ? (
-              <span className="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-bold text-forest shadow-sm">
+              <span className="rounded-full bg-surface/95 px-2 py-0.5 text-[10px] font-bold text-forest shadow-xs">
                 {brand.priceBand}
               </span>
             ) : undefined
@@ -128,7 +128,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
   return (
     <Link
       href={practicePath(provider)}
-      className="card-surface group relative flex flex-col overflow-hidden transition-shadow hover:shadow-[0_12px_32px_rgba(36,56,46,0.1)]"
+      className="card-surface card-lift group relative flex flex-col overflow-hidden rounded-3xl"
     >
       <div className="relative z-0 aspect-[16/10] w-full overflow-hidden bg-clay">
         {cover ? (

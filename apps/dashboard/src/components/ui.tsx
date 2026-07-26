@@ -7,8 +7,7 @@ import type {
 } from "react";
 
 const fieldClasses =
-  "w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-base sm:text-sm font-medium text-foreground placeholder:font-normal placeholder:text-ink-muted/80 transition-[border-color,box-shadow] duration-150 focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/20 disabled:cursor-not-allowed disabled:bg-clay/40 disabled:opacity-70";
-
+  "w-full rounded-2xl border border-hairline/80 bg-surface/90 px-4 py-2.5 text-base sm:text-sm font-medium text-foreground placeholder:font-normal placeholder:text-ink-muted/70 transition-all duration-200 focus:border-leaf focus:bg-surface focus:outline-none focus:ring-4 focus:ring-leaf/15 disabled:cursor-not-allowed disabled:bg-clay/40 disabled:opacity-70 shadow-xs";
 
 export function Field({
   label,
@@ -45,7 +44,7 @@ export function Field({
             ) : null}
           </span>
           {optional ? (
-            <span className="rounded-full bg-clay px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+            <span className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-muted">
               Optional
             </span>
           ) : null}
@@ -57,7 +56,7 @@ export function Field({
       )}
       {children}
       {error ? (
-        <span className="mt-1.5 block text-xs font-medium text-red-700" role="alert">
+        <span className="mt-1.5 block text-xs font-semibold text-red-700" role="alert">
           {error}
         </span>
       ) : hint ? (
@@ -77,9 +76,9 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`${fieldClasses} cursor-pointer appearance-none bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat pr-9 ${props.className ?? ""}`}
+      className={`${fieldClasses} cursor-pointer appearance-none bg-[length:1rem] bg-[right_0.85rem_center] bg-no-repeat pr-10 ${props.className ?? ""}`}
       style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7c72' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%232f5a44' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
         ...props.style,
       }}
     />
@@ -100,20 +99,24 @@ export function Button({
   className = "",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost" | "danger" | "soft";
+  variant?: "primary" | "ghost" | "danger" | "soft" | "gold" | "glass";
 }) {
   const styles = {
     primary:
-      "bg-forest text-white hover:bg-forest-deep disabled:opacity-50 disabled:hover:bg-forest",
-    soft: "bg-leaf/15 text-forest hover:bg-leaf/25 disabled:opacity-50",
+      "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm hover:shadow-md hover:from-forest-deep hover:to-forest disabled:opacity-50",
+    gold: "bg-gradient-to-r from-gold via-amber-500 to-gold text-forest-deep font-semibold shadow-sm hover:shadow-md hover:brightness-105 disabled:opacity-50",
+    glass:
+      "glass-surface text-forest font-semibold hover:border-leaf/40 hover:bg-surface shadow-xs disabled:opacity-50",
+    soft: "bg-leaf/15 text-forest font-semibold hover:bg-leaf/25 disabled:opacity-50",
     ghost:
-      "border border-hairline bg-surface text-foreground hover:border-leaf hover:text-forest",
-    danger: "border border-red-200 bg-surface text-red-700 hover:border-red-300 hover:bg-red-50",
+      "border border-hairline/80 bg-surface/90 text-foreground hover:border-leaf/50 hover:bg-surface hover:text-forest shadow-2xs",
+    danger:
+      "border border-red-200/80 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 font-medium",
   }[variant];
   return (
     <button
       {...props}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed ${styles} ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4.5 py-2 text-sm font-semibold transition-all duration-150 btn-press disabled:cursor-not-allowed ${styles} ${className}`}
     />
   );
 }
@@ -123,9 +126,9 @@ export function ErrorNote({ message }: { message: string | null }) {
   return (
     <p
       role="alert"
-      className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-800"
+      className="rounded-2xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm font-medium text-red-800 shadow-xs"
     >
-      {message}
+      ⚠️ {message}
     </p>
   );
 }
@@ -135,9 +138,9 @@ export function SuccessNote({ message }: { message: string | null }) {
   return (
     <p
       role="status"
-      className="rounded-xl border border-leaf/30 bg-leaf/10 px-3.5 py-2.5 text-sm text-forest"
+      className="rounded-2xl border border-leaf/30 bg-leaf/10 px-4 py-3 text-sm font-semibold text-forest shadow-xs"
     >
-      {message}
+      ✨ {message}
     </p>
   );
 }

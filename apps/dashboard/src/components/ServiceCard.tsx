@@ -63,7 +63,7 @@ export function ServiceCard({
   const bookBtn = actions ?? (
     <Link
       href={`/book/${service.id}`}
-      className="profile-spring inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-forest px-4 text-xs font-bold text-white shadow-[0_3px_12px_rgba(36,56,46,0.16)] hover:bg-forest-deep sm:text-sm"
+      className="profile-spring btn-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-forest to-forest-deep px-4.5 text-xs font-bold text-white shadow-sm hover:from-forest-deep hover:to-forest hover:shadow-md sm:text-sm"
       title={`Book for ${priceLabel}`}
       aria-label={`Book ${service.name} for ${priceLabel}`}
       onClick={(e) => e.stopPropagation()}
@@ -75,7 +75,7 @@ export function ServiceCard({
 
   if (isList) {
     return (
-      <article className="card-surface card-list-row group">
+      <article className="card-surface card-list-row card-lift group rounded-2xl">
         <CardListMedia
           src={image}
           alt=""
@@ -146,7 +146,7 @@ export function ServiceCard({
   }
 
   return (
-    <article className="card-surface group flex flex-col overflow-hidden">
+    <article className="card-surface card-lift group flex flex-col overflow-hidden rounded-3xl">
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-clay">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element

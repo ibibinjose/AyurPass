@@ -175,14 +175,14 @@ export function Footer({ compact = false }: { compact?: boolean }) {
           <div className="flex flex-wrap gap-2.5">
             <Link
               href="/discover"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
+              className="btn-press inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-5.5 py-2.5 text-sm font-semibold text-white shadow-md hover:from-forest-deep hover:to-forest hover:shadow-lg transition-all"
             >
               Discover places
               <ArrowRightIcon className="h-4 w-4" />
             </Link>
             <Link
               href="/list-your-business"
-              className="inline-flex min-h-11 items-center rounded-full border border-hairline bg-surface px-5 py-2.5 text-sm font-semibold text-forest transition-colors hover:border-leaf"
+              className="btn-press inline-flex min-h-11 items-center rounded-full border border-hairline/80 bg-surface/90 px-5.5 py-2.5 text-sm font-semibold text-forest shadow-xs hover:border-leaf/50 hover:bg-surface transition-all"
             >
               List free
             </Link>

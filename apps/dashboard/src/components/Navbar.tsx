@@ -12,7 +12,6 @@ import {
   CalendarIcon,
   CompassIcon,
   SparkleIcon,
-  GiftIcon,
   UsersIcon,
   LotusIcon,
   FlameIcon,
@@ -23,26 +22,6 @@ import {
 import { LocationSelectorButton } from "./LocationSelectorButton";
 import { InstallAppButton } from "./InstallPrompt";
 import { NotificationCenter } from "./NotificationCenter";
-
-function BellIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width={24}
-      height={24}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
 
 const PRIMARY_LINKS = [
   { href: "/discover", label: "Discover" },
@@ -75,10 +54,10 @@ function navActive(pathname: string, href: string) {
 }
 
 const linkClass = (active: boolean) =>
-  `profile-spring rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
+  `profile-spring rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
     active
-      ? "bg-forest text-white shadow-2xs"
-      : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
+      ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm glow-forest scale-[1.02]"
+      : "text-ink-secondary hover:bg-surface/80 hover:text-forest hover:shadow-2xs"
   }`;
 
 export function Navbar() {

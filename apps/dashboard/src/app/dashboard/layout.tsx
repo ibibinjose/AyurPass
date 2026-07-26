@@ -557,17 +557,17 @@ function NavLink({
         title={item.label}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className={`dash-nav-link group relative flex items-center justify-center rounded-xl p-2.5 transition-all ${
+        className={`dash-nav-link group relative flex items-center justify-center rounded-xl p-2.5 transition-all duration-200 ${
           active
-            ? "bg-forest text-white shadow-2xs"
-            : "text-ink-secondary hover:bg-clay/80 hover:text-forest"
+            ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm glow-forest scale-[1.03]"
+            : "text-ink-secondary hover:bg-surface/80 hover:text-forest"
         }`}
       >
         {active ? (
-          <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-leaf" />
+          <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gold shadow-xs" />
         ) : null}
         <Icon className="h-[1.15rem] w-[1.15rem]" />
-        <span className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-lg bg-forest px-2.5 py-1 text-xs font-bold text-white shadow-lg group-hover:block">
+        <span className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-xl bg-forest-deep px-3 py-1.5 text-xs font-bold text-white shadow-xl group-hover:block">
           {item.label}
         </span>
       </Link>
@@ -579,23 +579,23 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className={`dash-nav-link group relative flex items-center gap-3 rounded-xl px-3 transition-all ${
+      className={`dash-nav-link group relative flex items-center gap-3 rounded-xl px-3 transition-all duration-200 ${
         dense ? "min-h-[var(--tap-min)] py-2.5" : "py-2"
       } text-xs font-bold ${
         active
-          ? "bg-forest text-white shadow-2xs"
-          : "text-ink-secondary hover:bg-clay/70 hover:text-forest active:bg-clay/80"
+          ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm glow-forest scale-[1.01]"
+          : "text-ink-secondary hover:bg-surface/80 hover:text-forest active:bg-clay/80"
       }`}
     >
       {active ? (
         <span
-          className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-leaf"
+          className="absolute left-0 top-1/2 h-5.5 w-1 -translate-y-1/2 rounded-r-full bg-gold shadow-xs"
           aria-hidden
         />
       ) : null}
       <span
         className={`flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg transition-colors ${
-          active ? "bg-white/15 text-white" : "bg-clay/60 text-forest group-hover:bg-clay"
+          active ? "bg-white/20 text-white" : "bg-clay/60 text-forest group-hover:bg-clay"
         }`}
       >
         <Icon className="h-4 w-4" />
