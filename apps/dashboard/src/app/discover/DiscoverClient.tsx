@@ -984,7 +984,31 @@ function DiscoverInner() {
         <ResultSkeleton />
       ) : (
         <>
+          {/* Mobile quick filter tab chips */}
+          <div className="mb-3 flex items-center gap-1.5 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => set("tab", t.key)}
+                className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+                  tab === t.key
+                    ? "bg-forest text-white shadow-xs"
+                    : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+                }`}
+              >
+                <span>{t.label}</span>
+                {tabTotals[t.key] ? (
+                  <span className={`text-[10px] tabular-nums ${tab === t.key ? "text-white/80" : "text-ink-muted"}`}>
+                    ({tabTotals[t.key]})
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-leaf/25 bg-leaf/5 px-4 py-2.5 text-xs font-medium text-forest shadow-sm backdrop-blur-sm sm:text-sm">
+
             <div className="flex items-center gap-2">
               <span className="text-base">{activeFlag}</span>
               <span>

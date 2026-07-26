@@ -318,6 +318,37 @@ export default function ShopClient() {
         </>
       }
     >
+      {/* Mobile quick product category chips */}
+      {categories.length > 0 ? (
+        <div className="mb-4 flex items-center gap-1.5 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            type="button"
+            onClick={() => setCategory("ALL")}
+            className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+              category === "ALL"
+                ? "bg-forest text-white shadow-xs"
+                : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+            }`}
+          >
+            All Products
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+                category === c
+                  ? "bg-forest text-white shadow-xs"
+                  : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mb-6 grid gap-2 sm:grid-cols-3">
         {[
           { t: "Verified makers", d: "Goods from reviewed wellness practices" },

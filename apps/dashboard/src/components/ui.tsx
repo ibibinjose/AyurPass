@@ -7,7 +7,8 @@ import type {
 } from "react";
 
 const fieldClasses =
-  "w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-sm font-medium text-foreground placeholder:font-normal placeholder:text-ink-muted/80 transition-[border-color,box-shadow] duration-150 focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/20 disabled:cursor-not-allowed disabled:bg-clay/40 disabled:opacity-70";
+  "w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-base sm:text-sm font-medium text-foreground placeholder:font-normal placeholder:text-ink-muted/80 transition-[border-color,box-shadow] duration-150 focus:border-leaf focus:outline-none focus:ring-2 focus:ring-leaf/20 disabled:cursor-not-allowed disabled:bg-clay/40 disabled:opacity-70";
+
 
 export function Field({
   label,

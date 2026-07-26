@@ -334,6 +334,27 @@ export default function ExploreClient() {
         </>
       }
     >
+      {/* Mobile quick session category filter chips */}
+      <div className="mb-4 flex items-center gap-1.5 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {CATEGORIES.map((c) => {
+          const label = c === "ALL" ? "All Sessions" : CATEGORY_LABEL[c];
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+                category === c
+                  ? "bg-forest text-white shadow-xs"
+                  : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="mb-6 grid gap-2 sm:grid-cols-3">
         {[
           { t: "Verified hosts", d: "Practices reviewed before going live" },

@@ -331,22 +331,26 @@ export function DirectoryLayout({
               {/* Active filter chips */}
               {activeFilters.length > 0 ? (
                 <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mr-1">
+                    Filters:
+                  </span>
                   {activeFilters.map((f) => (
                     <button
                       key={f.id}
                       type="button"
                       onClick={f.onRemove}
-                      className="profile-spring inline-flex min-h-7 items-center gap-1 rounded-full border border-[var(--separator)] bg-surface px-2.5 py-1 text-[11px] font-bold text-ink-secondary hover:border-[var(--system-blue)]/40 hover:text-foreground"
+                      title={`Remove filter ${f.label}`}
+                      className="profile-spring inline-flex min-h-8 items-center gap-1.5 rounded-full bg-forest px-3 py-1 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 hover:bg-forest-deep"
                     >
-                      {f.label}
-                      <XIcon className="h-3 w-3 opacity-70" />
+                      <span>{f.label}</span>
+                      <XIcon className="h-3.5 w-3.5 text-white/80 hover:text-white" />
                     </button>
                   ))}
                   {onClearFilters ? (
                     <button
                       type="button"
                       onClick={onClearFilters}
-                      className="text-[11px] font-bold text-[var(--system-blue)] hover:underline"
+                      className="ml-1 text-xs font-bold text-forest hover:underline"
                     >
                       Clear all
                     </button>

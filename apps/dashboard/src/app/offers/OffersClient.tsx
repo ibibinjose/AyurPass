@@ -286,6 +286,35 @@ export default function OffersClient() {
         </>
       }
     >
+      {/* Mobile quick discipline filter chips */}
+      <div className="mb-4 flex items-center gap-1.5 overflow-x-auto pb-1 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button
+          type="button"
+          onClick={() => setDiscipline("All")}
+          className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+            discipline === "All"
+              ? "bg-forest text-white shadow-xs"
+              : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+          }`}
+        >
+          All Offers
+        </button>
+        {disciplineOptions.map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDiscipline(d)}
+            className={`profile-spring inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-all active:scale-95 ${
+              discipline === d
+                ? "bg-forest text-white shadow-xs"
+                : "border border-hairline bg-surface text-ink-secondary hover:border-forest/40"
+            }`}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+
       {featuredPreview.length > 0 ? (
         <section className="mb-8">
           <div className="mb-4 flex items-end justify-between gap-3">
