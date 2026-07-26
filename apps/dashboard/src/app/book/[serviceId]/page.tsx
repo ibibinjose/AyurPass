@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { loginUrl } from "@/lib/auth-redirect";
 import { STICKY_BELOW_NAV } from "@/components/DirectoryLayout";
 import { api, formatMoney } from "@/lib/api";
-import { downloadBookingIcs } from "@/lib/ics";
+import { downloadBookingIcs, getGoogleCalendarUrl } from "@/lib/ics";
 import { CATEGORY_LABEL, formatDuration, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, PaymentCheckout, Service } from "@/lib/types";
@@ -258,8 +258,16 @@ export default function BookServicePage() {
 
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Button onClick={() => router.push("/dashboard/bookings")}>View my bookings</Button>
+            <a
+              href={getGoogleCalendarUrl(confirmed)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-4 py-2 text-sm font-medium text-forest transition-colors hover:border-leaf hover:bg-clay/40"
+            >
+              Add to Google Calendar ↗
+            </a>
             <Button variant="ghost" onClick={() => downloadBookingIcs(confirmed)}>
-              Add to calendar
+              Download .ics file
             </Button>
             <Button variant="ghost" onClick={() => router.push("/explore")}>
               Book another

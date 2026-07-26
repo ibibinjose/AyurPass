@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { Alert, Linking, RefreshControl, ScrollView, Text, View } from "react-native";
+import { Alert, Linking, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Badge,
@@ -16,6 +16,7 @@ import { OfflineBanner } from "../../src/components/OfflineBanner";
 import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useAuth } from "../../src/auth";
 import { formatMoney } from "../../src/api";
+import { openGoogleCalendar } from "../../src/calendar";
 import {
   useConfirmBookingPayment,
   useConsumerBookings,
@@ -137,11 +138,24 @@ function BookingRow({
         </Badge>
       </View>
 
-      <View className="flex-row items-center gap-1.5">
-        <Ionicons name="calendar-outline" size={14} color={colors.inkMuted} />
-        <Text className="font-body text-[13px] text-ink-secondary">
-          {formatWhen(booking.startTime)}
-        </Text>
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-1.5">
+          <Ionicons name="calendar-outline" size={14} color={colors.inkMuted} />
+          <Text className="font-body text-[13px] text-ink-secondary">
+            {formatWhen(booking.startTime)}
+          </Text>
+        </View>
+
+        {booking.status !== "CANCELLED" ? (
+          <Pressable
+            onPress={() => void openGoogleCalendar(booking)}
+            className="flex-row items-center gap-1 active:opacity-70"
+            hitSlop={8}
+          >
+            <Ionicons name="calendar" size={14} color={colors.leaf} />
+            <Text className="font-body-medium text-xs text-leaf">Add to Calendar</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View className="flex-row items-center justify-between border-t border-hairline pt-3">

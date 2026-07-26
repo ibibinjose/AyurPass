@@ -22,6 +22,7 @@ import {
   EVENT_CATEGORY_LABEL,
 } from "../../src/catalog";
 import { useConsumerBookings } from "../../src/hooks/useBookings";
+import { openGoogleCalendar } from "../../src/calendar";
 import type { Booking, ServiceCategory } from "../../src/types";
 import { colors, fonts } from "../../src/theme";
 
@@ -404,11 +405,26 @@ function BookingRow({ booking, onPress }: { booking: Booking; onPress: () => voi
       ) : null}
       <View style={styles.eventFooter}>
         <Text style={styles.eventStatus}>{booking.status.replace(/_/g, " ")}</Text>
-        {booking.totalAmount != null ? (
-          <Text style={styles.eventPrice}>
-            {formatMoney(booking.totalAmount, booking.service?.currency || "AUD")}
-          </Text>
-        ) : null}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              void openGoogleCalendar(booking);
+            }}
+            hitSlop={6}
+            style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
+          >
+            <Ionicons name="calendar-outline" size={14} color={colors.forest} />
+            <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.forest }}>
+              Add to Calendar
+            </Text>
+          </Pressable>
+          {booking.totalAmount != null ? (
+            <Text style={styles.eventPrice}>
+              {formatMoney(booking.totalAmount, booking.service?.currency || "AUD")}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </Pressable>
   );
