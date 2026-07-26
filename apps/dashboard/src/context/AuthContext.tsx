@@ -8,6 +8,10 @@ interface AuthContextValue {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<UserProfile>;
+  loginWithSocial: (
+    provider: "google" | "apple",
+    payload: { email: string; name?: string; idToken?: string }
+  ) => Promise<UserProfile>;
   register: (payload: RegisterPayload) => Promise<UserProfile>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -58,6 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return profile;
   }, []);
 
+  const loginWithSocial = useCallback(
+    async (
+      provider: "google" | "apple",
+      payload: { email: string; name?: string; idToken?: string }
+    ) => {
+      const res = await api.socialAuth(provider, payload);
+      tokenStore.set(res);
+      const profile = await api.profile();
+      setUser(profile);
+      return profile;
+    },
+    []
+  );
+
   const register = useCallback(async (payload: RegisterPayload) => {
     const res = await api.register(payload);
     tokenStore.set(res);
@@ -77,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithSocial, register, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

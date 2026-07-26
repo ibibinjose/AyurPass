@@ -348,6 +348,8 @@ export const api = {
     request<AuthResponse>("/auth/register", { method: "POST", body: payload }),
   login: (email: string, password: string) =>
     request<AuthResponse>("/auth/login", { method: "POST", body: { email, password } }),
+  socialAuth: (provider: "google" | "apple", payload: { email: string; name?: string; idToken?: string }) =>
+    request<AuthResponse>(`/auth/${provider}`, { method: "POST", body: payload }),
   refresh: (refreshToken: string) =>
     request<AuthTokens>("/auth/refresh", { method: "POST", body: { refreshToken } }),
   profile: () => request<UserProfile>("/auth/profile", { auth: true }),

@@ -61,6 +61,20 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  @Post('google')
+  async googleAuth(@Body() body: { email: string; name?: string; idToken?: string; googleId?: string }) {
+    return this.authService.socialLogin('google', body.email, body.name, body.googleId || body.idToken);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  @Post('apple')
+  async appleAuth(@Body() body: { email: string; name?: string; idToken?: string; appleId?: string }) {
+    return this.authService.socialLogin('apple', body.email, body.name, body.appleId || body.idToken);
+  }
+
+  @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('refresh')
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {

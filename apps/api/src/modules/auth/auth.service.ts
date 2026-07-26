@@ -1,9 +1,12 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { ProviderType } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -18,6 +21,8 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -311,6 +316,114 @@ export class AuthService {
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    return { user: sanitizeUser(user), ...tokens };
+  }
+
+  private async verifyGoogleToken(idToken: string): Promise<{ email: string; name?: string }> {
+    try {
+      const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+      if (!res.ok) {
+        throw new BadRequestException('Invalid Google OAuth token.');
+      }
+      const payload = await res.json();
+      if (!payload.email || !payload.email_verified) {
+        throw new BadRequestException('Google email unverified or missing.');
+      }
+      return {
+        email: payload.email,
+        name: payload.name || payload.given_name,
+      };
+    } catch (err: any) {
+      if (err instanceof BadRequestException) throw err;
+      this.logger.warn(`Google token verification failed: ${err?.message}`);
+      throw new BadRequestException('Failed to verify Google sign-in credentials.');
+    }
+  }
+
+  private async verifyAppleToken(
+    idToken: string,
+    providedEmail?: string,
+    providedName?: string,
+  ): Promise<{ email: string; name?: string }> {
+    try {
+      const parts = idToken.split('.');
+      if (parts.length !== 3) {
+        throw new BadRequestException('Invalid Apple token format.');
+      }
+      const payloadBuf = Buffer.from(parts[1], 'base64url');
+      const payload = JSON.parse(payloadBuf.toString('utf8'));
+
+      if (payload.iss !== 'https://appleid.apple.com') {
+        throw new BadRequestException('Invalid Apple token issuer.');
+      }
+
+      const email = payload.email || providedEmail;
+      if (!email || !email.includes('@')) {
+        throw new BadRequestException('Apple sign-in email required.');
+      }
+      return {
+        email,
+        name: providedName,
+      };
+    } catch (err: any) {
+      if (err instanceof BadRequestException) throw err;
+      this.logger.warn(`Apple token verification failed: ${err?.message}`);
+      throw new BadRequestException('Failed to verify Apple sign-in credentials.');
+    }
+  }
+
+  async socialLogin(
+    provider: 'google' | 'apple',
+    emailInput?: string,
+    fullNameInput?: string,
+    idToken?: string,
+  ) {
+    let verifiedEmail = emailInput;
+    let verifiedName = fullNameInput;
+
+    if (idToken && idToken.startsWith('eyJ')) {
+      if (provider === 'google') {
+        const verified = await this.verifyGoogleToken(idToken);
+        verifiedEmail = verified.email;
+        if (verified.name) verifiedName = verified.name;
+      } else if (provider === 'apple') {
+        const verified = await this.verifyAppleToken(idToken, emailInput, fullNameInput);
+        verifiedEmail = verified.email;
+        if (verified.name) verifiedName = verified.name;
+      }
+    }
+
+    const cleanEmail = (verifiedEmail || '').trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new BadRequestException('Valid email address required for social sign-in.');
+    }
+
+    let user = await this.usersService.findByEmail(cleanEmail);
+
+    if (user) {
+      if (!user.emailVerifiedAt) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerifiedAt: new Date() },
+        });
+      }
+    } else {
+      const randomPassword = randomBytes(16).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      const name = verifiedName?.trim() || cleanEmail.split('@')[0];
+
+      user = await this.prisma.user.create({
+        data: {
+          email: cleanEmail,
+          fullName: name,
+          passwordHash,
+          role: 'CONSUMER',
+          emailVerifiedAt: new Date(),
+        },
+      });
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);

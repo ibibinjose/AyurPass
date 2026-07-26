@@ -1007,31 +1007,43 @@ function DiscoverInner() {
             ))}
           </div>
 
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-leaf/25 bg-leaf/5 px-4 py-2.5 text-xs font-medium text-forest shadow-sm backdrop-blur-sm sm:text-sm">
-
-            <div className="flex items-center gap-2">
-              <span className="text-base">{activeFlag}</span>
-              <span>
-                {userCoords
-                  ? (
-                    <>
-                      Showing results nearest to <strong>{loc || "your location"}</strong>
-                    </>
-                  )
-                  : (
-                    <>
-                      Showing results prioritized closest to <strong>{activeCountryName}</strong>
-                    </>
-                  )}
+          {/* Seeker Intent & Goal Shortcuts */}
+          <div className="mb-4 rounded-2xl border border-[var(--separator)] bg-surface p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-forest">
+                🌿 What is your wellness goal today?
               </span>
+              <Link
+                href="/dashboard/assessment"
+                className="inline-flex items-center gap-1 text-xs font-bold text-[var(--system-blue)] hover:underline"
+              >
+                <SparkleIcon className="h-3.5 w-3.5" />
+                Take 2-Min Dosha Quiz →
+              </Link>
             </div>
-            <button
-              type="button"
-              onClick={openModal}
-              className="font-bold text-forest underline decoration-leaf/40 hover:text-leaf"
-            >
-              Change Region
-            </button>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                { label: "🧘 Panchakarma Detox", tx: "panchakarma" },
+                { label: "💆 Stress & Shirodhara", tx: "shirodhara" },
+                { label: "🦴 Joint & Pain Care", tx: "kati-basti" },
+                { label: "🌿 Abhyanga Massage", tx: "abhyanga" },
+                { label: "😴 Sleep & Insomnia", tx: "insomnia" },
+                { label: "🍵 Gut & Digestive Health", tx: "ibs-digestive" },
+              ].map((goal) => (
+                <button
+                  key={goal.tx}
+                  type="button"
+                  onClick={() => setMany({ tx: goal.tx, q: "" })}
+                  className={`profile-spring inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                    treatmentId === goal.tx
+                      ? "bg-forest text-white shadow-xs"
+                      : "border border-leaf/30 bg-leaf/10 text-forest hover:bg-leaf/20"
+                  }`}
+                >
+                  {goal.label}
+                </button>
+              ))}
+            </div>
           </div>
           <DiscoverResults
             tab={tab}
