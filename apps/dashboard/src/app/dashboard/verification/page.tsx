@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
-import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
 import { CheckIcon, ShieldIcon } from "@/components/icons";
 import type { Provider } from "@/lib/types";
 

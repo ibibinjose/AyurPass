@@ -6,7 +6,6 @@ import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { AdminProvider } from "@/lib/types";
 import { Button, EmptyState } from "@/components/ui";
 import { useAdminProviders, useSetProviderVerification } from "@/hooks/useAdminProviders";
-import { CheckIcon, ShieldIcon } from "@/components/icons";
 
 const STATUS_STYLE: Record<string, string> = {
   verified: "bg-emerald-600 text-white",
