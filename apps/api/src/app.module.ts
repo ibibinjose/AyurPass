@@ -39,9 +39,11 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { JobsModule } from './modules/jobs/jobs.module';
 import { EventsModule } from './modules/events/events.module';
 import { WellnessPassModule } from './modules/wellness-pass/wellness-pass.module';
+import { CacheModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
+    CacheModule,
     MailModule,
     NotificationsModule,
     ConfigModule.forRoot({

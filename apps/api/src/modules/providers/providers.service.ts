@@ -12,6 +12,7 @@ import {
   assertHandle,
   isReservedRoot,
 } from '../../common/handles';
+import { CacheService } from '../cache/cache.service';
 
 const PUBLIC_COUNTS = {
   select: { professionals: true, services: true, products: true, packages: true, rooms: true },
@@ -208,7 +209,14 @@ function sanitizeAddress(input: Record<string, unknown>): Record<string, string>
 
 @Injectable()
 export class ProvidersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: CacheService,
+  ) {}
+
+  private async invalidateCache() {
+    await this.cache.delByPrefix('cache:providers:');
+  }
 
   async uniqueSlug(businessName: string, excludeId?: string): Promise<string> {
     const base = slugifyPublicName(businessName, 'practice');
@@ -233,6 +241,10 @@ export class ProvidersService {
    * memory. Verified practices surface first, then most recently joined.
    */
   async findAll(query: ProviderQuery = {}) {
+    const cacheKey = `cache:providers:${JSON.stringify(query)}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     const where: Prisma.ProviderWhereInput = {};
     if (query.q?.trim()) {
       where.businessName = { contains: query.q.trim(), mode: 'insensitive' };
@@ -262,11 +274,14 @@ export class ProvidersService {
 
     const verifiedRank = (status: string) => (status === 'verified' ? 0 : 1);
 
-    return providers.sort((a, b) => {
+    const sorted = providers.sort((a, b) => {
       const locDiff = locationScore(a) - locationScore(b);
       if (locDiff !== 0) return locDiff;
       return verifiedRank(a.verificationStatus) - verifiedRank(b.verificationStatus);
     });
+
+    await this.cache.set(cacheKey, sorted, 60);
+    return sorted;
   }
 
   async findOne(id: string) {
@@ -462,7 +477,7 @@ export class ProvidersService {
     }
 
     try {
-      return await this.prisma.provider.update({
+      const res = await this.prisma.provider.update({
         where: { id },
         data: {
           businessName,
@@ -485,6 +500,8 @@ export class ProvidersService {
         },
         include: { _count: PUBLIC_COUNTS },
       });
+      await this.invalidateCache();
+      return res;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('That vanity handle is already taken.');

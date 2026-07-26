@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Post,
   Req,
@@ -35,6 +36,16 @@ function imageFileFilter(
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {
     this.uploads.ensureUploadDir();
+  }
+
+  /** Request an S3 presigned URL for direct client-to-S3 uploads. */
+  @Post('presigned')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  async uploadPresigned(
+    @Body() body: { filename?: string; mimeType?: string },
+    @Req() req: Request,
+  ) {
+    return this.uploads.createPresignedUpload(body?.filename, body?.mimeType, req);
   }
 
   /** Authenticated single-image upload (JWT via global guard). */

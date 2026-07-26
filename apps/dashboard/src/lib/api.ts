@@ -64,6 +64,7 @@ export type UploadedImage = {
   filename: string;
   mimeType: string;
   size: number;
+  storage?: string;
 };
 
 function normalizeUploadedImage(data: UploadedImage): UploadedImage {
@@ -73,6 +74,39 @@ function normalizeUploadedImage(data: UploadedImage): UploadedImage {
 }
 
 async function uploadImageRequest(file: File, retried = false): Promise<UploadedImage> {
+  // Attempt direct S3 / CloudFront presigned URL upload
+  try {
+    const pHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    if (tokenStore.access) pHeaders.Authorization = `Bearer ${tokenStore.access}`;
+    const presignedRes = await fetch(`${API_URL}/uploads/presigned`, {
+      method: "POST",
+      headers: pHeaders,
+      body: JSON.stringify({ filename: file.name, mimeType: file.type || "image/jpeg" }),
+    });
+
+    if (presignedRes.ok) {
+      const p = await presignedRes.json();
+      if (p.uploadUrl && p.storage === "s3") {
+        const putRes = await fetch(p.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type || "image/jpeg" },
+          body: file,
+        });
+        if (putRes.ok) {
+          return normalizeUploadedImage({
+            url: p.publicUrl,
+            filename: p.filename,
+            mimeType: p.mimeType,
+            size: file.size,
+            storage: "s3",
+          });
+        }
+      }
+    }
+  } catch {
+    /* Fall back to API multipart upload if presigned endpoint fails or unconfigured */
+  }
+
   const body = new FormData();
   body.append("file", file);
   const headers: Record<string, string> = {};

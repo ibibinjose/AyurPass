@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, RetreatCategory } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { CacheService } from '../cache/cache.service';
 import {
   CreateRetreatDto,
   CurateRetreatDto,
@@ -47,10 +48,21 @@ function randomSuffix(): string {
 
 @Injectable()
 export class RetreatsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: CacheService,
+  ) {}
+
+  private async invalidateCache() {
+    await this.cache.delByPrefix('cache:retreats:');
+  }
 
   /** Public directory listing — published retreats, handpicked & upcoming first. */
   async findAll(query: RetreatQuery = {}) {
+    const cacheKey = `cache:retreats:${JSON.stringify(query)}`;
+    const cached = await this.cache.get<any[]>(cacheKey);
+    if (cached) return cached;
+
     const where: Prisma.RetreatWhereInput = { status: 'published' };
     if (query.q?.trim())
       where.title = { contains: query.q.trim(), mode: 'insensitive' };
@@ -70,11 +82,14 @@ export class RetreatsService {
       where.startDate = { gte: start, lt: end };
     }
 
-    return this.prisma.retreat.findMany({
+    const results = await this.prisma.retreat.findMany({
       where,
       include: { provider: PROVIDER_CARD },
       orderBy: [{ featured: 'desc' }, { startDate: 'asc' }, { createdAt: 'desc' }],
     });
+
+    await this.cache.set(cacheKey, results, 60);
+    return results;
   }
 
   async findBySlug(slug: string) {
@@ -159,7 +174,7 @@ export class RetreatsService {
     const provider = await this.providerForUser(userSub);
     if (!provider)
       throw new ForbiddenException('Only providers can create retreats');
-    return this.prisma.retreat.create({
+    const created = await this.prisma.retreat.create({
       data: {
         ...this.toData(dto),
         title: dto.title,
@@ -169,6 +184,8 @@ export class RetreatsService {
       },
       include: { provider: PROVIDER_CARD },
     });
+    await this.invalidateCache();
+    return created;
   }
 
   /** Ensure the acting user owns the retreat (or is a platform admin). */
@@ -193,16 +210,20 @@ export class RetreatsService {
     dto: UpdateRetreatDto,
   ) {
     await this.assertOwner(userSub, role, id);
-    return this.prisma.retreat.update({
+    const updated = await this.prisma.retreat.update({
       where: { id },
       data: this.toData(dto),
       include: { provider: PROVIDER_CARD },
     });
+    await this.invalidateCache();
+    return updated;
   }
 
   async remove(userSub: string, role: string, id: string) {
     await this.assertOwner(userSub, role, id);
-    return this.prisma.retreat.delete({ where: { id } });
+    const removed = await this.prisma.retreat.delete({ where: { id } });
+    await this.invalidateCache();
+    return removed;
   }
 
   /** Platform-admin "handpick" + verification. */
@@ -212,7 +233,7 @@ export class RetreatsService {
       select: { id: true },
     });
     if (!exists) throw new NotFoundException('Retreat not found');
-    return this.prisma.retreat.update({
+    const curated = await this.prisma.retreat.update({
       where: { id },
       data: {
         featured: dto.featured,
@@ -220,5 +241,7 @@ export class RetreatsService {
       },
       include: { provider: PROVIDER_CARD },
     });
+    await this.invalidateCache();
+    return curated;
   }
 }

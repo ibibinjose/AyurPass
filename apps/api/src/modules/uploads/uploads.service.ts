@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomBytes } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { extname, join } from 'path';
@@ -179,6 +180,55 @@ export class UploadsService {
       filename,
       mimeType: file.mimetype,
       size: file.size,
+      storage: 'disk' as const,
+    };
+  }
+
+  /**
+   * Generate an S3 presigned URL for direct client-to-S3 uploads.
+   * Returns uploadUrl (for PUT), publicUrl (CloudFront/S3 CDN URL), and storage type.
+   */
+  async createPresignedUpload(
+    filenameInput?: string,
+    mimeType = 'image/jpeg',
+    req?: Request,
+  ) {
+    if (!ALLOWED_MIME.has(mimeType)) {
+      throw new BadRequestException('Only JPEG, PNG, WebP or GIF images are allowed.');
+    }
+    const filename = this.filenameFor(mimeType, filenameInput);
+
+    if (this.usesS3) {
+      const key = `media/${filename}`;
+      const command = new PutObjectCommand({
+        Bucket: this.bucket!,
+        Key: key,
+        ContentType: mimeType,
+        CacheControl: 'public, max-age=31536000, immutable',
+      });
+
+      const uploadUrl = await getSignedUrl(this.s3!, command, { expiresIn: 900 });
+      const publicUrl = `${this.s3PublicBase}/${key}`;
+
+      return {
+        uploadUrl,
+        publicUrl,
+        key,
+        filename,
+        mimeType,
+        storage: 's3' as const,
+      };
+    }
+
+    // Local fallback when S3 is unconfigured
+    const publicUrl = this.toPublicUrl(filename, req);
+    const uploadUrl = `${this.publicBaseUrl(req)}/uploads`;
+    return {
+      uploadUrl,
+      publicUrl,
+      key: filename,
+      filename,
+      mimeType,
       storage: 'disk' as const,
     };
   }
