@@ -110,7 +110,7 @@ export function InstallPrompt() {
   const [iosHelp, setIosHelp] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    queueMicrotask(() => setMounted(true));
   }, []);
 
   const close = useCallback((persist = true) => {
@@ -122,7 +122,7 @@ export function InstallPrompt() {
   useEffect(() => {
     if (isStandalone()) return;
 
-    setIos(detectIos());
+    queueMicrotask(() => setIos(detectIos()));
 
     const onBip = (e: Event) => {
       e.preventDefault();
@@ -380,7 +380,7 @@ export function InstallAppButton({
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
-    setHidden(isStandalone());
+    queueMicrotask(() => setHidden(isStandalone()));
   }, []);
 
   if (hidden) return null;

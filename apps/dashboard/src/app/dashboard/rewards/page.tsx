@@ -35,7 +35,9 @@ export default function RewardsPage() {
   }, [user]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   async function redeem(rewardId: string) {

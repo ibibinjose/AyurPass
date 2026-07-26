@@ -16,7 +16,9 @@ export function EmailVerifyBanner() {
     try {
       if (typeof window !== "undefined" && window.sessionStorage) {
         const stored = sessionStorage.getItem("ayurpass_email_banner_dismissed");
-        if (stored === "1") setDismissed(true);
+        if (stored === "1") {
+          queueMicrotask(() => setDismissed(true));
+        }
       }
     } catch {
       /* ignore storage restriction exceptions */

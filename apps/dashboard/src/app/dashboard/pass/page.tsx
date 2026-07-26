@@ -44,10 +44,12 @@ export default function WellnessPassPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      setPass(null);
+      queueMicrotask(() => setPass(null));
       return;
     }
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [user, authLoading, load]);
 
   if (authLoading || (user && pass === undefined)) {

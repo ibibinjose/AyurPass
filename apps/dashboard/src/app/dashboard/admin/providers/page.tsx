@@ -25,10 +25,6 @@ export default function AdminProvidersPage() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  if (user && !isAdmin) {
-    return <EmptyState title="Admin only" body="This area is for platform administrators." />;
-  }
-
   const list = providers ?? [];
   const pendingCount = useMemo(() => list.filter((p) => p.verificationStatus === "pending").length, [list]);
   const verifiedCount = useMemo(() => list.filter((p) => p.verificationStatus === "verified").length, [list]);
@@ -38,6 +34,10 @@ export default function AdminProvidersPage() {
     if (filter === "all") return list;
     return list.filter((p) => p.verificationStatus === filter);
   }, [list, filter]);
+
+  if (user && !isAdmin) {
+    return <EmptyState title="Admin only" body="This area is for platform administrators." />;
+  }
 
   async function setStatus(p: AdminProvider, status: "verified" | "rejected" | "pending") {
     await verify.mutateAsync({ providerId: p.id, status });
@@ -108,8 +108,8 @@ export default function AdminProvidersPage() {
           <ul className="space-y-4">
             {filteredProviders.map((p) => {
               const isExpanded = expandedId === p.id;
-              const docs = Array.isArray((p.brandProfile as any)?.verificationDocs)
-                ? ((p.brandProfile as any).verificationDocs as { url: string; name: string }[])
+              const docs = Array.isArray((p.brandProfile as Record<string, unknown> | null)?.verificationDocs)
+                ? ((p.brandProfile as Record<string, unknown>).verificationDocs as { url: string; name: string }[])
                 : [];
               const healthAuths = Array.isArray(p.healthAuthorities) ? p.healthAuthorities : [];
 
@@ -209,7 +209,7 @@ export default function AdminProvidersPage() {
                         <div>
                           <p className="font-semibold text-ink-muted mb-1">Accreditation Boards & Associations:</p>
                           <div className="flex flex-wrap gap-1.5">
-                            {healthAuths.map((auth: any, i: number) => (
+                            {healthAuths.map((auth: { code?: string; name?: string }, i: number) => (
                               <span
                                 key={i}
                                 className="rounded-full bg-forest/10 px-3 py-1 font-semibold text-forest text-[11px]"

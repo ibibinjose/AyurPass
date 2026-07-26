@@ -1070,14 +1070,16 @@ export default function DashboardPage() {
   const [mode, setMode] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const stored =
-        window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
-        window.localStorage.getItem("ayurpass.dashboard.viewModeOverride");
-      setMode(stored);
-    } catch {
-      setMode(null);
-    }
+    queueMicrotask(() => {
+      try {
+        const stored =
+          window.localStorage.getItem("ayurpass.dashboard.workspaceMode") ||
+          window.localStorage.getItem("ayurpass.dashboard.viewModeOverride");
+        setMode(stored);
+      } catch {
+        setMode(null);
+      }
+    });
   }, [user?.id, user?.role]);
 
   // Workspace switcher can override role: admin ↔ seeker ↔ practice

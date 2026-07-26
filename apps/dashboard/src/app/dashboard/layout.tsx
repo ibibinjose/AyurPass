@@ -899,7 +899,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!user) return;
-    setMode(resolveMode(user, readStoredMode()));
+    queueMicrotask(() => {
+      setMode(resolveMode(user, readStoredMode()));
+    });
   }, [user]);
 
   useEffect(() => {

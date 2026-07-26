@@ -41,8 +41,8 @@ export default function VerificationPage() {
           setRegistrationNumber(p.registrationNumber || "");
           setLicenceNumber(p.licenceNumber || "");
           const healthAuths = Array.isArray(p.healthAuthorities) ? p.healthAuthorities : [];
-          setAssociations(healthAuths.map((h: any) => h.code || h.name).filter(Boolean));
-          const existingDocs = (p.brandProfile as Record<string, any> | null)?.verificationDocs;
+          setAssociations(healthAuths.map((h: { code?: string; name?: string }) => h.code || h.name).filter(Boolean) as string[]);
+          const existingDocs = (p.brandProfile as Record<string, unknown> | null)?.verificationDocs;
           if (Array.isArray(existingDocs)) {
             setDocFiles(existingDocs);
           }
@@ -112,7 +112,7 @@ export default function VerificationPage() {
     });
 
     const updatedProfile = {
-      ...((provider.brandProfile as Record<string, any> | null) || {}),
+      ...((provider.brandProfile as Record<string, unknown> | null) || {}),
       verificationDocs: docFiles,
     };
 
@@ -121,7 +121,7 @@ export default function VerificationPage() {
         registrationNumber: registrationNumber.trim() || null,
         licenceNumber: licenceNumber.trim() || null,
         healthAuthorities,
-        brandProfile: updatedProfile as any,
+        brandProfile: updatedProfile as Record<string, unknown>,
       });
       setProvider(res);
       setSuccess("Verification details updated successfully. Admin review is in progress.");

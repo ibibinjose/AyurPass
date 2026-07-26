@@ -22,7 +22,9 @@ export default function CareersPage() {
 
   useEffect(() => {
     let active = true;
-    setError(null);
+    queueMicrotask(() => {
+      if (active) setError(null);
+    });
     api
       .jobs(q.trim() ? { q: q.trim() } : undefined)
       .then((list) => {

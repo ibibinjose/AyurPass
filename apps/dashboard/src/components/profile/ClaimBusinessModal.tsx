@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { CLAIM_OPTIONS } from "@/lib/feedback";
 import { Button, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
-import { CheckIcon, SparkleIcon, XIcon, ShieldIcon } from "@/components/icons";
+import { CheckIcon, XIcon, ShieldIcon } from "@/components/icons";
 import type { Provider } from "@/lib/types";
 
 const ROLE_OPTIONS = [

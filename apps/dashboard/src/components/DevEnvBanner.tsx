@@ -23,7 +23,7 @@ export function DevEnvBanner() {
       (API.startsWith("https://") && !API.includes("localhost"));
 
     if (isLocalHost && apiIsRemote) {
-      setShow(true);
+      queueMicrotask(() => setShow(true));
     }
   }, []);
 

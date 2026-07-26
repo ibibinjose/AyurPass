@@ -20,12 +20,16 @@ function VerifyInner() {
 
   useEffect(() => {
     if (!token) {
-      setStatus("error");
-      setMessage("Missing verification link. Check your email for the latest link.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setMessage("Missing verification link. Check your email for the latest link.");
+      });
       return;
     }
     let active = true;
-    setStatus("loading");
+    queueMicrotask(() => {
+      if (active) setStatus("loading");
+    });
     api
       .verifyEmail(token)
       .then(async (res) => {
