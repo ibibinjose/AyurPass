@@ -27,7 +27,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "@/context/LocationContext";
 import { useDirectoryUrlState } from "@/hooks/useDirectoryUrlState";
 import { useNearMe } from "@/hooks/useNearMe";
+import { useRecentViews } from "@/hooks/useRecentViews";
 import {
+  DensityCtx,
   DirectoryLayout,
   DirectoryResultGrid,
   FilterOption,
@@ -43,6 +45,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { Button, EmptyState, Input } from "@/components/ui";
 import {
+  CalendarIcon,
   CompassIcon,
   LeafIcon,
   LotusIcon,
@@ -65,15 +68,16 @@ const PRO_SORT: { key: ProSortKey; label: string }[] = [
   { key: "name", label: "Name A–Z" },
 ];
 
-const PROVIDER_GROUPS: { label: string; types: ProviderType[]; icon: typeof LeafIcon }[] = [
-  { label: "Ayurveda", types: ["AYURVEDA_CLINIC", "AYURVEDA_RESORT", "PANCHAKARMA_CENTER"], icon: LeafIcon },
-  { label: "Yoga", types: ["YOGA_STUDIO"], icon: LotusIcon },
-  { label: "Spa", types: ["LUXURY_SPA"], icon: MoonIcon },
-  { label: "Meditation", types: ["MEDITATION_CENTER"], icon: MoonIcon },
-  { label: "Health Club", types: ["HEALTH_CLUB"], icon: UsersIcon },
-  { label: "Nutrition", types: ["NUTRITIONIST"], icon: LeafIcon },
-  { label: "Cooking", types: ["WELLNESS_KITCHEN"], icon: SparkleIcon },
-  { label: "Retreats", types: ["WELLNESS_RETREAT"], icon: CompassIcon },
+const PROVIDER_GROUPS: { label: string; types: ProviderType[]; icon: typeof LeafIcon; color: string; bg: string }[] = [
+  { label: "Ayurveda", types: ["AYURVEDA_CLINIC", "AYURVEDA_RESORT", "PANCHAKARMA_CENTER"], icon: LeafIcon, color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" },
+  { label: "Yoga", types: ["YOGA_STUDIO"], icon: LotusIcon, color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/30" },
+  { label: "Spa", types: ["LUXURY_SPA"], icon: MoonIcon, color: "text-teal-700 dark:text-teal-400", bg: "bg-teal-500/10 border-teal-500/30" },
+  { label: "Meditation", types: ["MEDITATION_CENTER"], icon: MoonIcon, color: "text-indigo-700 dark:text-indigo-400", bg: "bg-indigo-500/10 border-indigo-500/30" },
+  { label: "Fitness", types: ["HEALTH_CLUB"], icon: UsersIcon, color: "text-rose-700 dark:text-rose-400", bg: "bg-rose-500/10 border-rose-500/30" },
+  { label: "Consult", types: ["NUTRITIONIST"], icon: SparkleIcon, color: "text-purple-700 dark:text-purple-400", bg: "bg-purple-500/10 border-purple-500/30" },
+  { label: "Cooking", types: ["WELLNESS_KITCHEN"], icon: SparkleIcon, color: "text-lime-800 dark:text-lime-400", bg: "bg-lime-500/10 border-lime-500/30" },
+  { label: "Nutrition", types: ["NUTRITIONIST"], icon: LeafIcon, color: "text-orange-700 dark:text-orange-400", bg: "bg-orange-500/10 border-orange-500/30" },
+  { label: "Events", types: ["WELLNESS_RETREAT"], icon: CalendarIcon, color: "text-sky-700 dark:text-sky-400", bg: "bg-sky-500/10 border-sky-500/30" },
 ];
 
 const SERVICE_CATEGORIES: ServiceCategory[] = [
@@ -82,7 +86,6 @@ const SERVICE_CATEGORIES: ServiceCategory[] = [
   "SPA",
   "MEDITATION",
   "FITNESS",
-  "NUTRITION",
   "COOKING",
   "COACHING",
   "CONSULTATION",
@@ -219,6 +222,8 @@ function DiscoverInner() {
   const [professionals, setProfessionals] = useState<Professional[] | null>(null);
   const [error, setError] = useState(false);
   const [myDosha, setMyDosha] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const recentViews = useRecentViews(6);
 
   const userCoords: LatLng | null = useMemo(() => {
     const lat = Number(values.lat);
@@ -757,6 +762,8 @@ function DiscoverInner() {
         busy: nearMe.busy,
         error: nearMe.error,
       }}
+      showRecent={false}
+      showTopToolbar={false}
       sidebar={
         <>
           <FilterSection title="Search">
@@ -909,9 +916,11 @@ function DiscoverInner() {
                       count={loading ? undefined : n}
                       onClick={() => set("group", g.label)}
                     >
-                      <span className="inline-flex items-center gap-2">
-                        <Icon className="h-3.5 w-3.5 opacity-80" />
-                        {g.label}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold ${g.bg} ${g.color}`}>
+                          <Icon className="mr-1 h-3.5 w-3.5" />
+                          {g.label}
+                        </span>
                       </span>
                     </FilterOption>
                   );
@@ -919,6 +928,10 @@ function DiscoverInner() {
               </FilterStack>
             </FilterSection>
           ) : null}
+
+          <FilterSection title="Wellness Calendar">
+            <WellnessCalendarWidget />
+          </FilterSection>
 
           {tab === "services" ? (
             <FilterSection title="Session type">
@@ -1007,8 +1020,75 @@ function DiscoverInner() {
             ))}
           </div>
 
-          {/* Seeker Intent & Goal Shortcuts */}
-          <div className="mb-4 rounded-2xl border border-[var(--separator)] bg-surface p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] sm:p-4">
+          {/* Controls & Filter Bar: Near me · your area | Live Count | View Mode Switcher */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3 shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={nearMe.locate}
+                disabled={nearMe.busy}
+                className="profile-spring inline-flex items-center gap-1.5 rounded-full border border-leaf/40 bg-leaf/10 px-3.5 py-1.5 text-xs font-bold text-forest hover:bg-leaf/20 active:scale-95 disabled:opacity-60"
+              >
+                <MapPinIcon className="h-3.5 w-3.5" />
+                {nearMe.busy ? "Locating…" : "Near me · your area"}
+              </button>
+
+              {filterActive ? (
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="profile-spring inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 hover:underline"
+                >
+                  Clear all
+                </button>
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-forest">
+                {counts[tab]} {tab === "providers" ? "practices" : tab === "professionals" ? "practitioners" : tab === "services" ? "sessions" : "products"}
+              </span>
+
+              <div className="inline-flex items-center rounded-xl border border-hairline bg-clay/40 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                    viewMode === "grid"
+                      ? "bg-surface text-forest shadow-2xs"
+                      : "text-ink-muted hover:text-forest"
+                  }`}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                    viewMode === "list"
+                      ? "bg-surface text-forest shadow-2xs"
+                      : "text-ink-muted hover:text-forest"
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("map")}
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                    viewMode === "map"
+                      ? "bg-surface text-forest shadow-2xs"
+                      : "text-ink-muted hover:text-forest"
+                  }`}
+                >
+                  Map
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sticky Seeker Intent & Goal Shortcuts */}
+          <div className="sticky top-14 sm:top-16 z-30 mb-4 rounded-2xl border border-[var(--separator)] bg-surface/95 p-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md transition-all sm:p-4">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-forest">
                 🌿 What is your wellness goal today?
@@ -1029,14 +1109,15 @@ function DiscoverInner() {
                 { label: "🌿 Abhyanga Massage", tx: "abhyanga" },
                 { label: "😴 Sleep & Insomnia", tx: "insomnia" },
                 { label: "🍵 Gut & Digestive Health", tx: "ibs-digestive" },
+                { label: "🌸 Skin & Rejuvenation", tx: "mukha-lepam" },
               ].map((goal) => (
                 <button
                   key={goal.tx}
                   type="button"
                   onClick={() => setMany({ tx: goal.tx, q: "" })}
-                  className={`profile-spring inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                  className={`profile-spring inline-flex shrink-0 items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                     treatmentId === goal.tx
-                      ? "bg-forest text-white shadow-xs"
+                      ? "bg-gradient-to-r from-forest to-emerald-800 text-white shadow-md"
                       : "border border-leaf/30 bg-leaf/10 text-forest hover:bg-leaf/20"
                   }`}
                 >
@@ -1045,18 +1126,23 @@ function DiscoverInner() {
               ))}
             </div>
           </div>
-          <DiscoverResults
-            tab={tab}
-            filterActive={filterActive}
-            shownProviders={shownProviders}
-            shownServices={shownServices}
-            shownProducts={shownProducts}
-            shownProfessionals={shownProfessionals}
-            userCoords={userCoords}
-            proSort={proSort}
-            onClear={clear}
-            onBrowsePractices={() => set("tab", "providers")}
-          />
+
+          <DensityCtx.Provider value={viewMode}>
+            <DiscoverResults
+              tab={tab}
+              viewMode={viewMode}
+              filterActive={filterActive}
+              shownProviders={shownProviders}
+              shownServices={shownServices}
+              shownProducts={shownProducts}
+              shownProfessionals={shownProfessionals}
+              userCoords={userCoords}
+              proSort={proSort}
+              recentViews={recentViews}
+              onClear={clear}
+              onBrowsePractices={() => set("tab", "providers")}
+            />
+          </DensityCtx.Provider>
         </>
       )}
     </DirectoryLayout>
@@ -1065,6 +1151,7 @@ function DiscoverInner() {
 
 function DiscoverResults({
   tab,
+  viewMode,
   filterActive,
   shownProviders,
   shownServices,
@@ -1072,10 +1159,12 @@ function DiscoverResults({
   shownProfessionals,
   userCoords,
   proSort,
+  recentViews,
   onClear,
   onBrowsePractices,
 }: {
   tab: Tab;
+  viewMode: "grid" | "list" | "map";
   filterActive: boolean;
   shownProviders: Provider[] | null;
   shownServices: Service[] | null;
@@ -1083,10 +1172,12 @@ function DiscoverResults({
   shownProfessionals: Professional[];
   userCoords: LatLng | null;
   proSort: ProSortKey;
+  recentViews: import("@/lib/directory").RecentItem[];
   onClear: () => void;
   onBrowsePractices: () => void;
 }) {
   const density = useDirectoryDensity();
+  const effectiveView = viewMode === "map" || density === "map" ? "map" : viewMode;
 
   const mapItems: MapMarkerItem[] = useMemo(() => {
     if (tab === "providers") {
@@ -1138,35 +1229,85 @@ function DiscoverResults({
       }));
   }, [tab, shownProviders, shownProfessionals, shownServices, shownProducts]);
 
-  if (density === "map") {
+  const recentStrip = recentViews && recentViews.length > 0 ? (
+    <div className="mt-8 rounded-2xl border border-hairline bg-surface/80 p-4 shadow-2xs">
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <span className="text-xs font-bold uppercase tracking-wider text-forest">
+          🕒 Recently viewed
+        </span>
+        <span className="text-[11px] font-semibold text-ink-muted">
+          {recentViews.length} items
+        </span>
+      </div>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {recentViews.map((item) => (
+          <Link
+            key={`${item.kind}-${item.id}`}
+            href={item.href}
+            className="profile-spring inline-flex shrink-0 items-center gap-1.5 rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-xs font-bold text-forest shadow-2xs hover:border-forest/40 active:scale-95"
+          >
+            <span>{item.title}</span>
+            {item.subtitle ? (
+              <span className="text-[10px] font-normal text-ink-muted">· {item.subtitle}</span>
+            ) : null}
+          </Link>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  if (effectiveView === "map") {
     return (
-      <DirectoryMapView
-        items={mapItems}
-        userCoords={userCoords}
-        emptyLabel="No locations match these filters"
-      />
+      <>
+        <DirectoryMapView
+          items={mapItems}
+          userCoords={userCoords}
+          emptyLabel="No locations match these filters"
+        />
+        {recentStrip}
+      </>
     );
   }
 
   if (tab === "providers") {
-    return shownProviders && shownProviders.length > 0 ? (
-      <DirectoryResultGrid>
-        {shownProviders.map((p) => (
-          <ProviderCard key={p.id} provider={p} />
-        ))}
-      </DirectoryResultGrid>
-    ) : (
-      <EmptyState
-        title={filterActive ? "No practices match those filters" : "No practices yet"}
-        body="Try a broader search, a different discipline, or clear your location filter."
-        action={
-          filterActive ? (
-            <Button type="button" variant="ghost" onClick={onClear}>
-              Clear filters
-            </Button>
-          ) : undefined
-        }
-      />
+    if (!shownProviders || shownProviders.length === 0) {
+      return (
+        <>
+          <EmptyState
+            title={filterActive ? "No practices match those filters" : "No practices yet"}
+            body="Try a broader search, a different discipline, or clear your location filter."
+            action={
+              filterActive ? (
+                <Button type="button" variant="ghost" onClick={onClear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+          {recentStrip}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {effectiveView === "list" ? (
+          <div className="space-y-4 divide-y divide-hairline/60">
+            {shownProviders.map((p) => (
+              <div key={p.id} className="pt-4 first:pt-0">
+                <ProviderCard provider={p} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <DirectoryResultGrid>
+            {shownProviders.map((p) => (
+              <ProviderCard key={p.id} provider={p} />
+            ))}
+          </DirectoryResultGrid>
+        )}
+        {recentStrip}
+      </>
     );
   }
 
@@ -1256,6 +1397,112 @@ function DiscoverResults({
         )
       }
     />
+  );
+}
+
+function WellnessCalendarWidget({
+  onSelectDate,
+}: {
+  onSelectDate?: (date: Date) => void;
+}) {
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 6, 1)); // July 2026
+  const [selectedDay, setSelectedDay] = useState<number | null>(26);
+
+  const year = currentDate.getFullYear();
+  const monthIndex = currentDate.getMonth();
+  const monthName = currentDate.toLocaleString("default", { month: "long" });
+
+  const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(year, monthIndex - 1, 1));
+  };
+  const nextMonth = () => {
+    setCurrentDate(new Date(year, monthIndex + 1, 1));
+  };
+  const jumpToToday = () => {
+    setCurrentDate(new Date(2026, 6, 1));
+    setSelectedDay(26);
+  };
+
+  return (
+    <div className="rounded-2xl border border-hairline bg-surface p-3 shadow-2xs">
+      <div className="flex items-center justify-between gap-1 mb-2.5">
+        <button
+          type="button"
+          onClick={prevMonth}
+          className="profile-spring rounded-lg px-2 py-0.5 text-xs font-bold text-ink-muted hover:bg-clay hover:text-forest"
+        >
+          ← Prev
+        </button>
+        <span className="font-display text-xs font-bold text-forest">
+          {monthName} {year}
+        </span>
+        <button
+          type="button"
+          onClick={nextMonth}
+          className="profile-spring rounded-lg px-2 py-0.5 text-xs font-bold text-ink-muted hover:bg-clay hover:text-forest"
+        >
+          Next →
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <span key={day} className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">
+            {day}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-0.5">
+        {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+          <div key={`empty-${i}`} className="h-7" />
+        ))}
+
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const isSelected = selectedDay === day;
+          const isToday = year === 2026 && monthIndex === 6 && day === 26;
+
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => {
+                setSelectedDay(day);
+                if (onSelectDate) onSelectDate(new Date(year, monthIndex, day));
+              }}
+              className={`profile-spring flex h-7 w-full items-center justify-center rounded-md text-[11px] font-semibold transition-all ${
+                isSelected
+                  ? "bg-forest text-white shadow-2xs font-bold"
+                  : isToday
+                    ? "border border-leaf bg-leaf/10 font-bold text-forest"
+                    : "hover:bg-clay text-foreground"
+              }`}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between border-t border-hairline/60 pt-2">
+        <button
+          type="button"
+          onClick={jumpToToday}
+          className="text-[11px] font-bold text-[var(--system-blue)] hover:underline"
+        >
+          Jump to today
+        </button>
+        {selectedDay ? (
+          <span className="text-[10px] font-medium text-ink-muted">
+            {monthName} {selectedDay}, {year}
+          </span>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

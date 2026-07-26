@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { DashboardBottomNav } from "@/components/MobileBottomNav";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { InlineSpinner } from "@/components/ui";
 import { loginUrl } from "@/lib/auth-redirect";
 import { resolveMediaUrl } from "@/lib/media";
@@ -47,12 +48,10 @@ type IconComp = (props: { className?: string }) => ReactNode;
 type NavItem = {
   href: string;
   label: string;
-  /** Shorter label for mobile chips / tight UI */
   shortLabel?: string;
   icon: IconComp;
   exact?: boolean;
   hint?: string;
-  /** Pin into mobile horizontal chip strip (seekers) */
   chip?: boolean;
 };
 
@@ -116,26 +115,26 @@ const CONSUMER_GROUPS: NavGroup[] = [
         href: "/events",
         label: "Events",
         icon: FlameIcon,
-        hint: "Classes, workshops & open days",
+        hint: "Classes & workshops",
         chip: true,
       },
       {
         href: "/retreats",
         label: "Retreats",
         icon: MoonIcon,
-        hint: "Immersive programmes",
+        hint: "Immersive escapes",
       },
       {
         href: "/careers",
         label: "Careers",
         shortLabel: "Jobs",
         icon: SearchIcon,
-        hint: "Optional — open wellness roles",
+        hint: "Open wellness roles",
       },
     ],
   },
   {
-    label: "My wellness",
+    label: "My Wellness",
     items: [
       {
         href: "/dashboard/pass",
@@ -147,14 +146,14 @@ const CONSUMER_GROUPS: NavGroup[] = [
       },
       {
         href: "/dashboard/bookings",
-        label: "My bookings",
+        label: "My Bookings",
         shortLabel: "List",
         icon: CalendarIcon,
         hint: "Pay & manage",
       },
       {
         href: "/dashboard/assessment",
-        label: "Dosha assessment",
+        label: "Dosha Assessment",
         shortLabel: "Dosha",
         icon: CompassIcon,
         hint: "Prakriti profile",
@@ -162,14 +161,14 @@ const CONSUMER_GROUPS: NavGroup[] = [
       },
       {
         href: "/dashboard/plans",
-        label: "Treatment plans",
+        label: "Treatment Plans",
         shortLabel: "Plans",
         icon: SparkleIcon,
         hint: "Shared care",
       },
       {
         href: "/dashboard/purchases",
-        label: "My orders",
+        label: "My Orders",
         shortLabel: "Orders",
         icon: FlameIcon,
         hint: "Shop history",
@@ -183,7 +182,7 @@ const CONSUMER_GROUPS: NavGroup[] = [
       },
       {
         href: "/dashboard/gift-cards",
-        label: "Gift cards",
+        label: "Gift Cards",
         shortLabel: "Gifts",
         icon: GiftIcon,
         hint: "Give wellness",
@@ -254,7 +253,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
         label: "Jobs & Hiring",
         icon: UsersIcon,
         chip: true,
-        hint: "Post vacancies & applications",
+        hint: "Post vacancies",
       },
       {
         href: "/dashboard/clients",
@@ -281,7 +280,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
         label: "Events",
         icon: FlameIcon,
         chip: true,
-        hint: "Host workshops & classes",
+        hint: "Host workshops",
       },
       { href: "/dashboard/retreats", label: "Retreats", icon: MoonIcon, hint: "Sanctuary escapes" },
       { href: "/dashboard/products", label: "Products", icon: LotusIcon, hint: "Store inventory" },
@@ -303,19 +302,19 @@ const PROVIDER_GROUPS: NavGroup[] = [
         label: "Scan Pass",
         icon: SearchIcon,
         chip: true,
-        hint: "Door & desk check-in",
+        hint: "Desk check-in",
       },
-      { href: "/dashboard/terminal", label: "Virtual terminal", icon: SparkleIcon, hint: "Accept payments" },
+      { href: "/dashboard/terminal", label: "Virtual Terminal", icon: SparkleIcon, hint: "Accept payments" },
       { href: "/dashboard/payments", label: "Payments", icon: TrophyIcon, hint: "Counter checkouts" },
     ],
   },
   {
     label: "Practice",
     items: [
-      { href: "/dashboard/channels", label: "Online channels", icon: GlobeIcon, hint: "Integrations & APIs" },
+      { href: "/dashboard/channels", label: "Online Channels", icon: GlobeIcon, hint: "Integrations & APIs" },
       {
         href: "/dashboard/staff",
-        label: "Staff & access",
+        label: "Staff & Access",
         icon: ShieldIcon,
         hint: "Roles & permissions",
         chip: true,
@@ -327,7 +326,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
         hint: "Public page",
         chip: true,
       },
-      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true, hint: "Practice configurations" },
+      { href: "/dashboard/settings", label: "Settings", icon: PencilIcon, chip: true, hint: "Configurations" },
     ],
   },
 ];
@@ -342,7 +341,7 @@ const ADMIN_GROUPS: NavGroup[] = [
         label: "Providers",
         icon: UsersIcon,
         chip: true,
-        hint: "Approved businesses",
+        hint: "Approved practices",
       },
       {
         href: "/dashboard/admin/vanity",
@@ -360,7 +359,7 @@ const ADMIN_GROUPS: NavGroup[] = [
       { href: "/dashboard/admin/offers", label: "Offers", icon: GiftIcon, hint: "Global campaigns" },
       {
         href: "/dashboard/admin/bookings",
-        label: "All bookings",
+        label: "All Bookings",
         icon: CalendarIcon,
         chip: true,
         hint: "Platform schedule",
@@ -436,7 +435,7 @@ const STAFF_GROUPS: NavGroup[] = [
       },
       {
         href: "/careers",
-        label: "Careers board",
+        label: "Careers Board",
         icon: SearchIcon,
         hint: "Browse open roles",
       },
@@ -450,17 +449,17 @@ const CAREERS_GROUPS: NavGroup[] = [
     items: [
       {
         href: "/careers",
-        label: "Open roles",
+        label: "Open Roles",
         icon: SearchIcon,
         chip: true,
         hint: "Browse vacancies",
       },
       {
         href: "/dashboard/jobs",
-        label: "Hiring (practice)",
+        label: "Hiring (Practice)",
         icon: UsersIcon,
         chip: true,
-        hint: "Post roles if you run a practice",
+        hint: "Post roles if running a practice",
       },
       {
         href: "/discover",
@@ -481,24 +480,23 @@ const CAREERS_GROUPS: NavGroup[] = [
 
 const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
   { test: (p) => p === "/dashboard", title: "Overview" },
-  { test: (p) => p.startsWith("/dashboard/bookings"), title: "Calendar" },
-  { test: (p) => p.startsWith("/dashboard/assessment"), title: "Dosha" },
-  { test: (p) => p.startsWith("/dashboard/plans"), title: "Plans" },
-  { test: (p) => p.startsWith("/dashboard/purchases"), title: "Orders" },
-  { test: (p) => p.startsWith("/dashboard/rewards"), title: "Rewards" },
-  { test: (p) => p.startsWith("/dashboard/gift-cards"), title: "Gift cards" },
-  { test: (p) => p.startsWith("/dashboard/permissions"), title: "Privacy" },
-  { test: (p) => p.startsWith("/dashboard/settings"), title: "Settings" },
-  { test: (p) => p.startsWith("/dashboard/business"), title: "Business" },
-  { test: (p) => p.startsWith("/dashboard/calendar"), title: "Calendar" },
-  { test: (p) => p.startsWith("/dashboard/schedule"), title: "Schedule" },
-  { test: (p) => p.startsWith("/dashboard/enquiries"), title: "Enquiries" },
-  { test: (p) => p.startsWith("/dashboard/services"), title: "Sessions" },
-  { test: (p) => p.startsWith("/dashboard/admin"), title: "Admin" },
+  { test: (p) => p.startsWith("/dashboard/bookings"), title: "Calendar & Bookings" },
+  { test: (p) => p.startsWith("/dashboard/assessment"), title: "Dosha Profile" },
+  { test: (p) => p.startsWith("/dashboard/plans"), title: "Treatment Plans" },
+  { test: (p) => p.startsWith("/dashboard/purchases"), title: "Orders & Receipts" },
+  { test: (p) => p.startsWith("/dashboard/rewards"), title: "Rewards & Tiers" },
+  { test: (p) => p.startsWith("/dashboard/gift-cards"), title: "Gift Cards" },
+  { test: (p) => p.startsWith("/dashboard/permissions"), title: "Privacy & Permissions" },
+  { test: (p) => p.startsWith("/dashboard/settings"), title: "Account Settings" },
+  { test: (p) => p.startsWith("/dashboard/business"), title: "Business Profile" },
+  { test: (p) => p.startsWith("/dashboard/calendar"), title: "Schedule Board" },
+  { test: (p) => p.startsWith("/dashboard/schedule"), title: "Schedule List" },
+  { test: (p) => p.startsWith("/dashboard/enquiries"), title: "Enquiries & Leads" },
+  { test: (p) => p.startsWith("/dashboard/services"), title: "Sessions Catalogue" },
+  { test: (p) => p.startsWith("/dashboard/admin"), title: "Platform Admin" },
 ];
 
 const COLLAPSE_KEY = "ayurpass.dashboard.sidebarCollapsed";
-
 
 function isActive(pathname: string, href: string, exact?: boolean) {
   if (exact || href === "/dashboard") return pathname === href;
@@ -539,7 +537,6 @@ function NavLink({
   pathname: string;
   collapsed?: boolean;
   onNavigate?: () => void;
-  /** Larger touch targets for mobile drawer */
   dense?: boolean;
 }) {
   const active = isActive(pathname, item.href, item.exact);
@@ -552,9 +549,9 @@ function NavLink({
         title={item.label}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className={`dash-nav-link group relative flex items-center justify-center rounded-xl p-2.5 transition-colors ${
+        className={`dash-nav-link group relative flex items-center justify-center rounded-xl p-2.5 transition-all ${
           active
-            ? "bg-forest text-white shadow-[0_2px_10px_rgba(36,56,46,0.18)]"
+            ? "bg-forest text-white shadow-2xs"
             : "text-ink-secondary hover:bg-clay/80 hover:text-forest"
         }`}
       >
@@ -562,7 +559,7 @@ function NavLink({
           <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-leaf" />
         ) : null}
         <Icon className="h-[1.15rem] w-[1.15rem]" />
-        <span className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-lg bg-forest px-2 py-1 text-xs font-semibold text-white shadow-lg group-hover:block">
+        <span className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-lg bg-forest px-2.5 py-1 text-xs font-bold text-white shadow-lg group-hover:block">
           {item.label}
         </span>
       </Link>
@@ -574,11 +571,11 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
-      className={`dash-nav-link group relative flex items-center gap-3 rounded-xl px-3 transition-colors ${
+      className={`dash-nav-link group relative flex items-center gap-3 rounded-xl px-3 transition-all ${
         dense ? "min-h-[var(--tap-min)] py-2.5" : "py-2"
-      } text-sm font-semibold ${
+      } text-xs font-bold ${
         active
-          ? "bg-forest text-white shadow-[0_2px_10px_rgba(36,56,46,0.14)]"
+          ? "bg-forest text-white shadow-2xs"
           : "text-ink-secondary hover:bg-clay/70 hover:text-forest active:bg-clay/80"
       }`}
     >
@@ -589,18 +586,18 @@ function NavLink({
         />
       ) : null}
       <span
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-          active ? "bg-white/15" : "bg-clay/60 text-forest group-hover:bg-clay"
+        className={`flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg transition-colors ${
+          active ? "bg-white/15 text-white" : "bg-clay/60 text-forest group-hover:bg-clay"
         }`}
       >
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
-        <span className="truncate text-sm font-semibold leading-tight">{item.label}</span>
+        <span className="truncate text-xs font-bold leading-tight">{item.label}</span>
         {item.hint ? (
           <span
             className={`truncate text-[10px] font-medium mt-0.5 leading-none transition-colors ${
-              active ? "text-white/70" : "text-ink-muted/90"
+              active ? "text-white/70" : "text-ink-muted"
             }`}
           >
             {item.hint}
@@ -626,7 +623,7 @@ function SidebarNav({
 }) {
   return (
     <nav
-      className="flex-1 space-y-5 overflow-y-auto overscroll-contain py-1 [-webkit-overflow-scrolling:touch]"
+      className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-1 [-webkit-overflow-scrolling:touch]"
       aria-label="Dashboard"
     >
       {groups.map((group) => (
@@ -711,14 +708,14 @@ function UserFooter({
 
   const menuItems = (
     <div
-      className={`absolute bottom-full mb-2 z-50 bg-surface border border-hairline rounded-2xl p-2 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-100 ${
+      className={`absolute bottom-full mb-2 z-50 bg-surface/95 backdrop-blur-xl border border-hairline rounded-2xl p-2 shadow-2xl ${
         collapsed ? "left-2 w-48" : "left-1 right-1"
       }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="px-3 py-2 border-b border-hairline mb-1">
         <p className="text-xs font-bold text-forest truncate">{user.fullName || "Account"}</p>
-        <p className="text-[10px] text-ink-muted truncate">{user.email}</p>
+        <p className="text-[10px] font-medium text-ink-muted truncate">{user.email}</p>
       </div>
 
       <Link
@@ -727,10 +724,10 @@ function UserFooter({
           closeMenu();
           onNavigate?.();
         }}
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
       >
         <PencilIcon className="h-3.5 w-3.5" />
-        Settings & Profile
+        Settings &amp; Profile
       </Link>
 
       {practiceName && publicHref && (
@@ -740,17 +737,17 @@ function UserFooter({
             closeMenu();
             onNavigate?.();
           }}
-          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
         >
           <ExternalLinkIcon className="h-3.5 w-3.5" />
-          View Public Page
+          View Public Practice
         </Link>
       )}
 
       {modes.length > 1 && onSelectMode ? (
         <div className="border-b border-hairline px-2 py-2 mb-1">
           <p className="px-1 pb-1.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
-            Switch workspace
+            Switch Workspace
           </p>
           <div className="flex flex-col gap-0.5">
             {modes.map((m) => (
@@ -761,15 +758,15 @@ function UserFooter({
                   closeMenu();
                   onSelectMode(m);
                 }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs font-bold transition-colors ${
                   m === mode
-                    ? "bg-forest text-white"
+                    ? "bg-forest text-white shadow-2xs"
                     : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
                 }`}
               >
                 <span>{MODE_META[m].label}</span>
                 {m === mode ? (
-                  <span className="text-[10px] font-bold uppercase opacity-80">Active</span>
+                  <span className="text-[9px] font-bold uppercase opacity-80">Active</span>
                 ) : null}
               </button>
             ))}
@@ -783,23 +780,9 @@ function UserFooter({
           closeMenu();
           onLogout();
         }}
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors mt-1 pt-2 border-t border-hairline"
+        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors mt-1 pt-2 border-t border-hairline"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="h-3.5 w-3.5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-          />
-        </svg>
-        Sign out
+        <span>Sign Out</span>
       </button>
     </div>
   );
@@ -811,7 +794,7 @@ function UserFooter({
           type="button"
           onClick={toggle}
           title="Account profile menu"
-          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface transition-transform active:scale-95"
+          className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-forest text-xs font-bold text-white ring-2 ring-surface shadow-2xs transition-transform active:scale-95"
         >
           {resolveMediaUrl(user.avatarUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -834,9 +817,9 @@ function UserFooter({
       <button
         type="button"
         onClick={toggle}
-        className="w-full flex items-center gap-2.5 rounded-xl px-2 py-2 text-left hover:bg-clay/40 transition-colors"
+        className="w-full flex items-center gap-2.5 rounded-2xl px-2 py-2 text-left hover:bg-clay/40 transition-colors"
       >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-xs font-bold text-forest ring-2 ring-surface">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-forest text-xs font-bold text-white ring-2 ring-surface shadow-2xs">
           {resolveMediaUrl(user.avatarUrl) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -849,24 +832,15 @@ function UserFooter({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">
+          <p className="truncate text-xs font-bold text-foreground">
             {user.fullName || "Account"}
           </p>
-          <p className="truncate text-[11px] font-medium text-ink-muted">{user.email}</p>
-          <span className="mt-1 inline-flex rounded-full bg-leaf/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
+          <p className="truncate text-[10px] font-medium text-ink-muted">{user.email}</p>
+          <span className="mt-0.5 inline-flex rounded-full bg-leaf/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-forest">
             {roleDisplayLabel(user.role)}
           </span>
         </div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="h-4 w-4 shrink-0 text-ink-muted"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-        </svg>
+        <span className="text-xs text-ink-muted">▾</span>
       </button>
 
       {isOpen && menuItems}
@@ -904,7 +878,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
   }, []);
 
-  // Resolve workspace mode from role + saved preference
   useEffect(() => {
     if (!user) return;
     setMode(resolveMode(user, readStoredMode()));
@@ -955,17 +928,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setMode(next);
       writeStoredMode(next);
       const home = homeForMode(next);
-      // Land on that workspace's home so nav + content match
       if (pathname !== home) router.push(home);
     },
     [pathname, router],
   );
-
-  const isAdmin = mode === "admin";
-  const isProvider = mode === "practice";
-  const isStaff = mode === "staff";
-  const isSeeker = mode === "seeker";
-  const isCareers = mode === "careers";
 
   const groups = useMemo(() => {
     if (!user) return [];
@@ -978,7 +944,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const chipNav = useMemo(() => {
     const items = groups.flatMap((g) => g.items).filter((i) => i.chip);
-    // Prefer curated order for seekers; fall back to first chips
     return items.length ? items : groups.flatMap((g) => g.items).slice(0, 8);
   }, [groups]);
 
@@ -1025,7 +990,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         Skip to dashboard
       </a>
 
-      {/* Desktop sidebar */}
+      {/* Desktop Sidebar */}
       <aside
         className={`sticky top-0 hidden h-[100dvh] h-screen shrink-0 flex-col border-r border-hairline bg-surface/95 py-4 backdrop-blur-md md:flex ${
           collapsed ? "w-[4.75rem] px-2" : "w-[16.75rem] px-3"
@@ -1082,9 +1047,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     key={m}
                     type="button"
                     onClick={() => handleSelectMode(m)}
-                    className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
+                    className={`profile-spring rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors ${
                       m === mode
-                        ? "bg-forest text-white"
+                        ? "bg-forest text-white shadow-2xs"
                         : "bg-clay/70 text-ink-secondary hover:bg-clay hover:text-forest"
                     }`}
                     title={MODE_META[m].description}
@@ -1098,26 +1063,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ) : (
           <div className="my-2 h-px w-full bg-hairline" />
         )}
-
-        {/* Seeker quick actions (expanded) */}
-        {isSeeker && !collapsed ? (
-          <div className="mt-3 grid grid-cols-2 gap-1.5 px-0.5">
-            <Link
-              href="/explore"
-              className="dash-nav-link flex items-center justify-center gap-1 rounded-xl bg-forest px-2 py-2 text-[11px] font-bold text-white hover:bg-forest-deep"
-            >
-              <CalendarIcon className="h-3.5 w-3.5" />
-              Book
-            </Link>
-            <Link
-              href="/discover"
-              className="dash-nav-link flex items-center justify-center gap-1 rounded-xl border border-hairline bg-clay/40 px-2 py-2 text-[11px] font-bold text-forest hover:border-leaf"
-            >
-              <CompassIcon className="h-3.5 w-3.5" />
-              Discover
-            </Link>
-          </div>
-        ) : null}
 
         <div className="mt-3 flex min-h-0 flex-1 flex-col">
           <SidebarNav groups={groups} pathname={pathname} collapsed={collapsed} />
@@ -1134,7 +1079,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer */}
       {mobileOpen ? (
         <div
           className="fixed inset-0 z-50 md:hidden"
@@ -1160,61 +1105,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <XIcon className="h-5 w-5" />
               </button>
             </div>
-            <div className="mb-3 flex flex-col px-2">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
-                  {hubLabel}
-                </p>
-                <span className="rounded-full bg-gold-soft/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
-                  {MODE_META[mode].short}
-                </span>
-              </div>
-              <p className="text-[10px] text-ink-muted/85 mt-0.5 font-medium leading-relaxed">
-                {hubSubtext}
-              </p>
-              {modes.length > 1 ? (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {modes.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        handleSelectMode(m);
-                        setMobileOpen(false);
-                      }}
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                        m === mode
-                          ? "bg-forest text-white"
-                          : "bg-clay/70 text-ink-secondary"
-                      }`}
-                    >
-                      {MODE_META[m].short}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+
             <div className="flex min-h-0 flex-1 flex-col">
-              {isSeeker ? (
-                <div className="mb-3 grid grid-cols-2 gap-1.5 px-0.5">
-                  <Link
-                    href="/explore"
-                    onClick={() => setMobileOpen(false)}
-                    className="dash-nav-link flex min-h-[2.5rem] items-center justify-center gap-1 rounded-xl bg-forest px-2 text-[11px] font-bold text-white active:bg-forest-deep"
-                  >
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    Book
-                  </Link>
-                  <Link
-                    href="/discover"
-                    onClick={() => setMobileOpen(false)}
-                    className="dash-nav-link flex min-h-[2.5rem] items-center justify-center gap-1 rounded-xl border border-hairline bg-clay/40 px-2 text-[11px] font-bold text-forest hover:border-leaf"
-                  >
-                    <CompassIcon className="h-3.5 w-3.5" />
-                    Discover
-                  </Link>
-                </div>
-              ) : null}
               <SidebarNav
                 groups={groups}
                 pathname={pathname}
@@ -1236,8 +1128,63 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       ) : null}
 
+      {/* Main Layout Body & Desktop Top Bar */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile top bar — safe-area for notch / status bar */}
+        {/* Desktop Sticky Header Top Bar */}
+        <header className="hidden md:flex sticky top-0 z-40 items-center justify-between border-b border-hairline bg-surface/90 px-6 py-3 backdrop-blur-xl shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                {MODE_META[mode].label}
+              </p>
+              <h1 className="font-display text-lg font-bold text-forest leading-none mt-0.5">
+                {title}
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/discover"
+              className="flex items-center gap-2 rounded-full border border-hairline/80 bg-surface/90 px-3.5 py-1.5 text-xs font-medium text-ink-muted hover:border-forest/40 hover:text-foreground transition-all shadow-2xs"
+            >
+              <SearchIcon className="h-3.5 w-3.5 text-forest" />
+              <span>Search sessions, practices...</span>
+              <kbd className="rounded bg-clay/60 px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
+                ⌘K
+              </kbd>
+            </Link>
+
+            <Link
+              href="/explore"
+              className="profile-spring inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-forest-deep active:scale-95"
+            >
+              <SparkleIcon className="h-3.5 w-3.5" />
+              <span>Book Session</span>
+            </Link>
+
+            <NotificationCenter />
+
+            <Link
+              href="/dashboard/settings"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-forest text-xs font-bold text-white shadow-2xs ring-2 ring-surface hover:ring-forest/30 transition-all"
+              title="Account Settings"
+            >
+              {resolveMediaUrl(user.avatarUrl) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={resolveMediaUrl(user.avatarUrl)!}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initials
+              )}
+            </Link>
+          </div>
+        </header>
+
+        {/* Mobile top bar */}
         <header className="dash-mobile-top sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-hairline bg-surface/95 py-2.5 backdrop-blur-md md:hidden">
           <div className="flex min-w-0 items-center gap-2">
             <button
@@ -1258,17 +1205,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
-            {isSeeker ? (
-              <Link
-                href="/explore"
-                className="dash-nav-link inline-flex min-h-10 items-center rounded-full bg-forest px-3.5 text-xs font-bold text-white active:bg-forest-deep"
-              >
-                Book
-              </Link>
-            ) : null}
+            <Link
+              href="/explore"
+              className="dash-nav-link inline-flex min-h-10 items-center rounded-full bg-forest px-3.5 text-xs font-bold text-white active:bg-forest-deep"
+            >
+              Book
+            </Link>
             <Link
               href="/dashboard/settings"
-              className="dash-nav-link flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-clay text-[11px] font-bold text-forest ring-1 ring-hairline"
+              className="dash-nav-link flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-forest text-[11px] font-bold text-white ring-1 ring-hairline"
               aria-label="Account settings"
             >
               {resolveMediaUrl(user.avatarUrl) ? (
@@ -1285,7 +1230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* Mobile context chips — curated, not full nav dump */}
+        {/* Mobile context chips */}
         <nav
           className="dash-chip-scroll flex gap-1.5 overflow-x-auto border-b border-hairline bg-surface/90 px-3 py-2 md:hidden"
           style={{

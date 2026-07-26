@@ -53,7 +53,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
   );
 
   const cta = (
-    <span className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full bg-forest px-4 text-xs font-bold text-white shadow-[0_3px_12px_rgba(36,56,46,0.14)] transition-colors group-hover:bg-forest-deep sm:text-sm">
+    <span className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-full bg-forest px-3 text-xs font-bold text-white shadow-xs transition-colors group-hover:bg-forest-deep sm:min-h-9 sm:px-3.5">
       View practice
       <span aria-hidden>→</span>
     </span>
@@ -79,7 +79,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
             ) : undefined
           }
         />
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-3 sm:p-4">
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 p-2.5 sm:p-3">
           <div className="flex items-start gap-2.5">
             <BrandMark provider={provider} size="sm" className="mt-0.5 hidden sm:flex" />
             <div className="min-w-0 flex-1">

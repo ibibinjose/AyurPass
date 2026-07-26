@@ -30,7 +30,7 @@ export const STICKY_BELOW_NAV =
 
 export type SortOption = { key: string; label: string };
 
-const DensityCtx = createContext<DensityMode>("grid");
+export const DensityCtx = createContext<DensityMode>("grid");
 export function useDirectoryDensity(): DensityMode {
   return useContext(DensityCtx);
 }
@@ -60,6 +60,7 @@ export function DirectoryLayout({
   sharePath,
   nearMe,
   showRecent = true,
+  showTopToolbar = true,
 }: {
   eyebrow: string;
   title: string;
@@ -86,6 +87,7 @@ export function DirectoryLayout({
     error?: string | null;
   };
   showRecent?: boolean;
+  showTopToolbar?: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -268,94 +270,98 @@ export function DirectoryLayout({
 
             <div className="min-w-0">
               {/* Toolbar: count · sort · density */}
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-foreground" aria-live="polite">
-                  {resultCount == null ? (
-                    "…"
-                  ) : (
-                    <>
-                      <span className="tabular-nums">{resultCount}</span>{" "}
-                      <span className="font-medium text-ink-muted">{resultLabel}</span>
-                      {filterActive ? (
-                        <span className="font-medium text-ink-muted"> · filtered</span>
+              {showTopToolbar ? (
+                <>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-foreground" aria-live="polite">
+                      {resultCount == null ? (
+                        "…"
+                      ) : (
+                        <>
+                          <span className="tabular-nums">{resultCount}</span>{" "}
+                          <span className="font-medium text-ink-muted">{resultLabel}</span>
+                          {filterActive ? (
+                            <span className="font-medium text-ink-muted"> · filtered</span>
+                          ) : null}
+                        </>
+                      )}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {sort && sort.length > 0 && onSortChange ? (
+                        <label className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[var(--separator)] bg-surface px-2.5 text-xs font-semibold text-ink-secondary">
+                          <span className="sr-only">Sort by</span>
+                          <select
+                            value={sortValue}
+                            onChange={(e) => onSortChange(e.target.value)}
+                            className="max-w-[10.5rem] cursor-pointer bg-transparent py-1.5 text-xs font-semibold text-foreground outline-none"
+                          >
+                            {sort.map((o) => (
+                              <option key={o.key} value={o.key}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                       ) : null}
-                    </>
-                  )}
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {sort && sort.length > 0 && onSortChange ? (
-                    <label className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[var(--separator)] bg-surface px-2.5 text-xs font-semibold text-ink-secondary">
-                      <span className="sr-only">Sort by</span>
-                      <select
-                        value={sortValue}
-                        onChange={(e) => onSortChange(e.target.value)}
-                        className="max-w-[10.5rem] cursor-pointer bg-transparent py-1.5 text-xs font-semibold text-foreground outline-none"
+                      <div
+                        className="inline-flex items-center rounded-full border border-[var(--separator)] bg-surface p-0.5"
+                        role="group"
+                        aria-label="Result view"
                       >
-                        {sort.map((o) => (
-                          <option key={o.key} value={o.key}>
-                            {o.label}
-                          </option>
+                        {(
+                          [
+                            ["grid", "Grid"],
+                            ["list", "List"],
+                            ["map", "Map"],
+                          ] as const
+                        ).map(([mode, label]) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setDensityMode(mode)}
+                            className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                              densityMode === mode
+                                ? "bg-forest text-white"
+                                : "text-ink-muted hover:text-foreground"
+                            }`}
+                          >
+                            {label}
+                          </button>
                         ))}
-                      </select>
-                    </label>
-                  ) : null}
-                  <div
-                    className="inline-flex items-center rounded-full border border-[var(--separator)] bg-surface p-0.5"
-                    role="group"
-                    aria-label="Result view"
-                  >
-                    {(
-                      [
-                        ["grid", "Grid"],
-                        ["list", "List"],
-                        ["map", "Map"],
-                      ] as const
-                    ).map(([mode, label]) => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setDensityMode(mode)}
-                        className={`min-h-8 rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                          densityMode === mode
-                            ? "bg-forest text-white"
-                            : "text-ink-muted hover:text-foreground"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Active filter chips */}
-              {activeFilters.length > 0 ? (
-                <div className="mb-4 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mr-1">
-                    Filters:
-                  </span>
-                  {activeFilters.map((f) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={f.onRemove}
-                      title={`Remove filter ${f.label}`}
-                      className="profile-spring inline-flex min-h-8 items-center gap-1.5 rounded-full bg-forest px-3 py-1 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 hover:bg-forest-deep"
-                    >
-                      <span>{f.label}</span>
-                      <XIcon className="h-3.5 w-3.5 text-white/80 hover:text-white" />
-                    </button>
-                  ))}
-                  {onClearFilters ? (
-                    <button
-                      type="button"
-                      onClick={onClearFilters}
-                      className="ml-1 text-xs font-bold text-forest hover:underline"
-                    >
-                      Clear all
-                    </button>
+                  {/* Active filter chips */}
+                  {activeFilters.length > 0 ? (
+                    <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted mr-1">
+                        Filters:
+                      </span>
+                      {activeFilters.map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={f.onRemove}
+                          title={`Remove filter ${f.label}`}
+                          className="profile-spring inline-flex min-h-8 items-center gap-1.5 rounded-full bg-forest px-3 py-1 text-xs font-semibold text-white shadow-xs transition-all active:scale-95 hover:bg-forest-deep"
+                        >
+                          <span>{f.label}</span>
+                          <XIcon className="h-3.5 w-3.5 text-white/80 hover:text-white" />
+                        </button>
+                      ))}
+                      {onClearFilters ? (
+                        <button
+                          type="button"
+                          onClick={onClearFilters}
+                          className="ml-1 text-xs font-bold text-forest hover:underline"
+                        >
+                          Clear all
+                        </button>
+                      ) : null}
+                    </div>
                   ) : null}
-                </div>
+                </>
               ) : null}
 
               {/* Recently viewed */}
