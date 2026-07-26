@@ -52,6 +52,7 @@ type NavItem = {
   icon: IconComp;
   exact?: boolean;
   hint?: string;
+  badge?: string;
   chip?: boolean;
 };
 
@@ -593,7 +594,18 @@ function NavLink({
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
-        <span className="truncate text-xs font-bold leading-tight">{item.label}</span>
+        <div className="flex items-center justify-between gap-1">
+          <span className="truncate text-xs font-bold leading-tight">{item.label}</span>
+          {item.badge ? (
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${
+                active ? "bg-white/20 text-white" : "bg-leaf/20 text-forest"
+              }`}
+            >
+              {item.badge}
+            </span>
+          ) : null}
+        </div>
         {item.hint ? (
           <span
             className={`truncate text-[10px] font-medium mt-0.5 leading-none transition-colors ${
