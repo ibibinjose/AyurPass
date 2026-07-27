@@ -160,6 +160,10 @@ export function createHttpClient(options: HttpClientOptions) {
     health: () => request<{ status: string; timestamp: string }>(endpoints.health, { public: true }),
     healthReady: () =>
       request<{ status: string; database: string }>(endpoints.healthReady, { public: true }),
+    verifyEmail: (token: string) =>
+      request(endpoints.auth.verifyEmail, { method: "POST", body: { token } }, false),
+    resendVerification: () =>
+      request(endpoints.auth.resendVerification, { method: "POST" }, false),
   };
 }
 

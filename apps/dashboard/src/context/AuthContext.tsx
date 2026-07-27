@@ -59,6 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tokenStore.set(res);
     const profile = await api.profile();
     setUser(profile);
+    
+    // Check if email verification is needed and redirect if necessary
+    if (res.needsEmailVerification && typeof window !== 'undefined') {
+      // Redirect to verify-email page after a short delay to allow state update
+      setTimeout(() => {
+        window.location.href = '/verify-email';
+      }, 500);
+    }
+    
     return profile;
   }, []);
 
@@ -71,6 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       tokenStore.set(res);
       const profile = await api.profile();
       setUser(profile);
+      
+      // Check if email verification is needed and redirect if necessary
+      if (res.needsEmailVerification && typeof window !== 'undefined') {
+        // Redirect to verify-email page after a short delay to allow state update
+        setTimeout(() => {
+          window.location.href = '/verify-email';
+        }, 500);
+      }
+      
       return profile;
     },
     []
@@ -81,6 +99,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tokenStore.set(res);
     const profile = await api.profile();
     setUser(profile);
+    
+    // Check if email verification is needed and redirect if necessary
+    if (res.needsEmailVerification && typeof window !== 'undefined') {
+      // Redirect to verify-email page after a short delay to allow state update
+      setTimeout(() => {
+        window.location.href = '/verify-email';
+      }, 500);
+    }
+    
     return profile;
   }, []);
 

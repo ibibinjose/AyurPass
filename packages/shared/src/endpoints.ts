@@ -11,6 +11,8 @@ export const endpoints = {
     register: "/auth/register",
     refresh: "/auth/refresh",
     logout: "/auth/logout",
+    verifyEmail: "/auth/verify-email",
+    resendVerification: "/auth/resend-verification",
   },
 
   profile: "/users/me",

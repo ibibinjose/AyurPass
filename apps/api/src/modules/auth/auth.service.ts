@@ -225,6 +225,8 @@ export class AuthService {
       user: sanitizeUser(user),
       ...tokens,
       emailVerificationSent: true,
+      needsEmailVerification: true,
+      message: 'Please verify your email address to complete your account setup.',
     };
   }
 
@@ -319,7 +321,20 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
-    return { user: sanitizeUser(user), ...tokens };
+    
+    // Check if email is verified and add verification status to response
+    const isEmailVerified = !!user.emailVerifiedAt;
+    const response: any = { 
+      user: sanitizeUser(user), 
+      ...tokens 
+    };
+    
+    if (!isEmailVerified) {
+      response.needsEmailVerification = true;
+      response.message = 'Please verify your email address to complete your account setup.';
+    }
+    
+    return response;
   }
 
   private async verifyGoogleToken(idToken: string): Promise<{ email: string; name?: string }> {
@@ -427,7 +442,20 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
-    return { user: sanitizeUser(user), ...tokens };
+    
+    // Check if email is verified and add verification status to response
+    const isEmailVerified = !!user.emailVerifiedAt;
+    const response: any = { 
+      user: sanitizeUser(user), 
+      ...tokens 
+    };
+    
+    if (!isEmailVerified) {
+      response.needsEmailVerification = true;
+      response.message = 'Please verify your email address to complete your account setup.';
+    }
+    
+    return response;
   }
 
   async refreshTokens(refreshToken: string) {

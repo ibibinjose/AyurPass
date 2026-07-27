@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, Input } from "@/components/ui";
@@ -45,7 +45,26 @@ function LoginForm() {
     }
   }
 
+  // Check if we're coming from a verification requirement
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const verificationRequired = urlParams.get('verification_required');
+    if (verificationRequired === 'true') {
+      setError('Please verify your email to continue. Check your inbox for the verification link.');
+    }
+  }, []);
+
   const [rememberMe, setRememberMe] = useState(false);
+  
+  useEffect(() => {
+    // 在组件挂载时执行
+    console.log('Login form mounted');
+    
+    // 在组件卸载时执行
+    return () => {
+      console.log('Login form unmounted');
+    };
+  }, []); // 空数组确保 effect 只在挂载和卸载时运行
 
   return (
     <main className="flex min-h-screen bg-surface">

@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
-import { loginUrl } from "@/lib/auth-redirect";
+import { loginUrl, safeNextPath, postAuthHome } from "@/lib/auth-redirect";
 
 function VerifyInner() {
   const search = useSearchParams();
   const token = search.get("token") || "";
+  const redirectParam = search.get("redirect");
   const { user, refreshProfile } = useAuth();
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
   const [resendBusy, setResendBusy] = useState(false);
@@ -38,6 +40,18 @@ function VerifyInner() {
         setMessage(res.message || "Email verified successfully.");
         try {
           await refreshProfile();
+
+          // Wait a bit for state to update, then redirect
+          setTimeout(() => {
+            if (redirectParam) {
+              // Redirect to the original page they were trying to access
+              const dest = safeNextPath(redirectParam, "/discover");
+              router.push(dest);
+            } else {
+              // Default behavior
+              router.push("/discover");
+            }
+          }, 1000);
         } catch {
           /* optional */
         }
@@ -52,7 +66,7 @@ function VerifyInner() {
     return () => {
       active = false;
     };
-  }, [token, refreshProfile]);
+  }, [token, refreshProfile, redirectParam, router]);
 
   async function resend() {
     if (!user) return;
@@ -85,10 +99,10 @@ function VerifyInner() {
             </p>
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <Link
-                href="/discover"
+                href={redirectParam ? safeNextPath(redirectParam, "/discover") : "/discover"}
                 className="inline-flex min-h-10 flex-1 items-center justify-center rounded-full bg-forest px-4 py-2 text-sm font-medium text-white hover:bg-forest-deep"
               >
-                Discover
+                Continue to App
               </Link>
               <Link
                 href="/dashboard"

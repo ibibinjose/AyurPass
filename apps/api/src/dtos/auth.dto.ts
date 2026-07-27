@@ -133,6 +133,35 @@ export class AuthResponse {
 
   @IsOptional()
   tokens?: AuthTokens;
+
+  @IsOptional()
+  needsEmailVerification?: boolean;
+
+  @IsOptional()
+  emailVerificationSent?: boolean;
+}
+
+export class LoginResponse {
+  @IsOptional()
+  user?: any;
+
+  @IsString()
+  accessToken: string;
+
+  @IsString()
+  refreshToken: string;
+
+  @IsString()
+  tokenType: string;
+
+  @IsOptional()
+  expiresIn?: number;
+
+  @IsOptional()
+  needsEmailVerification?: boolean;
+
+  @IsOptional()
+  message?: string;
 }
 
 export class RegisterPayload {
