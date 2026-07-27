@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Badge, EmptyState, Loading } from "../../src/components/ui";
-import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useJobs } from "../../src/hooks/useCatalogDetail";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 const CATEGORIES = [
   { id: "ALL", label: "All Jobs" },
@@ -31,136 +31,179 @@ export default function JobsFeedScreen() {
   const jobs = jobsQ.data ?? [];
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top", "bottom"]}>
-      <View className="border-b border-hairline bg-surface p-4">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
-            <Pressable
-              onPress={() => router.back()}
-              className="h-9 w-9 items-center justify-center rounded-full bg-clay active:opacity-80"
-            >
-              <Ionicons name="arrow-back" size={20} color={colors.forest} />
-            </Pressable>
-            <View>
-              <Text className="font-display text-xl text-forest">Careers & Job Board</Text>
-              <Text className="font-body-medium text-xs text-ink-muted">
-                Ayurveda, Yoga, Spa & Wellness Positions
-              </Text>
-            </View>
-          </View>
-          <HeaderLogo size={34} />
-        </View>
-
-        {/* Search Bar */}
-        <View className="mt-3.5 flex-row items-center rounded-full border border-hairline bg-clay px-3.5 py-2.5">
-          <Ionicons name="search-outline" size={18} color={colors.inkMuted} />
-          <TextInput
-            placeholder="Search job title, clinic, or city..."
-            placeholderTextColor={colors.inkMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            className="ml-2 flex-1 font-body text-sm text-foreground"
-          />
-          {searchQuery ? (
-            <Pressable onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={colors.inkMuted} />
-            </Pressable>
-          ) : null}
-        </View>
-
-        {/* Category Horizontal Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-3 flex-row"
-          contentContainerStyle={{ gap: 8 }}
-        >
-          {CATEGORIES.map((cat) => {
-            const active = selectedCategory === cat.id;
-            return (
-              <Pressable
-                key={cat.id}
-                onPress={() => setSelectedCategory(cat.id)}
-                className={`rounded-full px-3.5 py-1.5 ${
-                  active ? "bg-forest" : "bg-clay border border-hairline"
-                }`}
-              >
-                <Text
-                  className={`font-body-semi text-xs ${
-                    active ? "text-white" : "text-ink-secondary"
-                  }`}
-                >
-                  {cat.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Main Jobs List */}
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 12 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {jobsQ.isLoading ? (
-          <Loading />
-        ) : jobs.length === 0 ? (
-          <EmptyState
-            title="No job listings found"
-            body="Try clearing your search query or selecting a different wellness category."
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-        ) : (
-          jobs.map((job) => (
-            <Pressable
-              key={job.id}
-              onPress={() => router.push(`/jobs/${job.id}`)}
-              className="rounded-2xl border border-hairline bg-surface p-4 shadow-sm active:opacity-90"
-            >
-              <View className="flex-row items-center justify-between">
-                <Badge tone="leaf">{job.category}</Badge>
-                <Text className="font-body-semi text-xs uppercase text-leaf">
-                  {job.employmentType.replace("_", " ")}
+
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <Pressable
+                onPress={() => router.back()}
+                style={{
+                  height: 36,
+                  width: 36,
+                  borderRadius: 18,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                accessibilityLabel="Go back"
+              >
+                <Ionicons name="chevron-back" size={20} color={colors.white} />
+              </Pressable>
+              <View>
+                <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                  AyurPass Careers 💼
+                </Text>
+                <Text style={{ fontSize: 24, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                  Job <Text style={{ color: colors.goldSoft }}>board</Text>
                 </Text>
               </View>
+            </View>
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+              <Ionicons name="briefcase-outline" size={22} color={colors.goldSoft} />
+            </View>
+          </View>
+        </View>
 
-              <Text className="mt-2 font-display text-lg text-forest">{job.title}</Text>
+        {/* Content Container */}
+        <View style={{ marginTop: -12, paddingHorizontal: 20 }}>
+          {/* Search Bar */}
+          <View style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 999, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 10 }}>
+            <Ionicons name="search-outline" size={18} color={colors.inkMuted} />
+            <TextInput
+              placeholder="Search job title, clinic, or city..."
+              placeholderTextColor={colors.inkMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              className="flex-1 font-body text-base text-foreground"
+              style={{ flex: 1, fontSize: 15, color: colors.foreground, fontFamily: fonts.body }}
+            />
+            {searchQuery ? (
+              <Pressable onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={18} color={colors.inkMuted} />
+              </Pressable>
+            ) : null}
+          </View>
 
-              {job.provider?.businessName ? (
-                <Text className="font-body-semi text-sm text-ink-secondary">
-                  {job.provider.businessName}
-                </Text>
-              ) : null}
-
-              {(job.city || job.country || job.locationType) && (
-                <View className="mt-1 flex-row items-center gap-1">
-                  <Ionicons name="location-outline" size={14} color={colors.inkMuted} />
-                  <Text className="font-body-medium text-xs text-ink-muted">
-                    {[job.city, job.country].filter(Boolean).join(", ") || job.locationType}
+          {/* Category Horizontal Filter */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingVertical: 12 }}
+          >
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat.id;
+              return (
+                <Pressable
+                  key={cat.id}
+                  onPress={() => setSelectedCategory(cat.id)}
+                  style={{
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderColor: active ? colors.forest : colors.hairline,
+                    backgroundColor: active ? colors.forest : colors.surface,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: fonts.bodySemi,
+                      fontSize: 13,
+                      color: active ? colors.white : colors.forest,
+                    }}
+                  >
+                    {cat.label}
                   </Text>
-                </View>
-              )}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
-              <Text className="mt-2 font-body text-sm text-ink-secondary" numberOfLines={2}>
-                {job.description}
-              </Text>
+          {/* Main Jobs List */}
+          <View style={{ marginTop: 4, gap: 12 }}>
+            {jobsQ.isLoading ? (
+              <Loading />
+            ) : jobs.length === 0 ? (
+              <EmptyState
+                title="No job listings found"
+                body="Try clearing your search query or selecting a different wellness category."
+              />
+            ) : (
+              jobs.map((job) => (
+                <Pressable
+                  key={job.id}
+                  onPress={() => router.push(`/jobs/${job.id}`)}
+                  style={{
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: colors.hairline,
+                    backgroundColor: colors.surface,
+                    padding: 16,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 6,
+                    elevation: 2,
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Badge tone="leaf">{job.category}</Badge>
+                    <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, textTransform: "uppercase", color: colors.leaf }}>
+                      {job.employmentType.replace("_", " ")}
+                    </Text>
+                  </View>
 
-              <View className="mt-3 flex-row items-center justify-between border-t border-hairline pt-3">
-                <Text className="font-body-semi text-sm text-forest">
-                  {job.salaryMin
-                    ? `${job.currency} $${job.salaryMin}${
-                        job.salaryMax ? ` - $${job.salaryMax}` : "+"
-                      }`
-                    : "Competitive Salary"}
-                </Text>
-                <View className="flex-row items-center gap-1 rounded-full bg-forest px-3.5 py-1.5">
-                  <Text className="font-body-semi text-xs text-white">View Details</Text>
-                  <Ionicons name="chevron-forward" size={12} color="#fff" />
-                </View>
-              </View>
-            </Pressable>
-          ))
-        )}
+                  <Text style={{ marginTop: 8, fontFamily: fonts.display, fontSize: 18, color: colors.forest }}>{job.title}</Text>
+
+                  {job.provider?.businessName ? (
+                    <Text style={{ marginTop: 2, fontFamily: fonts.bodySemi, fontSize: 14, color: colors.inkSecondary }}>
+                      {job.provider.businessName}
+                    </Text>
+                  ) : null}
+
+                  {(job.city || job.country || job.locationType) && (
+                    <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Ionicons name="location-outline" size={14} color={colors.inkMuted} />
+                      <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkMuted }}>
+                        {[job.city, job.country].filter(Boolean).join(", ") || job.locationType}
+                      </Text>
+                    </View>
+                  )}
+
+                  <Text style={{ marginTop: 6, fontFamily: fonts.body, fontSize: 14, color: colors.inkSecondary }} numberOfLines={2}>
+                    {job.description}
+                  </Text>
+
+                  <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 12 }}>
+                    <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: colors.forest }}>
+                      {job.salaryMin
+                        ? `${job.currency} $${job.salaryMin}${
+                            job.salaryMax ? ` - $${job.salaryMax}` : "+"
+                          }`
+                        : "Competitive Salary"}
+                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.forest, paddingHorizontal: 14, paddingVertical: 6 }}>
+                      <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, color: colors.white }}>View Details</Text>
+                      <Ionicons name="chevron-forward" size={12} color="#fff" />
+                    </View>
+                  </View>
+                </Pressable>
+              ))
+            )}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

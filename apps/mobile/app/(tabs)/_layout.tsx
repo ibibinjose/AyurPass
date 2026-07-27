@@ -1,41 +1,83 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, fonts } from "../../src/theme";
 
-/**
- * Bottom tabs — Discover · Calendar · Offers · You
- * Book sessions via Calendar → “Book session” (explore stays a stack route).
- */
+function TabBarIcon({
+  name,
+  focusedName,
+  title,
+  focused,
+  color,
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  focusedName: keyof typeof Ionicons.glyphMap;
+  title: string;
+  focused: boolean;
+  color: string;
+}) {
+  return (
+    <View style={{ alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          height: 30,
+          paddingHorizontal: 16,
+          borderRadius: 999,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: focused ? "rgba(47,90,68,0.14)" : "transparent",
+        }}
+      >
+        <Ionicons
+          name={focused ? focusedName : name}
+          size={20}
+          color={focused ? colors.forest : color}
+        />
+      </View>
+      <Text
+        style={{
+          fontFamily: focused ? fonts.bodySemi : fonts.bodyMedium,
+          fontSize: 11,
+          marginTop: 3,
+          color: focused ? colors.forest : colors.inkMuted,
+          letterSpacing: 0.2,
+        }}
+      >
+        {title}
+      </Text>
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const bottom = Math.max(insets.bottom, Platform.OS === "android" ? 8 : 0);
+  const bottom = Math.max(insets.bottom, Platform.OS === "android" ? 10 : 6);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: colors.forest,
         tabBarInactiveTintColor: colors.inkMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.hairline,
-          borderTopWidth: StyleHairline,
-          height: 52 + bottom,
-          paddingTop: 6,
-          paddingBottom: bottom > 0 ? bottom : 8,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarLabelStyle: {
-          fontFamily: fonts.bodySemi,
-          fontSize: 10,
-          marginTop: 1,
-          letterSpacing: 0.1,
+          borderTopWidth: Platform.OS === "ios" ? 0.5 : 1,
+          height: 64 + bottom,
+          paddingTop: 8,
+          paddingBottom: bottom,
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
         },
         tabBarItemStyle: {
-          minHeight: 44,
+          minHeight: 52,
+          justifyContent: "center",
+          alignItems: "center",
         },
         tabBarHideOnKeyboard: true,
       }}
@@ -44,10 +86,42 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Discover",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "compass" : "compass-outline"}
-              size={size}
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name="compass-outline"
+              focusedName="compass"
+              title="Discover"
+              focused={focused}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: "Explore",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name="sparkles-outline"
+              focusedName="sparkles"
+              title="Explore"
+              focused={focused}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bookings"
+        options={{
+          title: "Bookings",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name="bookmark-outline"
+              focusedName="bookmark"
+              title="Bookings"
+              focused={focused}
               color={color}
             />
           ),
@@ -57,10 +131,12 @@ export default function TabsLayout() {
         name="calendar"
         options={{
           title: "Calendar",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "calendar" : "calendar-outline"}
-              size={size}
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name="calendar-outline"
+              focusedName="calendar"
+              title="Calendar"
+              focused={focused}
               color={color}
             />
           ),
@@ -69,46 +145,25 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="offers"
         options={{
+          href: null,
           title: "Offers",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "gift" : "gift-outline"}
-              size={size}
-              color={color}
-            />
-          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "You",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? "person-circle" : "person-circle-outline"}
-              size={size}
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name="person-outline"
+              focusedName="person"
+              title="Profile"
+              focused={focused}
               color={color}
             />
           ),
         }}
       />
-      {/* Hidden routes — still navigable via push */}
-      <Tabs.Screen
-        name="explore"
-        options={{
-          href: null,
-          title: "Sessions",
-        }}
-      />
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          href: null,
-          title: "Bookings",
-        }}
-      />
     </Tabs>
   );
 }
-
-const StyleHairline = Platform.OS === "ios" ? 0.5 : 1;

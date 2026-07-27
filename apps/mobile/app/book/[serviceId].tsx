@@ -11,8 +11,9 @@ import { useConfirmBookingPayment, usePayBooking } from "../../src/hooks/useBook
 import { presentBookingPayment } from "../../src/payments/presentBookingPayment";
 import { openGoogleCalendar } from "../../src/calendar";
 import { scheduleLocalBookingReminder } from "../../src/notifications/push";
+import { LinearGradient } from "expo-linear-gradient";
 import type { Booking } from "../../src/types";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 export interface DayOption {
   date: Date;
@@ -216,67 +217,104 @@ export default function BookScreen() {
     });
 
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-          <View className="items-center rounded-3xl border border-hairline bg-surface p-6 text-center">
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-forest">
-              <Ionicons name="calendar" size={28} color={colors.goldSoft} />
+      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          {/* Hero Header Banner */}
+          <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, marginBottom: 16 }}>
+            <LinearGradient
+              colors={[colors.forestDeep, colors.forest, colors.leaf]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+              <View>
+                <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                  Booking Request Submitted ✨
+                </Text>
+                <Text style={{ fontSize: 24, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                  Reservation <Text style={{ color: colors.goldSoft }}>received</Text>
+                </Text>
+              </View>
+              <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+                <Ionicons name="checkmark-circle-outline" size={24} color={colors.goldSoft} />
+              </View>
             </View>
-            <Title className="mt-4 text-center text-2xl">Booking requested</Title>
-            <Text className="mt-2 text-center font-body text-sm text-ink-secondary">
-              <Text className="font-body-semi text-foreground">{service.name}</Text>
-              {service.provider ? ` at ${service.provider.businessName}` : ""}
-            </Text>
-            <Text className="mt-1 text-center font-body-semi text-base text-forest">
-              {whenFormatted}
-            </Text>
+          </View>
 
-            <Text className="mt-3 text-center font-body text-xs text-ink-muted">
-              The practice will confirm your slot shortly.
-            </Text>
-
-            {confirmed.paymentStatus === "paid" ? (
-              <View className="mt-5 flex-row items-center gap-1.5 rounded-full bg-forest px-4 py-2">
-                <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                <Text className="font-body-semi text-sm text-white">
-                  Paid {formatMoney(confirmed.totalAmount ?? service.price, service.currency)}
-                </Text>
+          <View style={{ paddingHorizontal: 20 }}>
+            <View style={{ alignItems: "center", borderRadius: 24, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 24 }}>
+              <View style={{ height: 56, width: 56, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.forest }}>
+                <Ionicons name="calendar" size={28} color={colors.goldSoft} />
               </View>
-            ) : (
-              <View className="mt-5 w-full gap-3 border-t border-hairline pt-4">
-                <Text className="text-center font-body text-xs text-ink-secondary">
-                  Pay online to guarantee your reservation or pay at venue.
-                </Text>
-                <ErrorNote message={error} />
+              <Title style={{ marginTop: 16, textAlign: "center", fontSize: 22, color: colors.forest }}>Booking requested</Title>
+              <Text style={{ marginTop: 8, textAlign: "center", fontFamily: fonts.body, fontSize: 14, color: colors.inkSecondary }}>
+                <Text style={{ fontFamily: fonts.bodySemi, color: colors.foreground }}>{service.name}</Text>
+                {service.provider ? ` at ${service.provider.businessName}` : ""}
+              </Text>
+              <Text style={{ marginTop: 4, textAlign: "center", fontFamily: fonts.bodySemi, fontSize: 16, color: colors.forest }}>
+                {whenFormatted}
+              </Text>
+
+              <Text style={{ marginTop: 12, textAlign: "center", fontFamily: fonts.body, fontSize: 12, color: colors.inkMuted }}>
+                The practice will confirm your slot shortly.
+              </Text>
+
+              {confirmed.paymentStatus === "paid" ? (
+                <View style={{ marginTop: 20, flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: colors.forest, paddingHorizontal: 16, paddingVertical: 10 }}>
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: colors.white }}>
+                    Paid {formatMoney(confirmed.totalAmount ?? service.price, service.currency)}
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ marginTop: 20, width: "100%", gap: 12, borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 16 }}>
+                  <Text style={{ textAlign: "center", fontFamily: fonts.body, fontSize: 13, color: colors.inkSecondary }}>
+                    Pay online to guarantee your reservation or pay at venue.
+                  </Text>
+                  <ErrorNote message={error} />
+                  <Button
+                    title={`Pay now (${formatMoney(confirmed.totalAmount ?? service.price, service.currency)})`}
+                    onPress={handlePay}
+                    loading={paying}
+                    style={{ backgroundColor: colors.forest, borderRadius: 999 }}
+                  />
+                </View>
+              )}
+
+              <View style={{ marginTop: 24, width: "100%", gap: 12 }}>
+                <Pressable
+                  onPress={() => void openGoogleCalendar(confirmed)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    borderColor: colors.forest,
+                    backgroundColor: "rgba(30,50,40,0.05)",
+                    paddingVertical: 12,
+                  }}
+                >
+                  <Ionicons name="calendar-outline" size={18} color={colors.forest} />
+                  <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: colors.forest }}>Add to Google Calendar</Text>
+                </Pressable>
+
                 <Button
-                  title={`Pay now (${formatMoney(confirmed.totalAmount ?? service.price, service.currency)})`}
-                  onPress={handlePay}
-                  loading={paying}
+                  title="View my bookings"
+                  onPress={() => router.replace("/(tabs)/bookings")}
+                  variant="ghost"
                 />
+
+                <Pressable
+                  onPress={() => router.replace("/(tabs)/explore")}
+                  style={{ alignItems: "center", paddingVertical: 8 }}
+                >
+                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.inkMuted }}>Book another session</Text>
+                </Pressable>
               </View>
-            )}
-
-            <View className="mt-6 w-full gap-3">
-              <Pressable
-                onPress={() => void openGoogleCalendar(confirmed)}
-                className="flex-row items-center justify-center gap-2 rounded-full border border-forest bg-forest/5 py-3"
-              >
-                <Ionicons name="calendar-outline" size={18} color={colors.forest} />
-                <Text className="font-body-semi text-sm text-forest">Add to Google Calendar</Text>
-              </Pressable>
-
-              <Button
-                title="View my bookings"
-                onPress={() => router.replace("/(tabs)/bookings")}
-                variant="ghost"
-              />
-
-              <Pressable
-                onPress={() => router.replace("/(tabs)/explore")}
-                className="items-center py-2"
-              >
-                <Text className="font-body-medium text-xs text-ink-muted">Book another session</Text>
-              </Pressable>
             </View>
           </View>
         </ScrollView>
@@ -285,141 +323,236 @@ export default function BookScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Title>{service.name}</Title>
-        <Body muted className="mt-0.5">
-          {service.durationMinutes} min · {formatMoney(service.price, service.currency)}
-        </Body>
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, marginBottom: 16 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+          />
 
-        <Text className="mb-3 mt-6 font-body-semi text-[15px] text-forest">Choose a day</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {days.map((d) => {
-            const active = d.key === dayKey;
-            return (
-              <Pressable
-                key={d.key}
-                onPress={() => setDayKey(d.key)}
-                className={`items-center rounded-2xl border px-3.5 py-2.5 ${
-                  active ? "border-forest bg-forest" : "border-hairline bg-surface"
-                }`}
-              >
-                <Text
-                  className={`font-body-medium text-[11px] uppercase ${
-                    active ? "text-white" : "text-ink-muted"
-                  }`}
-                >
-                  {d.weekday}
-                </Text>
-                <Text
-                  className={`font-body-semi text-base ${active ? "text-white" : "text-foreground"}`}
-                >
-                  {d.dayOfMonth}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              position: "absolute",
+              left: 16,
+              top: 16,
+              zIndex: 20,
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.2)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.white} />
+          </Pressable>
 
-        <Text className="mb-3 mt-6 font-body-semi text-[15px] text-forest">Choose a time</Text>
-        {slots.length === 0 ? (
-          <Text className="font-body text-sm text-ink-muted">
-            No slots remaining on this day — please try another date.
-          </Text>
-        ) : (
-          <View className="flex-row flex-wrap gap-2">
-            {slots.map((s) => {
-              const active = selectedSlot?.start.getTime() === s.start.getTime();
+          <View style={{ paddingTop: 32, zIndex: 10 }}>
+            <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+              Schedule Reservation 📅
+            </Text>
+            <Text style={{ fontSize: 24, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+              {service.name}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 6 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Ionicons name="time-outline" size={13} color={colors.white} />
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.white }}>{service.durationMinutes} min</Text>
+              </View>
+              <Text style={{ fontFamily: fonts.display, fontSize: 18, color: colors.goldSoft }}>
+                {formatMoney(service.price, service.currency)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={{ paddingHorizontal: 20 }}>
+          <Text style={{ marginBottom: 12, fontFamily: fonts.bodySemi, fontSize: 15, color: colors.forest }}>Choose a day</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {days.map((d) => {
+              const active = d.key === dayKey;
               return (
                 <Pressable
-                  key={s.start.toISOString()}
-                  onPress={() => setSelectedSlot(s)}
-                  className={`rounded-full border px-4 py-2.5 ${
-                    active ? "border-forest bg-forest" : "border-hairline bg-surface"
-                  }`}
+                  key={d.key}
+                  onPress={() => setDayKey(d.key)}
+                  style={{
+                    alignItems: "center",
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    borderColor: active ? colors.forest : colors.hairline,
+                    backgroundColor: active ? colors.forest : colors.surface,
+                    minWidth: 54,
+                  }}
                 >
                   <Text
-                    className={`font-body-medium text-sm ${
-                      active ? "text-white" : "text-ink-secondary"
-                    }`}
+                    style={{
+                      fontFamily: fonts.bodyMedium,
+                      fontSize: 11,
+                      textTransform: "uppercase",
+                      color: active ? colors.goldSoft : colors.inkMuted,
+                    }}
                   >
-                    {s.label}
+                    {d.weekday}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: fonts.bodySemi,
+                      fontSize: 16,
+                      marginTop: 2,
+                      color: active ? colors.white : colors.foreground,
+                    }}
+                  >
+                    {d.dayOfMonth}
                   </Text>
                 </Pressable>
               );
             })}
-          </View>
-        )}
+          </ScrollView>
 
-        <Text className="mb-1.5 mt-6 font-body-semi text-[15px] text-forest">Mobile number</Text>
-        <Text className="mb-3 font-body text-[12px] text-ink-muted">
-          Required — country code + number so the practice can reach you.
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, marginBottom: 10 }}
-        >
-          {DIALS.map((d) => {
-            const active = d.dial === phoneDial;
-            return (
-              <Pressable
-                key={d.dial}
-                onPress={() => setPhoneDial(d.dial)}
-                className={`rounded-full border px-3 py-2 ${
-                  active ? "border-forest bg-forest" : "border-hairline bg-surface"
-                }`}
-              >
-                <Text
-                  className={`font-body-medium text-[13px] ${
-                    active ? "text-white" : "text-ink-secondary"
-                  }`}
+          <Text style={{ marginBottom: 12, marginTop: 24, fontFamily: fonts.bodySemi, fontSize: 15, color: colors.forest }}>Choose a time</Text>
+          {slots.length === 0 ? (
+            <Text style={{ fontFamily: fonts.body, fontSize: 14, color: colors.inkMuted }}>
+              No slots remaining on this day — please try another date.
+            </Text>
+          ) : (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {slots.map((s) => {
+                const active = selectedSlot?.start.getTime() === s.start.getTime();
+                return (
+                  <Pressable
+                    key={s.start.toISOString()}
+                    onPress={() => setSelectedSlot(s)}
+                    style={{
+                      borderRadius: 999,
+                      borderWidth: 1,
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderColor: active ? colors.forest : colors.hairline,
+                      backgroundColor: active ? colors.forest : colors.surface,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: fonts.bodyMedium,
+                        fontSize: 14,
+                        color: active ? colors.white : colors.inkSecondary,
+                      }}
+                    >
+                      {s.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          <Text style={{ marginBottom: 4, marginTop: 24, fontFamily: fonts.bodySemi, fontSize: 15, color: colors.forest }}>Mobile number</Text>
+          <Text style={{ marginBottom: 12, fontFamily: fonts.body, fontSize: 12, color: colors.inkMuted }}>
+            Required — country code + number so the practice can reach you.
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, marginBottom: 10 }}
+          >
+            {DIALS.map((d) => {
+              const active = d.dial === phoneDial;
+              return (
+                <Pressable
+                  key={d.dial}
+                  onPress={() => setPhoneDial(d.dial)}
+                  style={{
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderColor: active ? colors.forest : colors.hairline,
+                    backgroundColor: active ? colors.forest : colors.surface,
+                  }}
                 >
-                  {d.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-        <TextInput
-          value={phoneNational}
-          onChangeText={setPhoneNational}
-          placeholder="412 345 678"
-          placeholderTextColor={colors.inkMuted}
-          keyboardType="phone-pad"
-          className="min-h-12 rounded-md border border-hairline bg-surface px-3.5 font-body text-[16px] text-foreground"
-        />
-
-        <Text className="mb-3 mt-6 font-body-semi text-[15px] text-forest">
-          Notes for the practitioner (optional)
-        </Text>
-        <TextInput
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Health notes, preferences, first visit…"
-          placeholderTextColor={colors.inkMuted}
-          multiline
-          className="min-h-[90px] rounded-md border border-hairline bg-surface p-3.5 font-body text-[15px] text-foreground"
-          textAlignVertical="top"
-        />
-
-        <View className="mt-6">
-          <ErrorNote message={error} />
-          <Button
-            title={
-              !selectedSlot
-                ? "Select a time slot"
-                : !phoneNational.trim()
-                  ? "Enter mobile number"
-                  : "Confirm booking"
-            }
-            onPress={confirm}
-            disabled={!selectedSlot || !phoneNational.trim()}
-            loading={createBooking.isPending}
+                  <Text
+                    style={{
+                      fontFamily: fonts.bodyMedium,
+                      fontSize: 13,
+                      color: active ? colors.white : colors.inkSecondary,
+                    }}
+                  >
+                    {d.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <TextInput
+            value={phoneNational}
+            onChangeText={setPhoneNational}
+            placeholder="412 345 678"
+            placeholderTextColor={colors.inkMuted}
+            keyboardType="phone-pad"
+            style={{
+              minHeight: 48,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: colors.hairline,
+              backgroundColor: colors.surface,
+              paddingHorizontal: 14,
+              fontFamily: fonts.body,
+              fontSize: 16,
+              color: colors.foreground,
+            }}
           />
+
+          <Text style={{ marginBottom: 8, marginTop: 24, fontFamily: fonts.bodySemi, fontSize: 15, color: colors.forest }}>
+            Notes for the practitioner (optional)
+          </Text>
+          <TextInput
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Health notes, preferences, first visit…"
+            placeholderTextColor={colors.inkMuted}
+            multiline
+            style={{
+              minHeight: 90,
+              borderRadius: 14,
+              borderWidth: 1,
+              borderColor: colors.hairline,
+              backgroundColor: colors.surface,
+              padding: 14,
+              fontFamily: fonts.body,
+              fontSize: 15,
+              color: colors.foreground,
+            }}
+            textAlignVertical="top"
+          />
+
+          <View style={{ marginTop: 24 }}>
+            <ErrorNote message={error} />
+            <Button
+              title={
+                !selectedSlot
+                  ? "Select a time slot"
+                  : !phoneNational.trim()
+                    ? "Enter mobile number"
+                    : "Confirm booking"
+              }
+              onPress={confirm}
+              disabled={!selectedSlot || !phoneNational.trim()}
+              loading={createBooking.isPending}
+              style={{ backgroundColor: colors.forest, borderRadius: 999 }}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

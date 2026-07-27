@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorNote } from "../../src/components/ui";
 import { useAuth } from "../../src/auth";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 /** Keep in sync with web countries list (subset for mobile pickers). */
 const COUNTRIES: { code: string; name: string; flag: string }[] = [
@@ -134,10 +134,11 @@ export default function Register() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
+        style={{ flex: 1 }}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -145,9 +146,15 @@ export default function Register() {
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           {/* Centered responsive container for web & mobile */}
-          <View className="w-full max-w-[460px] self-center overflow-hidden">
+          <View
+            className="w-full max-w-[460px] self-center overflow-hidden"
+            style={{ width: "100%", maxWidth: 460, alignSelf: "center" }}
+          >
             {/* Hero Gradient Header */}
-            <View className="relative overflow-hidden px-5 pt-4 pb-8">
+            <View
+              className="relative overflow-hidden px-5 pt-4 pb-8"
+              style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
+            >
               <LinearGradient
                 colors={[colors.forestDeep, colors.forest, colors.leaf]}
                 start={{ x: 0, y: 0 }}
@@ -156,62 +163,125 @@ export default function Register() {
               />
 
               {/* Top Navigation Bar */}
-              <View className="flex-row items-center justify-between mb-5 z-10">
+              <View
+                className="flex-row items-center justify-between mb-5 z-10"
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20, zIndex: 10 }}
+              >
                 <Pressable
                   onPress={() => router.back()}
                   className="h-10 w-10 items-center justify-center rounded-full bg-white/15 border border-white/20 active:opacity-80"
+                  style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
                   accessibilityLabel="Go back"
                 >
                   <Ionicons name="chevron-back" size={20} color={colors.white} />
                 </Pressable>
-                <View className="rounded-full bg-white/20 px-3.5 py-1 border border-white/25">
-                  <Text className="font-body-semi text-[11px] text-white uppercase tracking-wider">
+                <View
+                  className="rounded-full bg-white/20 px-3.5 py-1 border border-white/25"
+                  style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 14, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" }}
+                >
+                  <Text
+                    className="font-body-semi text-[11px] text-white uppercase tracking-wider"
+                    style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 0.5 }}
+                  >
                     Step 1 of 2 · Free Account
                   </Text>
                 </View>
               </View>
 
               {/* Hero Branding */}
-              <View className="items-center z-10">
-                <View className="mb-3.5 h-16 w-16 items-center justify-center rounded-2xl border-2 border-gold-soft/40 bg-white/10 shadow-lg">
+              <View className="items-center z-10" style={{ alignItems: "center", zIndex: 10 }}>
+                <View
+                  className="mb-3.5 h-16 w-16 items-center justify-center rounded-2xl border-2 border-gold-soft/40 bg-white/10 shadow-lg"
+                  style={{ marginBottom: 14, height: 64, width: 64, alignItems: "center", justifyContent: "center", borderRadius: 16, borderWidth: 2, borderColor: "rgba(233,217,184,0.4)", backgroundColor: "rgba(255,255,255,0.1)" }}
+                >
                   <Ionicons name="leaf-outline" size={32} color={colors.goldSoft} />
                 </View>
 
-                <Text className="font-display text-[30px] text-white text-center">
-                  Begin your <Text className="text-gold-soft">wellness journey</Text>
+                <Text
+                  className="font-display text-[30px] text-white text-center"
+                  style={{ fontSize: 30, color: colors.white, textAlign: "center", fontFamily: fonts.display }}
+                >
+                  Begin your <Text style={{ color: colors.goldSoft }}>wellness journey</Text>
                 </Text>
-                <Text className="mt-1.5 text-center font-body text-[14px] text-white/85 leading-5 max-w-[340px]">
+                <Text
+                  className="mt-1.5 text-center font-body text-[14px] text-white/85 leading-5 max-w-[340px]"
+                  style={{ marginTop: 6, textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 20, maxWidth: 340, fontFamily: fonts.body }}
+                >
                   Join AyurPass to discover vetted Ayurvedic clinics, yoga studios & wellness retreats near you.
                 </Text>
 
                 {/* Feature Pills */}
-                <View className="mt-4 flex-row flex-wrap justify-center gap-2">
-                  <View className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20">
+                <View
+                  className="mt-4 flex-row flex-wrap justify-center gap-2"
+                  style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 }}
+                >
+                  <View
+                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
+                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                  >
                     <Ionicons name="checkmark-circle" size={13} color={colors.goldSoft} />
-                    <Text className="font-body-semi text-[11px] text-white">Vetted Clinics</Text>
+                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Vetted Clinics</Text>
                   </View>
-                  <View className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20">
+                  <View
+                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
+                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                  >
                     <Ionicons name="sparkles" size={13} color={colors.goldSoft} />
-                    <Text className="font-body-semi text-[11px] text-white">Dosha Match</Text>
+                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Dosha Match</Text>
                   </View>
-                  <View className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20">
+                  <View
+                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
+                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
+                  >
                     <Ionicons name="qr-code-outline" size={13} color={colors.goldSoft} />
-                    <Text className="font-body-semi text-[11px] text-white">Instant Pass</Text>
+                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Instant Pass</Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            {/* Overlapping Glassmorphic Form Card */}
-            <View className="-mt-4 mx-4 rounded-[28px] border border-hairline bg-surface p-5 shadow-lg">
-              <View className="gap-4">
+            {/* Overlapping Form Card */}
+            <View
+              className="-mt-4 mx-4 rounded-[28px] border border-hairline bg-surface p-5 shadow-lg"
+              style={{
+                marginTop: -16,
+                marginHorizontal: 16,
+                borderRadius: 28,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                backgroundColor: colors.surface,
+                padding: 20,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.08,
+                shadowRadius: 12,
+                elevation: 4,
+              }}
+            >
+              <View style={{ gap: 16 }}>
                 {/* Full Name */}
                 <View>
-                  <Text className="mb-1.5 font-body-semi text-[13px] text-forest">Full name</Text>
+                  <Text
+                    className="mb-1.5 font-body-semi text-[13px] text-forest"
+                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
+                  >
+                    Full name
+                  </Text>
                   <View
                     className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
                       activeField === "fullName" ? "border-forest bg-surface" : "border-hairline"
                     }`}
+                    style={{
+                      minHeight: 48,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      paddingHorizontal: 14,
+                      borderColor: activeField === "fullName" ? colors.forest : colors.hairline,
+                      backgroundColor: activeField === "fullName" ? colors.surface : colors.background,
+                    }}
                   >
                     <Ionicons
                       name="person-outline"
@@ -227,17 +297,34 @@ export default function Register() {
                       placeholderTextColor={colors.inkMuted}
                       autoComplete="name"
                       className="flex-1 font-body text-base text-foreground"
+                      style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                   </View>
                 </View>
 
                 {/* Email */}
                 <View>
-                  <Text className="mb-1.5 font-body-semi text-[13px] text-forest">Email address</Text>
+                  <Text
+                    className="mb-1.5 font-body-semi text-[13px] text-forest"
+                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
+                  >
+                    Email address
+                  </Text>
                   <View
                     className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
                       activeField === "email" ? "border-forest bg-surface" : "border-hairline"
                     }`}
+                    style={{
+                      minHeight: 48,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      paddingHorizontal: 14,
+                      borderColor: activeField === "email" ? colors.forest : colors.hairline,
+                      backgroundColor: activeField === "email" ? colors.surface : colors.background,
+                    }}
                   >
                     <Ionicons
                       name="mail-outline"
@@ -255,24 +342,30 @@ export default function Register() {
                       keyboardType="email-address"
                       autoComplete="email"
                       className="flex-1 font-body text-base text-foreground"
+                      style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                   </View>
                 </View>
 
                 {/* City & Country Row */}
-                <View className="flex-row gap-3">
+                <View style={{ flexDirection: "row", gap: 12 }}>
                   {/* City */}
-                  <View className="flex-1">
-                    <View className="flex-row items-center justify-between mb-1.5">
-                      <Text className="font-body-semi text-[13px] text-forest">City</Text>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <Text
+                        className="font-body-semi text-[13px] text-forest"
+                        style={{ fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
+                      >
+                        City
+                      </Text>
                       <Pressable
                         onPress={() => void detectLocation()}
                         disabled={locating}
                         hitSlop={6}
-                        className="flex-row items-center gap-1 bg-clay px-2 py-0.5 rounded-full"
+                        style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.clay, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 }}
                       >
                         <Ionicons name="navigate-outline" size={11} color={colors.leaf} />
-                        <Text className="font-body-semi text-[11px] text-leaf">
+                        <Text style={{ fontSize: 11, color: colors.leaf, fontFamily: fonts.bodySemi }}>
                           {locating ? "Locating…" : "Auto-detect"}
                         </Text>
                       </Pressable>
@@ -281,6 +374,17 @@ export default function Register() {
                       className={`min-h-12 flex-row items-center gap-2 rounded-2xl border px-3 bg-background ${
                         activeField === "city" ? "border-forest bg-surface" : "border-hairline"
                       }`}
+                      style={{
+                        minHeight: 48,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        paddingHorizontal: 12,
+                        borderColor: activeField === "city" ? colors.forest : colors.hairline,
+                        backgroundColor: activeField === "city" ? colors.surface : colors.background,
+                      }}
                     >
                       <Ionicons
                         name="location-outline"
@@ -296,20 +400,34 @@ export default function Register() {
                         placeholderTextColor={colors.inkMuted}
                         autoComplete="postal-address"
                         className="flex-1 font-body text-base text-foreground"
+                        style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                       />
                     </View>
                   </View>
 
                   {/* Country */}
-                  <View className="flex-1">
-                    <Text className="mb-1.5 font-body-semi text-[13px] text-forest">Country</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      className="mb-1.5 font-body-semi text-[13px] text-forest"
+                      style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
+                    >
+                      Country
+                    </Text>
                     <Pressable
                       onPress={() => setCountryOpen((v) => !v)}
-                      className={`min-h-12 flex-row items-center justify-between rounded-2xl border px-3 bg-background ${
-                        countryOpen ? "border-forest bg-surface" : "border-hairline"
-                      }`}
+                      style={{
+                        minHeight: 48,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        paddingHorizontal: 12,
+                        borderColor: countryOpen ? colors.forest : colors.hairline,
+                        backgroundColor: countryOpen ? colors.surface : colors.background,
+                      }}
                     >
-                      <Text className="font-body text-base text-foreground" numberOfLines={1}>
+                      <Text style={{ fontSize: 16, color: colors.foreground, fontFamily: fonts.body }} numberOfLines={1}>
                         {countryFlag} {countryCode}
                       </Text>
                       <Ionicons
@@ -323,7 +441,7 @@ export default function Register() {
 
                 {/* Country Accordion Dropdown */}
                 {countryOpen ? (
-                  <View className="max-h-48 overflow-hidden rounded-2xl border border-hairline bg-background shadow-sm">
+                  <View style={{ maxHeight: 192, overflow: "hidden", borderRadius: 16, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.background }}>
                     <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                       {COUNTRIES.map((c) => (
                         <Pressable
@@ -332,15 +450,23 @@ export default function Register() {
                             setCountryCode(c.code);
                             setCountryOpen(false);
                           }}
-                          className={`flex-row items-center gap-2.5 px-4 py-3 ${
-                            c.code === countryCode ? "bg-forest/10" : ""
-                          }`}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 10,
+                            paddingHorizontal: 16,
+                            paddingVertical: 12,
+                            backgroundColor: c.code === countryCode ? "rgba(30,50,40,0.1)" : "transparent",
+                          }}
                         >
-                          <Text className="text-base">{c.flag}</Text>
+                          <Text style={{ fontSize: 16 }}>{c.flag}</Text>
                           <Text
-                            className={`flex-1 font-body text-[14px] ${
-                              c.code === countryCode ? "font-body-semi text-forest" : "text-foreground"
-                            }`}
+                            style={{
+                              flex: 1,
+                              fontSize: 14,
+                              fontFamily: c.code === countryCode ? fonts.bodySemi : fonts.body,
+                              color: c.code === countryCode ? colors.forest : colors.foreground,
+                            }}
                           >
                             {c.name}
                           </Text>
@@ -355,11 +481,27 @@ export default function Register() {
 
                 {/* Password */}
                 <View>
-                  <Text className="mb-1.5 font-body-semi text-[13px] text-forest">Password</Text>
+                  <Text
+                    className="mb-1.5 font-body-semi text-[13px] text-forest"
+                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
+                  >
+                    Password
+                  </Text>
                   <View
                     className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
                       activeField === "password" ? "border-forest bg-surface" : "border-hairline"
                     }`}
+                    style={{
+                      minHeight: 48,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      paddingHorizontal: 14,
+                      borderColor: activeField === "password" ? colors.forest : colors.hairline,
+                      backgroundColor: activeField === "password" ? colors.surface : colors.background,
+                    }}
                   >
                     <Ionicons
                       name="lock-closed-outline"
@@ -375,6 +517,7 @@ export default function Register() {
                       placeholderTextColor={colors.inkMuted}
                       secureTextEntry={!showPassword}
                       className="flex-1 font-body text-base text-foreground"
+                      style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                     <Pressable
                       onPress={() => setShowPassword((v) => !v)}
@@ -391,20 +534,21 @@ export default function Register() {
 
                   {/* Password Strength Indicator Bar */}
                   {password.length > 0 ? (
-                    <View className="mt-2 flex-row items-center gap-2 px-0.5">
-                      <View className="flex-1 flex-row gap-1">
+                    <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 2 }}>
+                      <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
                         {[1, 2, 3].map((step) => (
                           <View
                             key={step}
-                            className="h-1.5 flex-1 rounded-full"
                             style={{
-                              backgroundColor:
-                                step <= passStrength.score ? passStrength.color : colors.hairline,
+                              height: 6,
+                              flex: 1,
+                              borderRadius: 999,
+                              backgroundColor: step <= passStrength.score ? passStrength.color : colors.hairline,
                             }}
                           />
                         ))}
                       </View>
-                      <Text className="font-body-semi text-[11px]" style={{ color: passStrength.color }}>
+                      <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, color: passStrength.color }}>
                         {passStrength.label}
                       </Text>
                     </View>
@@ -417,29 +561,28 @@ export default function Register() {
                 <Pressable
                   onPress={onSubmit}
                   disabled={busy}
-                  className="mt-1 overflow-hidden rounded-2xl shadow-md active:opacity-90"
+                  style={{ marginTop: 4, overflow: "hidden", borderRadius: 16, elevation: 3 }}
                 >
                   <LinearGradient
                     colors={[colors.forest, colors.leaf]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    className="min-h-[52px] flex-row items-center justify-center gap-2 px-6"
-                    style={{ minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}
+                    style={{ minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 24 }}
                   >
                     {busy ? (
                       <ActivityIndicator color={colors.white} />
                     ) : (
                       <>
-                        <Text className="font-body-semi text-[16px] text-white">Create Free Account</Text>
+                        <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.white }}>Create Free Account</Text>
                         <Ionicons name="arrow-forward" size={18} color={colors.goldSoft} />
                       </>
                     )}
                   </LinearGradient>
                 </Pressable>
 
-                <View className="flex-row items-center gap-1.5 justify-center mt-1">
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 4 }}>
                   <Ionicons name="shield-checkmark-outline" size={14} color={colors.leaf} />
-                  <Text className="font-body text-[12px] text-ink-muted">
+                  <Text style={{ fontSize: 12, color: colors.inkMuted, fontFamily: fonts.body }}>
                     Instant free access · No credit card required
                   </Text>
                 </View>
@@ -447,10 +590,10 @@ export default function Register() {
             </View>
 
             {/* Already have an account footer */}
-            <View className="mt-6 flex-row items-center justify-center gap-1.5">
-              <Text className="font-body text-ink-secondary text-[14px]">Already have an account?</Text>
+            <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <Text style={{ fontSize: 14, color: colors.inkSecondary, fontFamily: fonts.body }}>Already have an account?</Text>
               <Pressable onPress={() => router.replace("/(auth)/login")} hitSlop={8}>
-                <Text className="font-body-semi text-forest text-[14px] underline">Sign in</Text>
+                <Text style={{ fontSize: 14, color: colors.forest, fontFamily: fonts.bodySemi, textDecorationLine: "underline" }}>Sign in</Text>
               </Pressable>
             </View>
           </View>

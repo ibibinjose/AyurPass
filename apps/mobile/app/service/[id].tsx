@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,7 +7,7 @@ import { Badge, Body, Button, EmptyState, Loading, Title } from "../../src/compo
 import { formatMoney } from "../../src/api";
 import { SERVICE_CATEGORY_ICON, SERVICE_CATEGORY_LABEL } from "../../src/catalog";
 import { useServiceDetail } from "../../src/hooks/useCatalogDetail";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 function Fact({
   icon,
@@ -18,10 +19,20 @@ function Fact({
   value: string;
 }) {
   return (
-    <View className="flex-1 gap-1 rounded-md border border-hairline bg-surface p-3.5">
+    <View
+      style={{
+        flex: 1,
+        gap: 4,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: colors.hairline,
+        backgroundColor: colors.surface,
+        padding: 14,
+      }}
+    >
       <Ionicons name={icon} size={18} color={colors.leaf} />
-      <Text className="mt-1 font-body text-xs text-ink-muted">{label}</Text>
-      <Text className="font-body-semi text-[15px] text-foreground">{value}</Text>
+      <Text style={{ marginTop: 4, fontFamily: fonts.body, fontSize: 12, color: colors.inkMuted }}>{label}</Text>
+      <Text style={{ fontFamily: fonts.bodySemi, fontSize: 15, color: colors.foreground }}>{value}</Text>
     </View>
   );
 }
@@ -33,40 +44,60 @@ export default function ServiceDetail() {
 
   if (isLoading && service === undefined) {
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
+      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["bottom"]}>
         <Loading />
       </SafeAreaView>
     );
   }
   if (!service) {
     return (
-      <SafeAreaView className="flex-1 bg-background p-5" edges={["bottom"]}>
+      <SafeAreaView className="flex-1 bg-background p-5" style={{ flex: 1, backgroundColor: colors.background, padding: 20 }} edges={["bottom"]}>
         <EmptyState title="Service not found" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
-      <View className="flex-1 p-5">
-        <View className="h-[52px] w-[52px] items-center justify-center rounded-full bg-leaf/10">
-          <Ionicons name={SERVICE_CATEGORY_ICON[service.category]} size={26} color={colors.leaf} />
-        </View>
-        <Title className="mt-4 text-[26px] leading-8">{service.name}</Title>
-        {service.provider ? (
-          <Pressable onPress={() => router.push(`/provider/${service.providerId}`)} hitSlop={8}>
-            <Text className="mt-2 font-body-medium text-[15px] text-leaf">
-              {service.provider.businessName} ›
-            </Text>
-          </Pressable>
-        ) : null}
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["bottom"]}>
+      <View style={{ flex: 1, padding: 20 }}>
+        {/* Top Hero Banner */}
+        <View style={{ position: "relative", overflow: "hidden", borderRadius: 24, padding: 20, marginBottom: 16 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+          />
 
-        <View className="mt-3 flex-row flex-wrap gap-2">
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View style={{ height: 48, width: 48, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.18)" }}>
+              <Ionicons name={SERVICE_CATEGORY_ICON[service.category]} size={26} color={colors.goldSoft} />
+            </View>
+            <Pressable
+              onPress={() => router.back()}
+              style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: "rgba(255,255,255,0.2)" }}
+            >
+              <Ionicons name="close" size={20} color={colors.white} />
+            </Pressable>
+          </View>
+
+          <Title style={{ marginTop: 14, fontSize: 24, lineHeight: 30, color: colors.white }}>{service.name}</Title>
+
+          {service.provider ? (
+            <Pressable onPress={() => router.push(`/provider/${service.providerId}`)} hitSlop={8} style={{ marginTop: 6 }}>
+              <Text style={{ fontSize: 14, fontFamily: fonts.bodySemi, color: colors.goldSoft }}>
+                {service.provider.businessName} ›
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
           <Badge tone="leaf">{SERVICE_CATEGORY_LABEL[service.category]}</Badge>
           {service.isVirtual ? <Badge tone="gold">Virtual</Badge> : null}
         </View>
 
-        <View className="mt-5 flex-row gap-3">
+        <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
           <Fact icon="time-outline" label="Duration" value={`${service.durationMinutes} min`} />
           <Fact
             icon="people-outline"
@@ -76,25 +107,24 @@ export default function ServiceDetail() {
         </View>
 
         {service.description ? (
-          <Body secondary className="mt-[18px] leading-[22px]">
+          <Body secondary style={{ fontSize: 15, lineHeight: 22, color: colors.inkSecondary }}>
             {service.description}
           </Body>
         ) : null}
 
-        <View className="flex-1" />
+        <View style={{ flex: 1 }} />
 
-        <View className="flex-row items-center border-t border-hairline pt-4">
+        <View style={{ flexDirection: "row", alignItems: "center", borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 16 }}>
           <View>
-            <Text className="font-body text-xs text-ink-muted">Price</Text>
-            <Text className="font-display text-2xl text-forest">
+            <Text style={{ fontSize: 12, fontFamily: fonts.body, color: colors.inkMuted }}>Price</Text>
+            <Text style={{ fontSize: 24, fontFamily: fonts.display, color: colors.forest }}>
               {formatMoney(service.price, service.currency)}
             </Text>
           </View>
           <Button
             title="Book this session"
             onPress={() => router.push(`/book/${service.id}`)}
-            className="ml-4 flex-1"
-            style={{ flex: 1, marginLeft: 16 }}
+            style={{ flex: 1, marginLeft: 16, backgroundColor: colors.forest, borderRadius: 999 }}
           />
         </View>
       </View>

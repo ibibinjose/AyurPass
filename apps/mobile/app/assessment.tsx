@@ -1,13 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
-import { Body, Button, Display, ErrorNote, Screen, Title } from "../src/components/ui";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Body, Button, Display, ErrorNote, Title } from "../src/components/ui";
 import { DoshaMeterGroup } from "../src/components/DoshaMeter";
 import { useAuth } from "../src/auth";
 import { api } from "../src/api";
 import { DOSHA_INFO, DOSHA_QUESTIONS, scoreAssessment, type DoshaScores } from "../src/dosha";
-import { colors, fonts, radius } from "../src/theme";
+import { colors, fonts } from "../src/theme";
 
 type Stage = "intro" | "quiz" | "result";
 
@@ -54,148 +56,184 @@ export default function Assessment() {
 
   if (stage === "intro") {
     return (
-      <Screen>
-        <View style={{ marginTop: 20 }}>
-          <View style={styles.badge}>
-            <Ionicons name="sparkles-outline" size={16} color={colors.gold} />
-            <Text style={styles.badgeText}>Prakriti assessment</Text>
+      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          {/* Hero Header Banner */}
+          <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, marginBottom: 16 }}>
+            <LinearGradient
+              colors={[colors.forestDeep, colors.forest, colors.leaf]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+              <View>
+                <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                  Ayurvedic Prakriti 🌿
+                </Text>
+                <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                  Energy <Text style={{ color: colors.goldSoft }}>quiz</Text>
+                </Text>
+              </View>
+              <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+                <Ionicons name="sparkles-outline" size={22} color={colors.goldSoft} />
+              </View>
+            </View>
           </View>
-          <Display style={{ marginTop: 16 }}>Discover your constitution</Display>
-          <Body secondary style={{ marginTop: 12 }}>
-            In Ayurveda, your prakriti is your innate balance of three doshas — Vata (air & ether),
-            Pitta (fire & water) and Kapha (earth & water). Twelve gentle questions reveal yours, and
-            everything on AyurPass is personalised from it.
-          </Body>
-          <Body muted style={{ marginTop: 12 }}>
-            Answer instinctively — how you&apos;ve been for most of your life, not just this week.
-          </Body>
-        </View>
-        <View style={{ marginTop: 28, gap: 12 }}>
-          <Button title="Begin the assessment" onPress={() => setStage("quiz")} />
-          <Button title="Skip for now" variant="ghost" onPress={() => router.replace("/(tabs)")} />
-        </View>
-      </Screen>
+
+          <View style={{ paddingHorizontal: 20, gap: 16 }}>
+            <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 20, gap: 12 }}>
+              <Display style={{ fontSize: 22, color: colors.forest }}>Discover your constitution</Display>
+              <Body secondary style={{ fontSize: 15, lineHeight: 22, color: colors.inkSecondary }}>
+                In Ayurveda, your prakriti is your innate balance of three doshas — Vata (air & ether),
+                Pitta (fire & water) and Kapha (earth & water). Twelve gentle questions reveal yours, and
+                everything on AyurPass is personalised from it.
+              </Body>
+              <Body muted style={{ fontSize: 13, color: colors.inkMuted }}>
+                Answer instinctively — how you've been for most of your life, not just this week.
+              </Body>
+            </View>
+
+            <View style={{ gap: 12, marginTop: 8 }}>
+              <Button title="Begin the assessment" onPress={() => setStage("quiz")} style={{ backgroundColor: colors.forest, borderRadius: 999 }} />
+              <Button title="Skip for now" variant="ghost" onPress={() => router.replace("/(tabs)")} />
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
   if (stage === "quiz") {
     const q = DOSHA_QUESTIONS[step];
-    const progress = (step / DOSHA_QUESTIONS.length) * 100;
+    const progress = ((step + 1) / DOSHA_QUESTIONS.length) * 100;
     return (
-      <Screen>
-        <View style={{ marginTop: 12 }}>
-          <View style={styles.progressRow}>
-            <Body muted>
-              Question {step + 1} of {DOSHA_QUESTIONS.length}
-            </Body>
-            <Body muted>{Math.round(progress)}%</Body>
-          </View>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${progress}%` }]} />
+      <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          {/* Hero Header Banner */}
+          <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, marginBottom: 16 }}>
+            <LinearGradient
+              colors={[colors.forestDeep, colors.forest, colors.leaf]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+            />
+
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+              <View>
+                <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                  Question {step + 1} of {DOSHA_QUESTIONS.length}
+                </Text>
+                <Text style={{ fontSize: 24, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                  Prakriti <Text style={{ color: colors.goldSoft }}>quiz</Text>
+                </Text>
+              </View>
+              <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.goldSoft }}>{Math.round(progress)}%</Text>
+            </View>
           </View>
 
-          <Title style={{ marginTop: 24, lineHeight: 30 }}>{q.prompt}</Title>
+          <View style={{ paddingHorizontal: 20, gap: 16 }}>
+            {/* Progress track */}
+            <View style={{ height: 6, borderRadius: 999, backgroundColor: colors.clay, overflow: "hidden" }}>
+              <View style={{ height: 6, borderRadius: 999, backgroundColor: colors.gold, width: `${progress}%` }} />
+            </View>
 
-          <View style={{ marginTop: 20, gap: 12 }}>
-            {q.options.map((opt, i) => (
-              <Pressable key={i} onPress={() => pick(i)} style={styles.option}>
-                <Text style={styles.optionText}>{opt.label}</Text>
-              </Pressable>
-            ))}
+            <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 20, marginTop: 8 }}>
+              <Title style={{ fontSize: 20, lineHeight: 28, color: colors.forest }}>{q.prompt}</Title>
+
+              <View style={{ marginTop: 20, gap: 12 }}>
+                {q.options.map((opt, i) => (
+                  <Pressable
+                    key={i}
+                    onPress={() => pick(i)}
+                    style={{
+                      backgroundColor: colors.surface,
+                      borderWidth: 1,
+                      borderColor: colors.hairline,
+                      borderRadius: 16,
+                      paddingHorizontal: 16,
+                      paddingVertical: 14,
+                    }}
+                  >
+                    <Text style={{ fontFamily: fonts.body, fontSize: 15, color: colors.foreground, lineHeight: 21 }}>{opt.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {step > 0 ? (
+                <Pressable onPress={() => setStep(step - 1)} style={{ marginTop: 20 }}>
+                  <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: colors.leaf }}>← Previous question</Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
-
-          {step > 0 ? (
-            <Pressable onPress={() => setStep(step - 1)} style={{ marginTop: 20 }}>
-              <Text style={{ fontFamily: fonts.body, color: colors.inkMuted }}>← Previous question</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </Screen>
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
   const info = result ? DOSHA_INFO[result.primary] : null;
   return (
-    <Screen>
-      <View style={{ marginTop: 16 }}>
-        <Text style={styles.eyebrow}>Your constitution</Text>
-        <Display style={{ marginTop: 8 }}>
-          {info?.name} <Text style={{ color: colors.inkMuted, fontSize: 22 }}>· {info?.element}</Text>
-        </Display>
-        <Body secondary style={{ marginTop: 10 }}>
-          {info?.qualities}
-        </Body>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, marginBottom: 16 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
+          />
 
-        <View style={styles.resultCard}>
-          {result ? <DoshaMeterGroup {...result} primary={result.primary} /> : null}
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 14, marginTop: 6 }}>
-            <Body secondary>
-              <Text style={{ fontFamily: fonts.bodySemi, color: colors.foreground }}>Balanced by: </Text>
-              {info?.balancedBy}
-            </Body>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <View>
+              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                Your Constitution ✨
+              </Text>
+              <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                {info?.name} <Text style={{ color: colors.goldSoft }}>({info?.element})</Text>
+              </Text>
+            </View>
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+              <Ionicons name="sparkles" size={22} color={colors.goldSoft} />
+            </View>
           </View>
         </View>
 
-        {saving ? <Body muted style={{ marginTop: 14 }}>Saving your profile…</Body> : null}
-        <View style={{ marginTop: 8 }}>
-          <ErrorNote message={error} />
-        </View>
+        <View style={{ paddingHorizontal: 20, gap: 16 }}>
+          <Body secondary style={{ fontSize: 15, lineHeight: 22, color: colors.inkSecondary }}>
+            {info?.qualities}
+          </Body>
 
-        <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
-          <Button
-            title="Retake"
-            variant="ghost"
-            style={{ flex: 1 }}
-            onPress={() => {
-              setAnswers({});
-              setStep(0);
-              setStage("quiz");
-            }}
-          />
-          <Button title="Explore wellness" style={{ flex: 1 }} onPress={() => router.replace("/(tabs)")} />
+          <View style={{ borderRadius: 20, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 18, gap: 12 }}>
+            {result ? <DoshaMeterGroup {...result} primary={result.primary} /> : null}
+            <View style={{ borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 14, marginTop: 6 }}>
+              <Body secondary>
+                <Text style={{ fontFamily: fonts.bodySemi, color: colors.foreground }}>Balanced by: </Text>
+                {info?.balancedBy}
+              </Body>
+            </View>
+          </View>
+
+          {saving ? <Body muted style={{ marginTop: 10 }}>Saving your profile…</Body> : null}
+          <ErrorNote message={error} />
+
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 12 }}>
+            <Button
+              title="Retake"
+              variant="ghost"
+              style={{ flex: 1 }}
+              onPress={() => {
+                setAnswers({});
+                setStep(0);
+                setStage("quiz");
+              }}
+            />
+            <Button title="Explore wellness" style={{ flex: 1, backgroundColor: colors.forest, borderRadius: 999 }} onPress={() => router.replace("/(tabs)")} />
+          </View>
         </View>
-      </View>
-    </Screen>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(185,137,47,0.12)",
-    borderRadius: radius.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  badgeText: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.gold },
-  progressRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  track: { height: 6, borderRadius: 999, backgroundColor: colors.clay, overflow: "hidden" },
-  fill: { height: 6, borderRadius: 999, backgroundColor: colors.gold },
-  option: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderRadius: radius.lg,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-  },
-  optionText: { fontFamily: fonts.body, fontSize: 15, color: colors.foreground, lineHeight: 21 },
-  eyebrow: {
-    fontFamily: fonts.bodySemi,
-    fontSize: 12,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    color: colors.gold,
-  },
-  resultCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderRadius: radius.lg,
-    padding: 18,
-    marginTop: 20,
-  },
-});

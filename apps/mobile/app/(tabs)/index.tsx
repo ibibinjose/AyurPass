@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -27,7 +28,7 @@ import {
 import { useDebouncedValue } from "../../src/hooks/useDebouncedValue";
 import { useProviders } from "../../src/hooks/useProviders";
 import type { Provider, ProviderType } from "../../src/types";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 const TYPE_CHIPS: { id: ProviderType | "ALL"; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { id: "ALL", label: "All", icon: "sparkles-outline" },
@@ -69,23 +70,37 @@ function ProviderCard({
         accessibilityRole="button"
         accessibilityLabel={provider.businessName}
         className="mb-3 w-[48%] overflow-hidden rounded-2xl border border-hairline bg-surface p-3.5 shadow-sm active:opacity-90"
+        style={{
+          marginBottom: 12,
+          width: "48%",
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.hairline,
+          backgroundColor: colors.surface,
+          padding: 14,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
+          elevation: 2,
+        }}
       >
-        <View className="flex-row items-center justify-between mb-2">
-          <View className="h-10 w-10 items-center justify-center rounded-xl bg-forest">
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.forest }}>
             <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.goldSoft} />
           </View>
-          <View className="flex-row items-center gap-1 rounded-full bg-clay px-2 py-0.5">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.clay, paddingHorizontal: 8, paddingVertical: 2 }}>
             <Ionicons name="star" size={11} color={colors.gold} />
-            <Text className="font-body-semi text-[11px] text-forest">{ratingVal}</Text>
+            <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, color: colors.forest }}>{ratingVal}</Text>
           </View>
         </View>
 
-        <Text className="font-body-semi text-[14px] leading-5 text-forest" numberOfLines={2}>
+        <Text style={{ fontSize: 14, fontFamily: fonts.bodySemi, lineHeight: 20, color: colors.forest }} numberOfLines={2}>
           {provider.businessName}
         </Text>
 
-        <View className="mt-1 flex-row items-center gap-1">
-          <Text className="font-body-medium text-[11px] text-ink-secondary" numberOfLines={1}>
+        <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, color: colors.inkSecondary }} numberOfLines={1}>
             {typeLabel}
           </Text>
           {verified ? (
@@ -94,7 +109,7 @@ function ProviderCard({
         </View>
 
         {location ? (
-          <Text className="mt-1 font-body text-[11px] text-ink-muted" numberOfLines={1}>
+          <Text style={{ marginTop: 4, fontSize: 11, fontFamily: fonts.body, color: colors.inkMuted }} numberOfLines={1}>
             {location}
           </Text>
         ) : null}
@@ -108,46 +123,61 @@ function ProviderCard({
       accessibilityRole="button"
       accessibilityLabel={`${provider.businessName}${verified ? ", verified" : ""}`}
       className="flex-row items-center gap-3.5 rounded-2xl border border-hairline bg-surface p-3.5 shadow-sm active:opacity-95"
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: colors.hairline,
+        backgroundColor: colors.surface,
+        padding: 14,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
+      }}
     >
-      <View className="h-13 w-13 items-center justify-center rounded-2xl bg-forest">
+      <View style={{ height: 52, width: 52, alignItems: "center", justifyContent: "center", borderRadius: 16, backgroundColor: colors.forest }}>
         <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={22} color={colors.goldSoft} />
       </View>
 
-      <View className="min-w-0 flex-1">
-        <View className="flex-row items-center gap-1.5">
-          <Text className="shrink font-body-semi text-[15px] text-forest" numberOfLines={1}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={{ flexShrink: 1, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.forest }} numberOfLines={1}>
             {provider.businessName}
           </Text>
           {verified ? (
-            <View className="h-4 w-4 items-center justify-center rounded-full bg-leaf">
+            <View style={{ height: 16, width: 16, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.leaf }}>
               <Ionicons name="checkmark" size={10} color={colors.white} />
             </View>
           ) : null}
         </View>
 
-        <View className="mt-0.5 flex-row items-center gap-2">
-          <Text className="font-body-medium text-[12px] text-ink-secondary">
+        <View style={{ marginTop: 2, flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={{ fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.inkSecondary }}>
             {typeLabel}
           </Text>
-          <View className="h-1 w-1 rounded-full bg-ink-muted/40" />
-          <View className="flex-row items-center gap-1">
+          <View style={{ height: 4, width: 4, borderRadius: 999, backgroundColor: colors.hairline }} />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons name="star" size={12} color={colors.gold} />
-            <Text className="font-body-semi text-[12px] text-forest">{ratingVal}</Text>
-            <Text className="font-body text-[11px] text-ink-muted">({reviewCnt})</Text>
+            <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.forest }}>{ratingVal}</Text>
+            <Text style={{ fontSize: 11, fontFamily: fonts.body, color: colors.inkMuted }}>({reviewCnt})</Text>
           </View>
         </View>
 
         {location ? (
-          <View className="mt-1 flex-row items-center gap-1">
+          <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons name="location-outline" size={12} color={colors.inkMuted} />
-            <Text className="flex-1 font-body text-[12px] text-ink-muted" numberOfLines={1}>
+            <Text style={{ flex: 1, fontSize: 12, fontFamily: fonts.body, color: colors.inkMuted }} numberOfLines={1}>
               {location}
             </Text>
           </View>
         ) : null}
       </View>
 
-      <View className="h-8 w-8 items-center justify-center rounded-full bg-sand/60">
+      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "rgba(221,214,200,0.4)" }}>
         <Ionicons name="chevron-forward" size={16} color={colors.forest} />
       </View>
     </Pressable>
@@ -191,7 +221,6 @@ export default function Discover() {
     if (loc) {
       list = list.filter((p) => includesText(formatAddress(p.address) ?? "", loc));
     }
-    // Soft sort: location match first when Near me / location set
     if (loc) {
       list = [...list].sort((a, b) => {
         const aa = (formatAddress(a.address) ?? "").toLowerCase();
@@ -240,16 +269,10 @@ export default function Discover() {
     }
   }, []);
 
-  const openMapsFor = useCallback((p: Provider) => {
-    const addr = formatAddress(p.address) || p.businessName;
-    const q = encodeURIComponent(addr);
-    void Linking.openURL(`https://www.openstreetmap.org/search?query=${q}`);
-  }, []);
-
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28 }}
+        contentContainerStyle={{ paddingBottom: 28 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -260,208 +283,252 @@ export default function Discover() {
           />
         }
       >
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Body muted className="text-[13px]">
-              {firstName ? `Hi, ${firstName}` : "Welcome"}
-            </Body>
-            <Display className="mt-0.5">Discover</Display>
-          </View>
-          <HeaderLogo />
-        </View>
-        <Body muted className="mt-1 text-[14px] leading-5">
-          Search by name, category or location — free to browse.
-        </Body>
-
-        <Pressable
-          onPress={() => router.push("/(tabs)/offers")}
-          className="mt-4 flex-row items-center gap-3 rounded-2xl bg-forest px-4 py-3.5 active:opacity-90"
-        >
-          <View className="h-9 w-9 items-center justify-center rounded-full bg-white/10">
-            <Ionicons name="gift-outline" size={18} color={colors.goldSoft} />
-          </View>
-          <View className="flex-1">
-            <Text className="font-body-medium text-[11px] uppercase tracking-wide text-gold-soft">
-              Limited-time
-            </Text>
-            <Text className="mt-0.5 font-body-semi text-[15px] text-white">
-              Wellness offers & deals
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.goldSoft} />
-        </Pressable>
-
-        {/* Name / category search */}
-        <View className="mt-4 min-h-12 flex-row items-center gap-2.5 rounded-full border border-hairline bg-surface px-4 py-3">
-          <Ionicons name="search-outline" size={18} color={colors.inkMuted} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Name or category…"
-            placeholderTextColor={colors.inkMuted}
-            className="flex-1 font-body text-base text-foreground"
-            autoCapitalize="none"
-            returnKeyType="search"
-            clearButtonMode="while-editing"
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-          {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} hitSlop={10} accessibilityLabel="Clear search">
-              <Ionicons name="close-circle" size={18} color={colors.inkMuted} />
-            </Pressable>
-          ) : null}
-          {isFetching && !isRefetching ? (
-            <Ionicons name="sync-outline" size={16} color={colors.leaf} />
-          ) : null}
+
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <View>
+              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                {firstName ? `Namaste, ${firstName} 🙏` : "Welcome to AyurPass 🙏"}
+              </Text>
+              <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                Discover <Text style={{ color: colors.goldSoft }}>wellness</Text>
+              </Text>
+            </View>
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+              <Ionicons name="sparkles" size={22} color={colors.goldSoft} />
+            </View>
+          </View>
         </View>
 
-        {/* Location search + Near me */}
-        <View className="mt-2.5 flex-row items-center gap-2">
-          <View className="min-h-12 flex-1 flex-row items-center gap-2 rounded-full border border-hairline bg-surface px-4 py-3">
-            <Ionicons name="location-outline" size={18} color={colors.inkMuted} />
+        {/* Overlapping Content Container */}
+        <View style={{ marginTop: -12, paddingHorizontal: 20 }}>
+          {/* Limited time offers card */}
+          <Pressable
+            onPress={() => router.push("/(tabs)/offers")}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              borderRadius: 20,
+              backgroundColor: colors.surface,
+              borderWidth: 1,
+              borderColor: colors.hairline,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.clay }}>
+              <Ionicons name="gift-outline" size={18} color={colors.gold} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, textTransform: "uppercase", letterSpacing: 0.5, color: colors.gold }}>
+                Limited-time deals
+              </Text>
+              <Text style={{ marginTop: 2, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.forest }}>
+                Wellness offers & clinic passes
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.forest} />
+          </Pressable>
+
+          {/* Name / category search */}
+          <View style={{ marginTop: 14, minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 999, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 10 }}>
+            <Ionicons name="search-outline" size={18} color={colors.inkMuted} />
             <TextInput
-              value={locationQuery}
-              onChangeText={setLocationQuery}
-              placeholder="City or country"
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search clinic, yoga, spa..."
               placeholderTextColor={colors.inkMuted}
               className="flex-1 font-body text-base text-foreground"
-              autoCapitalize="words"
+              style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
+              autoCapitalize="none"
               returnKeyType="search"
               clearButtonMode="while-editing"
             />
-          </View>
-          <Pressable
-            onPress={() => void locateNearMe()}
-            disabled={nearBusy}
-            className="min-h-12 items-center justify-center rounded-full bg-leaf/15 px-3.5 active:opacity-90"
-            accessibilityLabel="Near me"
-          >
-            <Ionicons
-              name={nearBusy ? "hourglass-outline" : "navigate-outline"}
-              size={20}
-              color={colors.forest}
-            />
-          </Pressable>
-        </View>
-        {nearError ? (
-          <Text className="mt-1.5 px-1 font-body-medium text-[12px] text-red-700">{nearError}</Text>
-        ) : null}
-
-        {/* Category chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingVertical: 14 }}
-        >
-          {TYPE_CHIPS.map((chip) => {
-            const active = chip.id === typeFilter;
-            return (
-              <Pressable
-                key={chip.id}
-                onPress={() => setTypeFilter(chip.id)}
-                className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 shadow-xs ${
-                  active ? "border-forest bg-forest" : "border-hairline bg-surface"
-                }`}
-              >
-                <Ionicons
-                  name={chip.icon}
-                  size={15}
-                  color={active ? colors.goldSoft : colors.forest}
-                />
-                <Text
-                  className={`font-body-semi text-[13px] ${
-                    active ? "text-white" : "text-forest"
-                  }`}
-                >
-                  {chip.label}
-                </Text>
+            {query.length > 0 ? (
+              <Pressable onPress={() => setQuery("")} hitSlop={10} accessibilityLabel="Clear search">
+                <Ionicons name="close-circle" size={18} color={colors.inkMuted} />
               </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* View mode: list / grid / map */}
-        <View className="mb-3 flex-row items-center justify-between">
-          <Text className="font-body-medium text-[13px] text-ink-muted">
-            {isLoading && !data
-              ? "…"
-              : `${providers.length} ${providers.length === 1 ? "practice" : "practices"}`}
-          </Text>
-          <View className="flex-row rounded-full border border-hairline bg-surface p-0.5">
-            {(
-              [
-                ["list", "list-outline"],
-                ["grid", "grid-outline"],
-                ["map", "map-outline"],
-              ] as const
-            ).map(([mode, icon]) => (
-              <Pressable
-                key={mode}
-                onPress={() => setViewMode(mode)}
-                className={`rounded-full px-2.5 py-1.5 ${
-                  viewMode === mode ? "bg-forest" : ""
-                }`}
-                accessibilityLabel={`${mode} view`}
-              >
-                <Ionicons
-                  name={icon}
-                  size={16}
-                  color={viewMode === mode ? colors.white : colors.inkMuted}
-                />
-              </Pressable>
-            ))}
+            ) : null}
+            {isFetching && !isRefetching ? (
+              <Ionicons name="sync-outline" size={16} color={colors.leaf} />
+            ) : null}
           </View>
-        </View>
 
-        <View className="mt-1">
-          <OfflineBanner
-            error={errMsg}
-            onRetry={() => void refetch()}
-            retrying={isRefetching}
-          />
-          {isLoading && !data ? (
-            <Loading label="Finding wellness near you…" />
-          ) : providers.length === 0 && !errMsg ? (
-            <EmptyState
-              title={
-                query || locationQuery || typeFilter !== "ALL"
-                  ? "No matches"
-                  : "No practices yet"
-              }
-              body={
-                query || locationQuery || typeFilter !== "ALL"
-                  ? "Try another name, location or category."
-                  : "Pull to refresh — new listings appear as practices join."
-              }
-            />
-          ) : providers.length === 0 ? null : viewMode === "map" ? (
-            <View className="mt-1">
-              <ProviderMapView providers={providers} height={480} />
+          {/* Location search + Near me */}
+          <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View style={{ minHeight: 48, flex: 1, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 999, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 10 }}>
+              <Ionicons name="location-outline" size={18} color={colors.inkMuted} />
+              <TextInput
+                value={locationQuery}
+                onChangeText={setLocationQuery}
+                placeholder="City or country"
+                placeholderTextColor={colors.inkMuted}
+                className="flex-1 font-body text-base text-foreground"
+                style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
+                autoCapitalize="words"
+                returnKeyType="search"
+                clearButtonMode="while-editing"
+              />
             </View>
-          ) : viewMode === "grid" ? (
-            <View
-              className="flex-row flex-wrap justify-between"
-              style={{ maxWidth: width - 40 }}
+            <Pressable
+              onPress={() => void locateNearMe()}
+              disabled={nearBusy}
+              style={{ minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "rgba(47,90,68,0.15)", paddingHorizontal: 14 }}
+              accessibilityLabel="Near me"
             >
-              {providers.map((p) => (
-                <ProviderCard
-                  key={p.id}
-                  provider={p}
-                  compact
-                  onPress={() => router.push(`/provider/${p.id}`)}
-                />
+              <Ionicons
+                name={nearBusy ? "hourglass-outline" : "navigate-outline"}
+                size={20}
+                color={colors.forest}
+              />
+            </Pressable>
+          </View>
+          {nearError ? (
+            <Text style={{ marginTop: 6, paddingHorizontal: 4, fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.danger }}>{nearError}</Text>
+          ) : null}
+
+          {/* Category chips */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingVertical: 14 }}
+          >
+            {TYPE_CHIPS.map((chip) => {
+              const active = chip.id === typeFilter;
+              return (
+                <Pressable
+                  key={chip.id}
+                  onPress={() => setTypeFilter(chip.id)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderColor: active ? colors.forest : colors.hairline,
+                    backgroundColor: active ? colors.forest : colors.surface,
+                  }}
+                >
+                  <Ionicons
+                    name={chip.icon}
+                    size={15}
+                    color={active ? colors.goldSoft : colors.forest}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontFamily: fonts.bodySemi,
+                      color: active ? colors.white : colors.forest,
+                    }}
+                  >
+                    {chip.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {/* View mode: list / grid / map */}
+          <View style={{ marginBottom: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.inkMuted }}>
+              {isLoading && !data
+                ? "…"
+                : `${providers.length} ${providers.length === 1 ? "practice" : "practices"}`}
+            </Text>
+            <View style={{ flexDirection: "row", borderRadius: 999, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 2 }}>
+              {(
+                [
+                  ["list", "list-outline"],
+                  ["grid", "grid-outline"],
+                  ["map", "map-outline"],
+                ] as const
+              ).map(([mode, icon]) => (
+                <Pressable
+                  key={mode}
+                  onPress={() => setViewMode(mode)}
+                  style={{
+                    borderRadius: 999,
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    backgroundColor: viewMode === mode ? colors.forest : "transparent",
+                  }}
+                  accessibilityLabel={`${mode} view`}
+                >
+                  <Ionicons
+                    name={icon}
+                    size={16}
+                    color={viewMode === mode ? colors.white : colors.inkMuted}
+                  />
+                </Pressable>
               ))}
             </View>
-          ) : (
-            <View className="gap-3">
-              {providers.map((p) => (
-                <ProviderCard
-                  key={p.id}
-                  provider={p}
-                  onPress={() => router.push(`/provider/${p.id}`)}
-                />
-              ))}
-            </View>
-          )}
+          </View>
+
+          <View style={{ marginTop: 4 }}>
+            <OfflineBanner
+              error={errMsg}
+              onRetry={() => void refetch()}
+              retrying={isRefetching}
+            />
+            {isLoading && !data ? (
+              <Loading label="Finding wellness near you…" />
+            ) : providers.length === 0 && !errMsg ? (
+              <EmptyState
+                title={
+                  query || locationQuery || typeFilter !== "ALL"
+                    ? "No matches"
+                    : "No practices yet"
+                }
+                body={
+                  query || locationQuery || typeFilter !== "ALL"
+                    ? "Try another name, location or category."
+                    : "Pull to refresh — new listings appear as practices join."
+                }
+              />
+            ) : providers.length === 0 ? null : viewMode === "map" ? (
+              <View style={{ marginTop: 4 }}>
+                <ProviderMapView providers={providers} height={480} />
+              </View>
+            ) : viewMode === "grid" ? (
+              <View
+                style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", maxWidth: width - 40 }}
+              >
+                {providers.map((p) => (
+                  <ProviderCard
+                    key={p.id}
+                    provider={p}
+                    compact
+                    onPress={() => router.push(`/provider/${p.id}`)}
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                {providers.map((p) => (
+                  <ProviderCard
+                    key={p.id}
+                    provider={p}
+                    onPress={() => router.push(`/provider/${p.id}`)}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

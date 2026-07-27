@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -169,7 +170,7 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={{ paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -182,198 +183,223 @@ export default function CalendarScreen() {
           />
         }
       >
-        <Display>Calendar</Display>
-        <Body muted style={{ marginTop: 4 }}>
-          Appointments & events — colour-coded by discipline.
-        </Body>
-
-        {/* Filter chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipRow}
-        >
-          {FILTERS.map((f) => {
-            const active = cat === f.id;
-            const color =
-              f.id === "ALL"
-                ? colors.forest
-                : f.id === "EVENT"
-                  ? colorForServiceCategory("EVENT")
-                  : colorForServiceCategory(f.id);
-            return (
-              <Pressable
-                key={f.id}
-                onPress={() => setCat(f.id)}
-                style={[
-                  styles.chip,
-                  active && { backgroundColor: color, borderColor: color },
-                ]}
-              >
-                {!active && f.id !== "ALL" ? (
-                  <View style={[styles.chipDot, { backgroundColor: color }]} />
-                ) : null}
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {/* Legend */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.legendRow}
-        >
-          {CALENDAR_CATEGORY_LEGEND.map((c) => (
-            <View key={c.id} style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: c.color }]} />
-              <Text style={styles.legendLabel}>{c.label}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Month navigator */}
-        <View style={styles.monthNav}>
-          <Pressable onPress={() => setMonthCursor((m) => addMonths(m, -1))} style={styles.navBtn}>
-            <Ionicons name="chevron-back" size={18} color={colors.forest} />
-          </Pressable>
-          <Text style={styles.monthLabel}>{monthLabel}</Text>
-          <Pressable onPress={() => setMonthCursor((m) => addMonths(m, 1))} style={styles.navBtn}>
-            <Ionicons name="chevron-forward" size={18} color={colors.forest} />
-          </Pressable>
-        </View>
-
-        {/* Weekday headers */}
-        <View style={styles.weekRow}>
-          {["S", "M", "T", "W", "T", "F", "S"].map((w, i) => (
-            <Text key={i} style={styles.weekHead}>
-              {w}
-            </Text>
-          ))}
-        </View>
-
-        {/* Month grid */}
-        <View style={styles.grid}>
-          {monthCells.map((d, i) => {
-            if (!d) return <View key={`e-${i}`} style={styles.cellEmpty} />;
-            const key = dayKey(d);
-            const dayItems = byDay.get(key) ?? [];
-            const active = sameDay(d, selected);
-            const isToday = sameDay(d, new Date());
-            const dots = [
-              ...new Set(
-                dayItems.map((it) =>
-                  it.kind === "booking"
-                    ? colorForServiceCategory(it.booking.service?.category as ServiceCategory)
-                    : colorForServiceCategory("EVENT"),
-                ),
-              ),
-            ].slice(0, 3);
-            return (
-              <Pressable
-                key={key}
-                onPress={() => setSelected(startOfDay(d))}
-                style={[
-                  styles.cell,
-                  active && styles.cellActive,
-                  isToday && !active && styles.cellToday,
-                ]}
-              >
-                <Text style={[styles.cellNum, active && styles.cellNumActive]}>{d.getDate()}</Text>
-                <View style={styles.dotRow}>
-                  {dots.map((c, di) => (
-                    <View
-                      key={di}
-                      style={[
-                        styles.miniDot,
-                        { backgroundColor: active ? "rgba(255,255,255,0.9)" : c },
-                      ]}
-                    />
-                  ))}
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Pressable
-          onPress={() => {
-            const t = new Date();
-            setMonthCursor(startOfMonth(t));
-            setSelected(startOfDay(t));
-          }}
-          style={styles.todayLink}
-        >
-          <Text style={styles.todayLinkText}>Jump to today</Text>
-        </Pressable>
-
-        {/* Selected day */}
-        <View style={styles.dayHeader}>
-          <Text style={styles.dayHeaderTitle}>
-            {selected.toLocaleDateString(undefined, {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })}
-          </Text>
-          <Pressable onPress={() => router.push("/(tabs)/explore")} style={styles.bookCta}>
-            <Ionicons name="add" size={16} color={colors.white} />
-            <Text style={styles.bookCtaText}>Book</Text>
-          </Pressable>
-        </View>
-
-        <OfflineBanner
-          error={errMsg}
-          onRetry={() => {
-            void refetch();
-            void loadTickets();
-          }}
-          retrying={isRefetching}
-        />
-
-        {isLoading && !data ? (
-          <Loading label="Loading your calendar…" />
-        ) : selectedItems.length === 0 && !errMsg ? (
-          <EmptyState
-            title="Nothing this day"
-            body="Book Ayurveda, Yoga, Spa or join an event — they land here in colour."
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-        ) : (
-          <View style={styles.list}>
-            {selectedItems.map((item) =>
-              item.kind === "booking" ? (
-                <BookingRow
-                  key={item.booking.id}
-                  booking={item.booking}
-                  onPress={() => router.push("/(tabs)/bookings")}
-                />
-              ) : (
-                <EventRow key={item.ticket.id} ticket={item.ticket} />
-              ),
-            )}
-          </View>
-        )}
 
-        {/* Upcoming list */}
-        <Text style={styles.sectionTitle}>Upcoming</Text>
-        {upcoming.length === 0 ? (
-          <Text style={styles.muted}>No upcoming appointments or events.</Text>
-        ) : (
-          <View style={styles.list}>
-            {upcoming.map((item) =>
-              item.kind === "booking" ? (
-                <BookingRow
-                  key={`u-${item.booking.id}`}
-                  booking={item.booking}
-                  onPress={() => router.push("/(tabs)/bookings")}
-                />
-              ) : (
-                <EventRow key={`u-${item.ticket.id}`} ticket={item.ticket} />
-              ),
-            )}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <View>
+              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                AyurPass Schedule 📅
+              </Text>
+              <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                Your <Text style={{ color: colors.goldSoft }}>calendar</Text>
+              </Text>
+            </View>
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+              <Ionicons name="calendar-outline" size={22} color={colors.goldSoft} />
+            </View>
           </View>
-        )}
+        </View>
+
+        {/* Content Container */}
+        <View style={{ marginTop: -12, paddingHorizontal: 20 }}>
+          {/* Filter chips */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
+            {FILTERS.map((f) => {
+              const active = cat === f.id;
+              const color =
+                f.id === "ALL"
+                  ? colors.forest
+                  : f.id === "EVENT"
+                    ? colorForServiceCategory("EVENT")
+                    : colorForServiceCategory(f.id);
+              return (
+                <Pressable
+                  key={f.id}
+                  onPress={() => setCat(f.id)}
+                  style={[
+                    styles.chip,
+                    active && { backgroundColor: color, borderColor: color },
+                  ]}
+                >
+                  {!active && f.id !== "ALL" ? (
+                    <View style={[styles.chipDot, { backgroundColor: color }]} />
+                  ) : null}
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {/* Month Card */}
+          <View
+            style={{
+              marginTop: 10,
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: colors.hairline,
+              backgroundColor: colors.surface,
+              padding: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            {/* Month navigator */}
+            <View style={styles.monthNav}>
+              <Pressable onPress={() => setMonthCursor((m) => addMonths(m, -1))} style={styles.navBtn}>
+                <Ionicons name="chevron-back" size={18} color={colors.forest} />
+              </Pressable>
+              <Text style={styles.monthLabel}>{monthLabel}</Text>
+              <Pressable onPress={() => setMonthCursor((m) => addMonths(m, 1))} style={styles.navBtn}>
+                <Ionicons name="chevron-forward" size={18} color={colors.forest} />
+              </Pressable>
+            </View>
+
+            {/* Weekday headers */}
+            <View style={styles.weekRow}>
+              {["S", "M", "T", "W", "T", "F", "S"].map((w, i) => (
+                <Text key={i} style={styles.weekHead}>
+                  {w}
+                </Text>
+              ))}
+            </View>
+
+            {/* Month grid */}
+            <View style={styles.grid}>
+              {monthCells.map((d, i) => {
+                if (!d) return <View key={`e-${i}`} style={styles.cellEmpty} />;
+                const key = dayKey(d);
+                const dayItems = byDay.get(key) ?? [];
+                const active = sameDay(d, selected);
+                const isToday = sameDay(d, new Date());
+                const dots = [
+                  ...new Set(
+                    dayItems.map((it) =>
+                      it.kind === "booking"
+                        ? colorForServiceCategory(it.booking.service?.category as ServiceCategory)
+                        : colorForServiceCategory("EVENT"),
+                    ),
+                  ),
+                ].slice(0, 3);
+                return (
+                  <Pressable
+                    key={key}
+                    onPress={() => setSelected(startOfDay(d))}
+                    style={[
+                      styles.cell,
+                      active && styles.cellActive,
+                      isToday && !active && styles.cellToday,
+                    ]}
+                  >
+                    <Text style={[styles.cellNum, active && styles.cellNumActive]}>{d.getDate()}</Text>
+                    <View style={styles.dotRow}>
+                      {dots.map((c, di) => (
+                        <View
+                          key={di}
+                          style={[
+                            styles.miniDot,
+                            { backgroundColor: active ? "rgba(255,255,255,0.9)" : c },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              onPress={() => {
+                const t = new Date();
+                setMonthCursor(startOfMonth(t));
+                setSelected(startOfDay(t));
+              }}
+              style={styles.todayLink}
+            >
+              <Text style={styles.todayLinkText}>Jump to today</Text>
+            </Pressable>
+          </View>
+
+          {/* Selected day */}
+          <View style={styles.dayHeader}>
+            <Text style={styles.dayHeaderTitle}>
+              {selected.toLocaleDateString(undefined, {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
+            </Text>
+            <Pressable onPress={() => router.push("/(tabs)/explore")} style={styles.bookCta}>
+              <Ionicons name="add" size={16} color={colors.white} />
+              <Text style={styles.bookCtaText}>Book</Text>
+            </Pressable>
+          </View>
+
+          <OfflineBanner
+            error={errMsg}
+            onRetry={() => {
+              void refetch();
+              void loadTickets();
+            }}
+            retrying={isRefetching}
+          />
+
+          {isLoading && !data ? (
+            <Loading label="Loading your calendar…" />
+          ) : selectedItems.length === 0 && !errMsg ? (
+            <EmptyState
+              title="Nothing this day"
+              body="Book Ayurveda, Yoga, Spa or join an event — they land here in colour."
+            />
+          ) : (
+            <View style={styles.list}>
+              {selectedItems.map((item) =>
+                item.kind === "booking" ? (
+                  <BookingRow
+                    key={item.booking.id}
+                    booking={item.booking}
+                    onPress={() => router.push("/(tabs)/bookings")}
+                  />
+                ) : (
+                  <EventRow key={item.ticket.id} ticket={item.ticket} />
+                ),
+              )}
+            </View>
+          )}
+
+          {/* Upcoming list */}
+          <Text style={styles.sectionTitle}>Upcoming</Text>
+          {upcoming.length === 0 ? (
+            <Text style={styles.muted}>No upcoming appointments or events.</Text>
+          ) : (
+            <View style={styles.list}>
+              {upcoming.map((item) =>
+                item.kind === "booking" ? (
+                  <BookingRow
+                    key={`u-${item.booking.id}`}
+                    booking={item.booking}
+                    onPress={() => router.push("/(tabs)/bookings")}
+                  />
+                ) : (
+                  <EventRow key={`u-${item.ticket.id}`} ticket={item.ticket} />
+                ),
+              )}
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

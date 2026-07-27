@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { Alert, Linking, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
@@ -6,17 +7,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Badge,
   Button,
-  Body,
-  Display,
   EmptyState,
   ErrorNote,
   Loading,
 } from "../../src/components/ui";
 import { OfflineBanner } from "../../src/components/OfflineBanner";
-import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { useAuth } from "../../src/auth";
 import { formatMoney } from "../../src/api";
 import { openGoogleCalendar } from "../../src/calendar";
+import {
+  colorForServiceCategory,
+  SERVICE_CATEGORY_LABEL,
+  softColorForServiceCategory,
+} from "../../src/catalog";
 import {
   useConfirmBookingPayment,
   useConsumerBookings,
@@ -24,8 +27,8 @@ import {
 } from "../../src/hooks/useBookings";
 import { usePaymentMode } from "../../src/hooks/useCatalogDetail";
 import { presentBookingPayment } from "../../src/payments/presentBookingPayment";
-import type { Booking, BookingStatus } from "../../src/types";
-import { colors } from "../../src/theme";
+import type { Booking, BookingStatus, ServiceCategory } from "../../src/types";
+import { colors, fonts } from "../../src/theme";
 
 const WEB_BOOKINGS_URL =
   process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/$/, "") || "https://ayurpass.com";
@@ -66,6 +69,11 @@ function BookingRow({
   const paying = pay.isPending || confirm.isPending;
   const canPay = booking.paymentStatus === "unpaid" && booking.status !== "CANCELLED";
 
+  const cat = booking.service?.category as ServiceCategory | undefined;
+  const color = colorForServiceCategory(cat);
+  const soft = softColorForServiceCategory(cat);
+  const label = cat ? SERVICE_CATEGORY_LABEL[cat] : "Session";
+
   async function openWebCheckout() {
     await Linking.openURL(`${WEB_BOOKINGS_URL}/dashboard/bookings`);
   }
@@ -95,7 +103,6 @@ function BookingRow({
         return;
       }
 
-      // Native sheet unavailable (Expo Go / web) — fall back to browser checkout.
       const modeHint =
         paymentMode.data?.mock === false
           ? "Open web checkout to pay securely with Stripe."
@@ -121,14 +128,37 @@ function BookingRow({
   }
 
   return (
-    <View className="gap-2.5 rounded-2xl border border-hairline bg-surface p-4">
-      <View className="flex-row items-start justify-between">
-        <View className="flex-1 pr-3">
-          <Text className="font-body-semi text-base leading-[21px] text-forest" numberOfLines={2}>
+    <View
+      style={{
+        borderLeftWidth: 4,
+        borderLeftColor: color,
+        backgroundColor: soft,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: colors.hairline,
+        padding: 16,
+        gap: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <View style={{ flex: 1, paddingRight: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <View style={{ backgroundColor: color, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+              <Text style={{ fontSize: 10, fontFamily: fonts.bodySemi, color: colors.white, textTransform: "uppercase" }}>
+                {label}
+              </Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.forest, lineHeight: 22 }} numberOfLines={2}>
             {booking.service?.name ?? "Session"}
           </Text>
           {booking.provider ? (
-            <Text className="mt-0.5 font-body text-[13px] text-ink-secondary">
+            <Text style={{ marginTop: 2, fontSize: 13, fontFamily: fonts.body, color: colors.inkSecondary }}>
               {booking.provider.businessName}
             </Text>
           ) : null}
@@ -138,10 +168,10 @@ function BookingRow({
         </Badge>
       </View>
 
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-1.5">
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Ionicons name="calendar-outline" size={14} color={colors.inkMuted} />
-          <Text className="font-body text-[13px] text-ink-secondary">
+          <Text style={{ fontSize: 13, fontFamily: fonts.body, color: colors.inkSecondary }}>
             {formatWhen(booking.startTime)}
           </Text>
         </View>
@@ -149,30 +179,30 @@ function BookingRow({
         {booking.status !== "CANCELLED" ? (
           <Pressable
             onPress={() => void openGoogleCalendar(booking)}
-            className="flex-row items-center gap-1 active:opacity-70"
+            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             hitSlop={8}
           >
             <Ionicons name="calendar" size={14} color={colors.leaf} />
-            <Text className="font-body-medium text-xs text-leaf">Add to Calendar</Text>
+            <Text style={{ fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.leaf }}>Add to Calendar</Text>
           </Pressable>
         ) : null}
       </View>
 
-      <View className="flex-row items-center justify-between border-t border-hairline pt-3">
-        <Text className="font-body-semi text-base text-foreground">
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 10, marginTop: 2 }}>
+        <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.foreground }}>
           {formatMoney(booking.totalAmount, booking.service?.currency || "AUD")}
         </Text>
         {booking.paymentStatus === "paid" ? (
-          <View className="flex-row items-center gap-1">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Ionicons name="checkmark-circle" size={16} color={colors.leaf} />
-            <Text className="font-body-medium text-[13px] text-leaf">Paid</Text>
+            <Text style={{ fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.leaf }}>Paid</Text>
           </View>
         ) : canPay ? (
           <Button
             title="Pay now"
             onPress={onPay}
             loading={paying}
-            style={{ paddingVertical: 9, paddingHorizontal: 18 }}
+            style={{ paddingVertical: 8, paddingHorizontal: 16 }}
           />
         ) : null}
       </View>
@@ -205,9 +235,10 @@ export default function Bookings() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -216,69 +247,94 @@ export default function Bookings() {
           />
         }
       >
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Display>My Bookings</Display>
-            <Body muted className="mt-0.5 text-[13px]">
-              Manage your upcoming sessions and treatment passes
-            </Body>
-          </View>
-          <HeaderLogo />
-        </View>
-
-        {/* Filter Segmented Control */}
-        <View className="mt-4 flex-row rounded-full border border-hairline bg-surface p-1 shadow-xs">
-          {(["upcoming", "past", "all"] as const).map((t) => {
-            const active = tab === t;
-            return (
-              <Pressable
-                key={t}
-                onPress={() => setTab(t)}
-                className={`flex-1 items-center justify-center rounded-full py-2 ${
-                  active ? "bg-forest" : ""
-                }`}
-              >
-                <Text
-                  className={`font-body-semi text-[13px] capitalize ${
-                    active ? "text-white" : "text-ink-secondary"
-                  }`}
-                >
-                  {t}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View className="mt-4">
-          <OfflineBanner
-            error={errMsg}
-            onRetry={() => void refetch()}
-            retrying={isRefetching}
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
+          <LinearGradient
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-          {isLoading && !data ? (
-            <Loading label="Loading your sessions…" />
-          ) : filteredBookings.length === 0 && !errMsg ? (
-            <EmptyState
-              title={tab === "upcoming" ? "No upcoming bookings" : "No bookings found"}
-              body={
-                tab === "upcoming"
-                  ? "Explore top practitioners and book your next session."
-                  : "Your session history will appear here."
-              }
-            />
-          ) : (
-            <View className="gap-3">
-              {filteredBookings.map((b) => (
-                <BookingRow
-                  key={b.id}
-                  booking={b}
-                  userId={user?.id}
-                  onSettled={() => void refetch()}
-                />
-              ))}
+
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <View>
+              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+                AyurPass Sessions 🗓️
+              </Text>
+              <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
+                My <Text style={{ color: colors.goldSoft }}>bookings</Text>
+              </Text>
             </View>
-          )}
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
+              <Ionicons name="bookmark-outline" size={22} color={colors.goldSoft} />
+            </View>
+          </View>
+        </View>
+
+        {/* Content Container */}
+        <View style={{ marginTop: -12, paddingHorizontal: 20 }}>
+          {/* Filter Segmented Control */}
+          <View style={{ flexDirection: "row", borderRadius: 999, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 4 }}>
+            {(["upcoming", "past", "all"] as const).map((t) => {
+              const active = tab === t;
+              return (
+                <Pressable
+                  key={t}
+                  onPress={() => setTab(t)}
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 999,
+                    paddingVertical: 8,
+                    backgroundColor: active ? colors.forest : "transparent",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontFamily: fonts.bodySemi,
+                      textTransform: "capitalize",
+                      color: active ? colors.white : colors.inkSecondary,
+                    }}
+                  >
+                    {t}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={{ marginTop: 14 }}>
+            <OfflineBanner
+              error={errMsg}
+              onRetry={() => void refetch()}
+              retrying={isRefetching}
+            />
+            {isLoading && !data ? (
+              <Loading label="Loading your sessions…" />
+            ) : filteredBookings.length === 0 && !errMsg ? (
+              <EmptyState
+                title={tab === "upcoming" ? "No upcoming bookings" : "No bookings found"}
+                body={
+                  tab === "upcoming"
+                    ? "Explore top practitioners and book your next session."
+                    : "Your session history will appear here."
+                }
+              />
+            ) : (
+              <View style={{ gap: 12 }}>
+                {filteredBookings.map((b) => (
+                  <BookingRow
+                    key={b.id}
+                    booking={b}
+                    userId={user?.id}
+                    onSettled={() => void refetch()}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "../../src/components/ui";
-import { HeaderLogo } from "../../src/components/HeaderLogo";
 import { DoshaMeterGroup } from "../../src/components/DoshaMeter";
 import { useAuth } from "../../src/auth";
 import { api, ApiError } from "../../src/api";
@@ -24,7 +23,7 @@ import { useHealthProfile, useLoyalty } from "../../src/hooks/useProfileExtras";
 import type { Dosha } from "../../src/dosha";
 import type { HealthProfile } from "../../src/types";
 import { isPracticeRole, isStaffRole, roleLabel } from "../../src/persona";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 function toScores(p: HealthProfile): { vata: number; pitta: number; kapha: number; primary: Dosha } {
   const vata = Number(p.vataScore ?? 0);
@@ -52,20 +51,26 @@ function Row({
     <Pressable
       onPress={onPress}
       className="min-h-[52px] flex-row items-center gap-3 border-b border-hairline px-4 py-3.5 active:opacity-85"
+      style={{
+        minHeight: 52,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.hairline,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+      }}
     >
-      <View className="h-8 w-8 items-center justify-center rounded-[10px] bg-system-blue/10">
-        <Ionicons name={icon} size={18} color={colors.systemBlue} />
+      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 10, backgroundColor: "rgba(47,90,68,0.12)" }}>
+        <Ionicons name={icon} size={18} color={colors.forest} />
       </View>
-      <Text className="flex-1 font-body-semi text-base text-foreground">{label}</Text>
+      <Text style={{ flex: 1, fontSize: 16, fontFamily: fonts.bodySemi, color: colors.foreground }}>{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
     </Pressable>
   );
 }
 
-/**
- * Neo-minimal consumer profile — immersive gradient hero, status ring avatar,
- * soft cards (mirrors web ProfileThemeScope vibe). NativeWind + Query.
- */
 export default function Profile() {
   const { user, logout, refreshProfile } = useAuth();
   const router = useRouter();
@@ -196,35 +201,33 @@ export default function Profile() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
-        <View className="min-h-[220px] overflow-hidden pb-7">
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", paddingBottom: 28 }}>
           <LinearGradient
-            colors={[colors.forest, colors.leaf, colors.goldSoft]}
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="absolute inset-0 opacity-95"
-            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.95 }}
+            style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-          <View className="w-full flex-row justify-end px-4 pt-2 z-10">
-            <HeaderLogo />
-          </View>
-          <View className="items-center pt-2" style={{ paddingHorizontal: pad }}>
+
+          <View style={{ paddingHorizontal: pad, paddingTop: 20, alignItems: "center" }}>
             <Pressable
               onPress={openAvatarOptions}
               disabled={avatarBusy}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo"
-              className="mb-1.5 h-[104px] w-[104px] rounded-full bg-white/35 p-1 active:opacity-90"
+              style={{ position: "relative", marginBottom: 8, height: 104, width: 104, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.25)", padding: 4 }}
             >
-              <View className="flex-1 items-center justify-center overflow-hidden rounded-full border-[3px] border-surface bg-surface">
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", overflow: "hidden", borderRadius: 999, borderWidth: 3, borderColor: colors.surface, backgroundColor: colors.surface }}>
                 {avatarUri ? (
-                  <Image source={{ uri: avatarUri }} className="h-full w-full" />
+                  <Image source={{ uri: avatarUri }} style={{ height: "100%", width: "100%" }} />
                 ) : (
-                  <Text className="font-display text-[28px] text-forest">{initials}</Text>
+                  <Text style={{ fontSize: 28, fontFamily: fonts.display, color: colors.forest }}>{initials}</Text>
                 )}
               </View>
-              <View className="absolute bottom-0.5 right-0.5 h-7 w-7 items-center justify-center rounded-full border border-black/5 bg-surface">
+              <View style={{ position: "absolute", bottom: 2, right: 2, height: 28, width: 28, alignItems: "center", justifyContent: "center", borderRadius: 999, borderWidth: 1, borderColor: "rgba(0,0,0,0.1)", backgroundColor: colors.surface }}>
                 <Ionicons
                   name={avatarBusy ? "hourglass-outline" : "camera"}
                   size={14}
@@ -232,25 +235,25 @@ export default function Profile() {
                 />
               </View>
             </Pressable>
-            <Text className="mb-2.5 font-body-medium text-xs text-white/80">
+            <Text style={{ marginBottom: 10, fontSize: 12, fontFamily: fonts.bodyMedium, color: "rgba(255,255,255,0.8)" }}>
               {avatarBusy ? "Saving…" : "Tap to change photo"}
             </Text>
-            <View className="max-w-[90%] flex-row items-center gap-2">
-              <Text className="shrink font-display text-[26px] text-white" numberOfLines={1}>
+            <View style={{ maxWidth: "90%", flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white }} numberOfLines={1}>
                 {user?.fullName ?? "Wellness seeker"}
               </Text>
-              <View className="rounded-full bg-white/20 px-2 py-0.5">
-                <Text className="font-body-semi text-[10px] uppercase tracking-wide text-white">
+              <View style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ fontSize: 10, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 0.5, color: colors.white }}>
                   {roleLabel(user?.role)}
                 </Text>
               </View>
             </View>
-            <Text className="mt-1 font-body-medium text-sm text-white/85" numberOfLines={1}>
+            <Text style={{ marginTop: 4, fontSize: 14, fontFamily: fonts.bodyMedium, color: "rgba(255,255,255,0.85)" }} numberOfLines={1}>
               {user?.email}
             </Text>
             {scores ? (
-              <View className="mt-3 rounded-full bg-white/20 px-3 py-1.5">
-                <Text className="font-body-semi text-xs tracking-wide text-white">
+              <View style={{ marginTop: 12, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 6 }}>
+                <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, letterSpacing: 0.5, color: colors.white }}>
                   Energy · {scores.primary.charAt(0).toUpperCase() + scores.primary.slice(1)}
                 </Text>
               </View>
@@ -264,23 +267,23 @@ export default function Profile() {
               colors={[colors.forest, "#2a4a3c"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              className="flex-row items-center justify-between rounded-lg p-[18px]"
               style={{
                 borderRadius: 22,
                 padding: 18,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
+                elevation: 4,
               }}
             >
               <View>
-                <Text className="font-body-semi text-[11px] uppercase tracking-widest text-gold-soft">
+                <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 1, color: colors.goldSoft }}>
                   AyurPass Rewards
                 </Text>
-                <Text className="mt-1 font-display text-[28px] text-white">
+                <Text style={{ marginTop: 4, fontSize: 28, fontFamily: fonts.display, color: colors.white }}>
                   {loyalty.pointsBalance} pts
                 </Text>
-                <Text className="mt-0.5 font-body-medium text-sm text-white/80">
+                <Text style={{ marginTop: 2, fontSize: 14, fontFamily: fonts.bodyMedium, color: "rgba(255,255,255,0.8)" }}>
                   {loyalty.tier} tier
                 </Text>
               </View>
@@ -290,7 +293,7 @@ export default function Profile() {
 
           {scores ? (
             <Card className="mt-3.5">
-              <Text className="mb-3 font-body-semi text-xs uppercase tracking-widest text-ink-muted">
+              <Text style={{ marginBottom: 12, fontSize: 12, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 1, color: colors.inkMuted }}>
                 Dosha balance
               </Text>
               <DoshaMeterGroup
@@ -303,12 +306,22 @@ export default function Profile() {
           ) : (
             <Pressable
               onPress={() => router.push("/assessment")}
-              className="mt-3.5 flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 active:opacity-90"
+              style={{
+                marginTop: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                backgroundColor: colors.surface,
+                padding: 16,
+              }}
             >
               <Ionicons name="compass-outline" size={22} color={colors.forest} />
-              <View className="flex-1">
-                <Text className="font-body-semi text-base text-forest">Free energy quiz</Text>
-                <Text className="mt-0.5 font-body text-[13px] text-ink-muted">
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.forest }}>Free energy quiz</Text>
+                <Text style={{ marginTop: 2, fontSize: 13, fontFamily: fonts.body, color: colors.inkMuted }}>
                   Optional — maps how you feel day to day
                 </Text>
               </View>
@@ -316,7 +329,7 @@ export default function Profile() {
             </Pressable>
           )}
 
-          <Card className="mt-3.5 overflow-hidden rounded-2xl p-0">
+          <Card className="mt-3.5 overflow-hidden rounded-2xl p-0" style={{ marginTop: 14, borderRadius: 20, overflow: "hidden", padding: 0 }}>
             <Row icon="calendar-outline" label="Calendar" onPress={() => router.push("/(tabs)/calendar")} />
             <Row icon="list-outline" label="All bookings" onPress={() => router.push("/(tabs)/bookings")} />
             <Row icon="gift-outline" label="Offers & deals" onPress={() => router.push("/(tabs)/offers")} />
@@ -357,8 +370,8 @@ export default function Profile() {
             ) : null}
           </Card>
 
-          <Pressable onPress={confirmLogout} className="mt-6 items-center py-3.5 active:opacity-70">
-            <Text className="font-body-semi text-base text-danger">Sign out</Text>
+          <Pressable onPress={confirmLogout} style={{ marginTop: 24, alignItems: "center", paddingVertical: 14 }}>
+            <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.danger }}>Sign out</Text>
           </Pressable>
         </View>
       </ScrollView>

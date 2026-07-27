@@ -15,7 +15,7 @@ import { ServiceCard } from "../../src/components/ServiceCard";
 import { formatAddress, PROVIDER_TYPE_ICON, PROVIDER_TYPE_LABEL } from "../../src/catalog";
 import { useProviderDetail, useProviderJobs, useProviderServices } from "../../src/hooks/useCatalogDetail";
 import { ProviderMapView } from "../../src/components/ProviderMapView";
-import { colors } from "../../src/theme";
+import { colors, fonts } from "../../src/theme";
 
 type TabId = "about" | "services" | "jobs";
 
@@ -78,18 +78,39 @@ export default function ProviderDetail() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
+    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["bottom"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        <View className="min-h-[200px] pb-7 pt-6">
+        {/* Hero Header Banner */}
+        <View style={{ position: "relative", overflow: "hidden", minHeight: 220, paddingBottom: 28, paddingTop: 16 }}>
           <LinearGradient
-            colors={[colors.forest, colors.leaf, "#4a6b58"]}
+            colors={[colors.forestDeep, colors.forest, colors.leaf]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
           />
-          <View className="items-center" style={{ paddingHorizontal: pad }}>
-            <View className="mb-3.5 h-[88px] w-[88px] rounded-full bg-white/25 p-1">
-              <View className="flex-1 items-center justify-center rounded-full bg-forest-deep">
+
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              position: "absolute",
+              left: 16,
+              top: 16,
+              zIndex: 20,
+              height: 36,
+              width: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.2)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="chevron-back" size={20} color={colors.white} />
+          </Pressable>
+
+          <View style={{ alignItems: "center", paddingHorizontal: pad, paddingTop: 8 }}>
+            <View style={{ marginBottom: 14, height: 88, width: 88, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.25)", padding: 4 }}>
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.forestDeep }}>
                 <Ionicons
                   name={PROVIDER_TYPE_ICON[provider.type]}
                   size={32}
@@ -97,20 +118,20 @@ export default function ProviderDetail() {
                 />
               </View>
             </View>
-            <View className="max-w-[92%] flex-row items-center justify-center gap-2">
+            <View style={{ maxWidth: "92%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <Text
-                className="shrink text-center font-display text-2xl text-white"
+                style={{ textAlign: "center", fontFamily: fonts.display, fontSize: 24, color: colors.white }}
                 numberOfLines={2}
               >
                 {provider.businessName}
               </Text>
               {verified ? <VerifiedTick size={22} /> : null}
             </View>
-            <Text className="mt-1.5 font-body-semi text-[15px] text-white/90">{typeLabel}</Text>
+            <Text style={{ marginTop: 6, fontFamily: fonts.bodySemi, fontSize: 15, color: "rgba(255,255,255,0.9)" }}>{typeLabel}</Text>
             {location ? (
-              <View className="mt-2 max-w-[90%] flex-row items-center gap-1">
+              <View style={{ marginTop: 8, maxWidth: "90%", flexDirection: "row", alignItems: "center", gap: 4 }}>
                 <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.85)" />
-                <Text className="font-body-medium text-[13px] text-white/85" numberOfLines={1}>
+                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 13, color: "rgba(255,255,255,0.85)" }} numberOfLines={1}>
                   {location}
                 </Text>
               </View>
@@ -119,10 +140,21 @@ export default function ProviderDetail() {
             {hasJobs ? (
               <Pressable
                 onPress={() => setTab("jobs")}
-                className="mt-3 flex-row items-center gap-1.5 rounded-full border border-gold-soft/40 bg-gold-soft/20 px-3.5 py-1 active:opacity-90"
+                style={{
+                  marginTop: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: "rgba(233,217,184,0.4)",
+                  backgroundColor: "rgba(233,217,184,0.2)",
+                  paddingHorizontal: 14,
+                  paddingVertical: 4,
+                }}
               >
                 <Ionicons name="briefcase-outline" size={14} color={colors.goldSoft} />
-                <Text className="font-body-semi text-xs uppercase tracking-wider text-gold-soft">
+                <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, color: colors.goldSoft }}>
                   WE'RE HIRING · {jobs.length} OPEN {jobs.length === 1 ? "POSITION" : "POSITIONS"}
                 </Text>
               </Pressable>
@@ -131,21 +163,29 @@ export default function ProviderDetail() {
         </View>
 
         <View style={{ paddingHorizontal: pad, marginTop: 14 }}>
-          <View className="flex-row gap-1 rounded-full bg-clay p-1">
+          <View style={{ flexDirection: "row", gap: 4, borderRadius: 999, backgroundColor: colors.clay, padding: 4 }}>
             {tabs.map((t) => {
               const active = tab === t.id;
               return (
                 <Pressable
                   key={t.id}
                   onPress={() => setTab(t.id)}
-                  className={`min-h-10 flex-1 items-center justify-center rounded-full py-2.5 ${
-                    active ? "bg-surface" : ""
-                  }`}
+                  style={{
+                    minHeight: 40,
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 999,
+                    paddingVertical: 8,
+                    backgroundColor: active ? colors.surface : "transparent",
+                  }}
                 >
                   <Text
-                    className={`font-body-semi text-sm ${
-                      active ? "text-forest" : "text-ink-muted"
-                    }`}
+                    style={{
+                      fontFamily: fonts.bodySemi,
+                      fontSize: 14,
+                      color: active ? colors.forest : colors.inkMuted,
+                    }}
                   >
                     {t.label}
                     {"count" in t && t.count != null ? ` (${t.count})` : ""}
@@ -156,9 +196,9 @@ export default function ProviderDetail() {
           </View>
 
           {tab === "about" ? (
-            <View className="mt-4 gap-3">
+            <View style={{ marginTop: 16, gap: 12 }}>
               {about ? (
-                <Body secondary className="text-base leading-6">
+                <Body secondary className="text-base leading-6" style={{ fontSize: 16, lineHeight: 24 }}>
                   {about}
                 </Body>
               ) : (
@@ -168,34 +208,34 @@ export default function ProviderDetail() {
                 />
               )}
               {(provider.registrationNumber || provider.licenceNumber) && (
-                <View className="gap-1.5 rounded-md border border-hairline bg-surface p-3.5">
+                <View style={{ gap: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.surface, padding: 14 }}>
                   {provider.registrationNumber ? (
-                    <Text className="font-body-medium text-sm text-ink-muted">
+                    <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.inkMuted }}>
                       Registration ·{" "}
-                      <Text className="font-body-semi text-foreground">
+                      <Text style={{ fontFamily: fonts.bodySemi, color: colors.foreground }}>
                         {provider.registrationNumber}
                       </Text>
                     </Text>
                   ) : null}
                   {provider.licenceNumber ? (
-                    <Text className="font-body-medium text-sm text-ink-muted">
+                    <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.inkMuted }}>
                       Licence ·{" "}
-                      <Text className="font-body-semi text-foreground">
+                      <Text style={{ fontFamily: fonts.bodySemi, color: colors.foreground }}>
                         {provider.licenceNumber}
                       </Text>
                     </Text>
                   ) : null}
                 </View>
               )}
-              <View className="mt-1 gap-2">
-                <Text className="font-body-semi text-xs uppercase tracking-widest text-ink-muted">
+              <View style={{ marginTop: 4, gap: 8 }}>
+                <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, textTransform: "uppercase", letterSpacing: 1, color: colors.inkMuted }}>
                   Location & Map
                 </Text>
                 <ProviderMapView singleProvider={provider} height={200} />
               </View>
 
               {provider.brandProfile?.tags && provider.brandProfile.tags.length > 0 ? (
-                <View className="flex-row flex-wrap gap-2">
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   {provider.brandProfile.tags.slice(0, 8).map((tag) => (
                     <Badge key={tag} tone="muted">
                       {tag}
@@ -207,7 +247,7 @@ export default function ProviderDetail() {
           ) : null}
 
           {tab === "services" ? (
-            <View className="mt-4 gap-3">
+            <View style={{ marginTop: 16, gap: 12 }}>
               {servicesQ.isLoading && services === null ? (
                 <Loading />
               ) : !services || services.length === 0 ? (
@@ -225,7 +265,7 @@ export default function ProviderDetail() {
           ) : null}
 
           {tab === "jobs" ? (
-            <View className="mt-4 gap-3">
+            <View style={{ marginTop: 16, gap: 12 }}>
               {jobsQ.isLoading ? (
                 <Loading />
               ) : jobs.length === 0 ? (
@@ -238,28 +278,39 @@ export default function ProviderDetail() {
                   <Pressable
                     key={job.id}
                     onPress={() => router.push(`/jobs/${job.id}`)}
-                    className="rounded-2xl border border-hairline bg-surface p-4 shadow-sm active:opacity-90"
+                    style={{
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: colors.hairline,
+                      backgroundColor: colors.surface,
+                      padding: 16,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 6,
+                      elevation: 2,
+                    }}
                   >
-                    <View className="flex-row items-center justify-between gap-2">
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                       <Badge tone="leaf">{job.category}</Badge>
-                      <Text className="font-body-semi text-xs uppercase text-leaf">
+                      <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, textTransform: "uppercase", color: colors.leaf }}>
                         {job.employmentType.replace("_", " ")}
                       </Text>
                     </View>
-                    <Text className="mt-2 font-display text-lg text-forest">{job.title}</Text>
-                    <Text className="mt-1 font-body text-sm text-ink-muted" numberOfLines={2}>
+                    <Text style={{ marginTop: 8, fontFamily: fonts.display, fontSize: 18, color: colors.forest }}>{job.title}</Text>
+                    <Text style={{ marginTop: 4, fontFamily: fonts.body, fontSize: 14, color: colors.inkMuted }} numberOfLines={2}>
                       {job.description}
                     </Text>
-                    <View className="mt-3 flex-row items-center justify-between border-t border-hairline pt-3">
-                      <Text className="font-body-semi text-sm color-forest">
+                    <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: 12 }}>
+                      <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: colors.forest }}>
                         {job.salaryMin
                           ? `${job.currency} $${job.salaryMin}${
                               job.salaryMax ? ` - $${job.salaryMax}` : "+"
                             }`
                           : "Competitive Salary"}
                       </Text>
-                      <View className="flex-row items-center gap-1 rounded-full bg-forest px-3 py-1.5">
-                        <Text className="font-body-semi text-xs text-white">Apply Now</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.forest, paddingHorizontal: 12, paddingVertical: 6 }}>
+                        <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, color: colors.white }}>Apply Now</Text>
                         <Ionicons name="chevron-forward" size={12} color="#fff" />
                       </View>
                     </View>
