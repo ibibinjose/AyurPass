@@ -192,7 +192,7 @@ export default function Register() {
 
     setBusy(true);
     try {
-      await register({
+      const profile = await register({
         fullName: fullName.trim(),
         email: email.trim(),
         password,
@@ -201,7 +201,13 @@ export default function Register() {
         country: countryName,
         countryCode,
       });
-      router.replace(config.postRegisterPath as "/");
+      
+      // Check if email verification is needed after registration
+      if (!profile.emailVerifiedAt) {
+        router.replace("/(auth)/verify-email-prompt");
+      } else {
+        router.replace(config.postRegisterPath as "/");
+      }
     } catch (err) {
       setError(
         err instanceof Error && err.message.toLowerCase().includes("exist")

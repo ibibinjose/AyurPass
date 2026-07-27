@@ -192,6 +192,10 @@ export const api = {
   refresh: (refreshToken: string) =>
     request<AuthTokens>("/auth/refresh", { method: "POST", body: { refreshToken } }),
   profile: () => request<UserProfile>("/auth/profile", { auth: true }),
+  verifyEmail: (token: string) =>
+    request<AuthResponse>("/auth/verify-email", { method: "POST", body: { token } }),
+  resendVerification: () =>
+    request<{ message: string }>("/auth/resend-verification", { method: "POST", auth: true }),
   updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
     request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
 

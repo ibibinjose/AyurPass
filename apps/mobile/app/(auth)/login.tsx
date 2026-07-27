@@ -35,8 +35,14 @@ export default function Login() {
 
     setBusy(true);
     try {
-      await login(email.trim(), password);
-      router.replace("/(tabs)");
+      const profile = await login(email.trim(), password);
+      // Check if email verification is needed
+      if (!profile.emailVerifiedAt) {
+        // Navigate to a verification screen or show a modal
+        router.push("/(auth)/verify-email-prompt");
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 401

@@ -161,9 +161,15 @@ export function createHttpClient(options: HttpClientOptions) {
     healthReady: () =>
       request<{ status: string; database: string }>(endpoints.healthReady, { public: true }),
     verifyEmail: (token: string) =>
-      request(endpoints.auth.verifyEmail, { method: "POST", body: { token } }, false),
+      request<AuthResponse>(endpoints.auth.verifyEmail, { method: "POST", body: { token } }, false),
     resendVerification: () =>
-      request(endpoints.auth.resendVerification, { method: "POST" }, false),
+      request<{ message: string }>(endpoints.auth.resendVerification, { method: "POST" }, false),
+    login: (email: string, password: string) =>
+      request<AuthResponse>(endpoints.auth.login, { method: "POST", body: { email, password } }, false),
+    register: (payload: any) =>
+      request<AuthResponse>(endpoints.auth.register, { method: "POST", body: payload }, false),
+    socialAuth: (provider: 'google' | 'apple', payload: any) =>
+      request<AuthResponse>(endpoints.auth.social(provider), { method: "POST", body: payload }, false),
   };
 }
 

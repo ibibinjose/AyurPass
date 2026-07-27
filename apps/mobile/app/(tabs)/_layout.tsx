@@ -52,30 +52,32 @@ function TabBarIcon({
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const bottom = Math.max(insets.bottom, Platform.OS === "android" ? 10 : 6);
+  const bottom = Math.max(insets.bottom, Platform.OS === "android" ? 12 : 8);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: false,  // Disable built-in labels to prevent duplication
         tabBarActiveTintColor: colors.forest,
         tabBarInactiveTintColor: colors.inkMuted,
+        // Prevent any scroll / arrow indicators
+        tabBarScrollEnabled: false,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.hairline,
           borderTopWidth: Platform.OS === "ios" ? 0.5 : 1,
-          height: 64 + bottom,
-          paddingTop: 8,
+          height: 68 + bottom,
+          paddingTop: 10,
           paddingBottom: bottom,
-          elevation: 8,
+          elevation: 12,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 6,
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
         tabBarItemStyle: {
-          minHeight: 52,
+          flex: 1,
           justifyContent: "center",
           alignItems: "center",
         },
@@ -91,21 +93,6 @@ export default function TabsLayout() {
               name="compass-outline"
               focusedName="compass"
               title="Discover"
-              focused={focused}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name="sparkles-outline"
-              focusedName="sparkles"
-              title="Explore"
               focused={focused}
               color={color}
             />
@@ -140,13 +127,6 @@ export default function TabsLayout() {
               color={color}
             />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="offers"
-        options={{
-          href: null,
-          title: "Offers",
         }}
       />
       <Tabs.Screen

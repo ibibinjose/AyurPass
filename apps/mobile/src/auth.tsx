@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, tokenStore } from "./api";
 import type { RegisterPayload, UserProfile } from "./types";
+import { Alert } from "react-native"; // Added for showing verification alerts
 
 interface AuthContextValue {
   user: UserProfile | null;
@@ -54,6 +55,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await tokenStore.set(res);
     const profile = await api.profile();
     setUser(profile);
+    
+    // Check if email verification is needed
+    if (res.needsEmailVerification) {
+      // Show alert to inform user about email verification requirement
+      Alert.alert(
+        "Email Verification Needed",
+        "Please verify your email address before continuing. Check your inbox for a verification link.",
+        [{ text: "OK" }]
+      );
+    }
+    
     return profile;
   }, []);
 
@@ -62,6 +74,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await tokenStore.set(res);
     const profile = await api.profile();
     setUser(profile);
+    
+    // Check if email verification is needed after registration
+    if (res.needsEmailVerification) {
+      // Show alert to inform user about email verification requirement
+      Alert.alert(
+        "Email Verification Needed",
+        "Please verify your email address before continuing. Check your inbox for a verification link.",
+        [{ text: "OK" }]
+      );
+    }
+    
     return profile;
   }, []);
 

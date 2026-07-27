@@ -458,7 +458,16 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
-export type AuthResponse = AuthTokens & { user: User };
+export interface AuthResponse {
+  message: string;
+  success: boolean;
+  user?: any;
+  tokens?: AuthTokens;
+  needsEmailVerification?: boolean;
+  emailVerificationSent?: boolean;
+}
+
+export type AuthResponseSimple = AuthTokens & { user: User };
 
 export interface RegisterPayload {
   email: string;
