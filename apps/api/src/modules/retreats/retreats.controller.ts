@@ -20,10 +20,14 @@ import {
 } from '../../dtos/retreat.dto';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
+import { AmplitudeService } from '../../amplitude/amplitude.service';
 
 @Controller('retreats')
 export class RetreatsController {
-  constructor(private readonly service: RetreatsService) {}
+  constructor(
+    private readonly service: RetreatsService,
+    private readonly amplitude: AmplitudeService,
+  ) {}
 
   @Public()
   @Get()
@@ -68,8 +72,14 @@ export class RetreatsController {
   }
 
   @Post()
-  create(@Req() req: AuthedRequest, @Body() dto: CreateRetreatDto) {
-    return this.service.create(req.user.sub, dto);
+  async create(@Req() req: AuthedRequest, @Body() dto: CreateRetreatDto) {
+    const result = await this.service.create(req.user.sub, dto);
+    this.amplitude.track(req.user.sub, 'Retreat Created', {
+      retreat_id: result.id,
+      category: result.category,
+      duration_days: result.durationDays,
+    });
+    return result;
   }
 
   @Put(':id')

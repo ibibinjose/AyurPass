@@ -8,6 +8,7 @@ import { StripeService } from './stripe.service';
 import { PaymentSettlementService } from './payment-settlement.service';
 import { StripeConnectService } from './stripe-connect.service';
 import type { PaymentIntentPayload, RedemptionInput, Settlement } from './payment.types';
+import { AmplitudeService } from '../../amplitude/amplitude.service';
 
 export type { RedemptionInput, PaymentIntentPayload } from './payment.types';
 
@@ -19,6 +20,7 @@ export class PaymentsService {
     private stripe: StripeService,
     private settlement: PaymentSettlementService,
     private connect: StripeConnectService,
+    private amplitude: AmplitudeService,
   ) {}
 
   get mockMode(): boolean {
@@ -69,6 +71,14 @@ export class PaymentsService {
       redemption,
       `Booking ${booking.id.slice(0, 8)}`,
     );
+
+    this.amplitude.track(booking.consumerId, 'Booking Payment Initiated', {
+      booking_id: bookingId,
+      total_amount: Number(booking.totalAmount ?? 0),
+      card_charge: settled.cardCharge,
+      gift_card_applied: settled.giftCardApplied,
+      points_redeemed: settled.pointsRedeemed,
+    });
 
     if (settled.cardCharge === 0) {
       const updated = await this.settlement.markBookingPaid(
@@ -156,7 +166,15 @@ export class PaymentsService {
       );
     }
 
-    return this.settlement.markBookingPaid(bookingId, settled, booking.paymentIntentId);
+    const paid = await this.settlement.markBookingPaid(bookingId, settled, booking.paymentIntentId);
+    this.amplitude.track(booking.consumerId, 'Booking Paid', {
+      booking_id: bookingId,
+      total_amount: settled.total,
+      card_charge: settled.cardCharge,
+      points_earned: settled.pointsEarned,
+      payment_method: 'stripe',
+    });
+    return paid;
   }
 
   async refund(bookingId: string) {
@@ -173,11 +191,16 @@ export class PaymentsService {
       );
     }
 
-    return this.prisma.booking.update({
+    const refunded = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { paymentStatus: 'refunded' },
       include: { service: true, room: true },
     });
+    this.amplitude.track(booking.consumerId, 'Booking Refunded', {
+      booking_id: bookingId,
+      total_amount: Number(booking.totalAmount ?? 0),
+    });
+    return refunded;
   }
 
   async checkoutOrder(orderId: string, redemption: RedemptionInput = {}) {
@@ -311,7 +334,15 @@ export class PaymentsService {
       );
     }
 
-    return this.settlement.markOrderPaid(orderId, settled, order.paymentIntentId);
+    const paid = await this.settlement.markOrderPaid(orderId, settled, order.paymentIntentId);
+    this.amplitude.track(order.consumerId, 'Order Paid', {
+      order_id: orderId,
+      total_amount: settled.total,
+      card_charge: settled.cardCharge,
+      points_earned: settled.pointsEarned,
+      payment_method: 'stripe',
+    });
+    return paid;
   }
 
   async refundOrder(orderId: string) {
@@ -328,11 +359,16 @@ export class PaymentsService {
       );
     }
 
-    return this.prisma.order.update({
+    const refunded = await this.prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus: 'refunded', status: 'REFUNDED' },
       include: { items: { include: { product: true } } },
     });
+    this.amplitude.track(order.consumerId, 'Order Refunded', {
+      order_id: orderId,
+      total_amount: Number(order.subtotal ?? 0),
+    });
+    return refunded;
   }
 
   connectOnboard(providerId: string, returnUrl: string, refreshUrl: string, country?: string) {
@@ -395,11 +431,17 @@ export class PaymentsService {
       const account = event.data.object as Stripe.Account;
       const provider = await this.prisma.provider.findFirst({
         where: { stripeAccountId: account.id },
-        select: { id: true },
+        select: { id: true, userId: true },
       });
       if (provider) {
         const connected = Boolean(account.charges_enabled && account.payouts_enabled);
         await this.connect.syncStripeIntegration(provider.id, account.id, connected);
+        if (connected && provider.userId) {
+          this.amplitude.track(provider.userId, 'Provider Connect Onboarded', {
+            provider_id: provider.id,
+            stripe_account_id: account.id,
+          });
+        }
         return { handled: true, type: event.type, providerId: provider.id, connected };
       }
       return { handled: false, type: event.type };
@@ -538,7 +580,13 @@ export class PaymentsService {
     }
 
     const trxId = posTransactionId || `pos_b_${bookingId.slice(0, 8)}_${Date.now()}`;
-    return this.settlement.markBookingPaid(bookingId, settled, trxId, paymentMethod, trxId);
+    const result = await this.settlement.markBookingPaid(bookingId, settled, trxId, paymentMethod, trxId);
+    this.amplitude.track(booking.consumerId, 'Counter Payment Recorded', {
+      booking_id: bookingId,
+      total_amount: settled.total,
+      payment_method: paymentMethod,
+    });
+    return result;
   }
 
   async payOrderCounter(orderId: string, paymentMethod: PaymentMethod, posTransactionId?: string) {

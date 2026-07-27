@@ -1,0 +1,70 @@
+[
+  {
+    "name": "User Registered",
+    "description": "Fires when a new user completes registration via email or social login."
+  },
+  {
+    "name": "User Logged In",
+    "description": "Fires when a user successfully authenticates (email, Google, or Apple)."
+  },
+  {
+    "name": "Business Listed",
+    "description": "Fires when a provider submits a new free or booking-tier directory listing."
+  },
+  {
+    "name": "Email Verified",
+    "description": "Fires when a user successfully verifies their email address via token."
+  },
+  {
+    "name": "Password Reset Completed",
+    "description": "Fires when a user successfully resets their password using a reset token."
+  },
+  {
+    "name": "Booking Created",
+    "description": "Fires when a consumer creates a new appointment booking."
+  },
+  {
+    "name": "Booking Payment Initiated",
+    "description": "Fires when a user triggers checkout for a booking, creating a Stripe payment intent."
+  },
+  {
+    "name": "Booking Paid",
+    "description": "Fires when a booking payment is confirmed as successful."
+  },
+  {
+    "name": "Booking Refunded",
+    "description": "Fires when a paid booking is refunded."
+  },
+  {
+    "name": "Counter Payment Recorded",
+    "description": "Fires when a provider records an in-person (counter) payment for a booking."
+  },
+  {
+    "name": "Order Created",
+    "description": "Fires when a consumer places a new product order."
+  },
+  {
+    "name": "Order Paid",
+    "description": "Fires when an order payment is confirmed as successful."
+  },
+  {
+    "name": "Order Refunded",
+    "description": "Fires when a paid order is refunded."
+  },
+  {
+    "name": "Enquiry Submitted",
+    "description": "Fires when a visitor submits an enquiry to a provider from their listing page."
+  },
+  {
+    "name": "Retreat Created",
+    "description": "Fires when a provider publishes a new retreat listing."
+  },
+  {
+    "name": "Provider Connect Onboarded",
+    "description": "Fires when a provider completes Stripe Connect onboarding and is payment-enabled."
+  },
+  {
+    "name": "Health Profile Saved",
+    "description": "Fires when a user saves or updates their dosha / health profile."
+  }
+]

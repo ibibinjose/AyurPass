@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
 import { calculateTaxForCountry } from '../payments/tax.utility';
+import { AmplitudeService } from '../../amplitude/amplitude.service';
 
 /** Marketplace commission on bookings (see docs/01-BUSINESS-STRATEGY.md: 15–22%). */
 const PLATFORM_COMMISSION_RATE = 0.18;
@@ -35,7 +36,10 @@ export type ProviderBookingQuery = {
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private amplitude: AmplitudeService,
+  ) {}
 
   /**
    * Prevent double-booking the same practitioner or room.
@@ -195,6 +199,14 @@ export class BookingsService {
     });
 
     await this.grantBookingHealthConsents(booking);
+
+    this.amplitude.track(booking.consumerId, 'Booking Created', {
+      booking_id: booking.id,
+      provider_id: booking.providerId,
+      service_id: booking.serviceId,
+      total_amount: Number(booking.totalAmount),
+      currency: 'AUD',
+    });
 
     return booking;
   }

@@ -1,4 +1,4 @@
-const { tailwindColors } = require("../../packages/shared/tokens.cjs");
+const { colors, tailwindColors } = require("../../packages/shared/tokens.cjs");
 const path = require("path");
 
 /** @type {import('tailwindcss').Config} */
@@ -12,6 +12,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ...colors,
         ...tailwindColors,
       },
       fontFamily: {

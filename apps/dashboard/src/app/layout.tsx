@@ -9,6 +9,8 @@ import { BRAND_ASSET_VERSION } from "@/lib/brand";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { DevEnvBanner } from "@/components/DevEnvBanner";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { AmplitudeInitializer } from "@/components/AmplitudeInitializer";
+
 import {
   DEFAULT_KEYWORDS,
   OG_LOCALES,
@@ -140,7 +142,9 @@ export default function RootLayout({
               <LocationProvider>
                 <DevEnvBanner />
                 <InstallPrompt />
+                <AmplitudeInitializer />
                 {children}
+
                 <LocationModal />
               </LocationProvider>
             </AuthProvider>

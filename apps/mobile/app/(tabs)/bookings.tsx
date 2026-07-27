@@ -184,6 +184,7 @@ function BookingRow({
 export default function Bookings() {
   const { user } = useAuth();
   const { data, error, isLoading, refetch, isRefetching } = useConsumerBookings(user?.id);
+  const [tab, setTab] = useState<"upcoming" | "past" | "all">("upcoming");
 
   useFocusEffect(
     useCallback(() => {
@@ -195,10 +196,18 @@ export default function Bookings() {
   const errMsg =
     error instanceof Error ? error.message : error ? "Couldn't load bookings." : null;
 
+  const now = new Date();
+  const filteredBookings = bookings.filter((b) => {
+    const bookingDate = new Date(b.startTime);
+    if (tab === "upcoming") return bookingDate >= now && b.status !== "CANCELLED";
+    if (tab === "past") return bookingDate < now || b.status === "COMPLETED" || b.status === "CANCELLED";
+    return true;
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -208,28 +217,59 @@ export default function Bookings() {
         }
       >
         <View className="flex-row items-center justify-between">
-          <Display>Bookings</Display>
+          <View>
+            <Display>My Bookings</Display>
+            <Body muted className="mt-0.5 text-[13px]">
+              Manage your upcoming sessions and treatment passes
+            </Body>
+          </View>
           <HeaderLogo />
         </View>
-        <Body muted className="mt-1 text-[14px]">
-          Upcoming and past sessions.
-        </Body>
-        <View className="mt-5">
+
+        {/* Filter Segmented Control */}
+        <View className="mt-4 flex-row rounded-full border border-hairline bg-surface p-1 shadow-xs">
+          {(["upcoming", "past", "all"] as const).map((t) => {
+            const active = tab === t;
+            return (
+              <Pressable
+                key={t}
+                onPress={() => setTab(t)}
+                className={`flex-1 items-center justify-center rounded-full py-2 ${
+                  active ? "bg-forest" : ""
+                }`}
+              >
+                <Text
+                  className={`font-body-semi text-[13px] capitalize ${
+                    active ? "text-white" : "text-ink-secondary"
+                  }`}
+                >
+                  {t}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View className="mt-4">
           <OfflineBanner
             error={errMsg}
             onRetry={() => void refetch()}
             retrying={isRefetching}
           />
           {isLoading && !data ? (
-            <Loading />
-          ) : bookings.length === 0 && !errMsg ? (
+            <Loading label="Loading your sessions…" />
+          ) : filteredBookings.length === 0 && !errMsg ? (
             <EmptyState
-              title="No bookings yet"
-              body="Explore sessions and book your first experience."
+              title={tab === "upcoming" ? "No upcoming bookings" : "No bookings found"}
+              body={
+                tab === "upcoming"
+                  ? "Explore top practitioners and book your next session."
+                  : "Your session history will appear here."
+              }
             />
-          ) : bookings.length === 0 ? null : (
+          ) : (
             <View className="gap-3">
-              {bookings.map((b) => (
+              {filteredBookings.map((b) => (
                 <BookingRow
                   key={b.id}
                   booking={b}

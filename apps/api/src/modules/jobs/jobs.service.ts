@@ -11,7 +11,7 @@ import {
   UpdateApplicationStatusDto,
   UpdateJobDto,
 } from './jobs.dto';
-import { Prisma, ServiceCategory } from '@prisma/client';
+import { Prisma, ServiceCategory, EmploymentType, JobStatus, ApplicationStatus } from '@prisma/client';
 
 @Injectable()
 export class JobsService {
@@ -37,7 +37,7 @@ export class JobsService {
     }
 
     if (query?.employmentType) {
-      where.employmentType = query.employmentType.toUpperCase() as any;
+      where.employmentType = query.employmentType.toUpperCase() as EmploymentType;
     }
 
     if (query?.locationType) {
@@ -174,7 +174,7 @@ export class JobsService {
         providerId: dto.providerId,
         title: dto.title.trim(),
         category: dto.category,
-        employmentType: (dto.employmentType as any) || 'FULL_TIME',
+        employmentType: (dto.employmentType as EmploymentType) || 'FULL_TIME',
         locationType: dto.locationType || 'on_site',
         city: dto.city?.trim() || null,
         country: dto.country?.trim() || null,
@@ -219,7 +219,7 @@ export class JobsService {
       data: {
         ...(dto.title && { title: dto.title.trim() }),
         ...(dto.category && { category: dto.category }),
-        ...(dto.employmentType && { employmentType: dto.employmentType as any }),
+        ...(dto.employmentType && { employmentType: dto.employmentType as EmploymentType }),
         ...(dto.locationType && { locationType: dto.locationType }),
         ...(dto.city !== undefined && { city: dto.city?.trim() || null }),
         ...(dto.country !== undefined && { country: dto.country?.trim() || null }),
@@ -228,7 +228,7 @@ export class JobsService {
         ...(dto.experienceYears !== undefined && { experienceYears: dto.experienceYears }),
         ...(dto.description && { description: dto.description.trim() }),
         ...(dto.requirements !== undefined && { requirements: dto.requirements?.trim() || null }),
-        ...(dto.status && { status: dto.status as any }),
+        ...(dto.status && { status: dto.status as JobStatus }),
         ...(dto.featured !== undefined && { featured: dto.featured }),
       },
     });
@@ -375,7 +375,7 @@ export class JobsService {
     return this.prisma.jobApplication.update({
       where: { id: applicationId },
       data: {
-        status: dto.status as any,
+        status: dto.status as ApplicationStatus,
         adminNotes: dto.adminNotes?.trim() || undefined,
       },
     });

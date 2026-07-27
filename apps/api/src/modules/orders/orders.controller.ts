@@ -8,18 +8,26 @@ import {
   assertOrderParty,
 } from '../../common/ownership';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AmplitudeService } from '../../amplitude/amplitude.service';
 
 @Controller('orders')
 export class OrdersController {
   constructor(
     private readonly service: OrdersService,
     private readonly prisma: PrismaService,
+    private readonly amplitude: AmplitudeService,
   ) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto, @Req() req: AuthedRequest) {
+  async create(@Body() createOrderDto: CreateOrderDto, @Req() req: AuthedRequest) {
     assertSelfOrAdmin(req.user, createOrderDto.consumerId);
-    return this.service.createOrder(createOrderDto);
+    const result = await this.service.createOrder(createOrderDto);
+    this.amplitude.track(createOrderDto.consumerId, 'Order Created', {
+      order_id: result.id,
+      provider_id: result.providerId,
+      item_count: Array.isArray(result.items) ? result.items.length : undefined,
+    });
+    return result;
   }
 
   @Get('consumer/:id')

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { AmplitudeModule } from './amplitude/amplitude.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
@@ -43,6 +44,7 @@ import { CacheModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
+    AmplitudeModule,
     CacheModule,
     MailModule,
     NotificationsModule,

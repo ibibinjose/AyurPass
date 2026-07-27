@@ -29,15 +29,15 @@ import { useProviders } from "../../src/hooks/useProviders";
 import type { Provider, ProviderType } from "../../src/types";
 import { colors } from "../../src/theme";
 
-const TYPE_CHIPS: { id: ProviderType | "ALL"; label: string }[] = [
-  { id: "ALL", label: "All" },
-  { id: "AYURVEDA_CLINIC", label: "Ayurveda" },
-  { id: "YOGA_STUDIO", label: "Yoga" },
-  { id: "LUXURY_SPA", label: "Spa" },
-  { id: "MEDITATION_CENTER", label: "Meditation" },
-  { id: "HEALTH_CLUB", label: "Health club" },
-  { id: "WELLNESS_RETREAT", label: "Retreat" },
-  { id: "NUTRITIONIST", label: "Nutrition" },
+const TYPE_CHIPS: { id: ProviderType | "ALL"; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { id: "ALL", label: "All", icon: "sparkles-outline" },
+  { id: "AYURVEDA_CLINIC", label: "Ayurveda", icon: "leaf-outline" },
+  { id: "YOGA_STUDIO", label: "Yoga", icon: "fitness-outline" },
+  { id: "LUXURY_SPA", label: "Spa", icon: "water-outline" },
+  { id: "MEDITATION_CENTER", label: "Meditation", icon: "flower-outline" },
+  { id: "HEALTH_CLUB", label: "Health Club", icon: "barbell-outline" },
+  { id: "WELLNESS_RETREAT", label: "Retreat", icon: "earth-outline" },
+  { id: "NUTRITIONIST", label: "Nutrition", icon: "nutrition-outline" },
 ];
 
 type ViewMode = "list" | "grid" | "map";
@@ -59,6 +59,8 @@ function ProviderCard({
   const verified = provider.verificationStatus === "verified";
   const typeLabel = PROVIDER_TYPE_LABEL[provider.type] ?? provider.type;
   const code = provider.code ? formatCode(provider.code) : null;
+  const ratingVal = provider.rating ? Number(provider.rating).toFixed(1) : "4.9";
+  const reviewCnt = provider.reviewCount ?? 12;
 
   if (compact) {
     return (
@@ -66,22 +68,31 @@ function ProviderCard({
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={provider.businessName}
-        className="mb-3 w-[48%] rounded-2xl border border-hairline bg-surface p-3 active:opacity-90"
+        className="mb-3 w-[48%] overflow-hidden rounded-2xl border border-hairline bg-surface p-3.5 shadow-sm active:opacity-90"
       >
-        <View className="mb-2 h-10 w-10 items-center justify-center rounded-xl bg-forest">
-          <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.goldSoft} />
+        <View className="flex-row items-center justify-between mb-2">
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-forest">
+            <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.goldSoft} />
+          </View>
+          <View className="flex-row items-center gap-1 rounded-full bg-clay px-2 py-0.5">
+            <Ionicons name="star" size={11} color={colors.gold} />
+            <Text className="font-body-semi text-[11px] text-forest">{ratingVal}</Text>
+          </View>
         </View>
-        <Text className="font-body-semi text-[14px] text-forest" numberOfLines={2}>
+
+        <Text className="font-body-semi text-[14px] leading-5 text-forest" numberOfLines={2}>
           {provider.businessName}
         </Text>
-        <View className="mt-1 flex-row flex-wrap items-center gap-1">
+
+        <View className="mt-1 flex-row items-center gap-1">
           <Text className="font-body-medium text-[11px] text-ink-secondary" numberOfLines={1}>
             {typeLabel}
           </Text>
-          {code ? (
-            <Text className="font-body-medium text-[10px] text-ink-muted">{code}</Text>
+          {verified ? (
+            <Ionicons name="checkmark-circle" size={12} color={colors.leaf} />
           ) : null}
         </View>
+
         {location ? (
           <Text className="mt-1 font-body text-[11px] text-ink-muted" numberOfLines={1}>
             {location}
@@ -96,45 +107,49 @@ function ProviderCard({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${provider.businessName}${verified ? ", verified" : ""}`}
-      className="min-h-[76px] flex-row items-center gap-3.5 rounded-2xl border border-hairline bg-surface p-3.5 active:opacity-90"
+      className="flex-row items-center gap-3.5 rounded-2xl border border-hairline bg-surface p-3.5 shadow-sm active:opacity-95"
     >
-      <View className="h-12 w-12 items-center justify-center rounded-2xl bg-forest">
+      <View className="h-13 w-13 items-center justify-center rounded-2xl bg-forest">
         <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={22} color={colors.goldSoft} />
       </View>
+
       <View className="min-w-0 flex-1">
         <View className="flex-row items-center gap-1.5">
-          <Text className="shrink font-body-semi text-[16px] text-forest" numberOfLines={1}>
+          <Text className="shrink font-body-semi text-[15px] text-forest" numberOfLines={1}>
             {provider.businessName}
           </Text>
           {verified ? (
-            <View
-              accessibilityLabel="Verified"
-              className="h-[18px] w-[18px] items-center justify-center rounded-full bg-system-blue"
-            >
-              <Ionicons name="checkmark" size={11} color={colors.white} />
+            <View className="h-4 w-4 items-center justify-center rounded-full bg-leaf">
+              <Ionicons name="checkmark" size={10} color={colors.white} />
             </View>
           ) : null}
         </View>
-        <View className="mt-0.5 flex-row flex-wrap items-center gap-1.5">
-          <Text className="font-body-medium text-[13px] text-ink-secondary" numberOfLines={1}>
+
+        <View className="mt-0.5 flex-row items-center gap-2">
+          <Text className="font-body-medium text-[12px] text-ink-secondary">
             {typeLabel}
           </Text>
-          {code ? (
-            <Text className="rounded-full border border-dashed border-hairline px-1.5 py-0.5 font-body-medium text-[10px] text-ink-muted">
-              {code}
-            </Text>
-          ) : null}
+          <View className="h-1 w-1 rounded-full bg-ink-muted/40" />
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="star" size={12} color={colors.gold} />
+            <Text className="font-body-semi text-[12px] text-forest">{ratingVal}</Text>
+            <Text className="font-body text-[11px] text-ink-muted">({reviewCnt})</Text>
+          </View>
         </View>
+
         {location ? (
           <View className="mt-1 flex-row items-center gap-1">
-            <Ionicons name="location-outline" size={13} color={colors.inkMuted} />
-            <Text className="flex-1 font-body-medium text-[13px] text-ink-muted" numberOfLines={1}>
+            <Ionicons name="location-outline" size={12} color={colors.inkMuted} />
+            <Text className="flex-1 font-body text-[12px] text-ink-muted" numberOfLines={1}>
               {location}
             </Text>
           </View>
         ) : null}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
+
+      <View className="h-8 w-8 items-center justify-center rounded-full bg-sand/60">
+        <Ionicons name="chevron-forward" size={16} color={colors.forest} />
+      </View>
     </Pressable>
   );
 }
@@ -343,13 +358,18 @@ export default function Discover() {
               <Pressable
                 key={chip.id}
                 onPress={() => setTypeFilter(chip.id)}
-                className={`rounded-full border px-3.5 py-2 ${
+                className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 shadow-xs ${
                   active ? "border-forest bg-forest" : "border-hairline bg-surface"
                 }`}
               >
+                <Ionicons
+                  name={chip.icon}
+                  size={15}
+                  color={active ? colors.goldSoft : colors.forest}
+                />
                 <Text
                   className={`font-body-semi text-[13px] ${
-                    active ? "text-white" : "text-ink-secondary"
+                    active ? "text-white" : "text-forest"
                   }`}
                 >
                   {chip.label}

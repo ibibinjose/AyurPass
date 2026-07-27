@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ProviderType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AiSearchDto, SearchTypeFilter } from '../../dtos/search.dto';
 
@@ -7,13 +8,13 @@ export interface SearchResultItem {
   name: string;
   type: string;
   description: string | null;
-  doshaFocus: any;
+  doshaFocus: unknown;
   provider: {
     id: string;
     businessName: string;
     type: string;
     verificationStatus: string;
-    address: any;
+    address: unknown;
   };
 }
 
@@ -56,7 +57,7 @@ export class SearchService {
           { description: { contains: queryStr, mode: 'insensitive' } },
         ],
         ...(dto.type && dto.type !== SearchTypeFilter.ALL
-          ? { provider: { type: dto.type as any } }
+          ? { provider: { type: dto.type as ProviderType } }
           : {}),
       },
       include: {
@@ -81,7 +82,7 @@ export class SearchService {
           { description: { contains: queryStr, mode: 'insensitive' } },
         ],
         ...(dto.type && dto.type !== SearchTypeFilter.ALL
-          ? { provider: { type: dto.type as any } }
+          ? { provider: { type: dto.type as ProviderType } }
           : {}),
       },
       include: {
