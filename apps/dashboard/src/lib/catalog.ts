@@ -50,7 +50,7 @@ export const CATEGORY_TAG_CLASS: Record<ServiceCategory, string> = {
   SPA: "bg-gold-soft text-forest",
   MEDITATION: "bg-clay text-forest",
   FITNESS: "bg-forest text-white",
-  NUTRITION: "bg-leaf/15 text-forest",
+  NUTRITION: "bg-forest text-white",
   COACHING: "bg-gold-soft text-forest",
   CONSULTATION: "bg-gold-soft text-forest",
   PACKAGE: "bg-forest text-white",

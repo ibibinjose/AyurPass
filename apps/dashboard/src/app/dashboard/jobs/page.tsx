@@ -266,16 +266,16 @@ export default function JobsPage() {
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center rounded-full bg-forest-50 px-2.5 py-0.5 text-xs font-semibold text-forest-700">
+                    <span className="inline-flex items-center rounded-full bg-forest px-2.5 py-0.5 text-xs font-semibold text-white">
                       {job.category}
                     </span>
                     <span className="inline-flex items-center rounded-full bg-clay px-2.5 py-0.5 text-xs font-medium text-ink-muted">
                       {job.employmentType.replace("_", " ")}
                     </span>
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
                         job.status === "OPEN"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          ? "bg-emerald-700 text-white shadow-2xs"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >

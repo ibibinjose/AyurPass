@@ -113,15 +113,15 @@ export function LikeDislikeBar({
       ? `inline-flex h-9 min-w-9 items-center justify-center gap-1 rounded-full border px-2.5 text-xs font-bold tabular-nums transition-colors ${
           active
             ? danger
-              ? "border-red-200 bg-red-50 text-red-700 shadow-sm"
-              : "border-leaf/40 bg-leaf/15 text-forest shadow-sm"
+              ? "border-red-200 bg-red-600 text-white shadow-xs"
+              : "border-forest bg-forest text-white shadow-xs"
             : "border-hairline bg-surface text-ink-secondary hover:border-leaf hover:bg-clay/50 hover:text-forest"
         }`
       : `inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors ${
           active
             ? danger
-              ? "bg-red-50 text-red-700 ring-1 ring-red-200"
-              : "bg-leaf/15 text-forest ring-1 ring-leaf/30"
+              ? "bg-red-600 text-white ring-1 ring-red-700"
+              : "bg-forest text-white ring-1 ring-forest-deep"
             : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
         }`;
 

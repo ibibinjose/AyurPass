@@ -145,7 +145,7 @@ export default function VerificationPage() {
       <div
         className={`rounded-3xl border p-6 flex flex-wrap items-center justify-between gap-4 ${
           isVerified
-            ? "border-emerald-200 bg-emerald-50/70 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+            ? "border-emerald-600/30 bg-emerald-800 text-white shadow-sm"
             : isPending
               ? "border-amber-200 bg-amber-50/80 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
               : "border-red-200 bg-red-50/70 text-red-900 dark:bg-red-950/40 dark:text-red-200"
@@ -155,7 +155,7 @@ export default function VerificationPage() {
           <span
             className={`flex h-12 w-12 items-center justify-center rounded-full ${
               isVerified
-                ? "bg-emerald-600 text-white"
+                ? "bg-white text-emerald-800 shadow-xs"
                 : isPending
                   ? "bg-amber-500 text-white"
                   : "bg-red-600 text-white"
@@ -180,7 +180,7 @@ export default function VerificationPage() {
 
       {error ? <ErrorNote message={error} /> : null}
       {success ? (
-        <div className="rounded-2xl bg-emerald-100 p-4 text-sm font-medium text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-200">
+        <div className="rounded-2xl bg-emerald-800 p-4 text-sm font-semibold text-white shadow-sm">
           {success}
         </div>
       ) : null}

@@ -35,7 +35,7 @@ export function PermissionSection({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-leaf/15 text-forest">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-white shadow-xs">
               <ShieldIcon className="h-4 w-4" />
             </span>
             <h2 className="font-display text-lg text-forest">{title}</h2>
@@ -161,7 +161,7 @@ export function PermissionEmptyState({
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-hairline bg-clay/25 px-6 py-10 text-center">
-      <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-leaf/15 text-forest">
+      <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-forest text-white shadow-xs">
         <ShieldIcon className="h-5 w-5" />
       </span>
       <p className="mt-3 font-display text-lg text-forest">{title}</p>

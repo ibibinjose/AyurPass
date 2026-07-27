@@ -400,7 +400,7 @@ export default function ListYourBusinessClient() {
                 className="h-28 bg-[linear-gradient(135deg,var(--color-forest),var(--color-leaf))]"
               />
               <div className="relative px-6 pb-10 pt-0 sm:px-10">
-                <div className="-mt-8 mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-leaf/20 text-forest shadow-sm">
+                <div className="-mt-8 mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-forest text-white shadow-sm">
                   <CheckIcon className="h-8 w-8" strokeWidth={2.2} />
                 </div>
                 <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--system-blue)]">
@@ -447,7 +447,7 @@ export default function ListYourBusinessClient() {
                 className="h-28 bg-[linear-gradient(135deg,var(--color-forest),var(--color-leaf))]"
               />
               <div className="relative px-6 pb-10 pt-0 sm:px-10">
-                <div className="-mt-8 mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-leaf/20 text-forest shadow-sm">
+                <div className="-mt-8 mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-forest text-white shadow-sm">
                   <CheckIcon className="h-8 w-8" strokeWidth={2.2} />
                 </div>
                 <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--system-blue)]">
@@ -518,9 +518,9 @@ export default function ListYourBusinessClient() {
               get a verified public page and start receiving client enquiries in minutes.
             </p>
             {authLoading ? null : isAuthed ? (
-              <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-leaf/10 px-3.5 py-2 text-sm font-semibold text-forest">
+              <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-forest px-3.5 py-2 text-sm font-semibold text-white shadow-xs">
                 Signed in as{" "}
-                <span className="font-bold underline decoration-leaf/40">
+                <span className="font-bold underline decoration-white/50">
                   {user?.fullName || user?.email}
                 </span>
                 {" · "}
@@ -621,7 +621,7 @@ export default function ListYourBusinessClient() {
                           s.id === step
                             ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-xs glow-forest scale-[1.02]"
                             : s.id < step
-                              ? "bg-leaf/15 text-forest hover:bg-leaf/25"
+                              ? "bg-forest text-white hover:bg-forest-deep shadow-2xs"
                               : "bg-clay/50 text-ink-muted"
                         }`}
                       >
@@ -1018,8 +1018,8 @@ export default function ListYourBusinessClient() {
           {/* AyurPass Pro Feature Suite */}
           <section className="mt-12 rounded-3xl border border-hairline/80 glass-surface p-8 sm:p-10 shadow-md">
             <div className="text-center max-w-2xl mx-auto space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/15 border border-leaf/30 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-forest shadow-xs">
-                <SparkleIcon className="h-4 w-4 text-gold" /> Built for Modern Practitioners &amp; Clinics
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-forest border border-forest-deep px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white shadow-xs">
+                <SparkleIcon className="h-4 w-4 text-gold-soft" /> Built for Modern Practitioners &amp; Clinics
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-forest">
                 Complete Pro Platform Operating System
@@ -1039,7 +1039,7 @@ export default function ListYourBusinessClient() {
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="flex h-10.5 w-10.5 items-center justify-center rounded-xl bg-leaf/15 text-forest">
+                        <span className="flex h-10.5 w-10.5 items-center justify-center rounded-xl bg-forest text-white shadow-xs">
                           <Icon className="h-5.5 w-5.5" />
                         </span>
                         <span className="rounded-full bg-surface border border-hairline px-3 py-0.5 text-[10px] font-extrabold tracking-wide uppercase text-forest shadow-2xs">

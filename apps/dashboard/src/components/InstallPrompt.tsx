@@ -259,7 +259,7 @@ export function InstallPrompt() {
             {!iosHelp ? (
               <ul className="grid gap-2 text-sm text-ink-secondary">
                 <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf/15 text-leaf">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-white">
                     <HomeIcon className="h-3.5 w-3.5" />
                   </span>
                   <span>
@@ -268,7 +268,7 @@ export function InstallPrompt() {
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf/15 text-xs font-bold text-leaf">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-bold text-white">
                     ✓
                   </span>
                   <span>

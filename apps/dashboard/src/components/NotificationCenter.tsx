@@ -166,7 +166,7 @@ export function NotificationCenter() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-hairline pb-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-forest/10 text-forest font-bold text-xs">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-forest text-white shadow-xs font-bold text-xs">
                 <BellIcon className="h-3.5 w-3.5" />
               </span>
               <h3 className="font-display text-sm font-bold text-forest">Notifications</h3>

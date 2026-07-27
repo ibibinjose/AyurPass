@@ -107,7 +107,7 @@ export function Button({
     gold: "bg-gradient-to-r from-gold via-amber-500 to-gold text-forest-deep font-semibold shadow-sm hover:shadow-md hover:brightness-105 disabled:opacity-50",
     glass:
       "glass-surface text-forest font-semibold hover:border-leaf/40 hover:bg-surface shadow-xs disabled:opacity-50",
-    soft: "bg-leaf/15 text-forest font-semibold hover:bg-leaf/25 disabled:opacity-50",
+    soft: "bg-forest text-white font-semibold hover:bg-forest-deep disabled:opacity-50",
     ghost:
       "border border-hairline/80 bg-surface/90 text-foreground hover:border-leaf/50 hover:bg-surface hover:text-forest shadow-2xs",
     danger:
@@ -138,7 +138,7 @@ export function SuccessNote({ message }: { message: string | null }) {
   return (
     <p
       role="status"
-      className="rounded-2xl border border-leaf/30 bg-leaf/10 px-4 py-3 text-sm font-semibold text-forest shadow-xs"
+      className="rounded-2xl border border-emerald-600/30 bg-emerald-800 px-4 py-3 text-sm font-semibold text-white shadow-xs"
     >
       ✨ {message}
     </p>

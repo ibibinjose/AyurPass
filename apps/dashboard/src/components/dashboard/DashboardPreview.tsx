@@ -396,7 +396,7 @@ export function BusinessLivePreview({
                 {tagList.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-leaf/15 px-2 py-0.5 text-[9px] font-semibold text-forest"
+                    className="rounded-full bg-forest px-2 py-0.5 text-[9px] font-bold text-white shadow-2xs"
                   >
                     {t}
                   </span>
@@ -423,7 +423,7 @@ export function BusinessLivePreview({
                 {socials.map((s) => (
                   <span
                     key={s.key}
-                    className="rounded-full bg-forest/8 px-2 py-0.5 text-[9px] font-bold text-forest"
+                    className="rounded-full bg-forest px-2 py-0.5 text-[9px] font-bold text-white shadow-2xs"
                   >
                     {s.platform === "other"
                       ? s.label || "Link"

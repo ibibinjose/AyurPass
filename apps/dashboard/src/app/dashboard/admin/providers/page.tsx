@@ -226,7 +226,7 @@ export default function AdminProvidersPage() {
                           <ul className="space-y-1.5">
                             {docs.map((doc, i) => (
                               <li key={i} className="flex items-center gap-2">
-                                <span className="text-emerald-700">📄</span>
+                                <span className="text-forest">📄</span>
                                 <a
                                   href={doc.url}
                                   target="_blank"

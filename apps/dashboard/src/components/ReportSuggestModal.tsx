@@ -138,7 +138,7 @@ export function ReportSuggestModal({
           <div className="flex min-w-0 items-start gap-3">
             <span
               className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                kind === "abuse" ? "bg-red-50 text-red-700" : "bg-leaf/15 text-forest"
+                kind === "abuse" ? "bg-red-600 text-white" : "bg-forest text-white shadow-xs"
               }`}
             >
               {kind === "abuse" ? (
@@ -168,7 +168,7 @@ export function ReportSuggestModal({
 
         {done ? (
           <div className="space-y-4 px-5 py-10 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-leaf/15 text-forest">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-forest text-white shadow-xs">
               <CheckIcon className="h-6 w-6" strokeWidth={2} />
             </span>
             <p className="font-display text-lg text-forest">Thank you</p>

@@ -406,7 +406,7 @@ export function Navbar() {
               <LocationSelectorButton className="w-full justify-between py-2.5 px-4 text-xs font-bold" />
               <InstallAppButton
                 label="Add to Home Screen"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-forest/20 bg-leaf/10 px-4 text-xs font-bold text-forest"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-forest bg-forest px-4 text-xs font-bold text-white shadow-2xs"
               />
               {loading ? null : user ? (
                 <>

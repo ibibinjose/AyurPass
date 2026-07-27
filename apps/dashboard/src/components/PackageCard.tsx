@@ -81,7 +81,7 @@ export function PackageCard({
             </span>
           ) : null}
           {bookable ? (
-            <span className="rounded-full border border-[var(--separator)] bg-leaf/10 px-2.5 py-1 text-xs font-semibold text-forest">
+            <span className="rounded-full bg-forest px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
               Bookable online
             </span>
           ) : (

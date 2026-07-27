@@ -913,11 +913,11 @@ export default function BusinessProfilePage() {
                   ) : null}
 
                   {vanityStatus === "approved" && loaded.vanityHandle ? (
-                    <p className="mt-3 rounded-xl border border-emerald-600/20 bg-emerald-50 px-3 py-2.5 text-xs font-medium leading-relaxed text-emerald-900">
+                    <p className="mt-3 rounded-xl border border-emerald-700/30 bg-emerald-800 px-3 py-2.5 text-xs font-semibold leading-relaxed text-white shadow-xs">
                       Live at{" "}
                       <Link
                         href={`/${loaded.vanityHandle}`}
-                        className="font-mono font-bold underline"
+                        className="font-mono font-bold text-white underline"
                       >
                         {SITE_URL.replace(/\/$/, "")}/{loaded.vanityHandle}
                       </Link>

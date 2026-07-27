@@ -140,7 +140,7 @@ export function EnquireModal({
 
         {sent ? (
           <div className="mt-6 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-leaf/15 text-forest">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-forest text-white shadow-xs">
               <CheckIcon className="h-6 w-6" />
             </div>
             <p className="mt-4 text-ink-secondary">

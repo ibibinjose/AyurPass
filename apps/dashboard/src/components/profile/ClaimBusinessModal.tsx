@@ -179,7 +179,7 @@ export function ClaimBusinessModal({
       <div className="relative z-[1] max-h-[min(92vh,740px)] w-full max-w-lg overflow-y-auto overflow-x-hidden rounded-3xl border border-hairline bg-surface shadow-[0_24px_60px_rgba(36,56,46,0.2)]">
         <div className="sticky top-0 z-[1] flex items-start justify-between gap-3 border-b border-hairline bg-surface/95 px-5 py-4 backdrop-blur-sm">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs">
               <ShieldIcon className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -203,7 +203,7 @@ export function ClaimBusinessModal({
 
         {done ? (
           <div className="px-5 py-8 text-center sm:px-8">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
               <CheckIcon className="h-7 w-7" />
             </div>
             <h3 className="mt-4 font-display text-xl font-semibold text-forest">

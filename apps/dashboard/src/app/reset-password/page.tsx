@@ -109,7 +109,7 @@ function ResetPasswordForm() {
               </>
             ) : (
               <div className="text-center py-4">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-leaf/10 text-forest">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-forest text-white shadow-xs">
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <h1 className="font-display text-2xl font-semibold text-forest">Password updated</h1>

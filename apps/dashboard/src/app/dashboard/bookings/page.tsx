@@ -385,11 +385,11 @@ export default function BookingsPage() {
         <div className="group relative overflow-hidden rounded-2xl border border-hairline/80 bg-surface/90 p-4.5 shadow-2xs backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-xs">
           <div className="flex items-center justify-between text-ink-muted">
             <p className="text-[10px] font-bold uppercase tracking-wider">Appointments</p>
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-2xs">
               <CheckCircleIcon className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-3 font-display text-3xl font-bold tabular-nums text-emerald-800">
+          <p className="mt-3 font-display text-3xl font-bold tabular-nums text-forest">
             {items.filter((i) => i.kind === "booking").length}
           </p>
           <p className="mt-1 text-[11px] font-medium text-ink-muted">1-on-1 consultations &amp; treatments</p>

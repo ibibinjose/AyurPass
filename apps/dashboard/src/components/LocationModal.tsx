@@ -141,15 +141,22 @@ export function LocationModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="location-modal-title"
+    >
       <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-surface p-6 shadow-2xl border border-hairline sm:p-8">
         <div className="flex items-center justify-between pb-4 border-b border-hairline">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest/10 text-forest">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-white shadow-xs">
               <GlobeIcon className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-display text-xl font-semibold text-forest">Region & Language Preferences</h2>
+              <h2 id="location-modal-title" className="font-display text-xl font-semibold text-forest">
+                Region & Language Preferences
+              </h2>
               <p className="text-xs text-ink-muted">Set your country, currency, timezone and preferred language</p>
             </div>
           </div>
@@ -157,6 +164,7 @@ export function LocationModal() {
             type="button"
             onClick={closeModal}
             className="rounded-full p-2 text-ink-muted hover:bg-clay hover:text-forest"
+            aria-label="Close dialog"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -205,7 +213,7 @@ export function LocationModal() {
                     onClick={() => handleCountryChange(c.code)}
                     className={`flex items-center gap-2.5 rounded-2xl border p-2.5 text-left text-xs font-medium transition-all ${
                       active
-                        ? "border-forest bg-forest/10 text-forest font-semibold shadow-xs"
+                        ? "border-forest bg-forest text-white font-semibold shadow-xs"
                         : "border-hairline bg-surface hover:border-forest/40 text-ink"
                     }`}
                   >
