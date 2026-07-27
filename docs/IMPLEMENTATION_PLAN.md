@@ -1,19 +1,19 @@
 # AyurPass — Implementation Plan
 
-**Status:** Living document · **Last updated:** 2026-07-22
+**Status:** Living document · **Last updated:** 2026-07-28
 **Related:** [PRD](./PRD.md) · [TRD](./TRD.md) · [Backend Schema](./BACKEND_SCHEMA.md) · [BUILD-LOG](./BUILD-LOG.md)
 
-**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (27 modules), web app, and mobile app are fully built and **live in production on AWS (RDS + ECS Fargate + Amplify Hosting)**.
+**Guiding decision:** *enhance and complete the existing foundation — do not rewrite from scratch.* The backend (32+ modules), web app, and mobile app are fully built and **live in production on AWS (RDS + ECS Fargate + Amplify Hosting)**.
 
 ---
 
 ## 1. Current status
 
 ### Built & Deployed ✅
-- **Backend (NestJS 11 + Prisma 6 + PostgreSQL):** 27 modules live on **AWS ECS Fargate** (`https://api.ayurpass.com`). Auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin, quality (reviews/reactions/reports), free listings, vanity handles.
-- **Database (AWS RDS PostgreSQL):** Provisioned in `ap-southeast-2` private VPC subnets with 22 Prisma schema migrations applied.
+- **Backend (NestJS 11 + Prisma 7.9.0 + PostgreSQL):** 32+ modules live on **AWS ECS Fargate** (`https://api.ayurpass.com`). Auth (JWT access/refresh + throttling), users, providers, professionals, services, packages, rooms, bookings (18% commission), payments (Stripe Connect + mock gated out of production), products & orders, loyalty, gift cards, health profiles, treatment plans, consents (enriched + audit), enquiries, retreats, offers, integrations, admin, quality (reviews/reactions/reports), free listings, vanity handles, health clubs, job listings, wellness events, device push tokens, provider currencies, professional slugs, provider slugs, POS inventory, CRM, credentials & authorities, handles & vanity titles, service quality counts, email verification, forgot password.
+- **Database (AWS RDS PostgreSQL with PostGIS):** Provisioned in `ap-southeast-2` private VPC subnets with 24+ Prisma schema migrations applied for geospatial capabilities.
 - **Web (Next.js 16 / React 19 / Tailwind v4):** Live on **AWS Amplify Hosting + CloudFront CDN** (`https://ayurpass.com`). Enforces 7 production security headers (CSP, HSTS, X-Frame-Options, etc.), custom branded 404 page, and client error boundary with recovery.
-- **Mobile (Expo 55 / React Native 0.83):** Consumer app built with Expo Router SDK 55; typechecks 100% clean in CI.
+- **Mobile (Expo SDK 55 / React Native 0.83):** Consumer app built with Expo Router SDK 55; typechecks 100% clean in CI, includes booking flows, profile management, and push notifications.
 - **CI/CD Pipeline (GitHub Actions):** `ci.yml` (multi-workspace build + lint + typecheck) and `deploy-backend.yml` (ECR push, Prisma migrate, ECS rolling update) automated on push to `main`.
 
 ---
@@ -66,12 +66,59 @@ Expo/React Native consumer app against the live API; standalone install; EAS-rea
 | 3.7 | **Runbooks**: on-call, restore drills |
 
 **Exit criteria:** staging API+web on AWS; TestFlight/Play internal build against staging; then prod DNS + store.
+### Phase 5 — Current Enhancements (In Progress)
+- 🔵 **AI-Powered Recommendations** - Enhanced dosha-based matching algorithms
+- 🔵 **Advanced Analytics Dashboard** - Provider insights and performance metrics
+- 🔵 **Multi-language Support** - Internationalization for global markets
+- 🔵 **Enhanced Mobile Features** - Offline capabilities and improved UX
+- 🔵 **Integration Partnerships** - Third-party wellness platform integrations
+- 🔵 **Advanced Booking Features** - Recurring appointments, group sessions
 
-### Phase 4 — Advanced features (future)
-- **Telehealth** — Twilio Programmable Video for virtual sessions.
-- **AI treatment-plan engine** — populate `TreatmentPlan.phases` from dosha profile + goals (see `docs/09-AI-TREATMENT-PLAN-ENGINE.md`).
-- **Analytics suite** for providers; premium listings; white-label (Enterprise).
-- **Geo discovery** using `Consumer.location` (PostGIS radius search).
+## 3. Technical Architecture
+
+### Backend Modules (32+)
+- AuthModule (Authentication & Authorization)
+- UsersModule (User management)
+- ProvidersModule (Business entities)
+- ProfessionalsModule (Individual practitioners)
+- ServicesModule (Service offerings)
+- BookingsModule (Appointment scheduling)
+- PaymentsModule (Stripe Connect integration)
+- CommerceModule (Products & Orders)
+- LoyaltyModule (Rewards program)
+- HealthProfilesModule (Dosha assessments)
+- ConsentsModule (Privacy controls)
+- ReviewsModule (Quality management)
+- EnquiriesModule (Lead management)
+- OffersModule (Promotions)
+- RetreatsModule (Wellness retreats)
+- IntegrationsModule (Third-party services)
+- AdminModule (Platform administration)
+- HealthClubsModule (Fitness facilities)
+- JobsModule (Employment listings)
+- EventsModule (Wellness events)
+- NotificationsModule (Push notifications)
+- CurrenciesModule (Multi-currency support)
+- SlugsModule (Vanity URLs)
+- InventoryModule (POS system)
+- CrmModule (Customer relationship management)
+- CredentialsModule (Professional verification)
+- HandlesModule (Custom handles)
+- QualityModule (Reviews, reactions, reports)
+- CommunicationsModule (Messaging)
+- AnalyticsModule (Business intelligence)
+- SecurityModule (Additional security features)
+- WellnessPassesModule (Subscription management)
+
+### Frontend Features
+- Responsive Next.js web application
+- Admin dashboard for providers
+- Consumer-facing marketplace
+- Mobile-optimized experience
+- Accessibility compliance
+- Performance optimization
+- SEO optimization
+- Internationalization ready
 
 ---
 

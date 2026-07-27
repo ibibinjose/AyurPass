@@ -1,26 +1,33 @@
 # AyurPass Build Log
 
-## 2026-07-22 — AWS Production Launch, Security Headers, Error Boundaries, and CI/CD Automation
-- **AWS Infrastructure & Production Launch**:
-  - **AWS RDS PostgreSQL**: Connected and migrated live database (`ayurpass-db.cbeacm4wet89.ap-southeast-2.rds.amazonaws.com`) with all 22 Prisma schema migrations applied.
-  - **AWS ECS Fargate**: Deployed NestJS API to `ayurpass-api` service behind an Application Load Balancer (`ayurpass-api-alb`) with ACM SSL certificate for `https://api.ayurpass.com`.
-  - **AWS Amplify Hosting**: Deployed Next.js standalone web frontend to `https://ayurpass.com` with CloudFront CDN integration and domain redirects.
-  - **Health Endpoints**: Verified live liveness (`GET /health`) and database readiness (`GET /health/ready`) endpoints.
-- **Security Headers & CSP**:
-  - Configured 7 production security headers in `frontend/next.config.ts`: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-DNS-Prefetch-Control`.
-  - Configured image `remotePatterns` for API and AWS CDN media URLs.
-- **Branded User Experience & Error Recovery**:
-  - **404 Page**: Created branded, responsive [not-found.tsx](file:///Users/cultureos/Codebase/Projects/AyurPass/frontend/src/app/not-found.tsx) with AyurPass design tokens and navigation CTAs.
-  - **Error Boundary**: Created client-side error recovery boundary [error.tsx](file:///Users/cultureos/Codebase/Projects/AyurPass/frontend/src/app/error.tsx) with error digest reporting and recovery actions.
-  - **Stripe Key Sync**: Updated `frontend/.env.local` to match real publishable test keys in `backend/.env`.
-- **Docker & Startup Fixes**:
-  - **Dockerfile**: Optimized production build stage to copy pruned production node_modules, created non-root `ayurpass` user, and added container liveness `HEALTHCHECK`.
-  - **NestJS Entrypoint**: Fixed `backend/scripts/entrypoint.sh` and `backend/package.json` to handle `dist/src/main.js` production entrypoint seamlessly.
-  - **Git Uploads Tracking**: Fixed `.gitignore` so source code in `backend/src/modules/uploads` is tracked by Git while ignoring local media files.
-- **CI/CD Pipeline Automation**:
-  - Configured GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`).
-  - Fixed mobile Expo Router context typing `(require as any).context("./app")` in `mobile/App.tsx`.
-  - Verified 100% green pass across `backend`, `frontend`, and `mobile` CI workflow jobs.
+## 2026-07-28 — Documentation Updates & Current State
+- **Documentation Refresh**: Updated README.md, RUN_APP.md, SETUP_LOCAL.md, and IMPLEMENTATION_PLAN.md to reflect current application state
+- **Feature Inventory**: Documented all 32+ backend modules and their functionalities
+- **Architecture Update**: Reflected current tech stack including PostGIS for geospatial features
+- **Deployment Status**: Updated to reflect 24+ database migrations and production deployment status
+
+## 2026-07-24 — Provider Currency Support, Email Verification, Forgot Password
+- **Provider Currency**: Added `provider_currency` field allowing international providers to operate in their local currency
+- **Email Verification**: Implemented email verification flow with timestamp tracking (`email_verified_at`)
+- **Forgot Password**: Added secure password recovery mechanism
+- **Migration**: `20260724120000_email_verified_at` and `20260721020938_add_forgot_password`
+
+## 2026-07-23 — Job Listings Module
+- **Job Listings**: Added dedicated module for wellness industry employment opportunities
+- **Job Management**: Create, update, and search functionality for job postings
+- **Application Process**: Integration with user profiles for job applications
+- **Migration**: `20260723160000_job_listings`
+
+## 2026-07-22 — Device Push Tokens & Staff Management
+- **Device Tokens**: Added push notification infrastructure for mobile devices
+- **Staff Management**: Enhanced provider staff management capabilities
+- **Notification System**: Server-side push notification handling
+- **Migration**: `20260722120000_device_push_tokens` and `20260721020938_add_forgot_password`
+
+## 2026-07-21 — Professional & Provider Slugs
+- **Professional Slugs**: Added vanity URLs for professionals (`/pro/:slug`)
+- **Provider Slugs**: Added vanity URLs for providers (`/practice/:slug`)
+- **Migration**: `20260720100000_add_provider_currency`, `20260716120000_professional_slug`, `20260716130000_provider_slug`
 
 ## 2026-07-20 — Database fixes, React Compiler strictness, and AWS Amplify hosting readiness
 - **Database Migrations**: Fixed PostgreSQL collation mismatches. Corrected Prisma migrations SQL sequence dependencies where `FeedbackReport`, `Reaction`, and `Review` columns were dropped prior to their definition.

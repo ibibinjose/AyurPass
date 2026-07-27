@@ -22,7 +22,7 @@ packages/shared  Shared types, tokens, API contracts
 
 ## Quick Start (recommended)
 
-From the project root, with PostgreSQL running:
+From the project root, with PostgreSQL + PostGIS running:
 
 ```bash
 cp apps/api/.env.example apps/api/.env
@@ -64,9 +64,55 @@ npm run dev:mobile
 Set `EXPO_PUBLIC_API_URL` (see `apps/mobile/.env.example`) for physical devices / EAS builds.  
 Local device: point at your LAN IP API, not production, unless using a dedicated staging stack.
 
+## Database Setup
+
+**Important:** PostgreSQL must have PostGIS extension installed. Use the PostGIS-enabled Docker image:
+
+```bash
+docker run --name ayurpass-postgres \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=ayurpass_dev \
+  -p 5432:5432 \
+  -v ayurpass-db-data:/var/lib/postgresql/data \
+  -d postgis/postgis:15-3.4
+```
+
+After setting up the database, run:
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
+
+## Seeding Data
+
+To populate your local database with sample data:
+```bash
+npm run seed:local
+```
+
+This will create demo users, providers, services, and other sample data for testing.
+
 ## Turbo
 
 ```bash
 npx turbo run typecheck
 npx turbo run build --filter=@ayurpass/dashboard
 ```
+
+## API Endpoints
+
+Common API endpoints:
+- `GET /health` - Health check
+- `GET /health/ready` - Database readiness check
+- `POST /auth/login` - Authentication
+- `GET /providers` - List providers
+- `GET /services` - List services
+- `GET /discover` - Discover services and providers
+
+## Troubleshooting
+
+- If you encounter database errors, ensure you're using the PostGIS-enabled PostgreSQL instance
+- Make sure environment variables are properly configured for both API and dashboard
+- Check that ports 3000 and 4000 are available
+- Run `npm run prisma:generate` after pulling code changes that affect the database schema

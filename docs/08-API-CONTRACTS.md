@@ -1,5 +1,32 @@
 # AyurPass – API Contracts (Key Endpoints)
 
+## Authentication & User Management
+
+### Login
+`POST /api/v1/auth/login`
+
+```json
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
+```
+
+### Register
+`POST /api/v1/auth/register`
+
+```json
+{
+  "email": "user@example.com",
+  "password": "securePassword123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+
+### Refresh Token
+`POST /api/v1/auth/refresh`
+
 ## Consent Management (Core Differentiator)
 
 ### Create / Update Consent
@@ -56,6 +83,81 @@ Handles multiple linked bookings + product shipments.
 
 ---
 
+## Provider & Professional Management
+
+### Create Provider
+`POST /api/v1/providers`
+
+```json
+{
+  "name": "Wellness Center",
+  "type": "spa",
+  "address": {
+    "street": "123 Wellness St",
+    "city": "Sydney",
+    "country": "AU"
+  },
+  "coordinates": {
+    "latitude": -33.8688,
+    "longitude": 151.2093
+  },
+  "currency": "AUD"
+}
+```
+
+### Get Providers (Discover)
+`GET /api/v1/providers/discover?location=:lat,:lng&radius=:km&type=:providerType`
+
+### Create Professional
+`POST /api/v1/professionals`
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "specialties": ["ayurveda", "massage"],
+  "providerId": "uuid",
+  "credentials": {
+    "registrationNumber": "REG123456",
+    "licenceNumber": "LIC789012",
+    "healthAuthorities": ["AAA", "AHPRA"]
+  }
+}
+```
+
+---
+
+## Service & Product Management
+
+### Create Service
+`POST /api/v1/services`
+
+```json
+{
+  "name": "Abhyanga Massage",
+  "categoryId": "ayurvedic-massage",
+  "durationMinutes": 60,
+  "price": 120,
+  "providerId": "uuid",
+  "professionalIds": ["prof-uuid"]
+}
+```
+
+### Create Product
+`POST /api/v1/products`
+
+```json
+{
+  "name": "Ashwagandha Supplement",
+  "categoryId": "herbal-supplements",
+  "price": 29.99,
+  "inventory": 100,
+  "providerId": "uuid"
+}
+```
+
+---
+
 ## Treatment Plan Endpoints
 
 ### Generate AI Draft
@@ -84,14 +186,93 @@ Returns AI-generated draft for professional review.
 
 ---
 
+## Health Profiles & Dosha Assessment
+
+### Create Health Profile
+`POST /api/v1/health-profiles`
+
+```json
+{
+  "consumerId": "uuid",
+  "prakritiScores": {
+    "vata": 35,
+    "pitta": 45,
+    "kapha": 20
+  },
+  "currentImbalances": ["pitta_excess"],
+  "preferences": {
+    "treatments": ["ayurveda", "massage"],
+    "dietaryRestrictions": ["vegan"]
+  }
+}
+```
+
+---
+
+## Job Listings Endpoints
+
+### Create Job Listing
+`POST /api/v1/jobs`
+
+```json
+{
+  "title": "Ayurvedic Practitioner",
+  "companyId": "uuid",
+  "location": "Sydney, Australia",
+  "employmentType": "full_time",
+  "description": "Seeking experienced Ayurvedic practitioner...",
+  "requirements": ["registration", "experience"]
+}
+```
+
+### Search Jobs
+`GET /api/v1/jobs?location=:location&specialty=:specialty`
+
+---
+
+## Wellness Events & Passes
+
+### Create Event
+`POST /api/v1/events`
+
+```json
+{
+  "title": "Mindfulness Meditation Retreat",
+  "providerId": "uuid",
+  "startDate": "2026-09-15T09:00:00Z",
+  "endDate": "2026-09-17T17:00:00Z",
+  "location": "Byron Bay",
+  "capacity": 20
+}
+```
+
+### Create Wellness Pass
+`POST /api/v1/passes`
+
+```json
+{
+  "name": "Monthly Wellness Pass",
+  "benefits": ["unlimited_classes", "discount_services"],
+  "validityDays": 30,
+  "price": 99.99
+}
+```
+
+---
+
 ## Professional Dashboard Endpoints
 
-- `GET /api/v1/providers/me/analytics`
-- `GET /api/v1/professionals/me/availability`
-- `POST /api/v1/availability/sync-google`
+- `GET /api/v1/providers/me/analytics` - Business analytics
+- `GET /api/v1/providers/me/staff` - Staff management
+- `GET /api/v1/providers/me/bookings` - Booking management
+- `GET /api/v1/providers/me/services` - Service management
+- `GET /api/v1/providers/me/products` - Product management
+- `GET /api/v1/providers/me/profile` - Profile management
+- `GET /api/v1/providers/me/availability` - Availability settings
+- `POST /api/v1/availability/sync-google` - Google Calendar sync
 
 All endpoints require proper RBAC + consent checks where personal health data is involved.
 
 ---
 
-*Suggested REST API contracts for AyurPass*
+*Updated to reflect current API endpoints as of 2026-07-28*
