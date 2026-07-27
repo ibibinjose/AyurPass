@@ -191,6 +191,8 @@ export function DirectoryLayout({
                 onClick={toggleMobile}
                 className="profile-spring inline-flex min-h-9 flex-1 items-center justify-center gap-2 rounded-full border border-[var(--separator)] bg-surface px-3.5 text-xs font-bold text-foreground shadow-sm"
                 aria-expanded={mobileOpen}
+                aria-controls="directory-sidebar-filters"
+                aria-label={mobileOpen ? "Hide filters" : "Open search and filters"}
               >
                 {mobileOpen ? "Hide filters" : "Search & filters"}
                 {filterActive && !mobileOpen ? (
@@ -214,6 +216,7 @@ export function DirectoryLayout({
 
           <div className="grid gap-5 lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)] lg:items-start lg:gap-7">
             <aside
+              id="directory-sidebar-filters"
               className={`directory-sidebar ${
                 mobileOpen ? "block" : "hidden"
               } lg:sticky lg:block lg:self-start ${STICKY_BELOW_NAV}`}

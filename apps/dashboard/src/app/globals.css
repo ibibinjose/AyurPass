@@ -147,9 +147,22 @@ p {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--leaf);
+  outline: 2px solid var(--forest);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+/* Screen reader visually hidden utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* iOS tap highlight */

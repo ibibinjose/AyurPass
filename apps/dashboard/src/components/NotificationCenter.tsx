@@ -150,6 +150,8 @@ export function NotificationCenter() {
         onClick={() => setIsOpen((prev) => !prev)}
         className="profile-spring relative flex h-9.5 w-9.5 items-center justify-center rounded-full border border-hairline bg-surface text-forest shadow-2xs transition-all hover:border-leaf/40 hover:bg-clay/30 active:scale-95"
         title="Notification Center"
+        aria-label="Notifications"
+        aria-haspopup="dialog"
         aria-expanded={isOpen}
       >
         <BellIcon className="h-4.5 w-4.5" />

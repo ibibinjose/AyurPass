@@ -130,20 +130,20 @@ export function Footer({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <footer className="border-t border-hairline bg-surface">
-        <div className="mx-auto max-w-6xl px-[var(--space-page-x)] py-5">
+        <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-5 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Logo className="scale-90 origin-left" />
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-ink-muted">
-              <Link href="/discover" className="hover:text-forest">
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-medium text-ink-muted">
+              <Link href="/discover" className="hover:text-forest transition-colors">
                 Discover
               </Link>
-              <Link href="/list-your-business" className="hover:text-forest">
+              <Link href="/list-your-business" className="hover:text-forest transition-colors">
                 List free
               </Link>
-              <Link href="/help" className="hover:text-forest">
+              <Link href="/help" className="hover:text-forest transition-colors">
                 Help
               </Link>
-              <Link href="/privacy" className="hover:text-forest">
+              <Link href="/privacy" className="hover:text-forest transition-colors">
                 Privacy
               </Link>
             </div>
@@ -182,7 +182,7 @@ export function Footer({ compact = false }: { compact?: boolean }) {
             </Link>
             <Link
               href="/list-your-business"
-              className="btn-press inline-flex min-h-11 items-center rounded-full border border-hairline/80 bg-surface/90 px-5.5 py-2.5 text-sm font-semibold text-forest shadow-xs hover:border-leaf/50 hover:bg-surface transition-all"
+              className="btn-press inline-flex min-h-11 items-center rounded-full border border-forest bg-forest px-5.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-forest-deep transition-all"
             >
               List free
             </Link>
@@ -190,7 +190,7 @@ export function Footer({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-[var(--space-page-x)] py-12 sm:py-14">
+      <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-10 sm:pt-14 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-14">
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-12 lg:gap-8">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-4">

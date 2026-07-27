@@ -26,7 +26,7 @@ export function LayoutWrapper({ children, bare = false }: LayoutWrapperProps) {
       <EmailVerifyBanner />
       <div
         id="main-content"
-        className="min-w-0 flex-grow pb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:pb-0"
+        className="min-w-0 flex-grow"
         tabIndex={-1}
       >
         {children}
