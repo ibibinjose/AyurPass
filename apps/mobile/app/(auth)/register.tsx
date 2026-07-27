@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import type { Href } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +17,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ErrorNote } from "../../src/components/ui";
 import { useAuth } from "../../src/auth";
+import type { Role } from "../../src/types";
 import { colors, fonts } from "../../src/theme";
 
 /** Keep in sync with web countries list (subset for mobile pickers). */
@@ -45,18 +47,91 @@ const COUNTRIES: { code: string; name: string; flag: string }[] = [
   { code: "PH", name: "Philippines", flag: "🇵🇭" },
 ];
 
-function calculatePasswordStrength(pass: string): { label: string; score: number; color: string } {
+/** Role-specific theming */
+type RoleConfig = {
+  role: Role;
+  label: string;
+  badge: string;
+  emoji: string;
+  gradient: [string, string, string];
+  accentColor: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  submitLabel: string;
+  /** Route after successful registration */
+  postRegisterPath: string;
+};
+
+const ROLE_CONFIGS: Record<string, RoleConfig> = {
+  CONSUMER: {
+    role: "CONSUMER",
+    label: "Seeker Account",
+    badge: "Free · Most Popular",
+    emoji: "🌿",
+    gradient: [colors.forestDeep, colors.forest, colors.leaf],
+    accentColor: colors.leaf,
+    heroTitle: "Begin your wellness journey",
+    heroSubtitle:
+      "Join AyurPass to discover vetted Ayurvedic clinics, yoga studios & wellness retreats near you.",
+    submitLabel: "Create Seeker Account",
+    postRegisterPath: "/assessment",
+  },
+  PROFESSIONAL: {
+    role: "PROFESSIONAL",
+    label: "Professional Account",
+    badge: "For Practitioners",
+    emoji: "🧘",
+    gradient: ["#312e81", "#4338ca", "#6366f1"],
+    accentColor: "#818cf8",
+    heroTitle: "Showcase your practice",
+    heroSubtitle:
+      "Build your verified practitioner profile and get discovered by seekers actively looking for your expertise.",
+    submitLabel: "Create Professional Account",
+    postRegisterPath: "/",
+  },
+  PROVIDER_ADMIN: {
+    role: "PROVIDER_ADMIN",
+    label: "Business Account",
+    badge: "For Clinics & Studios",
+    emoji: "🏛️",
+    gradient: ["#78350f", "#b45309", "#d97706"],
+    accentColor: "#fbbf24",
+    heroTitle: "List your wellness business",
+    heroSubtitle:
+      "Reach thousands of seekers. Manage staff, services & bookings from one beautiful dashboard.",
+    submitLabel: "Create Business Account",
+    postRegisterPath: "/",
+  },
+};
+
+function calculatePasswordStrength(pass: string): {
+  label: string;
+  score: number;
+  color: string;
+} {
   if (!pass) return { label: "", score: 0, color: colors.hairline };
   if (pass.length < 6) return { label: "Weak", score: 1, color: colors.danger };
   const hasMixed = /[A-Z]/.test(pass) && /[0-9]/.test(pass);
-  if (pass.length >= 8 && hasMixed) return { label: "Strong", score: 3, color: colors.leaf };
+  if (pass.length >= 8 && hasMixed)
+    return { label: "Strong", score: 3, color: colors.leaf };
   if (pass.length >= 8) return { label: "Good", score: 2, color: colors.gold };
   return { label: "Fair", score: 1, color: colors.gold };
+}
+
+function isValidRole(r: unknown): r is Role {
+  return r === "CONSUMER" || r === "PROFESSIONAL" || r === "PROVIDER_ADMIN";
 }
 
 export default function Register() {
   const { register } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ role?: string }>();
+
+  // Resolve role from URL param (default → CONSUMER)
+  const rawRole = params.role;
+  const roleKey = isValidRole(rawRole) ? rawRole : "CONSUMER";
+  const config = ROLE_CONFIGS[roleKey];
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,12 +158,15 @@ export default function Register() {
         setError("Location permission denied. Type your city manually.");
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
       const [place] = await Location.reverseGeocodeAsync({
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       });
-      const resolvedCity = place?.city || place?.subregion || place?.region || "";
+      const resolvedCity =
+        place?.city || place?.subregion || place?.region || "";
       if (resolvedCity) setCity(resolvedCity);
       if (place?.isoCountryCode) {
         const found = COUNTRIES.find((c) => c.code === place.isoCountryCode);
@@ -104,9 +182,12 @@ export default function Register() {
   async function onSubmit() {
     setError(null);
     if (!fullName.trim()) return setError("Please enter your name.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError("Please enter a valid email.");
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
-    if (!city.trim()) return setError("Please add your city for Near me results.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return setError("Please enter a valid email.");
+    if (password.length < 8)
+      return setError("Password must be at least 8 characters.");
+    if (!city.trim())
+      return setError("Please add your city for Near Me results.");
     if (!countryCode) return setError("Please select your country.");
 
     setBusy(true);
@@ -115,12 +196,12 @@ export default function Register() {
         fullName: fullName.trim(),
         email: email.trim(),
         password,
-        role: "CONSUMER",
+        role: config.role,
         city: city.trim(),
         country: countryName,
         countryCode,
       });
-      router.replace("/assessment");
+      router.replace(config.postRegisterPath as "/");
     } catch (err) {
       setError(
         err instanceof Error && err.message.toLowerCase().includes("exist")
@@ -133,8 +214,18 @@ export default function Register() {
     }
   }
 
+  // Focused field border/bg helpers
+  const focusBorder = (field: string) =>
+    activeField === field ? config.accentColor : colors.hairline;
+  const focusBg = (field: string) =>
+    activeField === field ? colors.surface : colors.background;
+
   return (
-    <SafeAreaView className="flex-1 bg-background" style={{ flex: 1, backgroundColor: colors.background }} edges={["top", "bottom"]}>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      style={{ flex: 1, backgroundColor: colors.background }}
+      edges={["top", "bottom"]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
@@ -150,99 +241,107 @@ export default function Register() {
             className="w-full max-w-[460px] self-center overflow-hidden"
             style={{ width: "100%", maxWidth: 460, alignSelf: "center" }}
           >
-            {/* Hero Gradient Header */}
+            {/* ─── Hero Gradient Header ─── */}
             <View
-              className="relative overflow-hidden px-5 pt-4 pb-8"
               style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32 }}
             >
               <LinearGradient
-                colors={[colors.forestDeep, colors.forest, colors.leaf]}
+                colors={config.gradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
               />
 
-              {/* Top Navigation Bar */}
+              {/* Top Nav Bar */}
               <View
-                className="flex-row items-center justify-between mb-5 z-10"
                 style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20, zIndex: 10 }}
               >
                 <Pressable
                   onPress={() => router.back()}
-                  className="h-10 w-10 items-center justify-center rounded-full bg-white/15 border border-white/20 active:opacity-80"
                   style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
                   accessibilityLabel="Go back"
                 >
                   <Ionicons name="chevron-back" size={20} color={colors.white} />
                 </Pressable>
-                <View
-                  className="rounded-full bg-white/20 px-3.5 py-1 border border-white/25"
-                  style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 14, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" }}
-                >
-                  <Text
-                    className="font-body-semi text-[11px] text-white uppercase tracking-wider"
-                    style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 0.5 }}
+
+                {/* Role badge + change link */}
+                <View style={{ alignItems: "center", gap: 4 }}>
+                  <View
+                    style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 14, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" }}
                   >
-                    Step 1 of 2 · Free Account
-                  </Text>
+                    <Text
+                      style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 0.5 }}
+                    >
+                      {config.emoji} {config.label}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => router.replace("/(auth)/account-type" as Href)}
+                    hitSlop={8}
+                  >
+                    <Text
+                      style={{ color: "rgba(255,255,255,0.65)", fontSize: 11, fontFamily: fonts.body, textDecorationLine: "underline" }}
+                    >
+                      Change type
+                    </Text>
+                  </Pressable>
                 </View>
               </View>
 
               {/* Hero Branding */}
-              <View className="items-center z-10" style={{ alignItems: "center", zIndex: 10 }}>
+              <View style={{ alignItems: "center", zIndex: 10 }}>
                 <View
-                  className="mb-3.5 h-16 w-16 items-center justify-center rounded-2xl border-2 border-gold-soft/40 bg-white/10 shadow-lg"
                   style={{ marginBottom: 14, height: 64, width: 64, alignItems: "center", justifyContent: "center", borderRadius: 16, borderWidth: 2, borderColor: "rgba(233,217,184,0.4)", backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
-                  <Ionicons name="leaf-outline" size={32} color={colors.goldSoft} />
+                  <Text style={{ fontSize: 30 }}>{config.emoji}</Text>
                 </View>
 
                 <Text
-                  className="font-display text-[30px] text-white text-center"
-                  style={{ fontSize: 30, color: colors.white, textAlign: "center", fontFamily: fonts.display }}
+                  style={{ fontSize: 28, color: colors.white, textAlign: "center", fontFamily: fonts.display }}
                 >
-                  Begin your <Text style={{ color: colors.goldSoft }}>wellness journey</Text>
-                </Text>
-                <Text
-                  className="mt-1.5 text-center font-body text-[14px] text-white/85 leading-5 max-w-[340px]"
-                  style={{ marginTop: 6, textAlign: "center", fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 20, maxWidth: 340, fontFamily: fonts.body }}
-                >
-                  Join AyurPass to discover vetted Ayurvedic clinics, yoga studios & wellness retreats near you.
+                  {config.heroTitle.split(" ").slice(0, -1).join(" ")}{" "}
+                  <Text style={{ color: colors.goldSoft }}>
+                    {config.heroTitle.split(" ").slice(-1)[0]}
+                  </Text>
                 </Text>
 
-                {/* Feature Pills */}
-                <View
-                  className="mt-4 flex-row flex-wrap justify-center gap-2"
-                  style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 }}
+                <Text
+                  style={{ marginTop: 8, textAlign: "center", fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 19, maxWidth: 320, fontFamily: fonts.body }}
                 >
-                  <View
-                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
-                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
-                  >
-                    <Ionicons name="checkmark-circle" size={13} color={colors.goldSoft} />
-                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Vetted Clinics</Text>
-                  </View>
-                  <View
-                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
-                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
-                  >
-                    <Ionicons name="sparkles" size={13} color={colors.goldSoft} />
-                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Dosha Match</Text>
-                  </View>
-                  <View
-                    className="flex-row items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 border border-white/20"
-                    style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
-                  >
-                    <Ionicons name="qr-code-outline" size={13} color={colors.goldSoft} />
-                    <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>Instant Pass</Text>
-                  </View>
+                  {config.heroSubtitle}
+                </Text>
+
+                {/* Role perk pills */}
+                <View
+                  style={{ marginTop: 14, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 }}
+                >
+                  {config.role === "CONSUMER" && (
+                    <>
+                      <RolePill icon="sparkles" label="Dosha Match" />
+                      <RolePill icon="qr-code-outline" label="Instant Pass" />
+                      <RolePill icon="star-outline" label="Loyalty Points" />
+                    </>
+                  )}
+                  {config.role === "PROFESSIONAL" && (
+                    <>
+                      <RolePill icon="shield-checkmark-outline" label="Verified Badge" />
+                      <RolePill icon="calendar-outline" label="Schedule Manager" />
+                      <RolePill icon="people-outline" label="Client Bookings" />
+                    </>
+                  )}
+                  {config.role === "PROVIDER_ADMIN" && (
+                    <>
+                      <RolePill icon="business-outline" label="Business Listing" />
+                      <RolePill icon="people-circle-outline" label="Staff & Services" />
+                      <RolePill icon="briefcase-outline" label="Hiring Board" />
+                    </>
+                  )}
                 </View>
               </View>
             </View>
 
-            {/* Overlapping Form Card */}
+            {/* ─── Overlapping Form Card ─── */}
             <View
-              className="-mt-4 mx-4 rounded-[28px] border border-hairline bg-surface p-5 shadow-lg"
               style={{
                 marginTop: -16,
                 marginHorizontal: 16,
@@ -260,34 +359,11 @@ export default function Register() {
             >
               <View style={{ gap: 16 }}>
                 {/* Full Name */}
-                <View>
-                  <Text
-                    className="mb-1.5 font-body-semi text-[13px] text-forest"
-                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
-                  >
-                    Full name
-                  </Text>
+                <InputField label="Full name">
                   <View
-                    className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
-                      activeField === "fullName" ? "border-forest bg-surface" : "border-hairline"
-                    }`}
-                    style={{
-                      minHeight: 48,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      paddingHorizontal: 14,
-                      borderColor: activeField === "fullName" ? colors.forest : colors.hairline,
-                      backgroundColor: activeField === "fullName" ? colors.surface : colors.background,
-                    }}
+                    style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, borderColor: focusBorder("fullName"), backgroundColor: focusBg("fullName") }}
                   >
-                    <Ionicons
-                      name="person-outline"
-                      size={18}
-                      color={activeField === "fullName" ? colors.forest : colors.inkMuted}
-                    />
+                    <Ionicons name="person-outline" size={18} color={activeField === "fullName" ? config.accentColor : colors.inkMuted} />
                     <TextInput
                       value={fullName}
                       onChangeText={setFullName}
@@ -296,41 +372,17 @@ export default function Register() {
                       placeholder="e.g. Anita Mudnur"
                       placeholderTextColor={colors.inkMuted}
                       autoComplete="name"
-                      className="flex-1 font-body text-base text-foreground"
                       style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                   </View>
-                </View>
+                </InputField>
 
                 {/* Email */}
-                <View>
-                  <Text
-                    className="mb-1.5 font-body-semi text-[13px] text-forest"
-                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
-                  >
-                    Email address
-                  </Text>
+                <InputField label="Email address">
                   <View
-                    className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
-                      activeField === "email" ? "border-forest bg-surface" : "border-hairline"
-                    }`}
-                    style={{
-                      minHeight: 48,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      paddingHorizontal: 14,
-                      borderColor: activeField === "email" ? colors.forest : colors.hairline,
-                      backgroundColor: activeField === "email" ? colors.surface : colors.background,
-                    }}
+                    style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, borderColor: focusBorder("email"), backgroundColor: focusBg("email") }}
                   >
-                    <Ionicons
-                      name="mail-outline"
-                      size={18}
-                      color={activeField === "email" ? colors.forest : colors.inkMuted}
-                    />
+                    <Ionicons name="mail-outline" size={18} color={activeField === "email" ? config.accentColor : colors.inkMuted} />
                     <TextInput
                       value={email}
                       onChangeText={setEmail}
@@ -341,21 +393,17 @@ export default function Register() {
                       autoCapitalize="none"
                       keyboardType="email-address"
                       autoComplete="email"
-                      className="flex-1 font-body text-base text-foreground"
                       style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                   </View>
-                </View>
+                </InputField>
 
                 {/* City & Country Row */}
                 <View style={{ flexDirection: "row", gap: 12 }}>
                   {/* City */}
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                      <Text
-                        className="font-body-semi text-[13px] text-forest"
-                        style={{ fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
-                      >
+                      <Text style={{ fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}>
                         City
                       </Text>
                       <Pressable
@@ -371,26 +419,9 @@ export default function Register() {
                       </Pressable>
                     </View>
                     <View
-                      className={`min-h-12 flex-row items-center gap-2 rounded-2xl border px-3 bg-background ${
-                        activeField === "city" ? "border-forest bg-surface" : "border-hairline"
-                      }`}
-                      style={{
-                        minHeight: 48,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                        borderRadius: 16,
-                        borderWidth: 1,
-                        paddingHorizontal: 12,
-                        borderColor: activeField === "city" ? colors.forest : colors.hairline,
-                        backgroundColor: activeField === "city" ? colors.surface : colors.background,
-                      }}
+                      style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, borderColor: focusBorder("city"), backgroundColor: focusBg("city") }}
                     >
-                      <Ionicons
-                        name="location-outline"
-                        size={18}
-                        color={activeField === "city" ? colors.forest : colors.inkMuted}
-                      />
+                      <Ionicons name="location-outline" size={18} color={activeField === "city" ? config.accentColor : colors.inkMuted} />
                       <TextInput
                         value={city}
                         onChangeText={setCity}
@@ -399,7 +430,6 @@ export default function Register() {
                         placeholder="Melbourne"
                         placeholderTextColor={colors.inkMuted}
                         autoComplete="postal-address"
-                        className="flex-1 font-body text-base text-foreground"
                         style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                       />
                     </View>
@@ -407,39 +437,22 @@ export default function Register() {
 
                   {/* Country */}
                   <View style={{ flex: 1 }}>
-                    <Text
-                      className="mb-1.5 font-body-semi text-[13px] text-forest"
-                      style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
-                    >
+                    <Text style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}>
                       Country
                     </Text>
                     <Pressable
                       onPress={() => setCountryOpen((v) => !v)}
-                      style={{
-                        minHeight: 48,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        borderRadius: 16,
-                        borderWidth: 1,
-                        paddingHorizontal: 12,
-                        borderColor: countryOpen ? colors.forest : colors.hairline,
-                        backgroundColor: countryOpen ? colors.surface : colors.background,
-                      }}
+                      style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, borderColor: countryOpen ? config.accentColor : colors.hairline, backgroundColor: countryOpen ? colors.surface : colors.background }}
                     >
                       <Text style={{ fontSize: 16, color: colors.foreground, fontFamily: fonts.body }} numberOfLines={1}>
                         {countryFlag} {countryCode}
                       </Text>
-                      <Ionicons
-                        name={countryOpen ? "chevron-up" : "chevron-down"}
-                        size={16}
-                        color={colors.inkMuted}
-                      />
+                      <Ionicons name={countryOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.inkMuted} />
                     </Pressable>
                   </View>
                 </View>
 
-                {/* Country Accordion Dropdown */}
+                {/* Country Accordion */}
                 {countryOpen ? (
                   <View style={{ maxHeight: 192, overflow: "hidden", borderRadius: 16, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.background }}>
                     <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
@@ -450,24 +463,10 @@ export default function Register() {
                             setCountryCode(c.code);
                             setCountryOpen(false);
                           }}
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                            paddingHorizontal: 16,
-                            paddingVertical: 12,
-                            backgroundColor: c.code === countryCode ? "rgba(30,50,40,0.1)" : "transparent",
-                          }}
+                          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: c.code === countryCode ? "rgba(30,50,40,0.1)" : "transparent" }}
                         >
                           <Text style={{ fontSize: 16 }}>{c.flag}</Text>
-                          <Text
-                            style={{
-                              flex: 1,
-                              fontSize: 14,
-                              fontFamily: c.code === countryCode ? fonts.bodySemi : fonts.body,
-                              color: c.code === countryCode ? colors.forest : colors.foreground,
-                            }}
-                          >
+                          <Text style={{ flex: 1, fontSize: 14, fontFamily: c.code === countryCode ? fonts.bodySemi : fonts.body, color: c.code === countryCode ? colors.forest : colors.foreground }}>
                             {c.name}
                           </Text>
                           {c.code === countryCode ? (
@@ -480,34 +479,11 @@ export default function Register() {
                 ) : null}
 
                 {/* Password */}
-                <View>
-                  <Text
-                    className="mb-1.5 font-body-semi text-[13px] text-forest"
-                    style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}
-                  >
-                    Password
-                  </Text>
+                <InputField label="Password">
                   <View
-                    className={`min-h-12 flex-row items-center gap-2.5 rounded-2xl border px-3.5 bg-background ${
-                      activeField === "password" ? "border-forest bg-surface" : "border-hairline"
-                    }`}
-                    style={{
-                      minHeight: 48,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      paddingHorizontal: 14,
-                      borderColor: activeField === "password" ? colors.forest : colors.hairline,
-                      backgroundColor: activeField === "password" ? colors.surface : colors.background,
-                    }}
+                    style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, paddingHorizontal: 14, borderColor: focusBorder("password"), backgroundColor: focusBg("password") }}
                   >
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={18}
-                      color={activeField === "password" ? colors.forest : colors.inkMuted}
-                    />
+                    <Ionicons name="lock-closed-outline" size={18} color={activeField === "password" ? config.accentColor : colors.inkMuted} />
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
@@ -516,7 +492,6 @@ export default function Register() {
                       placeholder="At least 8 characters"
                       placeholderTextColor={colors.inkMuted}
                       secureTextEntry={!showPassword}
-                      className="flex-1 font-body text-base text-foreground"
                       style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
                     />
                     <Pressable
@@ -524,27 +499,18 @@ export default function Register() {
                       hitSlop={8}
                       accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                     >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={18}
-                        color={colors.inkMuted}
-                      />
+                      <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={18} color={colors.inkMuted} />
                     </Pressable>
                   </View>
 
-                  {/* Password Strength Indicator Bar */}
+                  {/* Password Strength Meter */}
                   {password.length > 0 ? (
                     <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 2 }}>
                       <View style={{ flex: 1, flexDirection: "row", gap: 4 }}>
                         {[1, 2, 3].map((step) => (
                           <View
                             key={step}
-                            style={{
-                              height: 6,
-                              flex: 1,
-                              borderRadius: 999,
-                              backgroundColor: step <= passStrength.score ? passStrength.color : colors.hairline,
-                            }}
+                            style={{ height: 6, flex: 1, borderRadius: 999, backgroundColor: step <= passStrength.score ? passStrength.color : colors.hairline }}
                           />
                         ))}
                       </View>
@@ -553,18 +519,18 @@ export default function Register() {
                       </Text>
                     </View>
                   ) : null}
-                </View>
+                </InputField>
 
                 <ErrorNote message={error} />
 
-                {/* Submit CTA Button with LinearGradient */}
+                {/* Submit CTA */}
                 <Pressable
                   onPress={onSubmit}
                   disabled={busy}
                   style={{ marginTop: 4, overflow: "hidden", borderRadius: 16, elevation: 3 }}
                 >
                   <LinearGradient
-                    colors={[colors.forest, colors.leaf]}
+                    colors={config.gradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{ minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 24 }}
@@ -573,8 +539,10 @@ export default function Register() {
                       <ActivityIndicator color={colors.white} />
                     ) : (
                       <>
-                        <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.white }}>Create Free Account</Text>
-                        <Ionicons name="arrow-forward" size={18} color={colors.goldSoft} />
+                        <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.white }}>
+                          {config.submitLabel}
+                        </Text>
+                        <Ionicons name="arrow-forward" size={18} color={config.accentColor} />
                       </>
                     )}
                   </LinearGradient>
@@ -589,16 +557,63 @@ export default function Register() {
               </View>
             </View>
 
-            {/* Already have an account footer */}
-            <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-              <Text style={{ fontSize: 14, color: colors.inkSecondary, fontFamily: fonts.body }}>Already have an account?</Text>
-              <Pressable onPress={() => router.replace("/(auth)/login")} hitSlop={8}>
-                <Text style={{ fontSize: 14, color: colors.forest, fontFamily: fonts.bodySemi, textDecorationLine: "underline" }}>Sign in</Text>
+            {/* Footer: sign-in link + change account type */}
+            <View style={{ marginTop: 20, gap: 10, alignItems: "center" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Text style={{ fontSize: 14, color: colors.inkSecondary, fontFamily: fonts.body }}>
+                  Already have an account?
+                </Text>
+                <Pressable onPress={() => router.replace("/(auth)/login")} hitSlop={8}>
+                  <Text style={{ fontSize: 14, color: colors.forest, fontFamily: fonts.bodySemi, textDecorationLine: "underline" }}>
+                    Sign in
+                  </Text>
+                </Pressable>
+              </View>
+
+              <Pressable
+                onPress={() => router.replace("/(auth)/account-type" as Href)}
+                hitSlop={8}
+                style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
+              >
+                <Ionicons name="swap-horizontal-outline" size={13} color={colors.inkMuted} />
+                <Text style={{ fontSize: 12, color: colors.inkMuted, fontFamily: fonts.body, textDecorationLine: "underline" }}>
+                  Wrong account type? Switch
+                </Text>
               </Pressable>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+/** Small reusable label + children wrapper */
+function InputField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <View>
+      <Text style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}>
+        {label}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+/** Small pill for hero perks */
+function RolePill({
+  icon,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  return (
+    <View
+      style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}
+    >
+      <Ionicons name={icon} size={13} color={colors.goldSoft} />
+      <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodySemi }}>{label}</Text>
+    </View>
   );
 }

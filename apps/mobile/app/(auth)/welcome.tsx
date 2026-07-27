@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import type { Href } from "expo-router";
 import { useRouter } from "expo-router";
 import {
   Image,
@@ -68,13 +69,19 @@ export default function Welcome() {
         </View>
 
         <View style={styles.actions}>
+          {/* Primary: goes to account-type picker */}
           <Pressable
-            onPress={() => router.push("/(auth)/register")}
+            onPress={() => router.push("/(auth)/account-type" as Href)}
             style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
             accessibilityRole="button"
           >
-            <Text style={styles.primaryBtnText}>Create your account</Text>
+            <View style={{ alignItems: "center", gap: 2 }}>
+              <Text style={styles.primaryBtnText}>Create your account</Text>
+              <Text style={styles.primaryBtnSub}>Seeker · Professional · Business</Text>
+            </View>
           </Pressable>
+
+          {/* Secondary: Sign in */}
           <Pressable
             onPress={() => router.push("/(auth)/login")}
             style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
@@ -182,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   primaryBtn: {
-    minHeight: 48,
+    minHeight: 52,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 999,
@@ -194,6 +201,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     fontSize: 16,
     color: colors.forestDeep,
+  },
+  primaryBtnSub: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: "rgba(10,30,15,0.6)",
   },
   secondaryBtn: {
     minHeight: 48,
