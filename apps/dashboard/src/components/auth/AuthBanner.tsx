@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Calendar, Heart, ShieldCheck } from "lucide-react";
+import { Calendar, Heart, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 interface Testimonial {

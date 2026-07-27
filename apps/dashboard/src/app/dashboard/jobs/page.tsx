@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "@/context/LocationContext";
-import { api, formatMoney, formatLocalizedPrice } from "@/lib/api";
+import { api, formatLocalizedPrice } from "@/lib/api";
 import type { ApplicationStatus, EmploymentType, JobApplication, JobListing, ServiceCategory } from "@/lib/types";
 import {
   DashCard,

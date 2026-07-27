@@ -6,7 +6,6 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import { useAdminOverview } from "@/hooks/useAdminOverview";
 import type {
-  AdminOverview,
   Booking,
   Enquiry,
   HealthProfile,
@@ -16,7 +15,6 @@ import type {
   Provider,
   Service,
   TreatmentPlan,
-  WellnessPackage,
 } from "@/lib/types";
 import type { Dosha } from "@/lib/dosha";
 import { DOSHA_INFO } from "@/lib/dosha";
@@ -753,7 +751,6 @@ function ConsumerOverview() {
 function ProviderOverview() {
   const { user } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
-  const [packages, setPackages] = useState<WellnessPackage[]>([]);
   const [team, setTeam] = useState<Professional[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -761,7 +758,6 @@ function ProviderOverview() {
 
   useEffect(() => {
     if (!provider) return;
-    api.packagesByProvider(provider.id).then(setPackages).catch(() => {});
     api.professionalsByProvider(provider.id).then(setTeam).catch(() => {});
     api.servicesByProvider(provider.id).then(setServices).catch(() => {});
     api.bookingsByProvider(provider.id).then(setBookings).catch(() => {});

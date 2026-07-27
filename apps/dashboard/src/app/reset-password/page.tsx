@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Logo } from "@/components/Logo";
-import { Button, Field, ErrorNote } from "@/components/ui";
+import { Button, ErrorNote } from "@/components/ui";
 import { AuthBanner } from "@/components/auth/AuthBanner";
 import { PasswordInput } from "@/components/auth/PasswordInput";
-import { ShieldCheck, ArrowLeft, KeyRound } from "lucide-react";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 
 function ResetPasswordForm() {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -492,10 +493,13 @@ export default function ListYourBusinessClient() {
       <div className="flex-1 pb-12">
         {/* Hero band */}
         <section className="relative min-h-[380px] overflow-hidden border-b border-hairline/70 flex flex-col justify-center bg-surface">
-          <img
+          <Image
             src="/images/heroes/spa.png"
             alt="Wellness Practice"
-            className="absolute inset-0 h-full w-full object-cover opacity-35"
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 object-cover opacity-35"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/85 to-surface/40" />
           <div className="pointer-events-none absolute -right-12 -top-12 h-64 w-64 rounded-full bg-gold/15 blur-3xl" />

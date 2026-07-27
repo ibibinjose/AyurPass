@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -56,10 +57,13 @@ export default function YogaPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative min-h-[480px] overflow-hidden bg-surface">
-          <img
+          <Image
             src="/images/heroes/yoga.png"
             alt="Yoga Practice"
-            className="absolute inset-0 h-full w-full object-cover opacity-60"
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
 
@@ -114,10 +118,12 @@ export default function YogaPage() {
                   className="group overflow-hidden rounded-3xl border border-hairline bg-surface transition-all hover:border-leaf hover:shadow-md"
                 >
                   <div className="relative h-48 w-full overflow-hidden">
-                    <img
+                    <Image
                       src={s.image}
                       alt={s.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   </div>
                   <div className="p-6">

@@ -24,7 +24,7 @@ export default function AdminProvidersPage() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const list = providers ?? [];
+  const list = useMemo(() => providers ?? [], [providers]);
   const pendingCount = useMemo(() => list.filter((p) => p.verificationStatus === "pending").length, [list]);
   const verifiedCount = useMemo(() => list.filter((p) => p.verificationStatus === "verified").length, [list]);
   const rejectedCount = useMemo(() => list.filter((p) => p.verificationStatus === "rejected").length, [list]);

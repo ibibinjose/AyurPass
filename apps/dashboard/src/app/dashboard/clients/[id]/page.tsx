@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
 import type { ClientRecord, ClientNote, Booking, Order } from "@/lib/types";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
-import { Button, EmptyState, ErrorNote, Field, Input, Textarea, InlineSpinner } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Input, Textarea, InlineSpinner } from "@/components/ui";
 import { OrderStatusBadge } from "@/components/OrderStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 

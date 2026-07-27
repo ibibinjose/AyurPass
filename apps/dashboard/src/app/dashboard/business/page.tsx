@@ -93,7 +93,6 @@ function isHttpUrl(v: string): boolean {
   if (!v.trim()) return true;
   if (v.trim().startsWith("/")) return true;
   try {
-    // eslint-disable-next-line no-new
     new URL(v.trim());
     return true;
   } catch {

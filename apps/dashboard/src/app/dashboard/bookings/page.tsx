@@ -10,7 +10,7 @@ import type { Booking, EventTicket, PaymentCheckout, ServiceCategory } from "@/l
 import { BookingStatusBadge } from "@/components/BookingStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
 import { PayWithStripe } from "@/components/PayWithStripe";
-import { Button, EmptyState, ErrorNote } from "@/components/ui";
+import { EmptyState, ErrorNote } from "@/components/ui";
 import {
   useConsumerBookings,
   useInvalidateConsumerBookings,
@@ -24,7 +24,6 @@ import { CATEGORY_LABEL, EVENT_CATEGORY_LABEL } from "@/lib/catalog";
 import {
   CalendarIcon,
   SearchIcon,
-  MapPinIcon,
   CheckCircleIcon,
   XIcon,
   ArrowRightIcon,

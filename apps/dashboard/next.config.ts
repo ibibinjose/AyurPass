@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
       // Backend uploads (development / direct API)
       { protocol: "https", hostname: "api.ayurpass.com" },
       { protocol: "https", hostname: "api-staging.ayurpass.com" },
+      { protocol: "https", hostname: "picsum.photos" },
       // S3 / CloudFront media CDN (when provisioned)
       { protocol: "https", hostname: "**.amazonaws.com" },
       { protocol: "https", hostname: "**.cloudfront.net" },

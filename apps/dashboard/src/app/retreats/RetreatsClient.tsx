@@ -160,7 +160,7 @@ function RetreatsInner({ initialQuery = "" }: { initialQuery?: string }) {
   const loading = !error && retreats === null;
   const q = query.trim();
   const loc = location.trim();
-  const all = retreats ?? [];
+  const all = useMemo(() => retreats ?? [], [retreats]);
 
   const categoryCounts = useMemo(() => {
     const map = new Map<string, number>();

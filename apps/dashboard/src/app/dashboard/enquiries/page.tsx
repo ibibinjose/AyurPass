@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Enquiry } from "@/lib/types";
-import { DashHeader, DashTabs } from "@/components/dashboard/DashboardKit";
+import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState } from "@/components/ui";
 import { useMyEnquiries, useUpdateEnquiryStatus } from "@/hooks/useEnquiries";
 
@@ -30,8 +30,10 @@ function timeAgo(iso: string): string {
 export default function EnquiriesPage() {
   const enquiriesQ = useMyEnquiries();
   const updateStatus = useUpdateEnquiryStatus();
-  const enquiries =
-    enquiriesQ.isLoading && !enquiriesQ.data ? null : (enquiriesQ.data ?? []);
+  const enquiries = useMemo(
+    () => (enquiriesQ.isLoading && !enquiriesQ.data ? null : (enquiriesQ.data ?? [])),
+    [enquiriesQ.data, enquiriesQ.isLoading],
+  );
   const [filter, setFilter] = useState<Filter>("new");
   const error = enquiriesQ.isError;
 
@@ -48,11 +50,11 @@ export default function EnquiriesPage() {
     };
   }, [enquiries]);
 
-  const shown = (enquiries ?? []).filter((e) => {
+  const shown = useMemo(() => (enquiries ?? []).filter((e) => {
     if (filter === "new") return e.status !== "archived";
     if (filter === "archived") return e.status === "archived";
     return true;
-  });
+  }), [enquiries, filter]);
 
   const FILTERS: { key: Filter; label: string }[] = [
     { key: "new", label: "Inbox" },

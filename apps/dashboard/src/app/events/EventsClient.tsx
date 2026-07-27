@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { EVENT_CATEGORIES, EVENT_CATEGORY_LABEL, formatAddress } from "@/lib/catalog";
-import type { EventCategory, WellnessEvent } from "@/lib/types";
+import type { WellnessEvent } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Button, EmptyState, Input } from "@/components/ui";
 import { useNearMe } from "@/hooks/useNearMe";
@@ -69,7 +69,7 @@ export default function EventsClient() {
     return () => window.clearTimeout(t);
   }, [load]);
 
-  const list = events ?? [];
+  const list = useMemo(() => events ?? [], [events]);
   const counts = useMemo(() => {
     const m = new Map<string, number>();
     for (const c of EVENT_CATEGORIES) m.set(c, 0);

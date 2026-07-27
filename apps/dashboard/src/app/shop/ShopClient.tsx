@@ -15,7 +15,6 @@ import {
 import { ProductCard } from "@/components/ProductCard";
 import { Button, EmptyState, Input } from "@/components/ui";
 import {
-  LeafIcon,
   LotusIcon,
   SearchIcon,
   SparkleIcon,
@@ -146,7 +145,7 @@ export default function ShopClient() {
   }, [load]);
 
   const loading = !error && products === null;
-  const all = products ?? [];
+  const all = useMemo(() => products ?? [], [products]);
   const q = query.trim();
 
   const categories = useMemo(() => {

@@ -12,7 +12,7 @@ import {
   DashTabs,
 } from "@/components/dashboard/DashboardKit";
 import { SparkleIcon, ShieldIcon, UsersIcon, CalendarIcon } from "@/components/icons";
-import { Button, EmptyState, ErrorNote } from "@/components/ui";
+import { EmptyState, ErrorNote } from "@/components/ui";
 
 type StatusFilter = "all" | "active" | "completed" | "draft" | "paused";
 

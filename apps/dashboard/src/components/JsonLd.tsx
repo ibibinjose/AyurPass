@@ -2,8 +2,23 @@
  * Renders a schema.org JSON-LD block. Server-safe (no "use client"), so the
  * structured data ships in the initial HTML where crawlers can read it.
  */
-export function JsonLd({ data }: { data: object | object[] }) {
-  const json = JSON.stringify(data);
+type JsonLdNode = Record<string, unknown>;
+
+function normalizeJsonLd(data: JsonLdNode | JsonLdNode[]) {
+  if (!Array.isArray(data)) return data;
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": data.map((entry) => {
+      const node = { ...entry };
+      delete node["@context"];
+      return node;
+    }),
+  };
+}
+
+export function JsonLd({ data }: { data: JsonLdNode | JsonLdNode[] }) {
+  const json = JSON.stringify(normalizeJsonLd(data));
   return (
     <script
       type="application/ld+json"

@@ -57,6 +57,7 @@ export const metadata: Metadata = {
     default: SITE_TITLE_DEFAULT,
   },
   description: SITE_TAGLINE,
+  keywords: DEFAULT_KEYWORDS,
   alternates: {
     canonical: "/",
     languages: {
@@ -126,7 +127,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
+    >
       <body className="flex min-h-[100dvh] min-h-screen flex-col">
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <ErrorBoundary>

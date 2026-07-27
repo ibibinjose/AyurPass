@@ -190,7 +190,7 @@ export default function PractitionerProfileClient({
       href: practitionerPath(professional),
       subtitle: professionalDisplayTitle(professional) ?? undefined,
     });
-  }, [professional?.id]);
+  }, [professional]);
 
   // All hooks must run before any early return (stable hook order).
   const provider = professional?.provider;

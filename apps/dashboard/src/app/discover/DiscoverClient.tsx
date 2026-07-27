@@ -46,7 +46,6 @@ import { ProfessionalCard } from "@/components/ProfessionalCard";
 import { Button, EmptyState, Input } from "@/components/ui";
 import {
   CalendarIcon,
-  CompassIcon,
   LeafIcon,
   LotusIcon,
   MapPinIcon,
@@ -194,7 +193,7 @@ function primaryDoshaName(scores: {
 
 function DiscoverInner() {
   const { user } = useAuth();
-  const { countryName: activeCountryName, flag: activeFlag, openModal } = useLocation();
+  const { countryName: activeCountryName } = useLocation();
   const { values, set, setMany, clear, sharePath } = useDirectoryUrlState(URL_DEFAULTS);
 
   const tab = (["providers", "services", "products", "professionals"].includes(values.tab)
@@ -473,9 +472,13 @@ function DiscoverInner() {
     [activeCountryName, loc, userCoords],
   );
 
-  const activeTypes = providerGroup
-    ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
-    : null;
+  const activeTypes = useMemo(
+    () =>
+      providerGroup
+        ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
+        : null,
+    [providerGroup],
+  );
 
   const shownProviders = useMemo(() => {
     const filtered = base.providers?.filter(
@@ -511,9 +514,13 @@ function DiscoverInner() {
     );
   }, [base.products, productCategory, getProximityScore, providersById]);
 
-  const professionalGroupTypes = providerGroup
-    ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
-    : null;
+  const professionalGroupTypes = useMemo(
+    () =>
+      providerGroup
+        ? (PROVIDER_GROUPS.find((g) => g.label === providerGroup)?.types ?? [])
+        : null,
+    [providerGroup],
+  );
 
   const shownProfessionals = useMemo(() => {
     const filtered = (base.professionals ?? []).filter((prof) => {

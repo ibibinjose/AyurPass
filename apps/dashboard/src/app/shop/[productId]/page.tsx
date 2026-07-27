@@ -9,8 +9,6 @@ import { STICKY_BELOW_NAV } from "@/components/DirectoryLayout";
 import { api, formatMoney } from "@/lib/api";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { Order, PaymentCheckout, Product } from "@/lib/types";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { CheckIcon, LotusIcon, ShieldIcon } from "@/components/icons";

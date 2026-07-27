@@ -49,12 +49,12 @@ export function useEngagement(target: EngagementTarget) {
   const onFollow = useCallback(() => {
     if (!requireAuth()) return false;
     return toggleFollow(target);
-  }, [requireAuth, target.kind, target.id]);
+  }, [requireAuth, target]);
 
   const onLike = useCallback(() => {
     if (!requireAuth()) return false;
     return toggleLike(target);
-  }, [requireAuth, target.kind, target.id]);
+  }, [requireAuth, target]);
 
   return { following, liked, onFollow, onLike, canEngage: Boolean(user) };
 }

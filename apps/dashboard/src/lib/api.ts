@@ -272,7 +272,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch (err) {
+  } catch {
     // Network failure, CORS block, or offline
     throw new ApiError(
       "Unable to reach the server. Please check your connection and try again.",

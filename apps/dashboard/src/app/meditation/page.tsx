@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -40,10 +41,13 @@ export default function MeditationPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative min-h-[480px] overflow-hidden bg-surface">
-          <img
+          <Image
             src="/images/heroes/meditation.png"
             alt="Meditation Practice"
-            className="absolute inset-0 h-full w-full object-cover opacity-60"
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-white/60 via-white/30 to-transparent" />
 

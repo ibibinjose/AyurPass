@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 import type { WellnessPackage } from "@/lib/types";
 import { PackageCard } from "@/components/PackageCard";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
-import { DashHeader } from "@/components/dashboard/DashboardKit";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
 
 interface FormState {

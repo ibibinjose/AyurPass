@@ -114,7 +114,7 @@ export default function OffersClient() {
   }, []);
 
   const loading = !error && offers === null;
-  const all = offers ?? [];
+  const all = useMemo(() => offers ?? [], [offers]);
   const q = query.trim();
 
   const disciplineCounts = useMemo(() => {

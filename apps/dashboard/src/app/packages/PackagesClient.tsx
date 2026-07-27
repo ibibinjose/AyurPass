@@ -16,7 +16,6 @@ import {
 import { PackageCard } from "@/components/PackageCard";
 import { Button, EmptyState, Input } from "@/components/ui";
 import {
-  CalendarIcon,
   LeafIcon,
   SearchIcon,
   SparkleIcon,
@@ -134,7 +133,7 @@ export default function PackagesClient() {
   }, [load]);
 
   const loading = !error && packages === null;
-  const all = packages ?? [];
+  const all = useMemo(() => packages ?? [], [packages]);
   const q = query.trim();
 
   const providerTypes = useMemo(() => {

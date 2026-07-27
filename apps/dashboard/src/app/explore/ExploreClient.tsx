@@ -16,10 +16,8 @@ import {
 import { ServiceCard } from "@/components/ServiceCard";
 import { Button, EmptyState, Input } from "@/components/ui";
 import {
-  CalendarIcon,
   CompassIcon,
   DumbbellIcon,
-  FlameIcon,
   LeafIcon,
   LotusIcon,
   MapPinIcon,
@@ -163,7 +161,7 @@ export default function ExploreClient() {
   }, [load]);
 
   const loading = !error && services === null;
-  const all = services ?? [];
+  const all = useMemo(() => services ?? [], [services]);
   const q = query.trim();
 
   const categoryCounts = useMemo(() => {

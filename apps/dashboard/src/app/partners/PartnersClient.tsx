@@ -14,7 +14,6 @@ import {
   CheckIcon,
   MailIcon,
   GlobeIcon,
-  PhoneIcon,
 } from "@/components/icons";
 import { api } from "@/lib/api";
 

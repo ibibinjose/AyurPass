@@ -228,7 +228,6 @@ export default function ProviderProfilePage({
   const linkItems = useMemo(() => buildPracticeLinks(brand), [brand]);
   const hasBookableServices = (services?.length ?? 0) > 0;
   const serviceCount = services?.length ?? 0;
-  const productCount = products?.length ?? 0;
 
   const mediaImages = useMemo(() => {
     const g: string[] = [];
@@ -334,7 +333,6 @@ export default function ProviderProfilePage({
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : `${SITE_URL}${sharePath}`;
   const teamCount = team.length;
-  const isFreeListing = provider.listingTier === "FREE_LISTING";
   const bookHref = brand?.externalBookingUrl
     ? brand.externalBookingUrl
     : hasBookableServices

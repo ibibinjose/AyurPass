@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { StaffMember, StaffRole } from "@/lib/types";
 import { PlusIcon, TrashIcon, UsersIcon, PencilIcon, ShieldIcon } from "@/components/icons";
+import { SafeImage } from "@/components/SafeImage";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, SuccessNote } from "@/components/ui";
 import {
   useInvalidateProviderStaff,
@@ -284,7 +285,7 @@ export default function StaffPage() {
                 className="flex flex-wrap items-center gap-4 rounded-2xl border border-hairline bg-surface px-5 py-4"
               >
                 {m.user?.avatarUrl ? (
-                  <img
+                  <SafeImage
                     src={m.user.avatarUrl}
                     alt=""
                     className="h-11 w-11 shrink-0 rounded-full border border-hairline object-cover"
