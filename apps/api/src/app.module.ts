@@ -41,6 +41,7 @@ import { JobsModule } from './modules/jobs/jobs.module';
 import { EventsModule } from './modules/events/events.module';
 import { WellnessPassModule } from './modules/wellness-pass/wellness-pass.module';
 import { CacheModule } from './modules/cache/cache.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { CacheModule } from './modules/cache/cache.module';
     JobsModule,
     EventsModule,
     WellnessPassModule,
+    AiModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
