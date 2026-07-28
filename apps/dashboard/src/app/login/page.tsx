@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/Logo";
 import { Button, ErrorNote, Field, Input } from "@/components/ui";
@@ -10,18 +10,24 @@ import { AuthBanner } from "@/components/auth/AuthBanner";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
 import { ApiError } from "@/lib/api";
-import { postAuthHome, registerUrl, safeNextPath } from "@/lib/auth-redirect";
+import { postAuthHome, safeNextPath } from "@/lib/auth-redirect";
 
 function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const search = useSearchParams();
   const nextParam = search.get("next");
+  const verificationRequired = search.get("verification_required") === "true";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    verificationRequired
+      ? "Please verify your email to continue. Check your inbox for the verification link."
+      : null,
+  );
   const [busy, setBusy] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,27 +50,6 @@ function LoginForm() {
       setBusy(false);
     }
   }
-
-  // Check if we're coming from a verification requirement
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const verificationRequired = urlParams.get('verification_required');
-    if (verificationRequired === 'true') {
-      setError('Please verify your email to continue. Check your inbox for the verification link.');
-    }
-  }, []);
-
-  const [rememberMe, setRememberMe] = useState(false);
-  
-  useEffect(() => {
-    // 在组件挂载时执行
-    console.log('Login form mounted');
-    
-    // 在组件卸载时执行
-    return () => {
-      console.log('Login form unmounted');
-    };
-  }, []); // 空数组确保 effect 只在挂载和卸载时运行
 
   return (
     <main className="flex min-h-screen bg-surface">
@@ -138,7 +123,7 @@ function LoginForm() {
 
           <p className="mt-6 text-center text-sm text-ink-muted">
             New to AyurPass?{" "}
-            <Link href={registerUrl(nextParam)} className="font-semibold text-forest hover:underline">
+            <Link href={`/account-type${nextParam ? `?next=${encodeURIComponent(nextParam)}` : ''}`} className="font-semibold text-forest hover:underline">
               Create an account
             </Link>
           </p>

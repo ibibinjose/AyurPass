@@ -72,6 +72,12 @@ export class RegisterDto {
   @MaxLength(120)
   city?: string;
 
+  /** State or Province (e.g. Victoria, NSW, California, Maharashtra). */
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  state?: string;
+
   /** Country name (e.g. Australia) — required for seekers in UI; optional for legacy clients. */
   @IsString()
   @IsOptional()

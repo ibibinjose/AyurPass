@@ -3,6 +3,7 @@ import type {
   AdminProvider,
   AccessAuditEntry,
   AuthResponse,
+  AuthResponseWithDirectTokens,
   AuthTokens,
   Booking,
   ClientConsent,
@@ -375,7 +376,7 @@ export const api = {
     brandProfile?: BrandProfile;
     address?: BusinessAddress;
   }) =>
-    request<AuthResponse & { provider: Provider }>("/auth/list-business", {
+    request<AuthResponseWithDirectTokens & { provider: Provider }>("/auth/list-business", {
       method: "POST",
       body: data,
       auth: true,

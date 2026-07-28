@@ -181,7 +181,7 @@ export default function AboutScreen() {
           {/* App Info & Links */}
           <View style={{ alignItems: "center", marginTop: 12, gap: 4 }}>
             <Text style={{ fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.inkMuted }}>
-              AyurPass App v1.2.0 · Built with ♥ for Holistic Health
+              AyurPass App v1.3.0 · Built with ♥ for Holistic Health
             </Text>
             <Pressable onPress={() => void Linking.openURL("https://ayurpass.com")}>
               <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12, color: colors.leaf, textDecorationLine: "underline" }}>

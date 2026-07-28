@@ -29,7 +29,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponse> {
+  async register(@Body() registerDto: RegisterDto): Promise<any> {
     const result = await this.authService.register(registerDto);
     if (result.user) {
       this.amplitude.track(result.user.id, 'User Registered', {
@@ -44,7 +44,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<AuthResponse> {
+  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<any> {
     const result = await this.authService.verifyEmail(dto.token);
     if (result.user?.id) {
       this.amplitude.track(result.user.id, 'Email Verified', {});
@@ -57,6 +57,4 @@ export class AuthController {
   async resendVerification(@Req() req: AuthedRequest) {
     return this.authService.resendVerification(req.user.sub);
   }
-
-  /**
-   * Authenticated free listing — skip re-register when the user is already signed in.
+}

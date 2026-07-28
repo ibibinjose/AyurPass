@@ -5,6 +5,7 @@
 
 import { endpoints } from "./endpoints";
 import { assertApiUrl, normalizeBaseUrl } from "./env";
+import { AuthResponse } from "./types";
 
 export class ApiError extends Error {
   readonly status: number;

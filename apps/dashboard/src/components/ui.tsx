@@ -256,3 +256,96 @@ export function FilterChip({
     </button>
   );
 }
+
+export function Card({
+  children,
+  className = "",
+  onClick,
+  onKeyDown,
+  role,
+  "aria-checked": ariaChecked,
+  tabIndex,
+}: {
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  role?: string;
+  "aria-checked"?: boolean;
+  tabIndex?: number;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      role={role}
+      aria-checked={ariaChecked}
+      tabIndex={tabIndex}
+      className={`rounded-2xl border border-hairline/80 bg-surface shadow-xs ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function CardContent({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={`p-6 ${className}`}>{children}</div>;
+}
+
+export function Badge({
+  children,
+  variant = "default",
+  className = "",
+}: {
+  children: ReactNode;
+  variant?: "default" | "success" | "warning" | "gold";
+  className?: string;
+}) {
+  const variantStyles = {
+    default: "bg-clay text-ink-muted border-hairline",
+    success: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    warning: "bg-amber-50 text-amber-800 border-amber-200",
+    gold: "bg-gold/15 text-gold-deep border-gold/30 font-bold",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${variantStyles[variant]} ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+export function ToastNote({
+  message,
+  type = "info",
+}: {
+  message: string | null;
+  type?: "info" | "success" | "error";
+}) {
+  if (!message) return null;
+
+  const typeStyles = {
+    info: "bg-forest-deep text-surface border-white/20",
+    success: "bg-emerald-900 text-emerald-100 border-emerald-600/50",
+    error: "bg-red-950 text-red-100 border-red-800/50",
+  };
+
+  return (
+    <div
+      role="status"
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-xl transition-all ${typeStyles[type]}`}
+    >
+      <span>{message}</span>
+    </div>
+  );
+}
+
+

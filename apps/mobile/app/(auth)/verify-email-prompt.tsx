@@ -23,19 +23,30 @@ export default function VerifyEmailPrompt() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resent, setResent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   async function handleResendVerification() {
-    if (!user) return;
+    if (!user || cooldown > 0 || busy) return;
     
     setError(null);
     setBusy(true);
     
     try {
-      const response = await api.resendVerification();
+      await api.resendVerification();
       setResent(true);
-      setTimeout(() => setResent(false), 3000); // Reset after 3 seconds
-      
-      // Optionally show success message
+      setCooldown(60);
+
+      const timer = setInterval(() => {
+        setCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      setTimeout(() => setResent(false), 5000);
     } catch (err) {
       setError(
         err instanceof Error
@@ -89,12 +100,12 @@ export default function VerifyEmailPrompt() {
                 style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.hairline }}
                 accessibilityLabel="Go back"
               >
-                <Ionicons name="chevron-back" size={20} color={colors.ink} />
+                <Ionicons name="chevron-back" size={20} color={colors.inkSecondary} />
               </Pressable>
             </View>
 
             {/* Content */}
-            <View className="items-center text-center" style={{ alignItems: "center", textAlign: "center" }}>
+            <View className="items-center text-center" style={{ alignItems: "center" }}>
               <View
                 className="w-16 h-16 rounded-full bg-forest/10 items-center justify-center mb-6"
                 style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: `${colors.forest}20`, alignItems: "center", justifyContent: "center", marginBottom: 24 }}
@@ -104,14 +115,14 @@ export default function VerifyEmailPrompt() {
 
               <Text
                 className="font-heading text-2xl text-foreground mb-3"
-                style={{ color: colors.foreground, fontSize: 24, fontFamily: fonts.heading, lineHeight: 32, marginBottom: 12 }}
+                style={{ color: colors.foreground, fontSize: 24, fontFamily: fonts.display, lineHeight: 32, marginBottom: 12, textAlign: "center" }}
               >
                 Verify your email
               </Text>
 
               <Text
                 className="font-body text-base text-ink-secondary mb-8 leading-5"
-                style={{ color: colors.inkSecondary, fontSize: 16, fontFamily: fonts.body, lineHeight: 20, marginBottom: 32 }}
+                style={{ color: colors.inkSecondary, fontSize: 16, fontFamily: fonts.body, lineHeight: 20, marginBottom: 32, textAlign: "center" }}
               >
                 We sent a verification link to{" "}
                 <Text className="font-body-semi" style={{ fontFamily: fonts.bodySemi }}>
@@ -120,7 +131,7 @@ export default function VerifyEmailPrompt() {
                 . Please check your inbox and click the link to activate your account.
               </Text>
 
-              {error && <ErrorNote error={error} />}
+              {error && <ErrorNote message={error} />}
 
               <View className="w-full space-y-3 mt-4" style={{ width: "100%", marginTop: 16 }}>
                 <Pressable
@@ -151,9 +162,11 @@ export default function VerifyEmailPrompt() {
 
                 <Pressable
                   onPress={handleResendVerification}
-                  disabled={busy}
+                  disabled={busy || cooldown > 0}
                   className={`h-12 rounded-full items-center justify-center border ${
-                    busy ? "border-hairline bg-surface/50" : "border-hairline bg-surface active:opacity-90"
+                    busy || cooldown > 0
+                      ? "border-hairline bg-surface/50 opacity-60"
+                      : "border-hairline bg-surface active:opacity-90"
                   }`}
                   style={{
                     height: 48,
@@ -161,15 +174,20 @@ export default function VerifyEmailPrompt() {
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: 1,
-                    borderColor: busy ? `${colors.hairline}80` : colors.hairline,
-                    backgroundColor: busy ? `${colors.surface}80` : colors.surface,
+                    borderColor: busy || cooldown > 0 ? `${colors.hairline}80` : colors.hairline,
+                    backgroundColor: busy || cooldown > 0 ? `${colors.surface}80` : colors.surface,
+                    opacity: cooldown > 0 ? 0.7 : 1,
                   }}
                 >
                   <Text
                     className="font-body-semi text-base text-foreground"
                     style={{ color: colors.foreground, fontSize: 16, fontFamily: fonts.bodySemi }}
                   >
-                    {resent ? "Email resent!" : "Resend verification email"}
+                    {cooldown > 0
+                      ? `Resend in ${cooldown}s`
+                      : resent
+                      ? "Email sent! Check your inbox"
+                      : "Resend verification email"}
                   </Text>
                 </Pressable>
               </View>

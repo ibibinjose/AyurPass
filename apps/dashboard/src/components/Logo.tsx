@@ -7,10 +7,12 @@ export function Logo({
   dark = false,
   variant = "horizontal",
   className = "",
+  asLink = true,
 }: {
   dark?: boolean;
   variant?: LogoVariant;
   className?: string;
+  asLink?: boolean;
 }) {
   const wordmarkClass = `font-display tracking-tight ${
     dark ? "text-white" : "text-forest"
@@ -21,24 +23,33 @@ export function Logo({
       ? "h-28 w-28 shrink-0 object-contain"
       : "h-9 w-9 shrink-0 object-contain";
 
-  if (variant === "stacked" || variant === "mark-only") {
+  const content = (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={BRAND_LOGO}
+        alt={variant === "mark-only" ? "AyurPass" : ""}
+        className={imgClass}
+      />
+      {variant === "horizontal" && <span className={wordmarkClass}>AyurPass</span>}
+    </>
+  );
+
+  if (!asLink) {
     return (
-      <Link href="/" className={`inline-flex ${className}`} aria-label="AyurPass home">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={BRAND_LOGO} alt="AyurPass" className={imgClass} />
-      </Link>
+      <span className={`inline-flex items-center gap-2.5 ${className}`}>
+        {content}
+      </span>
     );
   }
 
   return (
     <Link
       href="/"
-      className={`flex items-center gap-2.5 group ${className}`}
+      className={`inline-flex items-center gap-2.5 group ${className}`}
       aria-label="AyurPass home"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={BRAND_LOGO} alt="" className={imgClass} />
-      <span className={wordmarkClass}>AyurPass</span>
+      {content}
     </Link>
   );
 }

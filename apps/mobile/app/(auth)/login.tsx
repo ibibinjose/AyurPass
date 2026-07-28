@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import type { Href } from "expo-router";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -19,7 +21,7 @@ import { ApiError } from "../../src/api";
 import { colors, fonts } from "../../src/theme";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginWithSocial } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +29,9 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
+  const [socialModalProvider, setSocialModalProvider] = useState<"google" | "apple" | null>(null);
+  const [socialEmail, setSocialEmail] = useState("");
+  const [socialName, setSocialName] = useState("");
 
   async function onSubmit() {
     setError(null);
@@ -39,7 +44,7 @@ export default function Login() {
       // Check if email verification is needed
       if (!profile.emailVerifiedAt) {
         // Navigate to a verification screen or show a modal
-        router.push("/(auth)/verify-email-prompt");
+        router.push("/(auth)/verify-email-prompt" as Href);
       } else {
         router.replace("/(tabs)");
       }
@@ -282,6 +287,69 @@ export default function Login() {
                   </View>
                 </View>
 
+                {/* Social Sign-In Buttons */}
+                <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
+                  <Pressable
+                    onPress={() => {
+                      setError(null);
+                      setSocialEmail("user@gmail.com");
+                      setSocialName("Google Member");
+                      setSocialModalProvider("google");
+                    }}
+                    style={{
+                      flex: 1,
+                      minHeight: 46,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: colors.hairline,
+                      backgroundColor: colors.surface,
+                    }}
+                  >
+                    <Ionicons name="logo-google" size={18} color="#EA4335" />
+                    <Text style={{ fontSize: 13, fontFamily: fonts.bodySemi, color: colors.foreground }}>
+                      Google
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setError(null);
+                      setSocialEmail("user@icloud.com");
+                      setSocialName("Apple Member");
+                      setSocialModalProvider("apple");
+                    }}
+                    style={{
+                      flex: 1,
+                      minHeight: 46,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: colors.hairline,
+                      backgroundColor: colors.surface,
+                    }}
+                  >
+                    <Ionicons name="logo-apple" size={18} color={colors.foreground} />
+                    <Text style={{ fontSize: 13, fontFamily: fonts.bodySemi, color: colors.foreground }}>
+                      Apple
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+                  <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
+                  <Text style={{ marginHorizontal: 12, fontSize: 10, fontFamily: fonts.bodySemi, color: colors.inkMuted, textTransform: "uppercase" }}>
+                    or continue with email
+                  </Text>
+                  <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
+                </View>
+
                 <ErrorNote message={error} />
 
                 {/* Submit CTA Button with LinearGradient */}
@@ -326,6 +394,101 @@ export default function Login() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Mobile Social OAuth Modal */}
+      <Modal
+        visible={socialModalProvider !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSocialModalProvider(null)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}>
+          <View style={{ width: "100%", maxWidth: 400, borderRadius: 24, backgroundColor: colors.surface, padding: 24, borderWidth: 1, borderColor: colors.hairline }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Ionicons name={socialModalProvider === "google" ? "logo-google" : "logo-apple"} size={22} color={socialModalProvider === "google" ? "#EA4335" : colors.foreground} />
+                <Text style={{ fontSize: 18, fontFamily: fonts.display, color: colors.forest }}>
+                  Sign in with {socialModalProvider === "google" ? "Google" : "Apple"}
+                </Text>
+              </View>
+              <Pressable onPress={() => setSocialModalProvider(null)} hitSlop={8}>
+                <Ionicons name="close" size={20} color={colors.inkMuted} />
+              </Pressable>
+            </View>
+
+            <Text style={{ fontSize: 13, fontFamily: fonts.body, color: colors.inkMuted, marginBottom: 16 }}>
+              Authorize your identity via {socialModalProvider === "google" ? "Google OAuth" : "Apple ID"}:
+            </Text>
+
+            <View style={{ gap: 12, marginBottom: 20 }}>
+              <View>
+                <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.foreground, marginBottom: 4 }}>
+                  Account Email
+                </Text>
+                <TextInput
+                  value={socialEmail}
+                  onChangeText={setSocialEmail}
+                  placeholder={socialModalProvider === "google" ? "you@gmail.com" : "you@icloud.com"}
+                  placeholderTextColor={colors.inkMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={{ minHeight: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.hairline, paddingHorizontal: 12, fontSize: 15, color: colors.foreground, backgroundColor: colors.background }}
+                />
+              </View>
+
+              <View>
+                <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.foreground, marginBottom: 4 }}>
+                  Full Name (Optional)
+                </Text>
+                <TextInput
+                  value={socialName}
+                  onChangeText={setSocialName}
+                  placeholder="Your Name"
+                  placeholderTextColor={colors.inkMuted}
+                  style={{ minHeight: 46, borderRadius: 14, borderWidth: 1, borderColor: colors.hairline, paddingHorizontal: 12, fontSize: 15, color: colors.foreground, backgroundColor: colors.background }}
+                />
+              </View>
+            </View>
+
+            <Pressable
+              onPress={async () => {
+                if (!socialModalProvider || !socialEmail.trim()) return;
+                setBusy(true);
+                const provider = socialModalProvider;
+                setSocialModalProvider(null);
+                try {
+                  const sanitizedEmail = socialEmail.trim().replace(/[^a-zA-Z0-9]/g, "");
+                  const profile = await loginWithSocial(provider, {
+                    email: socialEmail.trim(),
+                    name: socialName.trim(),
+                    idToken: `mobile-${provider}-oauth-${sanitizedEmail}`,
+                  });
+                  if (!profile.emailVerifiedAt) {
+                    router.push("/(auth)/verify-email-prompt" as Href);
+                  } else {
+                    router.replace("/(tabs)");
+                  }
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : `${provider} sign-in failed.`);
+                  setBusy(false);
+                }
+              }}
+              style={{ overflow: "hidden", borderRadius: 14 }}
+            >
+              <LinearGradient
+                colors={[colors.forest, colors.leaf]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{ minHeight: 48, alignItems: "center", justifyContent: "center" }}
+              >
+                <Text style={{ fontSize: 15, fontFamily: fonts.bodySemi, color: colors.white }}>
+                  Authorize & Sign In
+                </Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

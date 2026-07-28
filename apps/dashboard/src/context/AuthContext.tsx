@@ -56,7 +56,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.login(email, password);
-    tokenStore.set(res);
+    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+    const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
+    if (tokens.accessToken && tokens.refreshToken) {
+      tokenStore.set(tokens);
+    }
     const profile = await api.profile();
     setUser(profile);
     
@@ -77,7 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       payload: { email: string; name?: string; idToken?: string }
     ) => {
       const res = await api.socialAuth(provider, payload);
-      tokenStore.set(res);
+      const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+      const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
+      if (tokens.accessToken && tokens.refreshToken) {
+        tokenStore.set(tokens);
+      }
       const profile = await api.profile();
       setUser(profile);
       
@@ -96,7 +104,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const res = await api.register(payload);
-    tokenStore.set(res);
+    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+    const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
+    if (tokens.accessToken && tokens.refreshToken) {
+      tokenStore.set(tokens);
+    }
     const profile = await api.profile();
     setUser(profile);
     

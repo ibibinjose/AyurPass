@@ -30,12 +30,13 @@ export function loginUrl(next?: string | null): string {
   return `/login?next=${encodeURIComponent(dest)}`;
 }
 
-/** Build /register?next=… (and optional as=provider). */
-export function registerUrl(next?: string | null, asProvider = false): string {
+/** Build /register?next=… (and optional role or as=provider). */
+export function registerUrl(next?: string | null, role?: string | null, asProvider = false): string {
   const params = new URLSearchParams();
   const dest = safeNextPath(next, "");
   if (dest) params.set("next", dest);
-  if (asProvider) params.set("as", "provider");
+  if (role) params.set("role", role);
+  else if (asProvider) params.set("as", "provider");
   const q = params.toString();
   return q ? `/register?${q}` : "/register";
 }

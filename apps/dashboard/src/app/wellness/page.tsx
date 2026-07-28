@@ -95,7 +95,7 @@ const wellnessSections: WellnessSection[] = [
     subtitle: "The Science of Life",
     icon: LeafIcon,
     art: AyurvedaArt,
-    theme: { iconWrap: "bg-forest text-gold-soft", subtitle: "text-leaf", bullet: "bg-leaf" },
+    theme: { iconWrap: "bg-forest text-gold-soft", subtitle: "text-leaf-bright font-bold", bullet: "bg-leaf-bright" },
     description:
       "Ayurveda, meaning 'science of life,' is a traditional system of medicine that originated in India over 3,000 years ago. It emphasizes balance in the body's three doshas (Vata, Pitta, and Kapha) to promote optimal health and prevent illness.",
     benefits: [

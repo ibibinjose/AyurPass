@@ -15,6 +15,7 @@ export type {
   HealthAuthorityBadge,
   AuthTokens,
   AuthResponse,
+  AuthResponseWithDirectTokens,
   JobListing,
   JobApplication,
   EmploymentType,

@@ -19,8 +19,12 @@
   --forest: #1e3228;
   --forest-deep: #142019;
   --leaf: #2f5a44;
+  --leaf-light: #52c48a;
+  --leaf-bright: #34d68c;
   --gold: #a67a24;
-  --gold-soft: #e9d9b8;
+  --gold-soft: #f3e5c8;
+  --gold-bright: #f5d77f;
+  --gold-deep: #7c5710;
   --clay: #efe8d9;
 
   --vata: #4a3aa7;
@@ -76,8 +80,12 @@
   --color-forest: var(--forest);
   --color-forest-deep: var(--forest-deep);
   --color-leaf: var(--leaf);
+  --color-leaf-light: var(--leaf-light);
+  --color-leaf-bright: var(--leaf-bright);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-deep: var(--gold-deep);
   --color-clay: var(--clay);
 
   --color-vata: var(--vata);

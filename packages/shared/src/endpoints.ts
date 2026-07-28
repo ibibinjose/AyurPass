@@ -13,6 +13,7 @@ export const endpoints = {
     logout: "/auth/logout",
     verifyEmail: "/auth/verify-email",
     resendVerification: "/auth/resend-verification",
+    social: (provider: string) => `/auth/${provider}` as const,
   },
 
   profile: "/users/me",

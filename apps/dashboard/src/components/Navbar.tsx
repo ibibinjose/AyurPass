@@ -343,7 +343,7 @@ export function Navbar() {
                 Sign in
               </Link>
               <Link
-                href="/register"
+                href="/account-type"
                 className="profile-spring rounded-full bg-forest px-4.5 py-2 text-xs font-bold text-white shadow-2xs hover:bg-forest-deep active:scale-95"
               >
                 Get Started
@@ -438,7 +438,7 @@ export function Navbar() {
                     Sign In
                   </Link>
                   <Link
-                    href="/register"
+                    href="/account-type"
                     className="rounded-full bg-forest py-3 text-center text-xs font-bold text-white shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >

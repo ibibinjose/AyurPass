@@ -7,6 +7,10 @@ interface AuthContextValue {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<UserProfile>;
+  loginWithSocial: (
+    provider: "google" | "apple",
+    payload: { email: string; name?: string; idToken?: string }
+  ) => Promise<UserProfile>;
   register: (payload: RegisterPayload) => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -52,13 +56,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.login(email, password);
-    await tokenStore.set(res);
+    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+    const tokens = res.tokens || {
+      accessToken: rawRes.accessToken || "",
+      refreshToken: rawRes.refreshToken || "",
+    };
+    if (tokens.accessToken && tokens.refreshToken) {
+      await tokenStore.set(tokens);
+    }
     const profile = await api.profile();
     setUser(profile);
     
     // Check if email verification is needed
     if (res.needsEmailVerification) {
-      // Show alert to inform user about email verification requirement
       Alert.alert(
         "Email Verification Needed",
         "Please verify your email address before continuing. Check your inbox for a verification link.",
@@ -69,15 +79,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return profile;
   }, []);
 
+  const loginWithSocial = useCallback(
+    async (
+      provider: "google" | "apple",
+      payload: { email: string; name?: string; idToken?: string }
+    ) => {
+      const res = await api.socialAuth(provider, payload);
+      const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+      const tokens = res.tokens || {
+        accessToken: rawRes.accessToken || "",
+        refreshToken: rawRes.refreshToken || "",
+      };
+      if (tokens.accessToken && tokens.refreshToken) {
+        await tokenStore.set(tokens);
+      }
+      const profile = await api.profile();
+      setUser(profile);
+      return profile;
+    },
+    []
+  );
+
   const register = useCallback(async (payload: RegisterPayload) => {
     const res = await api.register(payload);
-    await tokenStore.set(res);
+    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
+    const tokens = res.tokens || {
+      accessToken: rawRes.accessToken || "",
+      refreshToken: rawRes.refreshToken || "",
+    };
+    if (tokens.accessToken && tokens.refreshToken) {
+      await tokenStore.set(tokens);
+    }
     const profile = await api.profile();
     setUser(profile);
     
-    // Check if email verification is needed after registration
     if (res.needsEmailVerification) {
-      // Show alert to inform user about email verification requirement
       Alert.alert(
         "Email Verification Needed",
         "Please verify your email address before continuing. Check your inbox for a verification link.",
@@ -98,7 +134,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [loadProfile]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, loginWithSocial, register, logout, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );

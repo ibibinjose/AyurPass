@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
-import { loginUrl, safeNextPath, postAuthHome } from "@/lib/auth-redirect";
+import { loginUrl, safeNextPath } from "@/lib/auth-redirect";
 
 function VerifyInner() {
   const search = useSearchParams();

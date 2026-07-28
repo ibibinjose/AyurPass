@@ -61,8 +61,6 @@ export default function TabsLayout() {
         tabBarShowLabel: false,  // Disable built-in labels to prevent duplication
         tabBarActiveTintColor: colors.forest,
         tabBarInactiveTintColor: colors.inkMuted,
-        // Prevent any scroll / arrow indicators
-        tabBarScrollEnabled: false,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.hairline,

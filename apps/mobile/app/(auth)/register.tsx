@@ -137,6 +137,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [countryCode, setCountryCode] = useState("AU");
   const [countryOpen, setCountryOpen] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -165,9 +166,10 @@ export default function Register() {
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       });
-      const resolvedCity =
-        place?.city || place?.subregion || place?.region || "";
+      const resolvedCity = place?.city || place?.subregion || "";
+      const resolvedState = place?.region || "";
       if (resolvedCity) setCity(resolvedCity);
+      if (resolvedState) setState(resolvedState);
       if (place?.isoCountryCode) {
         const found = COUNTRIES.find((c) => c.code === place.isoCountryCode);
         if (found) setCountryCode(found.code);
@@ -198,13 +200,14 @@ export default function Register() {
         password,
         role: config.role,
         city: city.trim(),
+        state: state.trim(),
         country: countryName,
         countryCode,
       });
       
       // Check if email verification is needed after registration
       if (!profile.emailVerifiedAt) {
-        router.replace("/(auth)/verify-email-prompt");
+        router.replace("/(auth)/verify-email-prompt" as Href);
       } else {
         router.replace(config.postRegisterPath as "/");
       }
@@ -404,7 +407,7 @@ export default function Register() {
                   </View>
                 </InputField>
 
-                {/* City & Country Row */}
+                {/* City & State Row */}
                 <View style={{ flexDirection: "row", gap: 12 }}>
                   {/* City */}
                   <View style={{ flex: 1 }}>
@@ -441,22 +444,40 @@ export default function Register() {
                     </View>
                   </View>
 
-                  {/* Country */}
+                  {/* State / Region */}
                   <View style={{ flex: 1 }}>
                     <Text style={{ marginBottom: 6, fontSize: 13, color: colors.forest, fontFamily: fonts.bodySemi }}>
-                      Country
+                      State / Region
                     </Text>
-                    <Pressable
-                      onPress={() => setCountryOpen((v) => !v)}
-                      style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, borderColor: countryOpen ? config.accentColor : colors.hairline, backgroundColor: countryOpen ? colors.surface : colors.background }}
+                    <View
+                      style={{ minHeight: 48, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, borderColor: focusBorder("state"), backgroundColor: focusBg("state") }}
                     >
-                      <Text style={{ fontSize: 16, color: colors.foreground, fontFamily: fonts.body }} numberOfLines={1}>
-                        {countryFlag} {countryCode}
-                      </Text>
-                      <Ionicons name={countryOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.inkMuted} />
-                    </Pressable>
+                      <Ionicons name="map-outline" size={18} color={activeField === "state" ? config.accentColor : colors.inkMuted} />
+                      <TextInput
+                        value={state}
+                        onChangeText={setState}
+                        onFocus={() => setActiveField("state")}
+                        onBlur={() => setActiveField(null)}
+                        placeholder="VIC / CA / MH"
+                        placeholderTextColor={colors.inkMuted}
+                        style={{ flex: 1, fontSize: 16, color: colors.foreground, fontFamily: fonts.body }}
+                      />
+                    </View>
                   </View>
                 </View>
+
+                {/* Country */}
+                <InputField label="Country">
+                  <Pressable
+                    onPress={() => setCountryOpen((v) => !v)}
+                    style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, borderColor: countryOpen ? config.accentColor : colors.hairline, backgroundColor: countryOpen ? colors.surface : colors.background }}
+                  >
+                    <Text style={{ fontSize: 16, color: colors.foreground, fontFamily: fonts.body }} numberOfLines={1}>
+                      {countryFlag} {countryName} ({countryCode})
+                    </Text>
+                    <Ionicons name={countryOpen ? "chevron-up" : "chevron-down"} size={16} color={colors.inkMuted} />
+                  </Pressable>
+                </InputField>
 
                 {/* Country Accordion */}
                 {countryOpen ? (

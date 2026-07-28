@@ -1,1 +1,3 @@
-/* NativeWind handles styling for mobile app, no Tailwind directives needed */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

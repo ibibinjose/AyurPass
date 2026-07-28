@@ -1,0 +1,57 @@
+services:
+  # 1. PostgreSQL Database with PostGIS extension for geospatial location search
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: ayurpass-db
+    restart: always
+    environment:
+      POSTGRES_USER: ayurpass
+      POSTGRES_PASSWORD: ayurpass_dev_password
+      POSTGRES_DB: ayurpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayurpass -d ayurpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. NestJS API Backend Service
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: ayurpass-api
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://ayurpass:ayurpass_dev_password@db:5432/ayurpass?schema=public
+      JWT_SECRET: dev_jwt_secret_key_ayurpass_2026_super_secure
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8081,http://localhost:19006
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 3. Next.js Web Dashboard Service
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: ayurpass-dashboard
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

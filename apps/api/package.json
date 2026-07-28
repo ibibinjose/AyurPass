@@ -1,6 +1,6 @@
 {
   "name": "@ayurpass/api",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "AyurPass Backend - NestJS + Prisma",
   "private": true,
   "scripts": {

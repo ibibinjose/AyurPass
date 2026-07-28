@@ -45,13 +45,29 @@ function RegisterForm() {
   const router = useRouter();
   const search = useSearchParams();
   const asProvider = search.get("as") === "provider";
+  const roleParam = search.get("role");
   const nextParam = search.get("next");
 
-  const [kind, setKind] = useState<"consumer" | "provider">(asProvider ? "provider" : "consumer");
+  // Determine initial kind based on role parameter or as parameter
+  const initialKind = roleParam === "PROVIDER_ADMIN" ? "provider" : 
+                     roleParam ? "consumer" : 
+                     asProvider ? "provider" : "consumer";
+  
+  const [kind, setKind] = useState<"consumer" | "provider">(initialKind);
+  
+  // Set initial role based on parameters, defaulting to CONSUMER
+  const initialRole = roleParam === "PROVIDER_ADMIN" ? "PROVIDER_ADMIN" :
+                     roleParam === "PROFESSIONAL" ? "PROFESSIONAL" : 
+                     roleParam === "CONSUMER" ? "CONSUMER" : 
+                     asProvider ? "PROVIDER_ADMIN" : "CONSUMER";
+  
+  const [role, setRole] = useState<"CONSUMER" | "PROFESSIONAL" | "PROVIDER_ADMIN">(initialRole);
+  
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [countryCode, setCountryCode] = useState("AU");
   const [businessName, setBusinessName] = useState("");
   const [providerType, setProviderType] = useState<ProviderType>("AYURVEDA_CLINIC");
@@ -76,15 +92,16 @@ function RegisterForm() {
         email,
         password,
         fullName,
-        role: kind === "provider" ? "PROVIDER_ADMIN" : "CONSUMER",
+        role,
         city: city.trim(),
+        state: state.trim(),
         country: countryName,
         countryCode,
-        ...(kind === "provider" ? { businessName, providerType } : {}),
+        ...(role === "PROVIDER_ADMIN" ? { businessName, providerType } : {}),
       });
       // New seekers → verify email notice + dosha quiz; providers → practice hub
       const fallback =
-        kind === "consumer" ? "/dashboard/assessment?verify=1" : postAuthHome(profile);
+        role === "CONSUMER" ? "/dashboard/assessment?verify=1" : postAuthHome(profile);
       router.push(safeNextPath(nextParam, fallback));
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
@@ -118,32 +135,40 @@ function RegisterForm() {
           <div className="rounded-3xl border border-hairline bg-surface p-8 shadow-[0_12px_40px_rgba(36,56,46,0.04)]">
             <h1 className="font-display text-2xl font-semibold text-forest">Begin your journey</h1>
             <p className="mt-1 text-sm text-ink-muted">
-              {kind === "consumer"
+              {role === "CONSUMER"
                 ? "Create an account and discover your dosha."
-                : "List your practice on AyurPass."}
+                : role === "PROFESSIONAL"
+                  ? "Build your practitioner profile and get discovered by seekers."
+                  : "List your practice on AyurPass."}
             </p>
 
-            <div className="mt-5 grid grid-cols-2 rounded-full border border-hairline bg-clay/60 p-1 text-sm font-medium">
-              {(
-                [
-                  ["consumer", "I'm seeking wellness"],
-                  ["provider", "I'm a provider"],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setKind(value)}
-                  className={`rounded-full px-3 py-2 transition-all duration-200 ${
-                    kind === value
-                      ? "bg-forest text-white shadow-sm"
-                      : "text-ink-secondary hover:text-forest"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            {/* Only show toggle if role wasn't predetermined */}
+            {!roleParam && !asProvider && (
+              <div className="mt-5 grid grid-cols-2 rounded-full border border-hairline bg-clay/60 p-1 text-sm font-medium">
+                {(
+                  [
+                    ["consumer", "I'm seeking wellness"],
+                    ["provider", "I'm a provider"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setKind(value);
+                      setRole(value === "provider" ? "PROVIDER_ADMIN" : "CONSUMER");
+                    }}
+                    className={`rounded-full px-3 py-2 transition-all duration-200 ${
+                      kind === value
+                        ? "bg-forest text-white shadow-sm"
+                        : "text-ink-secondary hover:text-forest"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="mt-6">
               <SocialAuthButtons />
@@ -196,8 +221,9 @@ function RegisterForm() {
                 />
               </Field>
 
+              {/* Location Fields: City, State / Region, Country */}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="City" hint="Used for Near me & local results.">
+                <Field label="City" hint="Used for Near Me results.">
                   <Input
                     required
                     autoComplete="address-level2"
@@ -206,21 +232,31 @@ function RegisterForm() {
                     placeholder="Melbourne"
                   />
                 </Field>
-                <Field label="Country" hint="Required — sets currency & region defaults.">
-                  <Select
-                    required
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    autoComplete="country"
-                  >
-                    {COUNTRIES_WITH_DIAL.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.name}
-                      </option>
-                    ))}
-                  </Select>
+
+                <Field label="State / Region" hint="Province or state.">
+                  <Input
+                    autoComplete="address-level1"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    placeholder="VIC / CA / MH"
+                  />
                 </Field>
               </div>
+
+              <Field label="Country" hint="Required — sets currency & regional defaults.">
+                <Select
+                  required
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  autoComplete="country"
+                >
+                  {COUNTRIES_WITH_DIAL.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
 
               <div>
                 <Field label="Password" hint="At least 8 characters.">
@@ -279,9 +315,15 @@ function RegisterForm() {
           </p>
 
           <p className="mt-4 text-center">
-            <Link href="/" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-forest transition-colors">
-              ← Back to home
-            </Link>
+            {roleParam || asProvider ? (
+              <Link href="/account-type" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-forest transition-colors">
+                ← Change account type
+              </Link>
+            ) : (
+              <Link href="/" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-forest transition-colors">
+                ← Back to home
+              </Link>
+            )}
           </p>
         </div>
       </div>

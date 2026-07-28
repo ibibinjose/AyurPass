@@ -467,6 +467,17 @@ export interface AuthResponse {
   emailVerificationSent?: boolean;
 }
 
+/** Response for endpoints that return tokens directly at the top level (e.g., listBusiness) */
+export interface AuthResponseWithDirectTokens extends Omit<AuthResponse, 'tokens'> {
+  message: string;
+  success: boolean;
+  user?: any;
+  accessToken: string;
+  refreshToken: string;
+  needsEmailVerification?: boolean;
+  emailVerificationSent?: boolean;
+}
+
 export type AuthResponseSimple = AuthTokens & { user: User };
 
 export interface RegisterPayload {
@@ -477,6 +488,8 @@ export interface RegisterPayload {
   role?: Role;
   /** City / suburb for seekers (stored on consumer preferences). */
   city?: string;
+  /** State / Province / Region. */
+  state?: string;
   /** Country name (e.g. Australia). */
   country?: string;
   /** ISO 3166-1 alpha-2 (AU, IN, …). */

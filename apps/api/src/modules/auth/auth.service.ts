@@ -146,6 +146,7 @@ export class AuthService {
 
     const locationPrefs: Record<string, unknown> = {};
     if (registerDto.city?.trim()) locationPrefs.city = registerDto.city.trim();
+    if (registerDto.state?.trim()) locationPrefs.state = registerDto.state.trim();
     if (registerDto.country?.trim()) locationPrefs.country = registerDto.country.trim();
     if (registerDto.countryCode?.trim()) {
       locationPrefs.countryCode = registerDto.countryCode.trim().toUpperCase().slice(0, 2);
