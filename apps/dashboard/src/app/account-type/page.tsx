@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -123,7 +123,7 @@ const COMPARISON_MATRIX: ComparisonFeature[] = [
   { feature: "Publish Job Openings", seeker: false, professional: false, provider: true },
 ];
 
-export default function AccountTypePage() {
+function AccountTypeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
@@ -437,5 +437,20 @@ export default function AccountTypePage() {
         © {new Date().getFullYear()} AyurPass Inc. • Vetted Wellness Network
       </footer>
     </div>
+  );
+}
+
+export default function AccountTypePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#e9d9b8] flex items-center justify-center p-6 text-[#1e3228]">
+        <div className="flex items-center gap-3 text-sm font-semibold">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1e3228] border-t-transparent" />
+          <span>Loading options...</span>
+        </div>
+      </div>
+    }>
+      <AccountTypeContent />
+    </Suspense>
   );
 }

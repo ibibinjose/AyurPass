@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -34,7 +34,7 @@ function SetupStep({
   );
 }
 
-export default function PaymentsPage() {
+function PaymentsContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
@@ -193,5 +193,15 @@ export default function PaymentsPage() {
         {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
       </div>
     </div>
+  );
+}
+
+export default function PaymentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-48 animate-pulse rounded-2xl bg-clay/60" aria-hidden />
+    }>
+      <PaymentsContent />
+    </Suspense>
   );
 }

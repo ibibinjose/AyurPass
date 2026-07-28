@@ -24,7 +24,7 @@ applications:
               ROOT="$(find_root)"
               echo "Monorepo root: $ROOT"
               cd "$ROOT"
-              npm ci
+              npm ci || npm install
         build:
           commands:
             - |
@@ -43,6 +43,7 @@ applications:
               ROOT="$(find_root)"
               echo "Monorepo root: $ROOT"
               cd "$ROOT"
+              npm run build -w @ayurpass/shared
               npm run build -w @ayurpass/dashboard
       artifacts:
         baseDirectory: .next
