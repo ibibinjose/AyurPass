@@ -204,6 +204,8 @@ export const api = {
     request<AuthResponse>("/auth/verify-email", { method: "POST", body: { token } }),
   resendVerification: () =>
     request<{ message: string }>("/auth/resend-verification", { method: "POST", auth: true }),
+  instantVerify: () =>
+    request<{ message: string; user?: UserProfile }>("/auth/instant-verify", { method: "POST", auth: true }),
   updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
     request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
 

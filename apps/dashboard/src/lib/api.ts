@@ -365,6 +365,8 @@ export const api = {
     }),
   resendVerification: () =>
     request<{ message: string }>("/auth/resend-verification", { method: "POST", auth: true }),
+  instantVerify: () =>
+    request<{ message: string; user?: UserProfile }>("/auth/instant-verify", { method: "POST", auth: true }),
   /**
    * Create a free directory listing for the currently signed-in user
    * (no second account / password). Returns tokens when role is upgraded.

@@ -68,6 +68,25 @@ function VerifyInner() {
     };
   }, [token, refreshProfile, redirectParam, router]);
 
+  async function doInstantVerify() {
+    if (!user) return;
+    setResendBusy(true);
+    setResendMsg(null);
+    try {
+      const res = await api.instantVerify();
+      setStatus("ok");
+      setMessage(res.message || "Email verified successfully!");
+      await refreshProfile();
+      setTimeout(() => {
+        const dest = redirectParam ? safeNextPath(redirectParam, "/discover") : "/discover";
+        router.push(dest);
+      }, 1000);
+    } catch (err) {
+      setResendMsg(err instanceof Error ? err.message : "Could not verify email.");
+      setResendBusy(false);
+    }
+  }
+
   async function resend() {
     if (!user) return;
     setResendBusy(true);
@@ -118,8 +137,11 @@ function VerifyInner() {
             <div className="mt-6 space-y-3">
               {user ? (
                 <>
-                  <Button type="button" onClick={resend} disabled={resendBusy} className="w-full">
-                    {resendBusy ? "Sending…" : "Resend verification email"}
+                  <Button type="button" onClick={doInstantVerify} disabled={resendBusy} className="w-full bg-forest text-white">
+                    {resendBusy ? "Verifying..." : "⚡ Verify Email Instantly"}
+                  </Button>
+                  <Button type="button" onClick={resend} disabled={resendBusy} variant="soft" className="w-full">
+                    {resendBusy ? "Sending…" : "Resend email link"}
                   </Button>
                   {resendMsg ? (
                     <p className="text-center text-xs font-medium text-ink-muted">{resendMsg}</p>

@@ -310,6 +310,27 @@ export class AuthService {
     return { message: 'Verification email sent' };
   }
 
+  async verifyCurrentEmail(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.emailVerifiedAt) {
+      return { message: 'Email is already verified', user: sanitizeUser(user) };
+    }
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date() },
+      include: {
+        consumer: true,
+        provider: true,
+        professional: { include: { provider: true } },
+      },
+    });
+    return {
+      message: 'Email verified successfully',
+      user: sanitizeUser(updated),
+    };
+  }
+
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user || !user.passwordHash) {

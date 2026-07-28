@@ -57,4 +57,13 @@ export class AuthController {
   async resendVerification(@Req() req: AuthedRequest) {
     return this.authService.resendVerification(req.user.sub);
   }
+
+  @Post('instant-verify')
+  async instantVerify(@Req() req: AuthedRequest) {
+    const result = await this.authService.verifyCurrentEmail(req.user.sub);
+    if (result.user?.id) {
+      this.amplitude.track(result.user.id, 'Email Verified', { method: 'instant' });
+    }
+    return result;
+  }
 }
