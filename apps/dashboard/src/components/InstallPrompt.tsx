@@ -20,7 +20,6 @@ function isStandalone(): boolean {
   if (typeof window === "undefined") return true;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    // iOS Safari
     Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
 }
@@ -49,7 +48,6 @@ function detectIos(): boolean {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent.toLowerCase();
   const iOS = /iphone|ipad|ipod/.test(ua);
-  // iPadOS 13+ reports as Mac — check touch points
   const iPadOs =
     ua.includes("macintosh") &&
     typeof navigator !== "undefined" &&
@@ -57,25 +55,20 @@ function detectIos(): boolean {
   return iOS || iPadOs;
 }
 
-/** Share icon for iOS instructions (SF-style). */
+/** SF-style Share icon for iOS. */
 function ShareIosIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3v11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
-        d="M12 3v10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M8 7l4-4 4 4"
+        d="M8.5 6.5L12 3l3.5 3.5"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+        d="M5 14v4.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V14"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -84,21 +77,27 @@ function ShareIosIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-function HomeIcon({ className = "h-5 w-5" }: { className?: string }) {
+/** SF-style Add to Home Screen Plus-Square icon. */
+function PlusSquareIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PhoneAppIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="5" y="2" width="14" height="20" rx="4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M10 18h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
 
 /**
- * PWA install: soft bottom sheet + optional manual open via InstallAppButton.
+ * Apple iOS style bottom sheet for PWA install instructions.
  */
 export function InstallPrompt() {
   const [mounted, setMounted] = useState(false);
@@ -131,37 +130,25 @@ export function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", onBip);
 
-    // Soft auto-show: after short delay, only if not dismissed and (BIP ready or iOS)
     const timer = window.setTimeout(() => {
       if (isDismissedRecently() || isStandalone()) return;
-      const iosDevice = detectIos();
-      // On Android/desktop wait for beforeinstallprompt if possible; still show iOS sheet
-      if (iosDevice) {
+      if (detectIos()) {
         setOpen(true);
       }
     }, 4500);
 
-    // If BIP already fired (or fires soon), show once available
-    const showWhenReady = window.setTimeout(() => {
-      if (isDismissedRecently() || isStandalone()) return;
-      // deferredPrompt state may lag — check via canInstall in next tick handled below
-    }, 6000);
-
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
       window.clearTimeout(timer);
-      window.clearTimeout(showWhenReady);
     };
   }, []);
 
-  // When install becomes available and user hasn't dismissed, surface the sheet once
   useEffect(() => {
     if (!canInstall || isDismissedRecently() || isStandalone()) return;
     const t = window.setTimeout(() => setOpen(true), 1200);
     return () => window.clearTimeout(t);
   }, [canInstall]);
 
-  // Allow other UI to open the sheet
   useEffect(() => {
     function onOpen() {
       if (isStandalone()) return;
@@ -178,7 +165,6 @@ export function InstallPrompt() {
       return;
     }
     if (!deferredPrompt) {
-      // Desktop Safari / unsupported — show generic tips
       setIosHelp(true);
       return;
     }
@@ -200,166 +186,178 @@ export function InstallPrompt() {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Translucent Backdrop */}
       {open ? (
         <button
           type="button"
-          className="fixed inset-0 z-[9998] bg-forest/25 backdrop-blur-[2px] md:bg-forest/20"
+          className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-md transition-opacity duration-300"
           aria-label="Close install prompt"
           onClick={() => close(true)}
         />
       ) : null}
 
-      {/* Bottom sheet */}
+      {/* iOS Action Sheet / Bottom Sheet Panel */}
       <div
         role="dialog"
         aria-modal={open}
         aria-labelledby="install-title"
-        className={`fixed inset-x-0 bottom-0 z-[9999] mx-auto w-full max-w-lg transform px-3 transition-all duration-300 ease-out sm:px-4 ${
+        className={`fixed inset-x-0 bottom-0 z-[9999] mx-auto w-full max-w-md transform px-3 pb-safe transition-all duration-300 cubic-bezier(0.16,1,0.3,1) sm:px-4 ${
           open
             ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-[120%] opacity-0"
+            : "pointer-events-none translate-y-[110%] opacity-0"
         }`}
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="overflow-hidden rounded-[1.35rem] border border-hairline bg-surface shadow-[0_-8px_40px_rgba(30,50,40,0.18)]">
-          {/* Brand header strip */}
-          <div className="flex items-center gap-3 bg-gradient-to-br from-forest to-leaf px-4 py-3.5 text-white">
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white/10 ring-2 ring-white/25">
+        <div className="apple-glass-panel relative overflow-hidden rounded-[2.2rem] border border-white/40 bg-surface/95 shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
+          {/* iOS Sheet Drag Handle Bar */}
+          <div className="flex justify-center pt-3 pb-1" aria-hidden>
+            <div className="h-1.2 w-9 rounded-full bg-hairline/80" />
+          </div>
+
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => close(true)}
+            className="absolute top-3.5 right-4.5 flex h-7 w-7 items-center justify-center rounded-full bg-clay/70 text-ink-muted transition-colors hover:bg-clay hover:text-foreground"
+            aria-label="Close"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+
+          {/* Main Content Body */}
+          <div className="p-5 pt-2 text-center">
+            {/* App Icon Showcase */}
+            <div className="relative mx-auto mb-3.5 h-16 w-16 overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-forest to-leaf shadow-[0_8px_20px_rgba(30,50,40,0.25)] ring-1 ring-black/5">
               <Image
                 src="/icon-192.png"
-                alt=""
-                width={48}
-                height={48}
+                alt="AyurPass App Icon"
+                width={64}
+                height={64}
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gold-soft">
-                AyurPass app
-              </p>
-              <h2 id="install-title" className="font-display text-lg font-semibold leading-tight">
-                Add to Home Screen
-              </h2>
-              <p className="mt-0.5 text-xs text-white/80">
-                Faster open · Full-screen · Your calendar & pass in one tap
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => close(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
-              aria-label="Dismiss"
-            >
-              <XIcon className="h-4 w-4" />
-            </button>
-          </div>
 
-          <div className="space-y-3 px-4 py-4">
-            {!iosHelp ? (
-              <ul className="grid gap-2 text-sm text-ink-secondary">
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-white">
-                    <HomeIcon className="h-3.5 w-3.5" />
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+              AyurPass Web App
+            </p>
+            <h2 id="install-title" className="font-display text-xl font-bold text-forest">
+              Add to Home Screen
+            </h2>
+            <p className="mt-1 text-xs font-medium text-ink-muted leading-relaxed">
+              Experience instant opening, full-screen view, and offline access to your Wellness Pass.
+            </p>
+
+            {/* Simulated Safari Instruction Diagram for iOS */}
+            {iosHelp || ios ? (
+              <div className="mt-4 rounded-2xl border border-hairline/80 bg-clay/50 p-4 text-left shadow-xs">
+                <div className="flex items-center justify-between border-b border-hairline/60 pb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-forest">
+                    {ios ? "Safari iPhone Instructions" : "Browser Installation"}
                   </span>
-                  <span>
-                    <strong className="text-forest">One-tap access</strong> from your home screen —
-                    no app store required.
+                  <span className="rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-extrabold text-forest">
+                    Easy Step
                   </span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-bold text-white">
-                    ✓
-                  </span>
-                  <span>
-                    Bookings, events, offers and your <strong className="text-forest">Wellness Pass</strong>{" "}
-                    feel like a native app.
-                  </span>
-                </li>
-              </ul>
-            ) : (
-              <div className="rounded-2xl border border-leaf/25 bg-leaf/5 px-3.5 py-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-forest">
-                  {ios ? "On iPhone / iPad" : "Install from browser"}
-                </p>
+                </div>
+
                 {ios ? (
-                  <ol className="mt-2 space-y-2.5 text-sm text-ink-secondary">
-                    <li className="flex gap-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-[11px] font-bold text-white">
+                  <ol className="mt-3 space-y-3 text-xs font-medium text-foreground">
+                    <li className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-bold text-white shadow-xs">
                         1
                       </span>
-                      <span className="pt-0.5">
-                        Tap <strong className="text-forest">Share</strong>{" "}
-                        <ShareIosIcon className="inline h-4 w-4 text-forest align-text-bottom" /> at
-                        the bottom of Safari
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span>Tap <strong className="text-forest font-semibold">Share</strong> in Safari toolbar</span>
+                        <div className="mt-1 flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-system-blue shadow-2xs">
+                          <ShareIosIcon className="h-4 w-4" />
+                          <span className="text-[11px] font-bold">Share Icon (bottom of screen)</span>
+                        </div>
+                      </div>
                     </li>
-                    <li className="flex gap-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-[11px] font-bold text-white">
+
+                    <li className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-bold text-white shadow-xs">
                         2
                       </span>
-                      <span className="pt-0.5">
-                        Scroll and choose <strong className="text-forest">Add to Home Screen</strong>
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span>Scroll down & select <strong className="text-forest font-semibold">Add to Home Screen</strong></span>
+                        <div className="mt-1 flex items-center gap-1.5 rounded-lg bg-surface px-2.5 py-1 text-foreground shadow-2xs">
+                          <PlusSquareIcon className="h-4 w-4 text-forest" />
+                          <span className="text-[11px] font-bold">Add to Home Screen</span>
+                        </div>
+                      </div>
                     </li>
-                    <li className="flex gap-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest text-[11px] font-bold text-white">
+
+                    <li className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-forest text-xs font-bold text-white shadow-xs">
                         3
                       </span>
-                      <span className="pt-0.5">
-                        Tap <strong className="text-forest">Add</strong> — AyurPass appears on your
-                        home screen
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span>Tap <strong className="text-forest font-semibold">Add</strong> in top right corner</span>
+                      </div>
                     </li>
                   </ol>
                 ) : (
-                  <ol className="mt-2 space-y-2 text-sm text-ink-secondary">
-                    <li>
-                      1. Open the browser menu{" "}
-                      <strong className="text-forest">(⋮ or ⋯)</strong>
-                    </li>
-                    <li>
-                      2. Choose <strong className="text-forest">Install app</strong> or{" "}
-                      <strong className="text-forest">Add to Home screen</strong>
-                    </li>
-                    <li>3. Confirm — open AyurPass like any app</li>
+                  <ol className="mt-3 space-y-2 text-xs font-medium text-foreground">
+                    <li>1. Tap your browser menu <strong className="text-forest">(⋮ or ⋯)</strong></li>
+                    <li>2. Tap <strong className="text-forest">Install App</strong> or <strong className="text-forest">Add to Home Screen</strong></li>
+                    <li>3. Confirm to launch AyurPass from your phone apps!</li>
                   </ol>
                 )}
               </div>
+            ) : (
+              <div className="mt-4 grid grid-cols-2 gap-2.5 text-left text-xs">
+                <div className="rounded-2xl border border-hairline/70 bg-surface p-3 shadow-2xs">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-forest/10 text-forest">
+                    <PhoneAppIcon className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2 font-bold text-foreground">App Speed</p>
+                  <p className="text-[11px] text-ink-muted">Launches like a native iOS/Android app.</p>
+                </div>
+                <div className="rounded-2xl border border-hairline/70 bg-surface p-3 shadow-2xs">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/15 text-gold-deep">
+                    <PlusSquareIcon className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2 font-bold text-foreground">No App Store</p>
+                  <p className="text-[11px] text-ink-muted">Installs directly to your home screen.</p>
+                </div>
+              </div>
             )}
 
-            <div className="flex flex-col gap-2.5 sm:flex-row">
+            {/* Action Buttons */}
+            <div className="mt-5 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => void handleInstall()}
                 disabled={busy}
-                className="btn-press inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-6 text-sm font-bold text-white shadow-md hover:from-forest-deep hover:to-forest glow-forest disabled:opacity-60"
+                className="btn-press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest via-leaf to-forest-deep px-6 text-sm font-bold text-white shadow-md glow-forest disabled:opacity-60"
               >
-                <HomeIcon className="h-4.5 w-4.5 text-gold" />
+                <PhoneAppIcon className="h-4 w-4 text-gold-bright" />
                 {busy
                   ? "Opening…"
                   : ios || iosHelp
                     ? iosHelp && ios
-                      ? "Show iPhone steps"
+                      ? "Got it"
                       : "How to add to Home Screen"
                     : canInstall
-                      ? "Add to Home Screen"
-                      : "Add to Home Screen"}
+                      ? "Install AyurPass App"
+                      : "How to add to Home Screen"}
               </button>
+
               <button
                 type="button"
                 onClick={() => close(true)}
-                className="btn-press inline-flex min-h-12 items-center justify-center rounded-full border border-hairline/80 bg-surface/90 px-5 text-sm font-semibold text-ink-secondary hover:border-leaf hover:text-forest"
+                className="btn-press inline-flex min-h-11 w-full items-center justify-center rounded-full bg-clay/50 px-5 text-xs font-semibold text-ink-secondary hover:bg-clay hover:text-foreground"
               >
-                Not now
+                Not Now
               </button>
             </div>
 
-            {ios ? (
-              <div className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-gold/10 px-3 py-2 text-center text-xs font-semibold text-forest">
-                <ShareIosIcon className="h-4 w-4 animate-bounce text-gold" />
-                <span>Tap <strong>Share</strong> at the bottom of Safari, then choose <strong>Add to Home Screen</strong></span>
-              </div>
+            {/* Bottom iOS Indicator line */}
+            {ios && !iosHelp ? (
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-forest">
+                <ShareIosIcon className="h-3.5 w-3.5 text-system-blue" />
+                <span>Tap <strong>Share</strong> in Safari toolbar to add</span>
+              </p>
             ) : null}
           </div>
         </div>
@@ -371,7 +369,7 @@ export function InstallPrompt() {
 /** Compact control — open install sheet from nav, profile, footer, etc. */
 export function InstallAppButton({
   className = "",
-  label = "Add to Phone",
+  label,
   compact = false,
 }: {
   className?: string;
@@ -386,6 +384,8 @@ export function InstallAppButton({
 
   if (hidden) return null;
 
+  const defaultLabel = label ?? (compact ? "Get App" : "Add to Home Screen");
+
   return (
     <button
       type="button"
@@ -395,12 +395,12 @@ export function InstallAppButton({
       className={
         className ||
         (compact
-          ? "btn-press inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-gold via-amber-500 to-gold px-3 py-1.5 text-xs font-bold text-forest-deep shadow-2xs hover:brightness-105"
-          : "btn-press inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-4 text-sm font-bold text-white shadow-xs hover:from-forest-deep hover:to-forest")
+          ? "btn-press inline-flex items-center gap-1.5 rounded-full border border-forest/20 bg-forest/8 px-3 py-1.5 text-xs font-bold text-forest shadow-2xs backdrop-blur-md transition-all hover:border-forest/40 hover:bg-forest/15 active:scale-95"
+          : "btn-press inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-4 text-xs font-bold text-white shadow-xs hover:from-forest-deep hover:to-forest")
       }
     >
-      <HomeIcon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-      {label}
+      <PhoneAppIcon className={compact ? "h-3.5 w-3.5 text-forest" : "h-4 w-4 text-gold-bright"} />
+      <span>{defaultLabel}</span>
     </button>
   );
 }

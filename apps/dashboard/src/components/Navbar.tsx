@@ -354,7 +354,7 @@ export function Navbar() {
 
         {/* Mobile top controls */}
         <div className="flex items-center gap-2 lg:hidden">
-          <InstallAppButton compact label="📱 App" />
+          <InstallAppButton compact label="Get App" />
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-hairline bg-surface text-forest transition-all hover:bg-clay/50 shadow-2xs btn-press"
@@ -376,8 +376,8 @@ export function Navbar() {
         >
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
             <InstallAppButton
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gold via-amber-500 to-gold px-4 py-3 text-sm font-extrabold text-forest-deep shadow-md btn-press"
-              label="📱 Add AyurPass to Home Screen"
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-forest/10 border border-forest/20 px-4 py-3 text-sm font-bold text-forest shadow-2xs btn-press"
+              label="Add AyurPass to Home Screen"
             />
             <Link
               href="/discover"

@@ -281,7 +281,7 @@ export function Card({
       role={role}
       aria-checked={ariaChecked}
       tabIndex={tabIndex}
-      className={`rounded-2xl border border-hairline/80 bg-surface shadow-xs ${className}`}
+      className={`apple-card ${className}`}
     >
       {children}
     </div>

@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const [title, setTitle] = useState("");
   const [titleKind, setTitleKind] = useState("");
   const [handle, setHandle] = useState("");
@@ -62,6 +63,7 @@ export default function SettingsPage() {
     fullName: string;
     phone: string;
     avatarUrl: string;
+    coverImageUrl: string;
     title: string;
     titleKind: string;
     handle: string;
@@ -77,6 +79,7 @@ export default function SettingsPage() {
       fullName: data.fullName.trim(),
       phone: data.phone.trim(),
       avatarUrl: data.avatarUrl.trim(),
+      coverImageUrl: data.coverImageUrl.trim(),
       title: data.title.trim(),
       titleKind: data.titleKind,
       handle: data.handle.trim().toLowerCase(),
@@ -101,11 +104,13 @@ export default function SettingsPage() {
     const run = async () => {
       await Promise.resolve();
       if (!active) return;
+      const initialCover = user.provider?.brandProfile?.coverImageUrl ?? professional?.provider?.brandProfile?.coverImageUrl ?? "";
       const next = {
         fullName: user.fullName ?? "",
         phone: user.phone ?? "",
         // Keep raw DB URL — MediaField resolves / heals preview; don't rewrite on load
         avatarUrl: user.avatarUrl ?? "",
+        coverImageUrl: initialCover,
         title: "",
         titleKind: "",
         handle: "",
@@ -120,6 +125,7 @@ export default function SettingsPage() {
       setFullName(next.fullName);
       setPhone(next.phone);
       setAvatarUrl(next.avatarUrl);
+      setCoverImageUrl(next.coverImageUrl);
       if (!professional?.id) {
         setBaseline(snapshot(next));
         setDirty(false);
@@ -137,10 +143,12 @@ export default function SettingsPage() {
       .publicProfessionalsByProvider(professional.providerId)
       .then((list) => {
         const me = list.find((p) => p.id === professional.id) ?? professional;
+        const initialCover = user.provider?.brandProfile?.coverImageUrl ?? me.provider?.brandProfile?.coverImageUrl ?? "";
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
           avatarUrl: user.avatarUrl ?? "",
+          coverImageUrl: initialCover,
           title: me.title ?? "",
           titleKind: me.titleKind ?? "",
           handle: me.handle ?? me.slug ?? "",
@@ -153,6 +161,7 @@ export default function SettingsPage() {
           customAuthority: "",
         };
         setAvatarUrl(next.avatarUrl);
+        setCoverImageUrl(next.coverImageUrl);
         setTitle(next.title);
         setTitleKind(next.titleKind);
         setHandle(next.handle);
@@ -167,10 +176,12 @@ export default function SettingsPage() {
         setDirty(false);
       })
       .catch(() => {
+        const initialCover = user.provider?.brandProfile?.coverImageUrl ?? professional.provider?.brandProfile?.coverImageUrl ?? "";
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
           avatarUrl: user.avatarUrl ?? "",
+          coverImageUrl: initialCover,
           title: professional.title ?? "",
           titleKind: professional.titleKind ?? "",
           handle: professional.handle ?? professional.slug ?? "",
@@ -182,6 +193,7 @@ export default function SettingsPage() {
           authorityCodes: normalizeAuthorities(professional.healthAuthorities).map((a) => a.code),
           customAuthority: "",
         };
+        setCoverImageUrl(next.coverImageUrl);
         setTitle(next.title);
         setTitleKind(next.titleKind);
         setHandle(next.handle);
@@ -202,6 +214,7 @@ export default function SettingsPage() {
         fullName,
         phone,
         avatarUrl,
+        coverImageUrl,
         title,
         titleKind,
         handle,
@@ -217,6 +230,7 @@ export default function SettingsPage() {
       fullName,
       phone,
       avatarUrl,
+      coverImageUrl,
       title,
       titleKind,
       handle,
@@ -362,6 +376,7 @@ export default function SettingsPage() {
           fullName,
           phone,
           avatarUrl,
+          coverImageUrl,
           title,
           titleKind,
           handle,
@@ -444,20 +459,34 @@ export default function SettingsPage() {
       <form id="settings-form" onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
         <div className="min-w-0 space-y-5">
           <DashCard
-            title="Profile"
-            description="How you appear across bookings, team, and public practitioner pages."
+            title="Profile Visuals"
+            description="How your photo and cover banner appear across bookings, team rosters, and public practitioner pages."
           >
             <div className="space-y-5">
-              <MediaField
-                label="Profile photo"
-                shape="avatar"
-                value={avatarUrl}
-                onChange={(url) => {
-                  setAvatarUrl(url);
-                  markDirty();
-                }}
-                hint="Upload a clear headshot or paste an image link. Shown on your practitioner page and team roster."
-              />
+              <div className="grid gap-5 sm:grid-cols-2">
+                <MediaField
+                  label="Profile photo"
+                  shape="avatar"
+                  value={avatarUrl}
+                  onChange={(url) => {
+                    setAvatarUrl(url);
+                    markDirty();
+                  }}
+                  recommended="square · 512×512"
+                  hint="Upload a clear headshot or paste an image link. Shown on practitioner cards and team roster."
+                />
+                <MediaField
+                  label="Profile cover banner"
+                  shape="cover"
+                  value={coverImageUrl}
+                  onChange={(url) => {
+                    setCoverImageUrl(url);
+                    markDirty();
+                  }}
+                  recommended="wide · 1600×900"
+                  hint="Hero cover banner image displayed at the top of your public profile page."
+                />
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Full name"
