@@ -146,12 +146,7 @@ export class MailService {
         return false;
       }
     } else {
-      // Dev mode placeholder fallback
-      console.log('\n--- [SIMULATED] PASSWORD RESET REQUEST ---');
-      console.log(`To: ${fullName} <${email}>`);
-      console.log(`Subject: ${subject}`);
-      console.log(`Link: ${resetLink}`);
-      console.log('------------------------------------------\n');
+      this.logger.warn(`[SIMULATED] PASSWORD RESET — To: ${fullName} <${email}>, Link: ${resetLink}`);
       return true;
     }
   }
@@ -271,11 +266,7 @@ export class MailService {
       }
     }
 
-    console.log('\n--- [SIMULATED] EMAIL VERIFICATION ---');
-    console.log(`To: ${fullName} <${email}>`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Link: ${verifyLink}`);
-    console.log('--------------------------------------\n');
+    this.logger.warn(`[SIMULATED] EMAIL VERIFICATION — To: ${fullName} <${email}>, Link: ${verifyLink}`);
     return true;
   }
 
@@ -322,7 +313,7 @@ export class MailService {
       }
     }
 
-    this.logger.log(`[SIMULATED SMS/EMAIL REMINDER ${reminderType}] To: ${email} for ${serviceName} at ${startTime}`);
+    this.logger.warn(`[SIMULATED BOOKING ${reminderType} REMINDER] To: ${email} for ${serviceName} at ${startTime}`);
     return true;
   }
 

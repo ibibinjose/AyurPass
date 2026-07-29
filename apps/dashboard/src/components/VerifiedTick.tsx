@@ -11,8 +11,8 @@ const SIZE_PX: Record<Size, number> = {
 };
 
 /**
- * Verified mark — green Nike-style swoosh + centre dot.
- * Reads as trust / “approved” next to names.
+ * X-style verified mark: blue rosette with a crisp white check.
+ * Reads clearly at name-line sizes and in compact badges.
  */
 export function VerifiedTick({
   size = "md",
@@ -24,7 +24,7 @@ export function VerifiedTick({
   title?: string;
 }) {
   const px = SIZE_PX[size];
-  const gradId = useId().replace(/:/g, "");
+  const clipId = useId().replace(/:/g, "");
   return (
     <span
       role="img"
@@ -35,33 +35,28 @@ export function VerifiedTick({
         width: px,
         height: px,
         verticalAlign: "middle",
-        filter: "drop-shadow(0 1px 2px rgba(20, 120, 70, 0.35))",
+        filter: "drop-shadow(0 1px 1px rgba(15, 20, 25, 0.18))",
       }}
     >
       <svg viewBox="0 0 24 24" width={px} height={px} aria-hidden className="block">
         <defs>
-          <linearGradient id={gradId} x1="10%" y1="0%" x2="90%" y2="100%">
-            <stop offset="0%" stopColor="#3dd68c" />
-            <stop offset="45%" stopColor="#16a34a" />
-            <stop offset="100%" stopColor="#0f7a38" />
-          </linearGradient>
+          <clipPath id={clipId}>
+            <path d="M12 1.35 14.12 3.2l2.78-.35 1.15 2.56 2.57 1.14-.36 2.79L22.1 11.45l-1.84 2.12.36 2.78-2.57 1.15-1.15 2.56-2.78-.35L12 21.55l-2.12-1.84-2.78.35-1.15-2.56-2.57-1.15.36-2.78L1.9 11.45l1.84-2.11-.36-2.79 2.57-1.14L7.1 2.85l2.78.35L12 1.35Z" />
+          </clipPath>
         </defs>
-        {/* Disc */}
-        <circle cx="12" cy="12" r="10.5" fill={`url(#${gradId})`} />
+        <path
+          d="M12 1.35 14.12 3.2l2.78-.35 1.15 2.56 2.57 1.14-.36 2.79L22.1 11.45l-1.84 2.12.36 2.78-2.57 1.15-1.15 2.56-2.78-.35L12 21.55l-2.12-1.84-2.78.35-1.15-2.56-2.57-1.15.36-2.78L1.9 11.45l1.84-2.11-.36-2.79 2.57-1.14L7.1 2.85l2.78.35L12 1.35Z"
+          fill="#1D9BF0"
+        />
         <circle
           cx="12"
-          cy="12"
-          r="10.5"
-          fill="none"
-          stroke="rgba(255,255,255,0.28)"
-          strokeWidth="1"
+          cy="11.45"
+          r="10.1"
+          fill="rgba(255,255,255,0.12)"
+          clipPath={`url(#${clipId})`}
         />
-        {/* Soft centre “dot” under the swoosh */}
-        <circle cx="11.2" cy="13.1" r="2.35" fill="rgba(255,255,255,0.22)" />
-        <circle cx="11.2" cy="13.1" r="1.15" fill="#fff" fillOpacity="0.95" />
-        {/* Nike-like swoosh check */}
         <path
-          d="M5.8 12.35c1.55 1.05 3.15 2.55 4.55 4.55 3.35-5.85 6.85-8.85 8.85-10.15"
+          d="m7.35 12.15 2.95 3.05 6.35-6.55"
           fill="none"
           stroke="#fff"
           strokeWidth="2.55"

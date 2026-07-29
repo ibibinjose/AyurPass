@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { ProviderType } from '@prisma/client';
+import { ProviderType, Prisma } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
@@ -114,16 +114,16 @@ export class AuthService {
 
   private async uniqueProviderSlug(businessName: string): Promise<string> {
     const base = slugifyPublicName(businessName, 'practice');
-    let n = 0;
-    while (true) {
+    const MAX_RETRIES = 100;
+    for (let n = 0; n <= MAX_RETRIES; n++) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);
       const hit = await this.prisma.provider.findFirst({
         where: { slug },
         select: { id: true },
       });
       if (!hit) return slug;
-      n += 1;
     }
+    throw new Error(`Could not generate unique slug for "${businessName}" after ${MAX_RETRIES} attempts`);
   }
 
   async register(registerDto: RegisterDto) {
@@ -170,7 +170,7 @@ export class AuthService {
       await this.prisma.consumer.create({
         data: {
           userId: user.id,
-          prakritiScores: registerDto.prakritiScores || {},
+          prakritiScores: (registerDto.prakritiScores || {}) as Prisma.InputJsonValue,
           preferences: preferences as object,
         },
       });
@@ -218,8 +218,9 @@ export class AuthService {
       });
     }
 
-    // Fire-and-forget verification email (never block registration).
-    void this.sendVerificationEmail(user.id, user.email, user.fullName || 'there');
+    void this.sendVerificationEmail(user.id, user.email, user.fullName || 'there').catch((err) => {
+      this.logger.error(`Failed to send verification email to ${user.email}`, err);
+    });
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     return {
@@ -236,20 +237,16 @@ export class AuthService {
   }
 
   private async sendVerificationEmail(userId: string, email: string, fullName: string) {
-    try {
-      const token = this.jwtService.sign(
-        { sub: userId, email, purpose: 'email_verify' },
-        {
-          expiresIn: '48h',
-          secret: this.emailVerifySecret(userId, email),
-        },
-      );
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      const verifyLink = `${frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
-      await this.mailService.sendEmailVerification(email, fullName, verifyLink);
-    } catch (err) {
-      // Logged in mail service; registration must still succeed.
-    }
+    const token = this.jwtService.sign(
+      { sub: userId, email, purpose: 'email_verify' },
+      {
+        expiresIn: '48h',
+        secret: this.emailVerifySecret(userId, email),
+      },
+    );
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verifyLink = `${frontendUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    await this.mailService.sendEmailVerification(email, fullName, verifyLink);
   }
 
   async verifyEmail(token: string) {
@@ -343,19 +340,18 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
-    
-    // Check if email is verified and add verification status to response
+
     const isEmailVerified = !!user.emailVerifiedAt;
-    const response: any = { 
-      user: sanitizeUser(user), 
-      ...tokens 
+    const response: Record<string, unknown> = {
+      user: sanitizeUser(user),
+      ...tokens,
     };
-    
+
     if (!isEmailVerified) {
       response.needsEmailVerification = true;
       response.message = 'Please verify your email address to complete your account setup.';
     }
-    
+
     return response;
   }
 
@@ -373,9 +369,9 @@ export class AuthService {
         email: payload.email,
         name: payload.name || payload.given_name,
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof BadRequestException) throw err;
-      this.logger.warn(`Google token verification failed: ${err?.message}`);
+      this.logger.warn(`Google token verification failed: ${err instanceof Error ? err.message : String(err)}`);
       throw new BadRequestException('Failed to verify Google sign-in credentials.');
     }
   }
@@ -405,9 +401,9 @@ export class AuthService {
         email,
         name: providedName,
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof BadRequestException) throw err;
-      this.logger.warn(`Apple token verification failed: ${err?.message}`);
+      this.logger.warn(`Apple token verification failed: ${err instanceof Error ? err.message : String(err)}`);
       throw new BadRequestException('Failed to verify Apple sign-in credentials.');
     }
   }
@@ -464,19 +460,18 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
-    
-    // Check if email is verified and add verification status to response
+
     const isEmailVerified = !!user.emailVerifiedAt;
-    const response: any = { 
-      user: sanitizeUser(user), 
-      ...tokens 
+    const response: Record<string, unknown> = {
+      user: sanitizeUser(user),
+      ...tokens,
     };
-    
+
     if (!isEmailVerified) {
       response.needsEmailVerification = true;
       response.message = 'Please verify your email address to complete your account setup.';
     }
-    
+
     return response;
   }
 

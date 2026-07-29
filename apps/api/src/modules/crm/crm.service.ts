@@ -1,8 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CrmService {
+  private readonly logger = new Logger(CrmService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -116,14 +119,16 @@ export class CrmService {
   async updateClientRecord(
     providerId: string,
     consumerId: string,
-    data: { tags?: string[]; customFields?: any; status?: string },
+    data: { tags?: string[]; customFields?: Prisma.InputJsonValue; status?: string },
   ) {
     const record = await this.findOrCreateClientRecord(providerId, consumerId);
 
     return this.prisma.clientRecord.update({
       where: { id: record.id },
       data: {
-        ...data,
+        tags: data.tags,
+        customFields: data.customFields,
+        status: data.status,
         updatedAt: new Date(),
       },
     });
@@ -147,7 +152,7 @@ export class CrmService {
     });
   }
 
-  async sendEmailCampaign(providerId: string, subject: string, body: string) {
+  async sendEmailCampaign(providerId: string, subject: string, _body: string) {
     const clients = await this.prisma.clientRecord.findMany({
       where: { providerId, status: { not: 'archived' } },
       include: {
@@ -163,27 +168,21 @@ export class CrmService {
       .map((c) => c.consumer?.user?.email)
       .filter(Boolean) as string[];
 
-    console.log(`[Email Campaign] Sending to ${emails.length} clients:`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Body: ${body}`);
+    this.logger.log(`[Email Campaign] Provider ${providerId} — sending to ${emails.length} clients. Subject: "${subject}"`);
 
-    // If provider has connected MAILCHIMP:
-    const mailchimpConnected = await this.prisma.integration.findUnique({
-      where: { providerId_type: { providerId, type: 'MAILCHIMP' } },
+    const integration = await this.prisma.integration.findFirst({
+      where: { providerId, type: { in: ['MAILCHIMP', 'SENDGRID'] }, status: 'connected' },
     });
-    if (mailchimpConnected && mailchimpConnected.status === 'connected') {
-      console.log(`[Mailchimp Sync] Syncing audience list to Mailchimp...`);
-    }
 
-    const sendgridConnected = await this.prisma.integration.findUnique({
-      where: { providerId_type: { providerId, type: 'SENDGRID' } },
-    });
-    if (sendgridConnected && sendgridConnected.status === 'connected') {
-      console.log(`[SendGrid Email] Sending campaign via SendGrid API...`);
+    let sentCount = 0;
+    if (integration) {
+      this.logger.log(`[Email Campaign] Integration ${integration.type} connected — would send via API (integration not yet implemented)`);
+    } else if (emails.length > 0) {
+      this.logger.warn(`[Email Campaign] No email integration connected for provider ${providerId}. Emails would be logged only.`);
     }
 
     return {
-      sentCount: emails.length,
+      sentCount,
       emails,
       providerId,
       subject,

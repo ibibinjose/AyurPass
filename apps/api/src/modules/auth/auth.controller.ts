@@ -9,7 +9,6 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   VerifyEmailDto,
-  AuthResponse,
 } from '../../dtos/auth.dto';
 import { CreateFreeListingDto } from '../../dtos/provider.dto';
 import { Public } from '../../common/public.decorator';

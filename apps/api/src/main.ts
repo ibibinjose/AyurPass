@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { assertProductionConfig, isStrictEnv } from './common/env';
+
+const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   assertProductionConfig();
@@ -129,7 +131,7 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 AyurPass Backend running on port ${port}`);
-  console.log(`🖼  Uploads served from ${uploadDir} at /files/`);
+  logger.log(`AyurPass Backend running on port ${port}`);
+  logger.log(`Uploads served from ${uploadDir} at /files/`);
 }
 bootstrap();

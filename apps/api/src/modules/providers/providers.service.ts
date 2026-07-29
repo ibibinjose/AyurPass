@@ -220,8 +220,8 @@ export class ProvidersService {
 
   async uniqueSlug(businessName: string, excludeId?: string): Promise<string> {
     const base = slugifyPublicName(businessName, 'practice');
-    let n = 0;
-    while (true) {
+    const MAX_RETRIES = 100;
+    for (let n = 0; n <= MAX_RETRIES; n++) {
       const slug = n === 0 ? base : withSlugSuffix(base, n);
       const hit = await this.prisma.provider.findFirst({
         where: {
@@ -231,8 +231,8 @@ export class ProvidersService {
         select: { id: true },
       });
       if (!hit) return slug;
-      n += 1;
     }
+    throw new Error(`Could not generate unique slug for "${businessName}" after ${MAX_RETRIES} attempts`);
   }
 
   /**

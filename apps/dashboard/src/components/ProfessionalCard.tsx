@@ -128,7 +128,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
           }
           badge={
             verified ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#1D9BF0] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
                 <VerifiedTick size="sm" />
                 Verified
               </span>

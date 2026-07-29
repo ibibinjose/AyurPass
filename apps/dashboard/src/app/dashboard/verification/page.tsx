@@ -155,7 +155,7 @@ export default function VerificationPage() {
           <span
             className={`flex h-12 w-12 items-center justify-center rounded-full ${
               isVerified
-                ? "bg-white text-emerald-800 shadow-xs"
+                ? "bg-white text-[#1D9BF0] shadow-xs"
                 : isPending
                   ? "bg-amber-500 text-white"
                   : "bg-red-600 text-white"
@@ -169,7 +169,7 @@ export default function VerificationPage() {
             </h2>
             <p className="text-xs opacity-90">
               {isVerified
-                ? "Your practice is fully verified. Patients see your official green verification tick."
+                ? "Your practice is fully verified. Patients see your official blue verification mark."
                 : isPending
                   ? "Your credentials are under review by the AyurPass verification board (24–48 hours)."
                   : "Verification was not approved. Please review details below and resubmit."}
