@@ -29,6 +29,7 @@
     "prisma:generate": "npm run prisma:generate -w @ayurpass/api",
     "prisma:migrate": "npm run prisma:migrate -w @ayurpass/api",
     "seed:local": "cd apps/api && npx ts-node --transpile-only prisma/seed-local-dev.ts",
+    "db:clean-mock": "cd apps/api && npx ts-node --transpile-only prisma/clean-mock-data.ts",
     "stripe:status": "node apps/api/scripts/stripe-status.mjs",
     "stripe:listen": "bash scripts/stripe-listen.sh",
     "seed:aaa-scrape": "node apps/api/scripts/scrape-aaa-practitioners.mjs",

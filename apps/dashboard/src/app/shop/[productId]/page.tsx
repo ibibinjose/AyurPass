@@ -151,7 +151,7 @@ export default function BuyProductPage() {
                 </p>
               )}
               <PayWithStripe
-                mock={stripePay?.mock ?? true}
+                mock={stripePay?.mock ?? false}
                 clientSecret={stripePay?.clientSecret}
                 publishableKey={stripePay?.publishableKey}
                 amountLabel={formatMoney(
