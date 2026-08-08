@@ -22,14 +22,14 @@ const PILLARS: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
 /**
  * Welcome must use StyleSheet for critical layout.
  * NativeWind className on LinearGradient often does not apply flex:1 in release
- * builds → empty gradient + light stack background = white screen + white logo.
+ * builds - empty gradient + light stack background = white screen + white logo.
  */
 export default function Welcome() {
   const router = useRouter();
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={[colors.forestDeep, colors.forest, colors.leaf]}
+        colors={[colors.sageDark, colors.sage, colors.sageLight]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
@@ -54,14 +54,14 @@ export default function Welcome() {
             <Text style={styles.headlineAccent}>constitution</Text>.
           </Text>
           <Text style={styles.body}>
-            Find clinics, studios and spas that fit how you feel — free to browse. Optional
+            Find clinics, studios and spas that fit how you feel - free to browse. Optional
             quiz personalises matches when you want it.
           </Text>
 
           <View style={styles.pillars}>
             {PILLARS.map((p) => (
               <View key={p.label} style={styles.pillar}>
-                <Ionicons name={p.icon} size={18} color={colors.goldSoft} />
+                <Ionicons name={p.icon} size={18} color={colors.saffronSoft} />
                 <Text style={styles.pillarText}>{p.label}</Text>
               </View>
             ))}
@@ -98,7 +98,7 @@ export default function Welcome() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.forestDeep,
+    backgroundColor: colors.sageDark,
   },
   safe: {
     flex: 1,
@@ -119,12 +119,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     overflow: "hidden",
     borderWidth: 1.5,
-    borderColor: colors.goldSoft,
+    borderColor: colors.saffronSoft,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   logo: {
     width: 76,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   headlineAccent: {
-    color: colors.goldSoft,
+    color: colors.saffronSoft,
   },
   body: {
     marginTop: 16,
@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
     gap: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   pillarText: {
     fontFamily: fonts.bodyMedium,
@@ -189,23 +189,28 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   primaryBtn: {
-    minHeight: 52,
+    minHeight: 54,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 999,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.saffron,
     paddingHorizontal: 22,
     paddingVertical: 14,
+    shadowColor: colors.saffronDeep,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   primaryBtnText: {
     fontFamily: fonts.bodySemi,
     fontSize: 16,
-    color: colors.forestDeep,
+    color: colors.white,
   },
   primaryBtnSub: {
     fontFamily: fonts.body,
     fontSize: 11,
-    color: "rgba(10,30,15,0.6)",
+    color: "rgba(255,255,255,0.7)",
   },
   secondaryBtn: {
     minHeight: 48,

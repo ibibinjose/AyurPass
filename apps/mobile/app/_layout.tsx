@@ -28,7 +28,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 function FullScreenLoader() {
   return (
     <View style={styles.loader}>
-      <ActivityIndicator size="large" color={colors.goldSoft} />
+      <ActivityIndicator size="large" color={colors.saffronSoft} />
       <Text style={styles.loaderText}>AyurPass</Text>
     </View>
   );
@@ -105,13 +105,13 @@ function RootNavigator() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.forestDeep },
+          contentStyle: { backgroundColor: colors.sageDark },
           headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.forest,
+          headerTintColor: colors.sage,
           headerTitleStyle: {
             fontFamily: fonts.bodySemi,
             fontSize: 17,
-            color: colors.forest,
+            color: colors.sage,
           },
           headerShadowVisible: false,
           headerBackTitle: "Back",
@@ -220,7 +220,7 @@ export { FullScreenLoader };
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
-    backgroundColor: colors.forestDeep,
+    backgroundColor: colors.sageDark,
     justifyContent: "center",
     alignItems: "center",
     gap: 14,
@@ -228,11 +228,11 @@ const styles = StyleSheet.create({
   loaderText: {
     fontFamily: fonts.display,
     fontSize: 22,
-    color: colors.goldSoft,
+    color: colors.saffronSoft,
   },
   errorRoot: {
     flex: 1,
-    backgroundColor: colors.forestDeep,
+    backgroundColor: colors.sageDark,
     justifyContent: "center",
     paddingHorizontal: 28,
   },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   },
   errorBtn: {
     alignSelf: "flex-start",
-    backgroundColor: colors.gold,
+    backgroundColor: colors.saffron,
     borderRadius: 999,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -259,6 +259,6 @@ const styles = StyleSheet.create({
   errorBtnText: {
     fontFamily: fonts.bodySemi,
     fontSize: 15,
-    color: colors.forestDeep,
+    color: colors.sageDark,
   },
 });

@@ -26,13 +26,13 @@ function TabBarIcon({
           borderRadius: 999,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: focused ? "rgba(47,90,68,0.14)" : "transparent",
+          backgroundColor: focused ? "rgba(45,90,71,0.12)" : "transparent",
         }}
       >
         <Ionicons
           name={focused ? focusedName : name}
           size={20}
-          color={focused ? colors.forest : color}
+          color={focused ? colors.sage : color}
         />
       </View>
       <Text
@@ -40,7 +40,7 @@ function TabBarIcon({
           fontFamily: focused ? fonts.bodySemi : fonts.bodyMedium,
           fontSize: 11,
           marginTop: 3,
-          color: focused ? colors.forest : colors.inkMuted,
+          color: focused ? colors.sage : colors.inkMuted,
           letterSpacing: 0.2,
         }}
       >
@@ -59,7 +59,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,  // Disable built-in labels to prevent duplication
-        tabBarActiveTintColor: colors.forest,
+        tabBarActiveTintColor: colors.sage,
         tabBarInactiveTintColor: colors.inkMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
@@ -68,11 +68,11 @@ export default function TabsLayout() {
           height: 68 + bottom,
           paddingTop: 10,
           paddingBottom: bottom,
-          elevation: 12,
+          elevation: 8,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 6,
         },
         tabBarItemStyle: {
           flex: 1,

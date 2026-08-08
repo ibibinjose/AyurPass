@@ -62,8 +62,8 @@ function Row({
         paddingVertical: 14,
       }}
     >
-      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 10, backgroundColor: "rgba(47,90,68,0.12)" }}>
-        <Ionicons name={icon} size={18} color={colors.forest} />
+      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 10, backgroundColor: "rgba(45,90,71,0.1)" }}>
+        <Ionicons name={icon} size={18} color={colors.sage} />
       </View>
       <Text style={{ flex: 1, fontSize: 16, fontFamily: fonts.bodySemi, color: colors.foreground }}>{label}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.inkMuted} />
@@ -206,7 +206,7 @@ export default function Profile() {
         {/* Hero Header Banner */}
         <View style={{ position: "relative", overflow: "hidden", paddingBottom: 28 }}>
           <LinearGradient
-            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            colors={[colors.sageDark, colors.sage, colors.sageLight]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
@@ -224,14 +224,14 @@ export default function Profile() {
                 {avatarUri ? (
                   <Image source={{ uri: avatarUri }} style={{ height: "100%", width: "100%" }} />
                 ) : (
-                  <Text style={{ fontSize: 28, fontFamily: fonts.display, color: colors.forest }}>{initials}</Text>
+                  <Text style={{ fontSize: 28, fontFamily: fonts.display, color: colors.sage }}>{initials}</Text>
                 )}
               </View>
               <View style={{ position: "absolute", bottom: 2, right: 2, height: 28, width: 28, alignItems: "center", justifyContent: "center", borderRadius: 999, borderWidth: 1, borderColor: "rgba(0,0,0,0.1)", backgroundColor: colors.surface }}>
                 <Ionicons
                   name={avatarBusy ? "hourglass-outline" : "camera"}
                   size={14}
-                  color={colors.forest}
+                  color={colors.sage}
                 />
               </View>
             </Pressable>
@@ -264,7 +264,7 @@ export default function Profile() {
         <View style={{ paddingHorizontal: pad, marginTop: -12 }}>
           {loyalty ? (
             <LinearGradient
-              colors={[colors.forest, "#2a4a3c"]}
+              colors={[colors.sage, colors.sageDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -277,7 +277,7 @@ export default function Profile() {
               }}
             >
               <View>
-                <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 1, color: colors.goldSoft }}>
+                <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, textTransform: "uppercase", letterSpacing: 1, color: colors.saffronSoft }}>
                   AyurPass Rewards
                 </Text>
                 <Text style={{ marginTop: 4, fontSize: 28, fontFamily: fonts.display, color: colors.white }}>
@@ -287,7 +287,7 @@ export default function Profile() {
                   {loyalty.tier} tier
                 </Text>
               </View>
-              <Ionicons name="sparkles" size={28} color={colors.goldSoft} />
+              <Ionicons name="sparkles" size={28} color={colors.saffronSoft} />
             </LinearGradient>
           ) : null}
 
@@ -318,9 +318,9 @@ export default function Profile() {
                 padding: 16,
               }}
             >
-              <Ionicons name="compass-outline" size={22} color={colors.forest} />
+              <Ionicons name="compass-outline" size={22} color={colors.sage} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.forest }}>Free energy quiz</Text>
+                <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.sage }}>Free energy quiz</Text>
                 <Text style={{ marginTop: 2, fontSize: 13, fontFamily: fonts.body, color: colors.inkMuted }}>
                   Optional — maps how you feel day to day
                 </Text>
