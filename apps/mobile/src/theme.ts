@@ -16,8 +16,8 @@ export const fonts = {
 
 /** Type scale — slightly larger on mobile for outdoor readability */
 export const type = {
-  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 38, color: colors.forest },
-  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, color: colors.forest },
+  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 38, color: colors.sage },
+  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, color: colors.sage },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24, color: colors.foreground },
   bodyMedium: {
     fontFamily: fonts.bodyMedium,

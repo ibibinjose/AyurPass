@@ -1,32 +1,52 @@
 /**
  * AyurPass design tokens — single source of truth for web (Tailwind) and mobile (NativeWind).
- * Warm-ivory light theme; outdoor-readable contrast; CVD-validated dosha colors.
+ * Premium wellness palette: sage greens, saffron warmth, modern cream backgrounds.
+ * Psychology-driven: deep sage (trust/nature/healing), warm saffron (vitality/Ayurveda),
+ * soft cream (calm/openness), muted earth neutrals (grounding/stability).
  */
 
 export const colors = {
-  background: "#f4f0e8",
-  surface: "#fffdf9",
-  foreground: "#1a1714",
-  inkSecondary: "#3f3b34",
-  inkMuted: "#5c574e",
-  hairline: "#ddd6c8",
+  /* ——— Surfaces & Ink ——— */
+  background: "#faf8f4", // warm white - cleaner, more modern
+  surface: "#ffffff", // pure white cards for contrast
+  foreground: "#1c1917", // warm charcoal - stone-900
+  inkSecondary: "#44403c", // stone-700
+  inkMuted: "#78716c", // stone-500
+  hairline: "#e7e5e4", // stone-200
 
-  forest: "#1e3228",
-  forestDeep: "#142019",
-  leaf: "#2f5a44",
-  gold: "#a67a24",
-  goldSoft: "#e9d9b8",
-  clay: "#efe8d9",
+  /* ——— Primary Brand: Sage Green ——— */
+  sage: "#2d5a47", // refined deep sage green - trust/nature/growth
+  sageDark: "#1a3a2e", // deepest sage for headers
+  sageLight: "#3d7a5f", // mid sage for accents
 
-  vata: "#4a3aa7",
-  pitta: "#eb6834",
-  kapha: "#1baf7a",
+  /* ——— Accent: Saffron / Amber ——— */
+  saffron: "#c2722a", // warm amber-saffron - Ayurvedic warmth/vitality
+  saffronSoft: "#fef3e2", // lightest saffron wash
+  saffronDeep: "#9a5a1f", // rich amber
 
+  /* ——— Neutrals: Sand ——— */
+  sand: "#f5f0e8", // warm sand for alternating sections
+  sandDark: "#e8e0d4", // deeper sand for borders
+
+  /* ——— Dosha Colors (refined) ——— */
+  vata: "#6366f1", // indigo-500 - cleaner purple-blue
+  pitta: "#f97316", // orange-500 - vibrant
+  kapha: "#10b981", // emerald-500 - fresh green
+
+  /* ——— System Colors ——— */
   white: "#ffffff",
   danger: "#ff3b30",
   systemBlue: "#007aff",
   systemGreen: "#34c759",
   systemRed: "#ff3b30",
+
+  /* ——— Backward-compatible aliases ——— */
+  forest: "#2d5a47", // -> sage
+  forestDeep: "#1a3a2e", // -> sageDark
+  leaf: "#3d7a5f", // -> sageLight
+  gold: "#c2722a", // -> saffron
+  goldSoft: "#fef3e2", // -> saffronSoft
+  clay: "#f5f0e8", // -> sand
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -40,43 +60,44 @@ export const doshaColor = {
 /**
  * Calendar / booking colour codes by service category.
  * Used on mobile + web calendars so Ayurveda, Yoga, Spa etc. are scannable.
+ * Harmonised with new brand palette.
  */
 export const serviceCategoryColor: Record<string, string> = {
-  AYURVEDA: "#2f5a44", // leaf green
-  YOGA: "#4a3aa7", // purple
-  SPA: "#c45c26", // warm copper
-  MEDITATION: "#2a6f97", // calm blue
-  FITNESS: "#1b7f5a", // sport green
-  NUTRITION: "#b8860b", // dark gold
-  COACHING: "#5c6bc0", // indigo
+  AYURVEDA: "#2d5a47", // sage green
+  YOGA: "#6366f1", // indigo
+  SPA: "#c2722a", // warm saffron
+  MEDITATION: "#2563eb", // calm blue-600
+  FITNESS: "#10b981", // emerald-500
+  NUTRITION: "#9a5a1f", // saffron deep
+  COACHING: "#7c3aed", // violet-600
   CONSULTATION: "#007aff", // system blue
-  PACKAGE: "#a67a24", // gold
-  COOKING: "#c4782a", // kitchen amber
+  PACKAGE: "#c2722a", // saffron
+  COOKING: "#d97706", // amber-600
   EVENT: "#007aff", // system blue for wellness events
 };
 
 export const serviceCategoryColorSoft: Record<string, string> = {
-  AYURVEDA: "#e4efe8",
-  YOGA: "#ebe7f7",
-  SPA: "#fce9df",
-  MEDITATION: "#e4f0f7",
-  FITNESS: "#e0f2ea",
-  NUTRITION: "#f7efd6",
-  COACHING: "#e8eaf6",
+  AYURVEDA: "#e8f5ee",
+  YOGA: "#eef2ff",
+  SPA: "#fef3e2",
+  MEDITATION: "#eff6ff",
+  FITNESS: "#ecfdf5",
+  NUTRITION: "#fef9f0",
+  COACHING: "#f5f3ff",
   CONSULTATION: "#e5f1ff",
-  PACKAGE: "#f5edd9",
-  COOKING: "#f8ead8",
+  PACKAGE: "#fef3e2",
+  COOKING: "#fffbeb",
   EVENT: "#e5f1ff",
 };
 
 export function colorForServiceCategory(category?: string | null): string {
-  if (!category) return colors.forest;
-  return serviceCategoryColor[category.toUpperCase()] ?? colors.forest;
+  if (!category) return colors.sage;
+  return serviceCategoryColor[category.toUpperCase()] ?? colors.sage;
 }
 
 export function softColorForServiceCategory(category?: string | null): string {
-  if (!category) return colors.clay;
-  return serviceCategoryColorSoft[category.toUpperCase()] ?? colors.clay;
+  if (!category) return colors.sand;
+  return serviceCategoryColorSoft[category.toUpperCase()] ?? colors.sand;
 }
 
 export const radius = {
@@ -99,12 +120,25 @@ export const cssVariables = {
   "--ink-secondary": colors.inkSecondary,
   "--ink-muted": colors.inkMuted,
   "--hairline": colors.hairline,
+
+  /* New primary names */
+  "--sage": colors.sage,
+  "--sage-dark": colors.sageDark,
+  "--sage-light": colors.sageLight,
+  "--saffron": colors.saffron,
+  "--saffron-soft": colors.saffronSoft,
+  "--saffron-deep": colors.saffronDeep,
+  "--sand": colors.sand,
+  "--sand-dark": colors.sandDark,
+
+  /* Backward-compatible aliases */
   "--forest": colors.forest,
   "--forest-deep": colors.forestDeep,
   "--leaf": colors.leaf,
   "--gold": colors.gold,
   "--gold-soft": colors.goldSoft,
   "--clay": colors.clay,
+
   "--vata": colors.vata,
   "--pitta": colors.pitta,
   "--kapha": colors.kapha,
@@ -114,8 +148,6 @@ export const cssVariables = {
 } as const;
 
 /** Tailwind / NativeWind theme.extend.colors fragment */
-// Note: serviceCategoryColor is also exported for calendar UIs (see above).
-
 export const tailwindColors = {
   background: colors.background,
   surface: colors.surface,
@@ -123,12 +155,25 @@ export const tailwindColors = {
   "ink-secondary": colors.inkSecondary,
   "ink-muted": colors.inkMuted,
   hairline: colors.hairline,
+
+  /* New primary names */
+  sage: colors.sage,
+  "sage-dark": colors.sageDark,
+  "sage-light": colors.sageLight,
+  saffron: colors.saffron,
+  "saffron-soft": colors.saffronSoft,
+  "saffron-deep": colors.saffronDeep,
+  sand: colors.sand,
+  "sand-dark": colors.sandDark,
+
+  /* Backward-compatible aliases */
   forest: colors.forest,
   "forest-deep": colors.forestDeep,
   leaf: colors.leaf,
   gold: colors.gold,
   "gold-soft": colors.goldSoft,
   clay: colors.clay,
+
   vata: colors.vata,
   pitta: colors.pitta,
   kapha: colors.kapha,
