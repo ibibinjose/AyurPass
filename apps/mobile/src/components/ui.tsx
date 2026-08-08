@@ -178,7 +178,7 @@ export function Button({
         ? "bg-saffron"
         : "bg-surface border border-hairline";
   const fg =
-    variant === "ghost" ? colors.sage : variant === "gold" ? colors.white : colors.white;
+    variant === "ghost" ? colors.sage : variant === "gold" ? colors.sageDark : colors.white;
   return (
     <Pressable
       onPress={onPress}
