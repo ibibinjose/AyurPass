@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/cultureos/Codebase/Projects/CulturePassAu/**)",
+      "Read(//Users/cultureos/Codebase/Projects/**)",
+      "Bash(npx tsc *)",
+      "Bash(tee /private/tmp/claude-502/-Users-cultureos-Codebase-Projects-AyurPass/244e50fd-3b72-41ee-8f17-30efd10df823/scratchpad/tsc2.txt)",
+      "Bash(npx eslint *)"
+    ]
+  }
+}
