@@ -31,8 +31,9 @@ services:
       NODE_ENV: production
       PORT: 4000
       DATABASE_URL: postgresql://ayurpass:ayurpass_dev_password@db:5432/ayurpass?schema=public
-      JWT_SECRET: dev_jwt_secret_key_ayurpass_2026_super_secure
-      CORS_ORIGINS: http://localhost:3000,http://localhost:8081,http://localhost:19006
+      JWT_ACCESS_SECRET: dev_jwt_access_secret_key_ayurpass_2026
+      JWT_REFRESH_SECRET: dev_jwt_refresh_secret_key_ayurpass_2026
+      CORS_ORIGIN: http://localhost:3000,http://localhost:8081,http://localhost:19006
     depends_on:
       db:
         condition: service_healthy

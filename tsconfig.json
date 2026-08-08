@@ -21,6 +21,5 @@
       "path": "packages/shared"
     }
   ],
-  "files": [],
-  "extends": "expo/tsconfig.base"
+  "files": []
 }
