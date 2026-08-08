@@ -159,10 +159,10 @@ export function Footer({ compact = false }: { compact?: boolean }) {
   return (
     <footer className="mt-auto border-t border-hairline bg-surface">
       {/* CTA band */}
-      <div className="border-b border-hairline bg-[linear-gradient(135deg,rgba(30,50,40,0.04),rgba(185,137,47,0.06))]">
+      <div className="border-b border-hairline bg-[linear-gradient(135deg,rgba(45,90,71,0.04),rgba(194,114,42,0.06))]">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-[var(--space-page-x)] py-8 sm:flex-row sm:items-center sm:py-9">
           <div className="max-w-md">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saffron">
               Join AyurPass
             </p>
             <p className="mt-1 font-display text-xl font-semibold text-forest sm:text-2xl">
@@ -175,14 +175,14 @@ export function Footer({ compact = false }: { compact?: boolean }) {
           <div className="flex flex-wrap gap-2.5">
             <Link
               href="/discover"
-              className="btn-press inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-5.5 py-2.5 text-sm font-semibold text-white shadow-md hover:from-forest-deep hover:to-forest hover:shadow-lg transition-all"
+              className="btn-press inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-sage to-sage-dark px-5.5 py-2.5 text-sm font-semibold text-white shadow-md hover:from-sage-dark hover:to-sage hover:shadow-lg transition-all"
             >
               Discover places
               <ArrowRightIcon className="h-4 w-4" />
             </Link>
             <Link
               href="/list-your-business"
-              className="btn-press inline-flex min-h-11 items-center rounded-full border border-forest bg-forest px-5.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-forest-deep transition-all"
+              className="btn-press inline-flex min-h-11 items-center rounded-full border border-sage bg-sage px-5.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-sage-dark transition-all"
             >
               List free
             </Link>

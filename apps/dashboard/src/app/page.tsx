@@ -255,28 +255,28 @@ export default async function Home() {
         <section className="relative overflow-hidden">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(70rem_36rem_at_90%_-15%,rgba(185,137,47,0.16),transparent),radial-gradient(55rem_32rem_at_-12%_100%,rgba(61,102,80,0.14),transparent)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(70rem_36rem_at_90%_-15%,rgba(194,114,42,0.12),transparent),radial-gradient(55rem_32rem_at_-12%_100%,rgba(45,90,71,0.10),transparent)]"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-16 top-20 hidden h-72 w-72 rounded-full border border-gold/15 lg:block"
+            className="pointer-events-none absolute -right-16 top-20 hidden h-72 w-72 rounded-full border border-saffron/10 lg:block"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-4 top-36 hidden h-48 w-48 rounded-full border border-leaf/10 lg:block"
+            className="pointer-events-none absolute -right-4 top-36 hidden h-48 w-48 rounded-full border border-sage-light/10 lg:block"
           />
 
           <div className="relative mx-auto max-w-6xl px-[var(--space-page-x)] pb-16 pt-12 sm:pb-24 sm:pt-20">
             <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10">
               <div>
                 <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-hairline bg-surface/90 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-ink-secondary shadow-sm backdrop-blur-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden />
+                  <span className="h-1.5 w-1.5 rounded-full bg-saffron" aria-hidden />
                   Find &amp; book · Ayurveda · Yoga · Wellness
                 </p>
 
                 <h1 className="max-w-2xl font-display text-[2.35rem] font-semibold leading-[1.08] tracking-tight text-forest sm:text-5xl lg:text-[3.25rem]">
                   Wellness, tuned to your{" "}
-                  <em className="not-italic text-gold">constitution</em>.
+                  <em className="not-italic text-saffron">constitution</em>.
                 </h1>
 
                 <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-ink-secondary sm:text-lg">
@@ -317,7 +317,7 @@ export default async function Home() {
 
               {/* Hero visual card */}
               <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-                <div className="overflow-hidden rounded-[1.75rem] border border-hairline bg-surface shadow-[0_24px_60px_rgba(36,56,46,0.12)]">
+                <div className="overflow-hidden rounded-[1.75rem] border border-hairline bg-surface shadow-[0_24px_60px_rgba(45,90,71,0.10)]">
                   <div className="relative h-44 overflow-hidden sm:h-52">
                     <AyurvedaArt className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
@@ -351,7 +351,7 @@ export default async function Home() {
                       ))}
                     </div>
                     <div className="flex items-center gap-3 rounded-xl bg-forest/5 px-3 py-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-gold-soft">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-saffron-soft">
                         <ShieldIcon className="h-4 w-4" />
                       </span>
                       <p className="text-xs font-medium leading-snug text-ink-secondary">
@@ -391,7 +391,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-[var(--space-page-x)] py-14 sm:py-16">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saffron">
                   Where to begin
                 </p>
                 <h2 id="pathways-heading" className="mt-1 font-display text-3xl text-forest sm:text-[2rem]">
@@ -412,7 +412,7 @@ export default async function Home() {
                   href={p.href}
                   className="card-surface group flex flex-col p-5"
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-forest text-gold-soft transition-transform group-hover:scale-105">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-forest text-saffron-soft transition-transform group-hover:scale-105">
                     <p.icon className="h-5 w-5" />
                   </span>
                   <h3 className="mt-4 font-display text-lg font-semibold text-forest">{p.title}</h3>
@@ -433,7 +433,7 @@ export default async function Home() {
         <section id="pillars" className="scroll-mt-20" aria-labelledby="pillars-heading">
           <div className="mx-auto max-w-6xl px-[var(--space-page-x)] py-14 sm:py-20">
             <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saffron">
                 Disciplines
               </p>
               <h2 id="pillars-heading" className="mt-1 font-display text-3xl text-forest sm:text-[2rem]">
@@ -450,14 +450,14 @@ export default async function Home() {
                 <Link
                   key={p.name}
                   href={p.href}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface shadow-[0_2px_12px_rgba(36,56,46,0.04)] transition-shadow hover:shadow-[0_12px_32px_rgba(36,56,46,0.1)]"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-hairline bg-surface shadow-[0_2px_12px_rgba(45,90,71,0.04)] transition-shadow hover:shadow-[0_12px_32px_rgba(45,90,71,0.10)]"
                 >
                   <div className="relative h-28 overflow-hidden bg-clay">
                     <p.Art className="h-full w-full transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   <div className="flex flex-1 flex-col p-4">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-gold-soft">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-forest text-saffron-soft">
                         <p.icon className="h-4 w-4" />
                       </span>
                       <h3 className="font-display text-base font-semibold text-forest">{p.name}</h3>
@@ -496,7 +496,7 @@ export default async function Home() {
           <div className="mx-auto max-w-6xl px-[var(--space-page-x)] py-14 sm:py-20">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saffron">
                   Simple path
                 </p>
                 <h2 id="how-heading" className="mt-1 font-display text-3xl text-forest sm:text-[2rem]">
@@ -509,13 +509,13 @@ export default async function Home() {
               {STEPS.map((s, i) => (
                 <li
                   key={s.title}
-                  className="relative rounded-2xl border border-hairline bg-surface p-6 shadow-[0_2px_10px_rgba(36,56,46,0.04)]"
+                  className="relative rounded-2xl border border-hairline bg-surface p-6 shadow-[0_2px_10px_rgba(45,90,71,0.04)]"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-gold-soft bg-clay text-forest">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-saffron-soft bg-clay text-forest">
                       <s.icon className="h-5 w-5" />
                     </span>
-                    <span className="font-display text-sm font-semibold tabular-nums text-gold">
+                    <span className="font-display text-sm font-semibold tabular-nums text-saffron">
                       0{i + 1}
                     </span>
                   </div>
@@ -528,9 +528,9 @@ export default async function Home() {
             </ol>
 
             {/* Dosha CTA band — plain language first */}
-            <div className="mt-10 overflow-hidden rounded-3xl border border-hairline bg-surface shadow-[0_8px_28px_rgba(36,56,46,0.06)] sm:flex">
+            <div className="mt-10 overflow-hidden rounded-3xl border border-hairline bg-surface shadow-[0_8px_28px_rgba(45,90,71,0.06)] sm:flex">
               <div className="flex flex-1 flex-col justify-center p-6 sm:p-8">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-saffron">
                   Optional quiz
                 </p>
                 <h3 className="mt-1 font-display text-2xl text-forest">
@@ -577,7 +577,7 @@ export default async function Home() {
             {/* Verification made tangible */}
             <div className="mt-8 rounded-2xl border border-hairline bg-surface/90 px-5 py-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-6">
               <div className="flex gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest text-gold-soft">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-forest text-saffron-soft">
                   <ShieldIcon className="h-5 w-5" />
                 </span>
                 <div>
@@ -602,7 +602,7 @@ export default async function Home() {
             {/* By The Numbers / The Platform Advantage */}
             <div className="mt-16 rounded-3xl border border-hairline bg-surface p-8 shadow-sm">
               <div className="text-center max-w-2xl mx-auto space-y-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-saffron-soft px-3 py-1 text-xs font-bold uppercase tracking-wider text-forest">
                   By The Numbers
                 </span>
                 <h2 className="font-display text-3xl font-bold text-forest">
@@ -616,7 +616,7 @@ export default async function Home() {
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Growing Network</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-saffron">Growing Network</span>
                     <h3 className="mt-2 font-display text-lg font-bold text-forest">
                       Verified &amp; Licensed Ayurvedic Vaidyas &amp; Yoga Instructors
                     </h3>
@@ -628,7 +628,7 @@ export default async function Home() {
 
                 <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-gold">5-Star Community</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-saffron">5-Star Community</span>
                     <h3 className="mt-2 font-display text-lg font-bold text-forest">
                       Community-Rated Experience
                     </h3>
@@ -640,7 +640,7 @@ export default async function Home() {
 
                 <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Evidence-Based Care</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-saffron">Evidence-Based Care</span>
                     <h3 className="mt-2 font-display text-lg font-bold text-forest">
                       Classical &amp; Modern Therapeutic Approach
                     </h3>
@@ -652,7 +652,7 @@ export default async function Home() {
 
                 <div className="rounded-2xl border border-hairline bg-clay/20 p-6 flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-gold">Bank-Grade Privacy</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-saffron">Bank-Grade Privacy</span>
                     <h3 className="mt-2 font-display text-lg font-bold text-forest">
                       Secure Platform Architecture
                     </h3>
@@ -674,12 +674,12 @@ export default async function Home() {
         >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_26rem_at_92%_-8%,rgba(185,137,47,0.2),transparent),radial-gradient(40rem_24rem_at_-8%_108%,rgba(61,102,80,0.4),transparent)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_26rem_at_92%_-8%,rgba(194,114,42,0.18),transparent),radial-gradient(40rem_24rem_at_-8%_108%,rgba(61,122,95,0.35),transparent)]"
           />
           <div className="relative mx-auto max-w-6xl px-[var(--space-page-x)] py-14 sm:py-20">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
               <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-soft">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-saffron-soft">
                   For clinics, studios & spas
                 </p>
                 <h2
@@ -725,7 +725,7 @@ export default async function Home() {
                   key={t.name}
                   className={`relative flex flex-col rounded-2xl p-6 sm:p-7 ${
                     t.highlight
-                      ? "bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.28)] ring-1 ring-gold/40"
+                      ? "bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.28)] ring-1 ring-saffron/40"
                       : "border border-white/15 bg-white/5"
                   }`}
                 >
