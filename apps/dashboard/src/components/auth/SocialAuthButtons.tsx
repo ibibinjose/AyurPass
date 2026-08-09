@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { postAuthHome, safeNextPath } from "@/lib/auth-redirect";
 import type { UserProfile } from "@/lib/types";
-import { X, Lock, ShieldCheck } from "lucide-react";
+import { X, Lock, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 declare global {
   interface Window {
@@ -162,8 +162,9 @@ export function SocialAuthButtons() {
   return (
     <div className="space-y-4">
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800 font-medium">
-          {error}
+        <div className="rounded-2xl border border-red-200 bg-red-50/90 p-3.5 text-xs text-red-800 font-semibold shadow-xs flex items-center gap-2">
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       ) : null}
 
@@ -172,9 +173,9 @@ export function SocialAuthButtons() {
           type="button"
           onClick={() => void handleSocial("google")}
           disabled={busyProvider !== null}
-          className="profile-spring flex items-center justify-center gap-2.5 rounded-xl border border-hairline bg-surface py-2.5 text-xs font-semibold text-foreground hover:bg-clay/50 active:scale-95 transition-all duration-150 focus:outline-none disabled:opacity-60 min-h-11 shadow-xs"
+          className="group relative flex items-center justify-center gap-2.5 rounded-2xl border border-hairline/80 bg-surface px-4 py-3 text-xs font-semibold text-foreground hover:border-forest/40 hover:bg-sand/30 hover:shadow-md active:scale-[0.98] transition-all duration-200 focus:outline-none disabled:opacity-60 min-h-[44px]"
         >
-          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110" viewBox="0 0 24 24">
             <path
               fill="#EA4335"
               d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.48 14.99 1 12 1 7.35 1 3.37 3.65 1.39 7.56l3.85 2.99c.92-2.76 3.49-4.51 6.76-4.51z"
@@ -192,54 +193,54 @@ export function SocialAuthButtons() {
               d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.77-2.92c-1.12.75-2.53 1.21-4.19 1.21-3.27 0-5.84-1.75-6.76-4.51L1.39 16.8c1.98 3.91 5.96 6.56 10.61 6.56z"
             />
           </svg>
-          {busyProvider === "google" ? "Connecting Google…" : "Google"}
+          <span className="font-semibold">{busyProvider === "google" ? "Connecting…" : "Google"}</span>
         </button>
 
         <button
           type="button"
           onClick={() => void handleSocial("apple")}
           disabled={busyProvider !== null}
-          className="profile-spring flex items-center justify-center gap-2.5 rounded-xl border border-hairline bg-surface py-2.5 text-xs font-semibold text-foreground hover:bg-clay/50 active:scale-95 transition-all duration-150 focus:outline-none disabled:opacity-60 min-h-11 shadow-xs"
+          className="group relative flex items-center justify-center gap-2.5 rounded-2xl border border-hairline/80 bg-surface px-4 py-3 text-xs font-semibold text-foreground hover:border-forest/40 hover:bg-sand/30 hover:shadow-md active:scale-[0.98] transition-all duration-200 focus:outline-none disabled:opacity-60 min-h-[44px]"
         >
-          <svg className="h-4 w-4 shrink-0 fill-current text-foreground" viewBox="0 0 24 24">
+          <svg className="h-4.5 w-4.5 shrink-0 fill-current text-foreground transition-transform duration-200 group-hover:scale-110" viewBox="0 0 24 24">
             <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.2.67-2.92 1.49-.62.71-1.16 1.85-1.01 2.96 1.12.09 2.28-.58 2.94-1.39z" />
           </svg>
-          {busyProvider === "apple" ? "Connecting Apple…" : "Apple"}
+          <span className="font-semibold">{busyProvider === "apple" ? "Connecting…" : "Apple"}</span>
         </button>
       </div>
 
-      <div className="relative flex py-2 items-center">
-        <div className="flex-grow border-t border-hairline"></div>
+      <div className="relative flex items-center py-2">
+        <div className="flex-grow border-t border-hairline/80"></div>
         <span className="flex-shrink mx-4 text-[10px] font-bold uppercase tracking-widest text-ink-muted/80">
-          or continue with email
+          or sign in with email
         </span>
-        <div className="flex-grow border-t border-hairline"></div>
+        <div className="flex-grow border-t border-hairline/80"></div>
       </div>
 
       {/* Interactive OAuth Account Modal */}
       {modalProvider && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="relative w-full max-w-md rounded-3xl border border-hairline bg-surface p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-3xl border border-hairline bg-surface p-7 shadow-2xl">
             <button
               type="button"
               onClick={() => {
                 setModalProvider(null);
                 setBusyProvider(null);
               }}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-ink-muted hover:bg-clay hover:text-foreground transition-colors"
+              className="absolute right-4.5 top-4.5 rounded-full p-2 text-ink-muted hover:bg-sand hover:text-foreground transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-forest text-gold-bright font-bold">
+            <div className="flex items-center gap-3.5 mb-5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-forest text-gold-bright text-lg font-bold shadow-md">
                 {modalProvider === "google" ? "G" : "🍎"}
               </div>
               <div>
                 <h3 className="font-display text-lg font-bold text-forest">
                   Sign in with {modalProvider === "google" ? "Google" : "Apple"}
                 </h3>
-                <p className="text-xs text-ink-muted flex items-center gap-1">
+                <p className="text-xs text-ink-muted flex items-center gap-1 mt-0.5">
                   <Lock className="h-3 w-3 text-leaf" /> Secure OAuth 2.0 Identity Protocol
                 </p>
               </div>
@@ -247,7 +248,7 @@ export function SocialAuthButtons() {
 
             <form onSubmit={submitModalOAuth} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Account Email
                 </label>
                 <input
@@ -256,12 +257,12 @@ export function SocialAuthButtons() {
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
                   placeholder={modalProvider === "google" ? "you@gmail.com" : "you@icloud.com"}
-                  className="w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-xs font-medium text-foreground focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
+                  className="w-full rounded-2xl border border-hairline bg-surface px-4 py-3 text-sm font-medium text-foreground focus:border-forest focus:outline-none focus:ring-4 focus:ring-forest/15 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
                   Full Name (Optional)
                 </label>
                 <input
@@ -269,12 +270,12 @@ export function SocialAuthButtons() {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Your Name"
-                  className="w-full rounded-xl border border-hairline bg-surface px-3.5 py-2.5 text-xs font-medium text-foreground focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
+                  className="w-full rounded-2xl border border-hairline bg-surface px-4 py-3 text-sm font-medium text-foreground focus:border-forest focus:outline-none focus:ring-4 focus:ring-forest/15 transition-all"
                 />
               </div>
 
-              <div className="rounded-xl border border-gold/30 bg-gold/10 p-3 text-[11px] font-medium text-gold-deep flex items-start gap-2">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-gold-deep mt-0.5" />
+              <div className="rounded-2xl border border-gold/30 bg-gold-soft/60 p-3.5 text-xs font-medium text-gold-deep flex items-start gap-2.5">
+                <ShieldCheck className="h-4.5 w-4.5 shrink-0 text-saffron mt-0.5" />
                 <span>
                   AyurPass receives verified profile data from {modalProvider === "google" ? "Google OAuth" : "Apple ID"}. Your password is never shared.
                 </span>
@@ -282,8 +283,9 @@ export function SocialAuthButtons() {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-forest hover:bg-forest-deep text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-full bg-gradient-to-r from-forest to-forest-deep hover:from-forest-deep hover:to-forest text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 btn-press"
               >
+                <CheckCircle2 className="h-4 w-4 text-gold-bright" />
                 <span>Authorize & Sign In</span>
               </button>
             </form>
