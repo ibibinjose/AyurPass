@@ -22,13 +22,14 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copy package config and install production-only dependencies
+# Copy package config and install production dependencies + prisma CLI for entrypoint migrations
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev && npm install prisma@6.3.0 --no-save
 
-# Copy compiled code from builder
+# Copy compiled code and generated Prisma assets from builder
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/src/app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /usr/src/app/prisma ./prisma
 
 # Create a non-root user for security

@@ -148,7 +148,7 @@ export class UploadsService {
         throw new BadRequestException('Empty upload body.');
       }
 
-      await this.s3!.send(
+      await (this.s3 as any).send(
         new PutObjectCommand({
           Bucket: this.bucket!,
           Key: key,
