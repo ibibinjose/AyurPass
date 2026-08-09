@@ -46,6 +46,17 @@ function TabBarIcon({
       >
         {title}
       </Text>
+      {focused && (
+        <View
+          style={{
+            marginTop: 2,
+            height: 4,
+            width: 4,
+            borderRadius: 2,
+            backgroundColor: colors.terracotta,
+          }}
+        />
+      )}
     </View>
   );
 }

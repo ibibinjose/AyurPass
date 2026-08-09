@@ -24,6 +24,12 @@ export const colors = {
   saffronSoft: "#fff4de", // lightest saffron wash
   saffronDeep: "#a85f00", // rich amber
 
+  /* ——— Accent: Terracotta ——— */
+  terracotta: "#C2704C", // warm earthy reddish-brown - heritage/grounding
+  terracottaLight: "#D4896A", // lighter terracotta for hover/active states
+  terracottaSoft: "#FDF0EB", // soft terracotta wash for backgrounds
+  terracottaDeep: "#A0583A", // deep terracotta for emphasis
+
   /* ——— Neutrals: Sand ——— */
   sand: "#eef0e8", // mineral-sand section surface
   sandDark: "#d8dfd5", // deeper structural neutral
@@ -128,6 +134,10 @@ export const cssVariables = {
   "--saffron": colors.saffron,
   "--saffron-soft": colors.saffronSoft,
   "--saffron-deep": colors.saffronDeep,
+  "--terracotta": colors.terracotta,
+  "--terracotta-light": colors.terracottaLight,
+  "--terracotta-soft": colors.terracottaSoft,
+  "--terracotta-deep": colors.terracottaDeep,
   "--sand": colors.sand,
   "--sand-dark": colors.sandDark,
 
@@ -163,6 +173,10 @@ export const tailwindColors = {
   saffron: colors.saffron,
   "saffron-soft": colors.saffronSoft,
   "saffron-deep": colors.saffronDeep,
+  terracotta: colors.terracotta,
+  "terracotta-light": colors.terracottaLight,
+  "terracotta-soft": colors.terracottaSoft,
+  "terracotta-deep": colors.terracottaDeep,
   sand: colors.sand,
   "sand-dark": colors.sandDark,
 

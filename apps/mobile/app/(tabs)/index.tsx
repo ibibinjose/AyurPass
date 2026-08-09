@@ -89,8 +89,8 @@ function ProviderCard({
           <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.sage }}>
             <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.saffronSoft} />
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.saffronSoft, paddingHorizontal: 8, paddingVertical: 2 }}>
-            <Ionicons name="star" size={11} color={colors.saffron} />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.terracottaSoft, paddingHorizontal: 8, paddingVertical: 2 }}>
+            <Ionicons name="star" size={11} color={colors.terracotta} />
             <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, color: colors.sage }}>{ratingVal}</Text>
           </View>
         </View>
@@ -161,7 +161,7 @@ function ProviderCard({
           </Text>
           <View style={{ height: 4, width: 4, borderRadius: 999, backgroundColor: colors.hairline }} />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Ionicons name="star" size={12} color={colors.saffron} />
+            <Ionicons name="star" size={12} color={colors.terracotta} />
             <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.sage }}>{ratingVal}</Text>
             <Text style={{ fontSize: 11, fontFamily: fonts.body, color: colors.inkMuted }}>({reviewCnt})</Text>
           </View>
@@ -328,11 +328,11 @@ export default function Discover() {
               elevation: 2,
             }}
           >
-            <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.saffronSoft }}>
-              <Ionicons name="gift-outline" size={18} color={colors.saffron} />
+            <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.terracottaSoft }}>
+              <Ionicons name="gift-outline" size={18} color={colors.terracotta} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, textTransform: "uppercase", letterSpacing: 0.5, color: colors.saffron }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, textTransform: "uppercase", letterSpacing: 0.5, color: colors.terracotta }}>
                 Limited-time deals
               </Text>
               <Text style={{ marginTop: 2, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.sage }}>
