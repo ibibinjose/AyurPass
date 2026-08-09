@@ -26,7 +26,7 @@ function TabBarIcon({
           borderRadius: 999,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: focused ? "rgba(45,90,71,0.12)" : "transparent",
+          backgroundColor: focused ? "rgba(194,112,76,0.10)" : "transparent",
         }}
       >
         <Ionicons
@@ -46,6 +46,17 @@ function TabBarIcon({
       >
         {title}
       </Text>
+      {focused && (
+        <View
+          style={{
+            marginTop: 2,
+            height: 4,
+            width: 4,
+            borderRadius: 2,
+            backgroundColor: colors.terracotta,
+          }}
+        />
+      )}
     </View>
   );
 }

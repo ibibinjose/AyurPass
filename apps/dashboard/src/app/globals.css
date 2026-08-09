@@ -27,6 +27,12 @@
   --saffron-soft: #fef3e2;
   --saffron-deep: #9a5a1f;
 
+  /* Accent: Terracotta */
+  --terracotta: #C2704C;
+  --terracotta-light: #D4896A;
+  --terracotta-soft: #FDF0EB;
+  --terracotta-deep: #A0583A;
+
   /* Neutrals: Sand */
   --sand: #f5f0e8;
   --sand-dark: #e8e0d4;
@@ -101,6 +107,10 @@
   --color-saffron: var(--saffron);
   --color-saffron-soft: var(--saffron-soft);
   --color-saffron-deep: var(--saffron-deep);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-light: var(--terracotta-light);
+  --color-terracotta-soft: var(--terracotta-soft);
+  --color-terracotta-deep: var(--terracotta-deep);
   --color-sand: var(--sand);
   --color-sand-dark: var(--sand-dark);
 
@@ -661,6 +671,10 @@ body {
   box-shadow: 0 0 25px -4px rgba(61, 122, 95, 0.25);
 }
 
+.glow-terracotta {
+  box-shadow: 0 0 30px -5px rgba(194, 112, 76, 0.25), 0 0 15px -3px rgba(194, 112, 76, 0.15);
+}
+
 .text-gradient-gold {
   background: linear-gradient(135deg, var(--forest) 0%, var(--gold) 50%, var(--forest-deep) 100%);
   -webkit-background-clip: text;
@@ -670,6 +684,13 @@ body {
 
 .text-gradient-forest {
   background: linear-gradient(135deg, var(--forest-deep) 0%, var(--leaf) 55%, var(--forest) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-terracotta {
+  background: linear-gradient(135deg, var(--terracotta-deep) 0%, var(--terracotta) 50%, var(--terracotta-light) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

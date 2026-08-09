@@ -23,6 +23,12 @@ const colors = {
   saffronSoft: "#fef3e2",
   saffronDeep: "#9a5a1f",
 
+  /* Accent: Terracotta */
+  terracotta: "#C2704C",
+  terracottaLight: "#D4896A",
+  terracottaSoft: "#FDF0EB",
+  terracottaDeep: "#A0583A",
+
   /* Neutrals: Sand */
   sand: "#f5f0e8",
   sandDark: "#e8e0d4",
@@ -63,6 +69,10 @@ const tailwindColors = {
   saffron: colors.saffron,
   "saffron-soft": colors.saffronSoft,
   "saffron-deep": colors.saffronDeep,
+  terracotta: colors.terracotta,
+  "terracotta-light": colors.terracottaLight,
+  "terracotta-soft": colors.terracottaSoft,
+  "terracotta-deep": colors.terracottaDeep,
   sand: colors.sand,
   "sand-dark": colors.sandDark,
 
