@@ -166,7 +166,7 @@ export function Navbar() {
       }`}
     >
       {/* Top Gradient Accent Bar */}
-      <div className="h-[2.5px] w-full bg-gradient-to-r from-forest via-gold to-leaf opacity-90" />
+      <div className="h-[2.5px] w-full bg-gradient-to-r from-sage via-saffron to-sage-light opacity-90" />
 
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />

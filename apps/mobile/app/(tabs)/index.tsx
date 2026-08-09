@@ -73,29 +73,29 @@ function ProviderCard({
         style={{
           marginBottom: 12,
           width: "48%",
-          borderRadius: 16,
+          borderRadius: 20,
           borderWidth: 1,
           borderColor: colors.hairline,
           backgroundColor: colors.surface,
           padding: 14,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 6,
+          shadowOpacity: 0.04,
+          shadowRadius: 8,
           elevation: 2,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.forest }}>
-            <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.goldSoft} />
+          <View style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.sage }}>
+            <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={20} color={colors.saffronSoft} />
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.clay, paddingHorizontal: 8, paddingVertical: 2 }}>
-            <Ionicons name="star" size={11} color={colors.gold} />
-            <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, color: colors.forest }}>{ratingVal}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: colors.saffronSoft, paddingHorizontal: 8, paddingVertical: 2 }}>
+            <Ionicons name="star" size={11} color={colors.saffron} />
+            <Text style={{ fontSize: 11, fontFamily: fonts.bodySemi, color: colors.sage }}>{ratingVal}</Text>
           </View>
         </View>
 
-        <Text style={{ fontSize: 14, fontFamily: fonts.bodySemi, lineHeight: 20, color: colors.forest }} numberOfLines={2}>
+        <Text style={{ fontSize: 14, fontFamily: fonts.bodySemi, lineHeight: 20, color: colors.sage }} numberOfLines={2}>
           {provider.businessName}
         </Text>
 
@@ -104,7 +104,7 @@ function ProviderCard({
             {typeLabel}
           </Text>
           {verified ? (
-            <Ionicons name="checkmark-circle" size={12} color={colors.leaf} />
+            <Ionicons name="checkmark-circle" size={12} color={colors.sageLight} />
           ) : null}
         </View>
 
@@ -127,29 +127,29 @@ function ProviderCard({
         flexDirection: "row",
         alignItems: "center",
         gap: 14,
-        borderRadius: 16,
+        borderRadius: 20,
         borderWidth: 1,
         borderColor: colors.hairline,
         backgroundColor: colors.surface,
         padding: 14,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
         elevation: 2,
       }}
     >
-      <View style={{ height: 52, width: 52, alignItems: "center", justifyContent: "center", borderRadius: 16, backgroundColor: colors.forest }}>
-        <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={22} color={colors.goldSoft} />
+      <View style={{ height: 52, width: 52, alignItems: "center", justifyContent: "center", borderRadius: 16, backgroundColor: colors.sage }}>
+        <Ionicons name={PROVIDER_TYPE_ICON[provider.type]} size={22} color={colors.saffronSoft} />
       </View>
 
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text style={{ flexShrink: 1, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.forest }} numberOfLines={1}>
+          <Text style={{ flexShrink: 1, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.sage }} numberOfLines={1}>
             {provider.businessName}
           </Text>
           {verified ? (
-            <View style={{ height: 16, width: 16, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.leaf }}>
+            <View style={{ height: 16, width: 16, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.sageLight }}>
               <Ionicons name="checkmark" size={10} color={colors.white} />
             </View>
           ) : null}
@@ -161,8 +161,8 @@ function ProviderCard({
           </Text>
           <View style={{ height: 4, width: 4, borderRadius: 999, backgroundColor: colors.hairline }} />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Ionicons name="star" size={12} color={colors.gold} />
-            <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.forest }}>{ratingVal}</Text>
+            <Ionicons name="star" size={12} color={colors.saffron} />
+            <Text style={{ fontSize: 12, fontFamily: fonts.bodySemi, color: colors.sage }}>{ratingVal}</Text>
             <Text style={{ fontSize: 11, fontFamily: fonts.body, color: colors.inkMuted }}>({reviewCnt})</Text>
           </View>
         </View>
@@ -177,8 +177,8 @@ function ProviderCard({
         ) : null}
       </View>
 
-      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "rgba(221,214,200,0.4)" }}>
-        <Ionicons name="chevron-forward" size={16} color={colors.forest} />
+      <View style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.sand }}>
+        <Ionicons name="chevron-forward" size={16} color={colors.sage} />
       </View>
     </Pressable>
   );
@@ -279,14 +279,13 @@ export default function Discover() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => refetch()}
-            tintColor={colors.leaf}
+            tintColor={colors.sageLight}
           />
         }
       >
-        {/* Hero Header Banner */}
         <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
           <LinearGradient
-            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            colors={[colors.sageDark, colors.sage, colors.sageLight]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
@@ -294,15 +293,15 @@ export default function Discover() {
 
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
             <View>
-              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
-                {firstName ? `Namaste, ${firstName} 🙏` : "Welcome to AyurPass 🙏"}
+              <Text style={{ fontSize: 13, color: colors.saffronSoft, fontFamily: fonts.bodySemi }}>
+                {firstName ? `Namaste, ${firstName} \u{1F64F}` : "Welcome to AyurPass \u{1F64F}"}
               </Text>
               <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
-                Discover <Text style={{ color: colors.goldSoft }}>wellness</Text>
+                Discover <Text style={{ color: colors.saffronSoft }}>wellness</Text>
               </Text>
             </View>
-            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
-              <Ionicons name="sparkles" size={22} color={colors.goldSoft} />
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" }}>
+              <Ionicons name="sparkles" size={22} color={colors.saffronSoft} />
             </View>
           </View>
         </View>
@@ -323,24 +322,24 @@ export default function Discover() {
               paddingHorizontal: 16,
               paddingVertical: 14,
               shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.04,
+              shadowRadius: 6,
+              elevation: 2,
             }}
           >
-            <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.clay }}>
-              <Ionicons name="gift-outline" size={18} color={colors.gold} />
+            <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: colors.saffronSoft }}>
+              <Ionicons name="gift-outline" size={18} color={colors.saffron} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, textTransform: "uppercase", letterSpacing: 0.5, color: colors.gold }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.bodyMedium, textTransform: "uppercase", letterSpacing: 0.5, color: colors.saffron }}>
                 Limited-time deals
               </Text>
-              <Text style={{ marginTop: 2, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.forest }}>
+              <Text style={{ marginTop: 2, fontSize: 15, fontFamily: fonts.bodySemi, color: colors.sage }}>
                 Wellness offers & clinic passes
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.forest} />
+            <Ionicons name="chevron-forward" size={18} color={colors.sage} />
           </Pressable>
 
           {/* Name / category search */}
@@ -363,7 +362,7 @@ export default function Discover() {
               </Pressable>
             ) : null}
             {isFetching && !isRefetching ? (
-              <Ionicons name="sync-outline" size={16} color={colors.leaf} />
+              <Ionicons name="sync-outline" size={16} color={colors.sageLight} />
             ) : null}
           </View>
 
@@ -386,13 +385,13 @@ export default function Discover() {
             <Pressable
               onPress={() => void locateNearMe()}
               disabled={nearBusy}
-              style={{ minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "rgba(47,90,68,0.15)", paddingHorizontal: 14 }}
+              style={{ minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "rgba(45,90,71,0.12)", paddingHorizontal: 14 }}
               accessibilityLabel="Near me"
             >
               <Ionicons
                 name={nearBusy ? "hourglass-outline" : "navigate-outline"}
                 size={20}
-                color={colors.forest}
+                color={colors.sage}
               />
             </Pressable>
           </View>
@@ -420,20 +419,20 @@ export default function Discover() {
                     borderWidth: 1,
                     paddingHorizontal: 14,
                     paddingVertical: 8,
-                    borderColor: active ? colors.forest : colors.hairline,
-                    backgroundColor: active ? colors.forest : colors.surface,
+                    borderColor: active ? colors.sage : colors.hairline,
+                    backgroundColor: active ? colors.sage : colors.surface,
                   }}
                 >
                   <Ionicons
                     name={chip.icon}
                     size={15}
-                    color={active ? colors.goldSoft : colors.forest}
+                    color={active ? colors.saffronSoft : colors.sage}
                   />
                   <Text
                     style={{
                       fontSize: 13,
                       fontFamily: fonts.bodySemi,
-                      color: active ? colors.white : colors.forest,
+                      color: active ? colors.white : colors.sage,
                     }}
                   >
                     {chip.label}
@@ -465,7 +464,7 @@ export default function Discover() {
                     borderRadius: 999,
                     paddingHorizontal: 10,
                     paddingVertical: 6,
-                    backgroundColor: viewMode === mode ? colors.forest : "transparent",
+                    backgroundColor: viewMode === mode ? colors.sage : "transparent",
                   }}
                   accessibilityLabel={`${mode} view`}
                 >

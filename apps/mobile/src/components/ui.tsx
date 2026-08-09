@@ -64,7 +64,7 @@ export function Display({
 }) {
   return (
     <Text
-      className={`font-display text-[32px] leading-[38px] text-forest ${className ?? ""}`}
+      className={`font-display text-[32px] leading-[38px] text-sage ${className ?? ""}`}
       style={style}
     >
       {children}
@@ -83,7 +83,7 @@ export function Title({
 }) {
   return (
     <Text
-      className={`font-display text-[22px] leading-7 text-forest ${className ?? ""}`}
+      className={`font-display text-[22px] leading-7 text-sage ${className ?? ""}`}
       style={style}
     >
       {children}
@@ -173,12 +173,12 @@ export function Button({
   const isDisabled = disabled || loading;
   const bg =
     variant === "primary"
-      ? "bg-forest"
+      ? "bg-sage"
       : variant === "gold"
-        ? "bg-gold"
+        ? "bg-saffron"
         : "bg-surface border border-hairline";
   const fg =
-    variant === "ghost" ? colors.forest : variant === "gold" ? colors.forestDeep : colors.white;
+    variant === "ghost" ? colors.sage : variant === "gold" ? colors.sageDark : colors.white;
   return (
     <Pressable
       onPress={onPress}
@@ -226,9 +226,9 @@ export function Badge({
   tone?: "leaf" | "gold" | "muted";
 }) {
   const bg =
-    tone === "leaf" ? "bg-leaf/15" : tone === "gold" ? "bg-gold/20" : "bg-clay";
+    tone === "leaf" ? "bg-sage-light/15" : tone === "gold" ? "bg-saffron/20" : "bg-sand";
   const fg =
-    tone === "leaf" ? "text-leaf" : tone === "gold" ? "text-gold" : "text-ink-secondary";
+    tone === "leaf" ? "text-sage-light" : tone === "gold" ? "text-saffron" : "text-ink-secondary";
   return (
     <View className={`self-start rounded-full px-2.5 py-1 ${bg}`}>
       <Text className={`font-body-semi text-xs ${fg}`}>{children}</Text>
@@ -251,7 +251,7 @@ export function ErrorNote({ message }: { message?: string | null }) {
 export function Loading({ label }: { label?: string }) {
   return (
     <View className="items-center gap-3 py-12">
-      <ActivityIndicator color={colors.leaf} />
+      <ActivityIndicator color={colors.sageLight} />
       {label ? <Body muted>{label}</Body> : null}
     </View>
   );
@@ -260,7 +260,7 @@ export function Loading({ label }: { label?: string }) {
 export function EmptyState({ title, body }: { title: string; body?: string }) {
   return (
     <View className="items-center rounded-2xl border border-dashed border-hairline bg-surface/60 px-5 py-10">
-      <Text className="font-display text-xl text-forest">{title}</Text>
+      <Text className="font-display text-xl text-sage">{title}</Text>
       {body ? (
         <Body muted className="mt-2 text-center" style={{ textAlign: "center", marginTop: 8 }}>
           {body}

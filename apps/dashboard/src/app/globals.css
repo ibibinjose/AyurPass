@@ -1,49 +1,66 @@
 @import "tailwindcss";
 
 /*
-  AyurPass design tokens — mobile-first, warm-ivory light theme.
-  Contrast tuned for outdoor/bright mobile use and large desktop.
-  Dosha colors are CVD-validated against surface (#fffdf9).
+  AyurPass design tokens — premium wellness palette.
+  Sage greens, saffron warmth, modern cream backgrounds.
+  Psychology-driven: deep sage (trust/nature), warm saffron (vitality/Ayurveda),
+  soft cream (calm/openness), muted earth neutrals (grounding/stability).
 */
 :root {
   color-scheme: light;
 
-  /* Higher-contrast ink for small screens / outdoor readability */
-  --background: #f4f0e8;
-  --surface: #fffdf9;
-  --foreground: #1a1714;
-  --ink-secondary: #3f3b34;
-  --ink-muted: #5c574e;
-  --hairline: #ddd6c8;
+  /* Surfaces & Ink */
+  --background: #faf8f4;
+  --surface: #ffffff;
+  --foreground: #1c1917;
+  --ink-secondary: #44403c;
+  --ink-muted: #78716c;
+  --hairline: #e7e5e4;
 
-  --forest: #1e3228;
-  --forest-deep: #142019;
-  --leaf: #2f5a44;
-  --leaf-light: #52c48a;
-  --leaf-bright: #34d68c;
-  --gold: #a67a24;
-  --gold-soft: #f3e5c8;
-  --gold-bright: #f5d77f;
-  --gold-deep: #7c5710;
-  --clay: #efe8d9;
+  /* Primary Brand: Sage Green */
+  --sage: #2d5a47;
+  --sage-dark: #1a3a2e;
+  --sage-light: #3d7a5f;
 
-  --vata: #4a3aa7;
-  --pitta: #eb6834;
-  --kapha: #1baf7a;
+  /* Accent: Saffron / Amber */
+  --saffron: #c2722a;
+  --saffron-soft: #fef3e2;
+  --saffron-deep: #9a5a1f;
 
-  --focus-ring: rgba(0, 122, 255, 0.35);
+  /* Neutrals: Sand */
+  --sand: #f5f0e8;
+  --sand-dark: #e8e0d4;
+
+  /* Backward-compatible aliases */
+  --forest: #2d5a47;
+  --forest-deep: #1a3a2e;
+  --leaf: #3d7a5f;
+  --leaf-light: #6bc9a0;
+  --leaf-bright: #4fdb9a;
+  --gold: #c2722a;
+  --gold-soft: #fef3e2;
+  --gold-bright: #f5c77f;
+  --gold-deep: #9a5a1f;
+  --clay: #f5f0e8;
+
+  /* Dosha Colors (refined) */
+  --vata: #6366f1;
+  --pitta: #f97316;
+  --kapha: #10b981;
+
+  --focus-ring: rgba(45, 90, 71, 0.3);
 
   /* Apple HIG system colours */
   --system-blue: #007aff;
   --system-blue-pressed: #0066d6;
   --system-green: #34c759;
   --system-red: #ff3b30;
-  --separator: rgba(60, 60, 67, 0.18);
-  --fill-secondary: rgba(120, 120, 128, 0.12);
-  --fill-tertiary: rgba(120, 120, 128, 0.08);
-  --grouped-bg: #f2f2f7;
-  --label: #1a1714;
-  --secondary-label: rgba(60, 60, 67, 0.72);
+  --separator: rgba(60, 60, 67, 0.12);
+  --fill-secondary: rgba(120, 120, 128, 0.08);
+  --fill-tertiary: rgba(120, 120, 128, 0.05);
+  --grouped-bg: #f8f6f2;
+  --label: #1c1917;
+  --secondary-label: rgba(60, 60, 67, 0.65);
 
   /* Fluid type scale (mobile → large desktop) */
   --text-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
@@ -77,6 +94,17 @@
   --color-ink-muted: var(--ink-muted);
   --color-hairline: var(--hairline);
 
+  /* New primary names */
+  --color-sage: var(--sage);
+  --color-sage-dark: var(--sage-dark);
+  --color-sage-light: var(--sage-light);
+  --color-saffron: var(--saffron);
+  --color-saffron-soft: var(--saffron-soft);
+  --color-saffron-deep: var(--saffron-deep);
+  --color-sand: var(--sand);
+  --color-sand-dark: var(--sand-dark);
+
+  /* Backward-compatible aliases */
   --color-forest: var(--forest);
   --color-forest-deep: var(--forest-deep);
   --color-leaf: var(--leaf);
@@ -134,7 +162,7 @@ h1,
 h2,
 h3,
 h4 {
-  color: var(--forest);
+  color: var(--sage);
   font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: -0.01em;
@@ -146,8 +174,8 @@ p {
 }
 
 ::selection {
-  background: var(--gold-soft);
-  color: var(--forest-deep);
+  background: var(--saffron-soft);
+  color: var(--sage-dark);
 }
 
 /* Keyboard focus */
@@ -155,7 +183,7 @@ p {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--forest);
+  outline: 2px solid var(--sage);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
@@ -176,7 +204,7 @@ p {
 /* iOS tap highlight */
 a,
 button {
-  -webkit-tap-highlight-color: rgba(30, 50, 40, 0.08);
+  -webkit-tap-highlight-color: rgba(45, 90, 71, 0.08);
 }
 
 /* Skip link */
@@ -186,7 +214,7 @@ button {
   top: -100%;
   z-index: 100;
   border-radius: 9999px;
-  background: var(--forest);
+  background: var(--sage);
   color: white;
   padding: 0.625rem 1rem;
   font-size: var(--text-sm);
@@ -264,7 +292,7 @@ body {
 }
 @media (hover: hover) and (pointer: fine) {
   .card-surface:hover {
-    border-color: color-mix(in srgb, var(--system-blue) 22%, var(--separator));
+    border-color: color-mix(in srgb, var(--sage-light) 22%, var(--separator));
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
   }
 }
@@ -394,8 +422,8 @@ body {
     border-color 0.2s ease;
 }
 .directory-results[data-density="list"] .card-list-row:hover {
-  border-color: color-mix(in srgb, var(--leaf) 32%, var(--separator));
-  box-shadow: 0 10px 28px rgba(36, 56, 46, 0.09);
+  border-color: color-mix(in srgb, var(--sage-light) 32%, var(--separator));
+  box-shadow: 0 10px 28px rgba(45, 90, 71, 0.09);
 }
 .directory-results[data-density="list"] .card-list-media {
   width: 6rem;
@@ -482,7 +510,7 @@ body {
   font-size: var(--text-3xl);
   font-weight: 600;
   line-height: var(--leading-tight);
-  color: var(--forest);
+  color: var(--sage);
   letter-spacing: -0.02em;
 }
 @media (min-width: 640px) {
@@ -496,7 +524,7 @@ body {
   font-size: var(--text-xl);
   font-weight: 600;
   line-height: var(--leading-snug);
-  color: var(--forest);
+  color: var(--sage);
 }
 
 .type-body {
@@ -603,7 +631,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
-  box-shadow: 0 4px 20px -2px rgba(30, 50, 40, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 20px -2px rgba(45, 90, 71, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
 .glass-nav {
@@ -622,15 +650,15 @@ body {
 }
 
 .glow-gold {
-  box-shadow: 0 0 30px -5px rgba(166, 122, 36, 0.25), 0 0 15px -3px rgba(166, 122, 36, 0.15);
+  box-shadow: 0 0 30px -5px rgba(194, 114, 42, 0.25), 0 0 15px -3px rgba(194, 114, 42, 0.15);
 }
 
 .glow-forest {
-  box-shadow: 0 0 35px -5px rgba(30, 50, 40, 0.2), 0 0 15px -3px rgba(30, 50, 40, 0.12);
+  box-shadow: 0 0 35px -5px rgba(45, 90, 71, 0.2), 0 0 15px -3px rgba(45, 90, 71, 0.12);
 }
 
 .glow-leaf {
-  box-shadow: 0 0 25px -4px rgba(47, 90, 68, 0.25);
+  box-shadow: 0 0 25px -4px rgba(61, 122, 95, 0.25);
 }
 
 .text-gradient-gold {
@@ -653,8 +681,8 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .card-lift:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 36px -8px rgba(30, 50, 40, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
-    border-color: color-mix(in srgb, var(--leaf) 35%, var(--hairline));
+    box-shadow: 0 16px 36px -8px rgba(45, 90, 71, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
+    border-color: color-mix(in srgb, var(--sage-light) 35%, var(--hairline));
   }
 }
 
@@ -676,8 +704,8 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .apple-card:hover {
     transform: translateY(-3px) scale(1.002);
-    box-shadow: 0 8px 24px rgba(30, 50, 40, 0.08), 0 18px 40px rgba(0, 0, 0, 0.06);
-    border-color: color-mix(in srgb, var(--leaf) 40%, var(--hairline));
+    box-shadow: 0 8px 24px rgba(45, 90, 71, 0.08), 0 18px 40px rgba(0, 0, 0, 0.06);
+    border-color: color-mix(in srgb, var(--sage-light) 40%, var(--hairline));
   }
 }
 
@@ -709,13 +737,13 @@ body {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 .apple-input:focus {
-  border-color: var(--leaf);
-  box-shadow: 0 0 0 4px rgba(47, 90, 68, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.01);
+  border-color: var(--sage-light);
+  box-shadow: 0 0 0 4px rgba(45, 90, 71, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.01);
   background: var(--surface);
 }
 
 .apple-shimmer {
-  background: linear-gradient(90deg, var(--clay) 25%, color-mix(in srgb, var(--surface) 60%, var(--clay)) 50%, var(--clay) 75%);
+  background: linear-gradient(90deg, var(--sand) 25%, color-mix(in srgb, var(--surface) 60%, var(--sand)) 50%, var(--sand) 75%);
   background-size: 200% 100%;
   animation: apple-shimmer-anim 1.8s infinite ease-in-out;
 }

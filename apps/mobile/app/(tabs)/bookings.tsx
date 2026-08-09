@@ -154,7 +154,7 @@ function BookingRow({
               </Text>
             </View>
           </View>
-          <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.forest, lineHeight: 22 }} numberOfLines={2}>
+          <Text style={{ fontSize: 16, fontFamily: fonts.bodySemi, color: colors.sage, lineHeight: 22 }} numberOfLines={2}>
             {booking.service?.name ?? "Session"}
           </Text>
           {booking.provider ? (
@@ -182,8 +182,8 @@ function BookingRow({
             style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             hitSlop={8}
           >
-            <Ionicons name="calendar" size={14} color={colors.leaf} />
-            <Text style={{ fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.leaf }}>Add to Calendar</Text>
+            <Ionicons name="calendar" size={14} color={colors.sageLight} />
+            <Text style={{ fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.sageLight }}>Add to Calendar</Text>
           </Pressable>
         ) : null}
       </View>
@@ -194,8 +194,8 @@ function BookingRow({
         </Text>
         {booking.paymentStatus === "paid" ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-            <Ionicons name="checkmark-circle" size={16} color={colors.leaf} />
-            <Text style={{ fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.leaf }}>Paid</Text>
+            <Ionicons name="checkmark-circle" size={16} color={colors.sageLight} />
+            <Text style={{ fontSize: 13, fontFamily: fonts.bodyMedium, color: colors.sageLight }}>Paid</Text>
           </View>
         ) : canPay ? (
           <Button
@@ -243,14 +243,14 @@ export default function Bookings() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void refetch()}
-            tintColor={colors.leaf}
+            tintColor={colors.sageLight}
           />
         }
       >
         {/* Hero Header Banner */}
         <View style={{ position: "relative", overflow: "hidden", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}>
           <LinearGradient
-            colors={[colors.forestDeep, colors.forest, colors.leaf]}
+            colors={[colors.sageDark, colors.sage, colors.sageLight]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
@@ -258,15 +258,15 @@ export default function Bookings() {
 
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
             <View>
-              <Text style={{ fontSize: 13, color: colors.goldSoft, fontFamily: fonts.bodySemi }}>
+              <Text style={{ fontSize: 13, color: colors.saffronSoft, fontFamily: fonts.bodySemi }}>
                 AyurPass Sessions 🗓️
               </Text>
               <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.white, marginTop: 2 }}>
-                My <Text style={{ color: colors.goldSoft }}>bookings</Text>
+                My <Text style={{ color: colors.saffronSoft }}>bookings</Text>
               </Text>
             </View>
-            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
-              <Ionicons name="bookmark-outline" size={22} color={colors.goldSoft} />
+            <View style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" }}>
+              <Ionicons name="bookmark-outline" size={22} color={colors.saffronSoft} />
             </View>
           </View>
         </View>
@@ -278,7 +278,7 @@ export default function Bookings() {
             {(["upcoming", "past", "all"] as const).map((t) => {
               const active = tab === t;
               return (
-                <Pressable
+                  <Pressable
                   key={t}
                   onPress={() => setTab(t)}
                   style={{
@@ -287,7 +287,7 @@ export default function Bookings() {
                     justifyContent: "center",
                     borderRadius: 999,
                     paddingVertical: 8,
-                    backgroundColor: active ? colors.forest : "transparent",
+                    backgroundColor: active ? colors.sage : "transparent",
                   }}
                 >
                   <Text
