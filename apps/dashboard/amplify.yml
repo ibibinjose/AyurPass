@@ -19,7 +19,7 @@ frontend:
           }
           ROOT="$(find_root)"
           cd "$ROOT"
-          npm ci
+          npm ci || npm install
     build:
       commands:
         - |
