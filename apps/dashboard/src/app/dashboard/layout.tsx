@@ -84,14 +84,6 @@ const CONSUMER_GROUPS: NavGroup[] = [
         chip: true,
       },
       {
-        href: "/dashboard/bookings",
-        label: "Calendar",
-        shortLabel: "Calendar",
-        icon: CalendarIcon,
-        hint: "Colour-coded sessions",
-        chip: true,
-      },
-      {
         href: "/explore",
         label: "Sessions",
         shortLabel: "Sessions",
@@ -147,10 +139,10 @@ const CONSUMER_GROUPS: NavGroup[] = [
       },
       {
         href: "/dashboard/bookings",
-        label: "My Bookings",
-        shortLabel: "List",
+        label: "Bookings",
+        shortLabel: "Bookings",
         icon: CalendarIcon,
-        hint: "Pay & manage",
+        hint: "Sessions, payment & calendar",
       },
       {
         href: "/dashboard/assessment",
