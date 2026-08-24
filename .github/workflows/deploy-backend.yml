@@ -38,26 +38,125 @@ jobs:
         run: |
           IMAGE_TAG="${{ github.sha }}"
           ECR_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}"
-          docker build -t $ECR_URI:$IMAGE_TAG -t $ECR_URI:latest .
-          docker push $ECR_URI:$IMAGE_TAG
-          docker push $ECR_URI:latest
+          docker build -t "$ECR_URI:$IMAGE_TAG" -t "$ECR_URI:latest" .
+          docker push "$ECR_URI:$IMAGE_TAG"
+          docker push "$ECR_URI:latest"
 
-      - name: Force new ECS deployment
+      - name: Register task definition with immutable image
+        id: task-definition
+        env:
+          ECR_URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          service_json="$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION")"
+          task_definition_arn="$(echo "$service_json" | jq -r '.services[0].taskDefinition')"
+          if [ -z "$task_definition_arn" ] || [ "$task_definition_arn" = "null" ]; then
+            echo "The ECS service does not expose a current task definition." >&2
+            exit 1
+          fi
+
+          aws ecs describe-task-definition \
+            --task-definition "$task_definition_arn" \
+            --region "$AWS_REGION" \
+            --query 'taskDefinition' > task-definition.json
+
+          container_name="$(jq -r --arg repository "/$ECR_REPOSITORY" '
+            .containerDefinitions[]
+            | select(.image | endswith($repository) or contains($repository + ":"))
+            | .name
+          ' task-definition.json | head -n1)"
+          if [ -z "$container_name" ] || [ "$container_name" = "null" ]; then
+            echo "Could not identify an ECS container using repository $ECR_REPOSITORY." >&2
+            jq -r '.containerDefinitions[] | "container=\(.name) image=\(.image)"' task-definition.json >&2
+            exit 1
+          fi
+
+          image="$ECR_URI:$IMAGE_TAG"
+          jq --arg container "$container_name" --arg image "$image" '
+            del(
+              .taskDefinitionArn,
+              .revision,
+              .status,
+              .requiresAttributes,
+              .placementConstraints,
+              .compatibilities,
+              .registeredAt,
+              .registeredBy,
+              .enableFaultInjection
+            )
+            | .containerDefinitions |= map(
+                if .name == $container then .image = $image else . end
+              )
+          ' task-definition.json > task-definition-rendered.json
+
+          new_task_definition="$(aws ecs register-task-definition \
+            --cli-input-json file://task-definition-rendered.json \
+            --region "$AWS_REGION" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)"
+          echo "task_definition=$new_task_definition" >> "$GITHUB_OUTPUT"
+          echo "container_name=$container_name" >> "$GITHUB_OUTPUT"
+          echo "Deploying task definition $new_task_definition with $container_name=$image"
+
+      - name: Deploy immutable task definition
         run: |
           aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.task-definition.outputs.task_definition }}" \
             --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
+            --region "$AWS_REGION"
 
       - name: Wait for deployment
         run: |
           echo "Waiting for ECS deployment to stabilize..."
           aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }}
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION"
           echo "ECS deployment is stable."
+
+      - name: Diagnose ECS stabilization failure
+        if: ${{ failure() }}
+        run: |
+          set +e
+          echo "=== ECS service state ==="
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION" \
+            --query 'services[0].{status:status,desired:desiredCount,running:runningCount,pending:pendingCount,taskDefinition:taskDefinition,deployments:deployments[*].{status:status,rolloutState:rolloutState,desired:desiredCount,running:runningCount,pending:pendingCount,failedTasks:failedTasks,taskDefinition:taskDefinition},events:events[0:10].[createdAt,message]}' \
+            --output json || true
+
+          echo "=== Recently stopped tasks ==="
+          stopped_tasks="$(aws ecs list-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --service-name "$ECS_SERVICE" \
+            --desired-status STOPPED \
+            --region "$AWS_REGION" \
+            --query 'taskArns[0:10]' \
+            --output text || true)"
+          if [ -n "$stopped_tasks" ]; then
+            aws ecs describe-tasks \
+              --cluster "$ECS_CLUSTER" \
+              --tasks $stopped_tasks \
+              --region "$AWS_REGION" \
+              --query 'tasks[].{taskArn:taskArn,lastStatus:lastStatus,stoppedReason:stoppedReason,stopCode:stopCode,containers:containers[].{name:name,lastStatus:lastStatus,exitCode:exitCode,reason:reason,healthStatus:healthStatus}}' \
+              --output json || true
+          else
+            echo "No stopped ECS tasks were returned for this service."
+          fi
+
+          echo "=== Current task definition images ==="
+          aws ecs describe-task-definition \
+            --task-definition "${{ steps.task-definition.outputs.task_definition }}" \
+            --region "$AWS_REGION" \
+            --query 'taskDefinition.containerDefinitions[].{name:name,image:image}' \
+            --output json || true
 
       - name: Verify database-aware API readiness
         env:
