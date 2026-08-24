@@ -41,6 +41,22 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('login')
+  async login(@Body() loginDto: LoginDto): Promise<any> {
+    const result = await this.authService.login(loginDto.email, loginDto.password);
+    const user = result.user as { id?: string; role?: string } | undefined;
+    if (user?.id) {
+      this.amplitude.track(user.id, 'User Signed In', {
+        auth_method: 'email',
+        role: user.role,
+      });
+      this.amplitude.identifyUser(user.id, { role: user.role });
+    }
+    return result;
+  }
+
+  @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('verify-email')
   async verifyEmail(@Body() dto: VerifyEmailDto): Promise<any> {
