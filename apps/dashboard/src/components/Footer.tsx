@@ -130,7 +130,7 @@ export function Footer({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <footer className="border-t border-hairline bg-surface">
-        <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-5 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-5">
+        <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-5 pb-tab-bar md:pb-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Logo className="scale-90 origin-left" />
             <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-medium text-ink-muted">
@@ -190,7 +190,7 @@ export function Footer({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-10 sm:pt-14 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-14">
+      <div className="mx-auto max-w-6xl px-[var(--space-page-x)] pt-10 sm:pt-14 pb-tab-bar md:pb-14">
         <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-12 lg:gap-8">
           {/* Brand */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-4">

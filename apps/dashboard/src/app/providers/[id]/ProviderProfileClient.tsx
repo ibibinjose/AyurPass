@@ -943,7 +943,7 @@ function PageWrap({
         </ProfileShell>
       </div>
       {stickyCta ? (
-        <div className="fixed inset-x-0 bottom-[calc(3.35rem+env(safe-area-inset-bottom,0px))] z-40 border-t border-hairline bg-surface/95 p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden">
+        <div className="fixed inset-x-0 z-40 border-t border-hairline bg-surface/95 p-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden" style={{ bottom: "var(--mobile-tab-bar-offset)" }}>
           {stickyCta}
         </div>
       ) : null}

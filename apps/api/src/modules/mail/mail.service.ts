@@ -47,7 +47,7 @@ export class MailService {
     if (!this.transporter) {
       throw new Error('Transactional email delivery is not configured. Set SMTP/SES credentials.');
     }
-    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     await this.transporter.sendMail({
       from,
       to: input.to,
@@ -58,7 +58,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(email: string, fullName: string, resetLink: string): Promise<boolean> {
-    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const subject = 'Reset Your AyurPass Password';
     
     const html = `
@@ -184,7 +184,7 @@ export class MailService {
     fullName: string,
     verifyLink: string,
   ): Promise<boolean> {
-    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const subject = 'Verify your AyurPass email';
 
     const html = `
@@ -306,7 +306,7 @@ export class MailService {
     providerName: string,
     reminderType: '24h' | '2h',
   ): Promise<boolean> {
-    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const timeNotice = reminderType === '24h' ? 'tomorrow' : 'in 2 hours';
     const subject = `Reminder: Upcoming Session with ${providerName} (${timeNotice})`;
 

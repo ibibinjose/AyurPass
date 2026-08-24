@@ -399,21 +399,24 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile navigation drawer */}
+      {/* Mobile navigation drawer — account actions stay pinned above the tab bar */}
       {mobileOpen ? (
         <div
           id={menuId}
-          className="border-t border-hairline bg-surface/95 backdrop-blur-2xl xl:hidden shadow-xl"
+          className="flex max-h-[calc(100dvh-var(--mobile-tab-bar-offset)-4.5rem)] flex-col border-t border-hairline bg-surface/95 shadow-xl backdrop-blur-2xl xl:hidden"
         >
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
+          <nav
+            className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-5 py-4"
+            aria-label="Mobile"
+          >
             <InstallAppButton
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-forest/10 border border-forest/20 px-4 py-3 text-sm font-bold text-forest shadow-2xs btn-press"
+              className="mb-3 flex min-h-[var(--tap-min)] w-full items-center justify-center gap-2 rounded-2xl border border-forest/20 bg-forest/10 px-4 py-3 text-sm font-bold text-forest shadow-2xs btn-press"
               label="Add AyurPass to Home Screen"
             />
             <Link
               href="/discover"
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 rounded-2xl border border-hairline bg-background/80 p-3 text-xs font-bold text-ink-muted mb-2 shadow-2xs"
+              className="mb-2 flex min-h-[var(--tap-min)] items-center gap-2.5 rounded-2xl border border-hairline bg-background/80 p-3 text-xs font-bold text-ink-muted shadow-2xs"
             >
               <SearchIcon className="h-4 w-4 text-forest" />
               <span>Search practices, sessions, retreats…</span>
@@ -423,7 +426,7 @@ export function Navbar() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all ${
+                className={`flex min-h-[var(--tap-min)] items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all ${
                   navActive(pathname, l.href)
                     ? "bg-forest text-white shadow-2xs"
                     : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
@@ -433,24 +436,22 @@ export function Navbar() {
                 <span>{l.label}</span>
               </Link>
             ))}
-            <div className="mt-3 flex flex-col gap-2.5 border-t border-hairline pt-4">
-              <LocationSelectorButton className="w-full justify-between py-2.5 px-4 text-xs font-bold" />
-              <InstallAppButton
-                label="Add to Home Screen"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-forest bg-forest px-4 text-xs font-bold text-white shadow-2xs"
-              />
+          </nav>
+          <div className="shrink-0 border-t border-hairline bg-surface px-5 py-3">
+            <div className="mx-auto flex max-w-6xl flex-col gap-2.5">
+              <LocationSelectorButton className="w-full justify-between px-4 py-2.5 text-xs font-bold" />
               {loading ? null : user ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className="rounded-full bg-forest px-4 py-3 text-center text-xs font-bold text-white shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full bg-forest px-4 text-center text-xs font-bold text-white shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Go to Dashboard
                   </Link>
                   <button
                     type="button"
-                    className="rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50"
+                    className="min-h-[var(--tap-min)] rounded-xl px-3 text-left text-xs font-semibold text-red-600 hover:bg-red-50"
                     onClick={() => {
                       logout();
                       setMobileOpen(false);
@@ -460,17 +461,17 @@ export function Navbar() {
                   </button>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
                   <Link
                     href="/login"
-                    className="rounded-full border border-hairline bg-surface py-3 text-center text-xs font-bold text-forest shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full border border-hairline bg-surface text-center text-xs font-bold text-forest shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/account-type"
-                    className="rounded-full bg-forest py-3 text-center text-xs font-bold text-white shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full bg-forest text-center text-xs font-bold text-white shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Get Started
@@ -478,7 +479,7 @@ export function Navbar() {
                 </div>
               )}
             </div>
-          </nav>
+          </div>
         </div>
       ) : null}
     </header>

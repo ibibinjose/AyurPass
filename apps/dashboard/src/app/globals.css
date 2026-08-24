@@ -84,6 +84,13 @@
   --safe-right: env(safe-area-inset-right, 0px);
 
   --tap-min: 44px;
+
+  /* Fixed mobile tab bar: 56px content row + home-indicator inset */
+  --mobile-tab-bar-content: 3.5rem;
+  --mobile-tab-bar-pad: 0.35rem;
+  --mobile-tab-bar-offset: calc(
+    var(--mobile-tab-bar-content) + max(var(--mobile-tab-bar-pad), env(safe-area-inset-bottom, 0px))
+  );
 }
 
 @theme inline {
@@ -457,7 +464,7 @@ body {
 
 /* Space for fixed mobile bottom tab bar */
 .pb-tab-bar {
-  padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--mobile-tab-bar-offset) + 0.5rem);
 }
 @media (min-width: 768px) {
   .pb-tab-bar {
@@ -475,15 +482,27 @@ body {
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
   padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
 }
+/* Drawer sits above the tab bar; account footer stays fully visible */
+.dash-drawer-root {
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: var(--mobile-tab-bar-offset);
+  z-index: 60;
+  overflow: hidden;
+}
 .dash-drawer-panel {
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-bottom: 0.75rem;
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  overscroll-behavior: contain;
 }
 .dash-tab-bar {
   /* Isolate paint; avoid jank when scrolling content under the bar */
   transform: translateZ(0);
   -webkit-backdrop-filter: blur(16px);
+  z-index: 50;
+  padding-bottom: max(var(--mobile-tab-bar-pad), env(safe-area-inset-bottom, 0px));
 }
 .dash-nav-link {
   -webkit-tap-highlight-color: transparent;

@@ -24,7 +24,7 @@ Use Amazon SES SMTP in the API ECS task definition. Verify the sending domain an
 | `SMTP_HOST` | SES regional SMTP host, for example `email-smtp.ap-southeast-2.amazonaws.com` |
 | `SMTP_PORT` | `587` |
 | `SMTP_USER` / `SMTP_PASS` | SES SMTP credentials from Secrets Manager |
-| `SMTP_FROM` | A verified sender such as `AyurPass <noreply@ayurpass.com>` |
+| `SMTP_FROM` | A verified sender such as `AyurPass <noreply@mail.ayurpass.com>` |
 | `SMTP_SECURE` | `false` for STARTTLS on port 587 |
 | `COMMUNICATIONS_DISPATCH_ENABLED` | `true`, only after an SES send test succeeds |
 
