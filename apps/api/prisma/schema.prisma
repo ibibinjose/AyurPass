@@ -131,6 +131,45 @@ model Provider {
   staff             ProviderStaff[]
   jobListings       JobListing[]
   wellnessEvents    WellnessEvent[]
+  billingSubscription ClinicSubscription?
+}
+
+enum ClinicPlan {
+  FREE
+  GROWTH
+}
+
+enum ClinicSubscriptionStatus {
+  INACTIVE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  UNPAID
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAUSED
+}
+
+model ClinicSubscription {
+  id                   String                   @id @default(uuid())
+  providerId           String                   @unique
+  provider             Provider                 @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String                   @unique
+  stripeSubscriptionId String?                  @unique
+  stripePriceId        String?
+  plan                 ClinicPlan               @default(FREE)
+  status               ClinicSubscriptionStatus @default(INACTIVE)
+  cancelAtPeriodEnd    Boolean                  @default(false)
+  currentPeriodEnd     DateTime?
+  trialEnd             DateTime?
+  lastInvoiceId        String?                  @unique
+  lastInvoiceStatus    String?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([plan, status])
+  @@index([stripeSubscriptionId])
 }
 
 enum ProviderType {

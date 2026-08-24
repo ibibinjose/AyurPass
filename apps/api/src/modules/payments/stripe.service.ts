@@ -88,6 +88,62 @@ export class StripeService {
     return this.client().paymentIntents.retrieve(id);
   }
 
+  async createBillingCustomer(params: {
+    email: string;
+    name?: string | null;
+    providerId: string;
+  }): Promise<Stripe.Customer> {
+    return this.client().customers.create({
+      email: params.email,
+      name: params.name ?? undefined,
+      metadata: { providerId: params.providerId, product: 'ayurpass_growth' },
+    });
+  }
+
+  async createSubscriptionCheckout(params: {
+    customerId: string;
+    priceId: string;
+    successUrl: string;
+    cancelUrl: string;
+    providerId: string;
+    trialDays?: number;
+    idempotencyKey: string;
+  }): Promise<Stripe.Checkout.Session> {
+    return this.client().checkout.sessions.create(
+      {
+        mode: 'subscription',
+        customer: params.customerId,
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+        line_items: [{ price: params.priceId, quantity: 1 }],
+        allow_promotion_codes: true,
+        billing_address_collection: 'required',
+        automatic_tax: { enabled: false },
+        client_reference_id: params.providerId,
+        metadata: { providerId: params.providerId, product: 'ayurpass_growth' },
+        subscription_data: {
+          metadata: { providerId: params.providerId, product: 'ayurpass_growth' },
+          ...(params.trialDays && params.trialDays > 0 ? { trial_period_days: params.trialDays } : {}),
+        },
+      },
+      { idempotencyKey: params.idempotencyKey },
+    );
+  }
+
+  async createBillingPortalSession(params: {
+    customerId: string;
+    returnUrl: string;
+  }): Promise<Stripe.BillingPortal.Session> {
+    return this.client().billingPortal.sessions.create({
+      customer: params.customerId,
+      return_url: params.returnUrl,
+    });
+  }
+
+  async retrieveSubscription(id: string): Promise<Stripe.Subscription> {
+    return this.client().subscriptions.retrieve(id);
+  }
+
   /**
    * Refund a destination-charge PaymentIntent. `reverse_transfer` pulls the
    * refunded amount back out of the connected account (otherwise the platform
