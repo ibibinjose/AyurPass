@@ -10,6 +10,7 @@ import { StripeConnectService } from './stripe-connect.service';
 import type { PaymentIntentPayload, RedemptionInput, Settlement } from './payment.types';
 import { AmplitudeService } from '../../amplitude/amplitude.service';
 import { CommunicationsService } from '../communications/communications.service';
+import { ClinicBillingService } from './clinic-billing.service';
 
 export type { RedemptionInput, PaymentIntentPayload } from './payment.types';
 
@@ -23,6 +24,7 @@ export class PaymentsService {
     private connect: StripeConnectService,
     private amplitude: AmplitudeService,
     private communications: CommunicationsService,
+    private billing: ClinicBillingService,
   ) {}
 
   get mockMode(): boolean {
@@ -413,6 +415,9 @@ export class PaymentsService {
   }
 
   private async processWebhookEvent(event: Stripe.Event) {
+    const billingResult = await this.billing.handleWebhookEvent(event);
+    if (billingResult.handled) return billingResult;
+
     if (event.type === 'payment_intent.succeeded') {
       const intent = event.data.object as Stripe.PaymentIntent;
       const bookingId = intent.metadata?.bookingId;

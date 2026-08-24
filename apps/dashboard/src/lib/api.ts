@@ -7,6 +7,7 @@ import type {
   AuthTokens,
   Booking,
   ClientConsent,
+  ClinicBillingSubscription,
   BookingCheckout,
   BookingStatus,
   BrandProfile,
@@ -554,6 +555,23 @@ export const api = {
     ),
   stripeConnectStatus: (providerId: string) =>
     request<StripeConnectStatus>(`/payments/connect/${providerId}/status`, { auth: true }),
+  clinicBillingStatus: (providerId: string) =>
+    request<ClinicBillingSubscription>(`/payments/billing/${providerId}`, { auth: true }),
+  clinicBillingCheckout: (
+    providerId: string,
+    data: { successUrl: string; cancelUrl: string },
+  ) =>
+    request<{ url: string; sessionId: string }>(`/payments/billing/${providerId}/checkout`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+  clinicBillingPortal: (providerId: string, data: { returnUrl: string }) =>
+    request<{ url: string }>(`/payments/billing/${providerId}/portal`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
 
   // --- providers (business profile) ---
   providers: (params?: { q?: string; type?: ProviderType; city?: string; country?: string }) => {

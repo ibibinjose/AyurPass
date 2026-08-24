@@ -19,4 +19,4 @@ echo "Copy the webhook signing secret (whsec_…) into apps/api/.env as STRIPE_W
 echo "Then restart the API (npm run dev:api)."
 echo ""
 
-exec stripe listen --forward-to "${TARGET}" --events payment_intent.succeeded,account.updated
+exec stripe listen --forward-to "${TARGET}" --events payment_intent.succeeded,account.updated,charge.refunded,checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed,invoice.finalization_failed
