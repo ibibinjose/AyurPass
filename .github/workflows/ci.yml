@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: 'package-lock.json'
+          cache-dependency-path: "package-lock.json"
       - run: npm ci
       - run: npm run prisma:generate
       - name: Lint
@@ -44,7 +44,7 @@ jobs:
       - name: Build
         run: npm run build -w @ayurpass/api
       - name: Apply database migrations
-        run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+        run: npm run prisma:migrate:deploy -w @ayurpass/api
       - name: Seed deterministic local data
         run: npm run seed:local
       - name: API unit tests
@@ -74,7 +74,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: 'package-lock.json'
+          cache-dependency-path: "package-lock.json"
       - run: npm ci
       - name: Lint
         run: npm run lint -w @ayurpass/dashboard
@@ -93,7 +93,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: 'package-lock.json'
+          cache-dependency-path: "package-lock.json"
       - run: npm ci
       - name: Typecheck shared
         run: npm run typecheck -w @ayurpass/shared
@@ -109,7 +109,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: 'package-lock.json'
+          cache-dependency-path: "package-lock.json"
       - name: Install monorepo + mobile deps
         working-directory: .
         run: npm ci

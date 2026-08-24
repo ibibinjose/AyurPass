@@ -15,6 +15,7 @@
     "data:reset:execute": "node scripts/reset-launch-data.mjs data:reset:execute",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
+    "prisma:migrate:deploy": "npx prisma migrate deploy",
     "prisma:studio": "npx prisma studio",
     "seed:local": "ts-node --transpile-only prisma/seed-local-dev.ts",
     "pretypecheck": "npm run prisma:generate",
