@@ -1,3 +1,0 @@
-# Merge Branches: feat/visual-redesign & fix/app-config-issues
-
-Merging all branches into main as requested.
