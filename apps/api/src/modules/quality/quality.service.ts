@@ -9,11 +9,14 @@ import {
   ABUSE_CATEGORIES,
   CLAIM_CATEGORIES,
   CreateFeedbackDto,
+  FOLLOW_TARGET_TYPES,
   QUALITY_TARGET_TYPES,
+  SetFollowDto,
   SetReactionDto,
   SUGGESTION_CATEGORIES,
   UpdateFeedbackStatusDto,
   UpsertReviewDto,
+  type FollowTargetType,
   type QualityTargetType,
 } from '../../dtos/quality.dto';
 
@@ -24,6 +27,12 @@ export class QualityService {
   private assertTargetType(t: string): asserts t is QualityTargetType {
     if (!(QUALITY_TARGET_TYPES as readonly string[]).includes(t)) {
       throw new BadRequestException('Invalid target type.');
+    }
+  }
+
+  private assertFollowTargetType(targetType: string): asserts targetType is FollowTargetType {
+    if (!(FOLLOW_TARGET_TYPES as readonly string[]).includes(targetType)) {
+      throw new BadRequestException('Only practices and practitioners can be followed.');
     }
   }
 
@@ -287,6 +296,49 @@ export class QualityService {
 
     await this.recomputeReactions(dto.targetType, dto.targetId);
     return this.summary(dto.targetType, dto.targetId, userId);
+  }
+
+  async listFollows(userId: string) {
+    return this.prisma.follow.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { targetType: true, targetId: true, createdAt: true },
+    });
+  }
+
+  async setFollow(userId: string, dto: SetFollowDto) {
+    this.assertFollowTargetType(dto.targetType);
+    await this.assertTargetExists(dto.targetType, dto.targetId);
+
+    if (dto.value) {
+      await this.prisma.follow.upsert({
+        where: {
+          userId_targetType_targetId: {
+            userId,
+            targetType: dto.targetType,
+            targetId: dto.targetId,
+          },
+        },
+        create: {
+          userId,
+          targetType: dto.targetType,
+          targetId: dto.targetId,
+        },
+        update: {},
+      });
+    } else {
+      await this.prisma.follow.deleteMany({
+        where: { userId, targetType: dto.targetType, targetId: dto.targetId },
+      });
+    }
+
+    const follows = await this.listFollows(userId);
+    return {
+      following: dto.value,
+      targetType: dto.targetType,
+      targetId: dto.targetId,
+      follows,
+    };
   }
 
   // --- Abuse reports & suggestions ---

@@ -297,6 +297,22 @@ model Reaction {
 }
 
 /**
+ * Saved provider or practitioner — persists a member's following list across
+ * browsers and devices. Target types are validated by the API.
+ */
+model Follow {
+  id         String   @id @default(uuid())
+  userId     String
+  targetType String // provider | professional
+  targetId   String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId, createdAt])
+  @@index([targetType, targetId])
+}
+
+/**
  * Abuse reports & product suggestions — quality / trust & safety.
  * kind: abuse | suggestion
  * Guests may submit with contactEmail; signed-in users set userId.

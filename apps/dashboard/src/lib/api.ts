@@ -55,8 +55,9 @@ import type {
   EventCategory,
 } from "./types";
 import { resolveMediaUrl } from "@/lib/media";
+import { API_URL } from "@/lib/env";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export { API_URL };
 
 export type UploadedImage = {
   url: string;
@@ -198,9 +199,9 @@ export class ApiError extends Error {
     this.code = code;
   }
 
-  /** True for 5xx or network failures. */
+  /** True for 5xx responses or failures before an HTTP response is received. */
   get isServerError(): boolean {
-    return this.status >= 500;
+    return this.status === 0 || this.status >= 500;
   }
 
   /** True when the user's session has expired (401 after refresh attempt). */
@@ -274,12 +275,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    // Network failure, CORS block, or offline
-    throw new ApiError(
-      "Unable to reach the server. Please check your connection and try again.",
-      0,
-      "NETWORK_ERROR",
-    );
+    // Network failure, CORS block, or offline. In local development, name the
+    // missing dependency explicitly so developers can recover without guessing.
+    const localApi = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?$/i.test(API_URL);
+    const message = localApi
+      ? "Unable to reach the local API. Start it with `npm start` or `npm run dev:api`, then try again."
+      : "Unable to reach the server. Please check your connection and try again.";
+    throw new ApiError(message, 0, "NETWORK_ERROR");
   }
 
   // Transparent access-token refresh for authenticated calls.
@@ -977,6 +979,18 @@ export const api = {
     targetId: string;
     value: "like" | "dislike" | "none";
   }) => request<QualitySummary>("/quality/reactions", { method: "PUT", body: data, auth: true }),
+  follows: () =>
+    request<{ targetType: "provider" | "professional"; targetId: string; createdAt: string }[]>(
+      "/quality/follows",
+      { auth: true },
+    ),
+  setFollow: (data: { targetType: "provider" | "professional"; targetId: string; value: boolean }) =>
+    request<{
+      following: boolean;
+      targetType: "provider" | "professional";
+      targetId: string;
+      follows: { targetType: "provider" | "professional"; targetId: string; createdAt: string }[];
+    }>("/quality/follows", { method: "PUT", body: data, auth: true }),
 
   /** Report abuse, send a product suggestion, or submit a business claim request. */
   submitFeedback: (data: {

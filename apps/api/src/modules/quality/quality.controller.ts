@@ -15,6 +15,7 @@ import { Throttle } from '@nestjs/throttler';
 import { QualityService } from './quality.service';
 import {
   CreateFeedbackDto,
+  SetFollowDto,
   SetReactionDto,
   UpdateFeedbackStatusDto,
   UpsertReviewDto,
@@ -81,6 +82,16 @@ export class QualityController {
   @Put('reactions')
   setReaction(@Req() req: AuthedRequest, @Body() dto: SetReactionDto) {
     return this.quality.setReaction(req.user.sub, dto);
+  }
+
+  @Get('follows')
+  listFollows(@Req() req: AuthedRequest) {
+    return this.quality.listFollows(req.user.sub);
+  }
+
+  @Put('follows')
+  setFollow(@Req() req: AuthedRequest, @Body() dto: SetFollowDto) {
+    return this.quality.setFollow(req.user.sub, dto);
   }
 
   /** Report abuse or send a suggestion — guests OK with email. */

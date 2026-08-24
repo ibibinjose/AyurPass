@@ -56,7 +56,7 @@ type NavItem = {
   chip?: boolean;
 };
 
-type NavGroup = { label: string; items: NavItem[] };
+type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
 
 const CONSUMER_GROUPS: NavGroup[] = [
   {
@@ -259,6 +259,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Catalogue",
+    collapsible: true,
     items: [
       {
         href: "/dashboard/services",
@@ -281,6 +282,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Sales",
+    collapsible: true,
     items: [
       { href: "/dashboard/orders", label: "Orders", icon: FlameIcon, chip: true, hint: "Sales history" },
       {
@@ -303,6 +305,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Practice",
+    collapsible: true,
     items: [
       { href: "/dashboard/channels", label: "Online Channels", icon: GlobeIcon, hint: "Integrations & APIs" },
       {
@@ -632,34 +635,63 @@ function SidebarNav({
   onNavigate?: () => void;
   dense?: boolean;
 }) {
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
   return (
     <nav
       className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-1 [-webkit-overflow-scrolling:touch]"
       aria-label="Dashboard"
     >
-      {groups.map((group) => (
-        <div key={group.label}>
-          {!collapsed ? (
-            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
-              {group.label}
-            </p>
-          ) : (
-            <div className="mx-auto mb-1.5 h-px w-6 bg-hairline" aria-hidden />
-          )}
-          <div className={`space-y-0.5 ${collapsed ? "flex flex-col items-stretch" : ""}`}>
-            {group.items.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                pathname={pathname}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                dense={dense}
-              />
-            ))}
+      {groups.map((group) => {
+        const groupHasActiveItem = group.items.some((item) => isActive(pathname, item.href, item.exact));
+        const canCollapse = Boolean(group.collapsible && !collapsed && !dense);
+        const expanded = !canCollapse || groupHasActiveItem || expandedGroups[group.label];
+
+        return (
+          <div key={group.label}>
+            {!collapsed ? (
+              canCollapse ? (
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted transition-colors hover:bg-clay/50 hover:text-forest"
+                  aria-expanded={expanded}
+                  onClick={() =>
+                    setExpandedGroups((current) => ({
+                      ...current,
+                      [group.label]: !expanded,
+                    }))
+                  }
+                >
+                  <span>{group.label}</span>
+                  <span className="text-xs normal-case tracking-normal" aria-hidden>
+                    {expanded ? "−" : "+"}
+                  </span>
+                </button>
+              ) : (
+                <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
+                  {group.label}
+                </p>
+              )
+            ) : (
+              <div className="mx-auto mb-1.5 h-px w-6 bg-hairline" aria-hidden />
+            )}
+            {expanded ? (
+              <div className={`space-y-0.5 ${collapsed ? "flex flex-col items-stretch" : ""}`}>
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    collapsed={collapsed}
+                    onNavigate={onNavigate}
+                    dense={dense}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </nav>
   );
 }

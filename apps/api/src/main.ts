@@ -4,6 +4,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import { existsSync, mkdirSync } from 'fs';
+import { randomUUID } from 'crypto';
 import { join } from 'path';
 import { assertProductionConfig, isStrictEnv } from './common/env';
 
@@ -27,6 +28,25 @@ async function bootstrap() {
       forbidNonWhitelisted: false,
     }),
   );
+
+  // Correlate client reports with server logs. Do not log query strings or
+  // bodies because they can contain personal or health-related information.
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const suppliedRequestId = req.headers['x-request-id'];
+    const requestId =
+      typeof suppliedRequestId === 'string' && /^[a-zA-Z0-9_-]{8,128}$/.test(suppliedRequestId)
+        ? suppliedRequestId
+        : randomUUID();
+    const startedAt = Date.now();
+    res.setHeader('X-Request-Id', requestId);
+    res.on('finish', () => {
+      const durationMs = Date.now() - startedAt;
+      const context = `${req.method} ${req.path} ${res.statusCode} ${durationMs}ms requestId=${requestId}`;
+      if (res.statusCode >= 500) logger.error(context);
+      else if (durationMs >= 2_000) logger.warn(`Slow request: ${context}`);
+    });
+    next();
+  });
 
   // CORS: manually reflect the matching origin — no cors package involved.
   const corsAllowed = new Set(

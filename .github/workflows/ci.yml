@@ -9,8 +9,25 @@ on:
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3-alpine
+        env:
+          POSTGRES_USER: ayurpass
+          POSTGRES_PASSWORD: ayurpass_ci_password
+          POSTGRES_DB: ayurpass_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ayurpass -d ayurpass_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      DATABASE_URL: postgresql://ayurpass:ayurpass_ci_password@localhost:5432/ayurpass_ci?schema=public
+      CORS_ORIGIN: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
+      PORT: 4000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,6 +43,25 @@ jobs:
         run: npm run typecheck -w @ayurpass/api
       - name: Build
         run: npm run build -w @ayurpass/api
+      - name: Apply database migrations
+        run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - name: Seed deterministic local data
+        run: npm run seed:local
+      - name: API unit tests
+        run: npm run test -w @ayurpass/api -- --runInBand
+      - name: Start API for smoke journey
+        run: |
+          nohup npm run dev:api > /tmp/ayurpass-api.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:4000/health/ready > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ayurpass-api.log
+          exit 1
+      - name: Run authenticated marketplace smoke journey
+        run: npm run e2e:smoke
 
   dashboard:
     runs-on: ubuntu-latest
@@ -44,6 +80,10 @@ jobs:
         run: npm run lint -w @ayurpass/dashboard
       - name: Build (includes typecheck)
         run: npm run build -w @ayurpass/dashboard
+      - name: Install browser-test runtime
+        run: npx playwright install --with-deps chromium
+      - name: Run public browser journeys
+        run: npm run test:e2e
 
   shared:
     runs-on: ubuntu-latest
@@ -75,3 +115,9 @@ jobs:
         run: npm ci
       - name: Typecheck
         run: npm run typecheck
+      - name: Verify Expo dependency alignment
+        working-directory: apps/mobile
+        run: CI=1 npx expo install --check
+      - name: Build mobile web bundle
+        working-directory: apps/mobile
+        run: npx expo export --platform web --output-dir /tmp/ayurpass-mobile-web
