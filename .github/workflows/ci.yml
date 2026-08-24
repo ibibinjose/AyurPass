@@ -116,6 +116,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
       - name: Verify Expo dependency alignment
-        run: npx expo install --check --non-interactive
+        working-directory: apps/mobile
+        run: CI=1 npx expo install --check
       - name: Build mobile web bundle
+        working-directory: apps/mobile
         run: npx expo export --platform web --output-dir /tmp/ayurpass-mobile-web
