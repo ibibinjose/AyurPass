@@ -143,7 +143,33 @@ async function main() {
   const seekerToken = seekerTokens.accessToken;
   const consumerId = seekerUser.id;
 
-  // 2) Pick a service
+  // 2) Restore the persisted session over the same profile/refresh contract
+  // used by the dashboard and mobile clients after navigation or app restart.
+  try {
+    const restoredProfile = await api("/auth/profile", { token: seekerToken });
+    if (restoredProfile.id !== consumerId) {
+      throw new Error("Restored profile does not match the signed-in seeker");
+    }
+    const refreshed = await api("/auth/refresh", {
+      method: "POST",
+      body: { refreshToken: seekerTokens.refreshToken },
+    });
+    const refreshedTokens = refreshed.tokens ?? refreshed;
+    if (!refreshedTokens.accessToken || !refreshedTokens.refreshToken) {
+      throw new Error("Refresh did not return a complete token pair");
+    }
+    const refreshedProfile = await api("/auth/profile", { token: refreshedTokens.accessToken });
+    if (refreshedProfile.id !== consumerId) {
+      throw new Error("Refreshed access token does not restore the same seeker");
+    }
+    ok("Restore saved session", "profile + refresh token");
+  } catch (e) {
+    fail("Restore saved session", e);
+    process.exit(1);
+  }
+
+  // 3) Pick a service
+
   let service;
   try {
     const services = await api("/services");
@@ -157,7 +183,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 3) Book
+  // 4) Book
   let booking;
   try {
     const start = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
@@ -183,7 +209,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 4) Pay (mock path marks paid; live Stripe without Connect is soft-skipped)
+  // 5) Pay (mock path marks paid; live Stripe without Connect is soft-skipped)
   try {
     const paid = await api(`/payments/checkout/${booking.id}`, {
       method: "POST",
@@ -214,7 +240,7 @@ async function main() {
     }
   }
 
-  // 5) Service review (denormalized rating path)
+  // 6) Service review (denormalized rating path)
   try {
     await api("/quality/reviews", {
       method: "PUT",
@@ -231,7 +257,7 @@ async function main() {
     fail("Submit service review", e);
   }
 
-  // 6) Report abuse / feedback
+  // 7) Report abuse / feedback
   let reportId;
   try {
     const report = await api("/quality/feedback", {
@@ -253,7 +279,7 @@ async function main() {
     fail("Submit report", e);
   }
 
-  // 7) Admin resolve
+  // 8) Admin resolve
   let adminToken;
   try {
     const reg = await api("/auth/register", {

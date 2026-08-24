@@ -233,12 +233,18 @@ interface RequestOptions {
   _retried?: boolean;
 }
 
-let refreshInFlight: Promise<boolean> | null = null;
+type RefreshOutcome = "refreshed" | "rejected" | "unavailable";
 
-/** Attempt a single shared token refresh. Returns true when a new access token is stored. */
-async function tryRefreshAccessToken(): Promise<boolean> {
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+
+/**
+ * Attempt a single shared token refresh. A temporary network/API problem is
+ * deliberately distinct from a rejected refresh credential so callers do not
+ * convert an outage into a forced sign-out.
+ */
+async function tryRefreshAccessToken(): Promise<RefreshOutcome> {
   const refresh = tokenStore.refresh;
-  if (!refresh) return false;
+  if (!refresh) return "rejected";
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
@@ -248,10 +254,15 @@ async function tryRefreshAccessToken(): Promise<boolean> {
           _retried: true,
         });
         tokenStore.set(tokens);
-        return true;
-      } catch {
-        tokenStore.clear();
-        return false;
+        return "refreshed";
+      } catch (error) {
+        // A server/network issue must not erase a still-valid local session.
+        // Clear credentials only when the refresh credential itself was rejected.
+        if (error instanceof ApiError && [400, 401, 403].includes(error.status)) {
+          tokenStore.clear();
+          return "rejected";
+        }
+        return "unavailable";
       } finally {
         refreshInFlight = null;
       }
@@ -286,9 +297,16 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   // Transparent access-token refresh for authenticated calls.
   if (res.status === 401 && auth && !_retried) {
-    const ok = await tryRefreshAccessToken();
-    if (ok) {
+    const refreshOutcome = await tryRefreshAccessToken();
+    if (refreshOutcome === "refreshed") {
       return request<T>(path, { ...options, _retried: true });
+    }
+    if (refreshOutcome === "unavailable") {
+      throw new ApiError(
+        "Unable to restore your saved session right now. Please check your connection and try again.",
+        0,
+        "SESSION_RESTORE_UNAVAILABLE",
+      );
     }
   }
 

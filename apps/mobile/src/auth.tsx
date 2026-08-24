@@ -1,11 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api, tokenStore } from "./api";
+import { Alert } from "react-native";
+import { api, ApiError, tokenStore } from "./api";
 import type { RegisterPayload, UserProfile } from "./types";
-import { Alert } from "react-native"; // Added for showing verification alerts
+
+type SessionState = "loading" | "authenticated" | "unauthenticated" | "unavailable";
 
 interface AuthContextValue {
   user: UserProfile | null;
   loading: boolean;
+  sessionState: SessionState;
   login: (email: string, password: string) => Promise<UserProfile>;
   loginWithSocial: (
     provider: "google" | "apple",
@@ -14,128 +17,132 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  retrySession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [sessionState, setSessionState] = useState<SessionState>("loading");
+  const loading = sessionState === "loading";
 
-  const loadProfile = useCallback(async (): Promise<UserProfile | null> => {
-    if (!tokenStore.access) return null;
+  const restoreSession = useCallback(async () => {
+    setSessionState("loading");
+    await tokenStore.load();
+
+    if (!tokenStore.access) {
+      setUser(null);
+      setSessionState("unauthenticated");
+      return;
+    }
+
     try {
-      return await api.profile();
-    } catch {
-      const refresh = tokenStore.refresh;
-      if (!refresh) return null;
-      try {
-        await tokenStore.set(await api.refresh(refresh));
-        return await api.profile();
-      } catch {
+      const profile = await api.profile();
+      setUser(profile);
+      setSessionState("authenticated");
+    } catch (error) {
+      if (error instanceof ApiError && error.isUnauthorized) {
         await tokenStore.clear();
-        return null;
+        setUser(null);
+        setSessionState("unauthenticated");
+        return;
       }
+
+      // Do not discard a valid persisted session because the device is offline
+      // or the API is temporarily unavailable.
+      setSessionState("unavailable");
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await tokenStore.load();
-      const profile = await loadProfile();
-      if (!cancelled) {
-        setUser(profile);
-        setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [loadProfile]);
+    void restoreSession();
+  }, [restoreSession]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login(email, password);
-    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-    const tokens = res.tokens || {
-      accessToken: rawRes.accessToken || "",
-      refreshToken: rawRes.refreshToken || "",
+  const establishSession = useCallback(async (result: {
+    tokens?: { accessToken?: string; refreshToken?: string };
+    accessToken?: string;
+    refreshToken?: string;
+  }) => {
+    const tokens = result.tokens || {
+      accessToken: result.accessToken || "",
+      refreshToken: result.refreshToken || "",
     };
-    if (tokens.accessToken && tokens.refreshToken) {
-      await tokenStore.set(tokens);
+    if (!tokens.accessToken || !tokens.refreshToken) {
+      throw new Error("The server did not return a complete session. Please try signing in again.");
     }
+
+    await tokenStore.set({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     const profile = await api.profile();
     setUser(profile);
-    
-    // Check if email verification is needed
-    if (res.needsEmailVerification) {
-      Alert.alert(
-        "Email Verification Needed",
-        "Please verify your email address before continuing. Check your inbox for a verification link.",
-        [{ text: "OK" }]
-      );
-    }
-    
+    setSessionState("authenticated");
     return profile;
   }, []);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await api.login(email, password);
+      const profile = await establishSession(result);
+      if (result.needsEmailVerification) {
+        Alert.alert(
+          "Email verification needed",
+          "Please verify your email address before continuing. Check your inbox for a verification link."
+        );
+      }
+      return profile;
+    },
+    [establishSession]
+  );
 
   const loginWithSocial = useCallback(
     async (
       provider: "google" | "apple",
       payload: { email: string; name?: string; idToken?: string }
     ) => {
-      const res = await api.socialAuth(provider, payload);
-      const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-      const tokens = res.tokens || {
-        accessToken: rawRes.accessToken || "",
-        refreshToken: rawRes.refreshToken || "",
-      };
-      if (tokens.accessToken && tokens.refreshToken) {
-        await tokenStore.set(tokens);
-      }
-      const profile = await api.profile();
-      setUser(profile);
-      return profile;
+      const result = await api.socialAuth(provider, payload);
+      return establishSession(result);
     },
-    []
+    [establishSession]
   );
 
-  const register = useCallback(async (payload: RegisterPayload) => {
-    const res = await api.register(payload);
-    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-    const tokens = res.tokens || {
-      accessToken: rawRes.accessToken || "",
-      refreshToken: rawRes.refreshToken || "",
-    };
-    if (tokens.accessToken && tokens.refreshToken) {
-      await tokenStore.set(tokens);
-    }
-    const profile = await api.profile();
-    setUser(profile);
-    
-    if (res.needsEmailVerification) {
-      Alert.alert(
-        "Email Verification Needed",
-        "Please verify your email address before continuing. Check your inbox for a verification link.",
-        [{ text: "OK" }]
-      );
-    }
-    
-    return profile;
-  }, []);
+  const register = useCallback(
+    async (payload: RegisterPayload) => {
+      const result = await api.register(payload);
+      const profile = await establishSession(result);
+      if (result.needsEmailVerification) {
+        Alert.alert(
+          "Email verification needed",
+          "Please verify your email address before continuing. Check your inbox for a verification link."
+        );
+      }
+      return profile;
+    },
+    [establishSession]
+  );
 
   const logout = useCallback(async () => {
     await tokenStore.clear();
     setUser(null);
+    setSessionState("unauthenticated");
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    setUser(await loadProfile());
-  }, [loadProfile]);
+    await restoreSession();
+  }, [restoreSession]);
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, loginWithSocial, register, logout, refreshProfile }}
+      value={{
+        user,
+        loading,
+        sessionState,
+        login,
+        loginWithSocial,
+        register,
+        logout,
+        refreshProfile,
+        retrySession: restoreSession,
+      }}
     >
       {children}
     </AuthContext.Provider>
