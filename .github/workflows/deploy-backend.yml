@@ -151,12 +151,45 @@ jobs:
             echo "No stopped ECS tasks were returned for this service."
           fi
 
-          echo "=== Current task definition images ==="
-          aws ecs describe-task-definition \
+          echo "=== Container logs for stopped tasks ==="
+          task_definition_json="$(aws ecs describe-task-definition \
             --task-definition "${{ steps.task-definition.outputs.task_definition }}" \
             --region "$AWS_REGION" \
-            --query 'taskDefinition.containerDefinitions[].{name:name,image:image}' \
-            --output json || true
+            --query 'taskDefinition' \
+            --output json || true)"
+          log_group="$(echo "$task_definition_json" | jq -r --arg container "${{ steps.task-definition.outputs.container_name }}" '
+            .containerDefinitions[]
+            | select(.name == $container)
+            | .logConfiguration.options["awslogs-group"] // empty
+          ' | head -n1)"
+          log_prefix="$(echo "$task_definition_json" | jq -r --arg container "${{ steps.task-definition.outputs.container_name }}" '
+            .containerDefinitions[]
+            | select(.name == $container)
+            | .logConfiguration.options["awslogs-stream-prefix"] // empty
+          ' | head -n1)"
+          if [ -z "$log_group" ] || [ -z "$log_prefix" ]; then
+            echo "The API container does not expose an awslogs group and stream prefix."
+          elif [ -z "$stopped_tasks" ]; then
+            echo "No stopped tasks were available to map to CloudWatch streams."
+          else
+            for task_arn in $stopped_tasks; do
+              task_id="${task_arn##*/}"
+              log_stream="$log_prefix/${{ steps.task-definition.outputs.container_name }}/$task_id"
+              echo "--- CloudWatch tail: $log_group / $log_stream ---"
+              aws logs get-log-events \
+                --log-group-name "$log_group" \
+                --log-stream-name "$log_stream" \
+                --region "$AWS_REGION" \
+                --limit 100 \
+                --start-from-head \
+                --query 'events[].message' \
+                --output text \
+                || echo "Unable to read this CloudWatch stream. Ensure the deployment IAM principal has logs:GetLogEvents."
+            done
+          fi
+
+          echo "=== Current task definition images ==="
+          echo "$task_definition_json" | jq '[.containerDefinitions[] | {name, image}]' || true
 
       - name: Verify database-aware API readiness
         env:
