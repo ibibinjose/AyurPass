@@ -18,6 +18,13 @@ if [ "${1:-}" = "communications:dispatch" ]; then
   exec node dist/src/modules/communications/dispatch.js
 fi
 
+# A separately launched, confirmation-guarded ECS task uses these commands to
+# prepare an empty launch database. It never starts the API or runs migrations.
+if [ "${1:-}" = "data:reset:dry-run" ] || [ "${1:-}" = "data:reset:execute" ]; then
+  echo "=== Running AyurPass fresh-launch data reset command ==="
+  exec node scripts/reset-launch-data.mjs "$@"
+fi
+
 echo "Running database migrations..."
 npx prisma migrate deploy
 
