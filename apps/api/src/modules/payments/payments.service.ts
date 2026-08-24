@@ -9,6 +9,7 @@ import { PaymentSettlementService } from './payment-settlement.service';
 import { StripeConnectService } from './stripe-connect.service';
 import type { PaymentIntentPayload, RedemptionInput, Settlement } from './payment.types';
 import { AmplitudeService } from '../../amplitude/amplitude.service';
+import { CommunicationsService } from '../communications/communications.service';
 
 export type { RedemptionInput, PaymentIntentPayload } from './payment.types';
 
@@ -21,6 +22,7 @@ export class PaymentsService {
     private settlement: PaymentSettlementService,
     private connect: StripeConnectService,
     private amplitude: AmplitudeService,
+    private communications: CommunicationsService,
   ) {}
 
   get mockMode(): boolean {
@@ -480,6 +482,7 @@ export class PaymentsService {
           where: { id: record.id },
           data: { paymentStatus: 'refunded' },
         });
+        await this.communications.queueBookingRefundReceipt(record.id);
         return { handled: true, type: event.type, bookingId: record.id };
       }
       if (record?.kind === 'order' && record.paymentStatus !== 'refunded') {

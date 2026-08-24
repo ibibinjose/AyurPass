@@ -11,6 +11,13 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
+# A scheduled ECS task invokes this command to process due outbox records.
+# Migrations belong to the controlled API deployment, not every short-lived worker.
+if [ "${1:-}" = "communications:dispatch" ]; then
+  echo "=== Dispatching AyurPass transactional communications ==="
+  exec node dist/src/modules/communications/dispatch.js
+fi
+
 echo "Running database migrations..."
 npx prisma migrate deploy
 

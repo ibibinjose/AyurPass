@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AmplitudeModule } from './amplitude/amplitude.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 import { accessSecret } from './common/env';
@@ -42,6 +43,7 @@ import { EventsModule } from './modules/events/events.module';
 import { WellnessPassModule } from './modules/wellness-pass/wellness-pass.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { AiModule } from './modules/ai/ai.module';
+import { CommunicationsModule } from './modules/communications/communications.module';
 
 @Module({
   imports: [
@@ -49,6 +51,8 @@ import { AiModule } from './modules/ai/ai.module';
     CacheModule,
     MailModule,
     NotificationsModule,
+    CommunicationsModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

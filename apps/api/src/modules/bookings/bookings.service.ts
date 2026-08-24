@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
 import { calculateTaxForCountry } from '../payments/tax.utility';
 import { AmplitudeService } from '../../amplitude/amplitude.service';
+import { CommunicationsService } from '../communications/communications.service';
 
 /** Marketplace commission on bookings (see docs/01-BUSINESS-STRATEGY.md: 15–22%). */
 const PLATFORM_COMMISSION_RATE = 0.18;
@@ -39,6 +40,7 @@ export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private amplitude: AmplitudeService,
+    private communications: CommunicationsService,
   ) {}
 
   /**
@@ -199,6 +201,7 @@ export class BookingsService {
     });
 
     await this.grantBookingHealthConsents(booking);
+    await this.communications.queueBookingCreated(booking.id);
 
     this.amplitude.track(booking.consumerId, 'Booking Created', {
       booking_id: booking.id,

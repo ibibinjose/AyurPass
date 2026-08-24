@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEnquiryDto, UpdateEnquiryDto } from '../../dtos/enquiry.dto';
+import { CommunicationsService } from '../communications/communications.service';
 
 @Injectable()
 export class EnquiriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private communications: CommunicationsService,
+  ) {}
 
   /** Public: a visitor leaves a lead on a provider's listing page or partner form. */
   async create(dto: CreateEnquiryDto) {
@@ -30,7 +34,7 @@ export class EnquiriesService {
       throw new NotFoundException('No active provider target found');
     }
 
-    return this.prisma.enquiry.create({
+    const enquiry = await this.prisma.enquiry.create({
       data: {
         providerId: targetProviderId,
         retreatId: dto.retreatId || null,
@@ -40,6 +44,8 @@ export class EnquiriesService {
         message: dto.message.trim(),
       },
     });
+    await this.communications.queueProviderEnquiry(enquiry.id);
+    return enquiry;
   }
 
   /**
