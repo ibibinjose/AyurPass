@@ -7,9 +7,10 @@ import { StripeConnectService } from './stripe-connect.service';
 import { LoyaltyModule } from '../loyalty/loyalty.module';
 import { GiftCardsModule } from '../gift-cards/gift-cards.module';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { CommunicationsModule } from '../communications/communications.module';
 
 @Module({
-  imports: [LoyaltyModule, GiftCardsModule, PrismaModule],
+  imports: [LoyaltyModule, GiftCardsModule, PrismaModule, CommunicationsModule],
   controllers: [PaymentsController],
   providers: [
     PaymentsService,

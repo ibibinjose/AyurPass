@@ -1049,3 +1049,92 @@ model PassScanLog {
   @@index([wellnessPassId, createdAt])
   @@index([providerId, createdAt])
 }
+
+
+/**
+ * Durable transactional outbox. Events are created idempotently at business
+ * transitions, then claimed by a background dispatcher. This keeps email
+ * delivery independent from request retries and Stripe webhook redelivery.
+ */
+enum CommunicationKind {
+  BOOKING_CONFIRMATION
+  PROVIDER_NEW_BOOKING
+  BOOKING_REMINDER_24H
+  BOOKING_REMINDER_2H
+  PAYMENT_RECEIPT
+  PROVIDER_PAYMENT_RECEIVED
+  PAYMENT_REFUND
+  PROVIDER_NEW_ENQUIRY
+}
+
+enum CommunicationChannel {
+  EMAIL
+}
+
+enum CommunicationStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model CommunicationDelivery {
+  id             String               @id @default(uuid())
+  idempotencyKey String               @unique
+  kind           CommunicationKind
+  channel        CommunicationChannel @default(EMAIL)
+  status         CommunicationStatus  @default(PENDING)
+  recipientEmail String
+  recipientName  String?
+  providerId     String?
+  bookingId      String?
+  orderId        String?
+  receiptId      String?
+  subject        String
+  payload        Json
+  scheduledFor   DateTime             @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  attemptCount   Int                  @default(0)
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([bookingId, kind])
+  @@index([providerId, createdAt])
+  @@index([recipientEmail, createdAt])
+}
+
+enum ReceiptType {
+  PAYMENT
+  REFUND
+}
+
+/** Immutable tax receipt snapshots, retained independently from mail delivery. */
+model Receipt {
+  id              String      @id @default(uuid())
+  number          String      @unique
+  type            ReceiptType
+  bookingId       String?
+  orderId         String?
+  providerId      String
+  recipientEmail  String
+  recipientName   String?
+  currency        String      @default("AUD")
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  taxAmount       Decimal?    @db.Decimal(10, 2)
+  taxRate         Decimal?    @db.Decimal(5, 4)
+  taxName         String?
+  paymentIntentId String?
+  issuedAt        DateTime    @default(now())
+  snapshot        Json
+  createdAt       DateTime    @default(now())
+
+  @@unique([bookingId, type])
+  @@unique([orderId, type])
+  @@index([providerId, issuedAt])
+  @@index([recipientEmail, issuedAt])
+}

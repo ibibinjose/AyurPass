@@ -6,6 +6,7 @@ import { LoyaltyService } from '../loyalty/loyalty.service';
 import { GiftCardsService } from '../gift-cards/gift-cards.service';
 import { StripeService } from './stripe.service';
 import { isStrictEnv } from '../../common/env';
+import { CommunicationsService } from '../communications/communications.service';
 import type { PaymentIntentPayload, RedemptionInput, Settlement } from './payment.types';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class PaymentSettlementService {
     private loyalty: LoyaltyService,
     private giftCards: GiftCardsService,
     private stripe: StripeService,
+    private communications: CommunicationsService,
   ) {}
 
   get mockMode(): boolean {
@@ -71,7 +73,7 @@ export class PaymentSettlementService {
     paymentMethod?: PaymentMethod,
     posTransactionId?: string,
   ) {
-    return this.prisma.booking.update({
+    const booking = await this.prisma.booking.update({
       where: { id: bookingId },
       data: {
         paymentIntentId,
@@ -84,6 +86,8 @@ export class PaymentSettlementService {
       },
       include: { service: true, room: true },
     });
+    await this.communications.queueBookingPaymentReceipt(bookingId);
+    return booking;
   }
 
   async markOrderPaid(

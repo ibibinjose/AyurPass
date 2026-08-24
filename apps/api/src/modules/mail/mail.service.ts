@@ -29,6 +29,34 @@ export class MailService {
     }
   }
 
+  get isConfigured(): boolean {
+    return this.transporter !== null;
+  }
+
+  /**
+   * Production transactional delivery used by the durable communications outbox.
+   * Unlike legacy flows, an absent SMTP/SES configuration is a real failure so
+   * the dispatcher can retry and surface the operational issue.
+   */
+  async sendTransactionalEmail(input: {
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+  }): Promise<void> {
+    if (!this.transporter) {
+      throw new Error('Transactional email delivery is not configured. Set SMTP/SES credentials.');
+    }
+    const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
+    await this.transporter.sendMail({
+      from,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+    });
+  }
+
   async sendPasswordResetEmail(email: string, fullName: string, resetLink: string): Promise<boolean> {
     const from = process.env.SMTP_FROM || '"AyurPass" <noreply@ayurpass.com>';
     const subject = 'Reset Your AyurPass Password';
