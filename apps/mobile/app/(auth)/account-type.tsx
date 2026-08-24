@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -87,12 +87,16 @@ const ACCOUNT_OPTIONS: AccountOption[] = [
 
 export default function AccountType() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string }>();
+  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next;
   const [selected, setSelected] = useState<Role>("CONSUMER");
 
   const selectedOption = ACCOUNT_OPTIONS.find((o) => o.role === selected)!;
 
   function handleContinue() {
-    router.push(`/(auth)/register?role=${selected}` as Href);
+    const query = new URLSearchParams({ role: selected });
+    if (rawNext) query.set("next", rawNext);
+    router.push(`/(auth)/register?${query.toString()}` as Href);
   }
 
   return (

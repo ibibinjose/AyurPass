@@ -125,12 +125,17 @@ function isValidRole(r: unknown): r is Role {
 export default function Register() {
   const { register } = useAuth();
   const router = useRouter();
-  const params = useLocalSearchParams<{ role?: string }>();
+  const params = useLocalSearchParams<{ role?: string; next?: string }>();
 
   // Resolve role from URL param (default → CONSUMER)
   const rawRole = params.role;
   const roleKey = isValidRole(rawRole) ? rawRole : "CONSUMER";
   const config = ROLE_CONFIGS[roleKey];
+  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next;
+  const postRegistrationHref =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? (rawNext as Href)
+      : (config.postRegisterPath as Href);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -209,7 +214,7 @@ export default function Register() {
       if (!profile.emailVerifiedAt) {
         router.replace("/(auth)/verify-email-prompt" as Href);
       } else {
-        router.replace(config.postRegisterPath as "/");
+        router.replace(postRegistrationHref);
       }
     } catch (err) {
       setError(
@@ -590,7 +595,7 @@ export default function Register() {
                 <Text style={{ fontSize: 14, color: colors.inkSecondary, fontFamily: fonts.body }}>
                   Already have an account?
                 </Text>
-                <Pressable onPress={() => router.replace("/(auth)/login")} hitSlop={8}>
+                <Pressable onPress={() => router.replace({ pathname: "/(auth)/login", params: rawNext ? { next: rawNext } : {} })} hitSlop={8}>
                   <Text style={{ fontSize: 14, color: colors.forest, fontFamily: fonts.bodySemi, textDecorationLine: "underline" }}>
                     Sign in
                   </Text>

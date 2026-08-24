@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   Image,
   Pressable,
@@ -26,6 +26,8 @@ const PILLARS: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
  */
 export default function Welcome() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string }>();
+  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next;
   return (
     <View style={styles.root}>
       <LinearGradient
@@ -71,7 +73,7 @@ export default function Welcome() {
         <View style={styles.actions}>
           {/* Primary: goes to account-type picker */}
           <Pressable
-            onPress={() => router.push("/(auth)/account-type" as Href)}
+            onPress={() => router.push({ pathname: "/(auth)/account-type", params: rawNext ? { next: rawNext } : {} })}
             style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
             accessibilityRole="button"
           >
@@ -83,7 +85,7 @@ export default function Welcome() {
 
           {/* Secondary: Sign in */}
           <Pressable
-            onPress={() => router.push("/(auth)/login")}
+            onPress={() => router.push({ pathname: "/(auth)/login", params: rawNext ? { next: rawNext } : {} })}
             style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
             accessibilityRole="button"
           >

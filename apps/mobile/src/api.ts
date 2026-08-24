@@ -138,16 +138,54 @@ export class ApiError extends Error {
     super(message);
     this.status = status;
   }
+
+  get isUnauthorized(): boolean {
+    return this.status === 401;
+  }
 }
 
 interface RequestOptions {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  /** Internal: skip the one automatic access-token refresh retry. */
+  _retried?: boolean;
+}
+
+type RefreshOutcome = "refreshed" | "rejected" | "unavailable";
+
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+
+async function tryRefreshAccessToken(): Promise<RefreshOutcome> {
+  const refresh = tokenStore.refresh;
+  if (!refresh) return "rejected";
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const tokens = await request<AuthTokens>("/auth/refresh", {
+          method: "POST",
+          body: { refreshToken: refresh },
+          _retried: true,
+        });
+        await tokenStore.set(tokens);
+        return "refreshed";
+      } catch (error) {
+        // Do not sign the user out for a temporary offline/server error.
+        if (error instanceof ApiError && [400, 401, 403].includes(error.status)) {
+          await tokenStore.clear();
+          return "rejected";
+        }
+        return "unavailable";
+      } finally {
+        refreshInFlight = null;
+      }
+    })();
+  }
+  return refreshInFlight;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, auth = false } = options;
+  const { method = "GET", body, auth = false, _retried = false } = options;
 
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -165,6 +203,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       `Can't reach the server at ${API_URL}. Make sure the backend is running and reachable from this device.`,
       0,
     );
+  }
+
+  if (res.status === 401 && auth && !_retried) {
+    const refreshOutcome = await tryRefreshAccessToken();
+    if (refreshOutcome === "refreshed") {
+      return request<T>(path, { ...options, _retried: true });
+    }
+    if (refreshOutcome === "unavailable") {
+      throw new ApiError(
+        "Unable to restore your saved session right now. Please check your connection and try again.",
+        0,
+      );
+    }
   }
 
   if (!res.ok) {

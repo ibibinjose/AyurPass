@@ -1,13 +1,17 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api, tokenStore } from "@/lib/api";
+import { api, ApiError, tokenStore } from "@/lib/api";
 import { clearFollows } from "@/lib/engagement";
 import type { RegisterPayload, UserProfile } from "@/lib/types";
+
+type SessionState = "loading" | "authenticated" | "unauthenticated" | "unavailable";
 
 interface AuthContextValue {
   user: UserProfile | null;
   loading: boolean;
+  /** Distinguishes a real sign-out from a recoverable API/network outage. */
+  sessionState: SessionState;
   login: (email: string, password: string) => Promise<UserProfile>;
   loginWithSocial: (
     provider: "google" | "apple",
@@ -16,127 +20,142 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<UserProfile>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
+  retrySession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [sessionState, setSessionState] = useState<SessionState>("loading");
+  const loading = sessionState === "loading";
 
-  const loadProfile = useCallback(async (): Promise<UserProfile | null> => {
-    if (!tokenStore.access) return null;
+  /**
+   * Restore once at application startup. The API client refreshes an expired
+   * access token automatically. We only clear storage after a definite token
+   * rejection—not during a temporary server, CORS, or offline failure.
+   */
+  const restoreSession = useCallback(async () => {
+    if (!tokenStore.access) {
+      setUser(null);
+      setSessionState("unauthenticated");
+      return;
+    }
+
+    setSessionState("loading");
     try {
-      return await api.profile();
-    } catch {
-      // Access token may have expired — try one refresh, then give up.
-      const refresh = tokenStore.refresh;
-      if (!refresh) return null;
-      try {
-        tokenStore.set(await api.refresh(refresh));
-        return await api.profile();
-      } catch {
+      const profile = await api.profile();
+      setUser(profile);
+      setSessionState("authenticated");
+    } catch (error) {
+      if (error instanceof ApiError && error.isUnauthorized) {
         tokenStore.clear();
-        return null;
+        setUser(null);
+        setSessionState("unauthenticated");
+        return;
       }
+
+      // Preserve local credentials and let the user retry. A 5xx/offline
+      // response is not evidence that the session has expired.
+      setSessionState("unavailable");
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    loadProfile().then((profile) => {
-      if (!cancelled) {
-        setUser(profile);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [loadProfile]);
+    void restoreSession();
+  }, [restoreSession]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login(email, password);
-    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-    const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
-    if (tokens.accessToken && tokens.refreshToken) {
-      tokenStore.set(tokens);
+  const establishSession = useCallback(async (result: {
+    tokens?: { accessToken?: string; refreshToken?: string };
+    accessToken?: string;
+    refreshToken?: string;
+    needsEmailVerification?: boolean;
+  }) => {
+    const tokens = result.tokens || {
+      accessToken: result.accessToken || "",
+      refreshToken: result.refreshToken || "",
+    };
+    if (!tokens.accessToken || !tokens.refreshToken) {
+      throw new Error("The server did not return a complete session. Please try signing in again.");
     }
+
+    tokenStore.set({ accessToken: tokens.accessToken, refreshToken: tokens.refreshToken });
     const profile = await api.profile();
     setUser(profile);
-    
-    // Check if email verification is needed and redirect if necessary
-    if (res.needsEmailVerification && typeof window !== 'undefined') {
-      // Redirect to verify-email page after a short delay to allow state update
-      setTimeout(() => {
-        window.location.href = '/verify-email';
-      }, 500);
-    }
-    
+    setSessionState("authenticated");
     return profile;
   }, []);
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const result = await api.login(email, password);
+      const profile = await establishSession(result);
+      if (result.needsEmailVerification && typeof window !== "undefined") {
+        window.setTimeout(() => {
+          window.location.assign("/verify-email");
+        }, 0);
+      }
+      return profile;
+    },
+    [establishSession]
+  );
 
   const loginWithSocial = useCallback(
     async (
       provider: "google" | "apple",
       payload: { email: string; name?: string; idToken?: string }
     ) => {
-      const res = await api.socialAuth(provider, payload);
-      const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-      const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
-      if (tokens.accessToken && tokens.refreshToken) {
-        tokenStore.set(tokens);
+      const result = await api.socialAuth(provider, payload);
+      const profile = await establishSession(result);
+      if (result.needsEmailVerification && typeof window !== "undefined") {
+        window.setTimeout(() => {
+          window.location.assign("/verify-email");
+        }, 0);
       }
-      const profile = await api.profile();
-      setUser(profile);
-      
-      // Check if email verification is needed and redirect if necessary
-      if (res.needsEmailVerification && typeof window !== 'undefined') {
-        // Redirect to verify-email page after a short delay to allow state update
-        setTimeout(() => {
-          window.location.href = '/verify-email';
-        }, 500);
-      }
-      
       return profile;
     },
-    []
+    [establishSession]
   );
 
-  const register = useCallback(async (payload: RegisterPayload) => {
-    const res = await api.register(payload);
-    const rawRes = res as unknown as { accessToken?: string; refreshToken?: string };
-    const tokens = res.tokens || { accessToken: rawRes.accessToken || "", refreshToken: rawRes.refreshToken || "" };
-    if (tokens.accessToken && tokens.refreshToken) {
-      tokenStore.set(tokens);
-    }
-    const profile = await api.profile();
-    setUser(profile);
-    
-    // Check if email verification is needed and redirect if necessary
-    if (res.needsEmailVerification && typeof window !== 'undefined') {
-      // Redirect to verify-email page after a short delay to allow state update
-      setTimeout(() => {
-        window.location.href = '/verify-email';
-      }, 500);
-    }
-    
-    return profile;
-  }, []);
+  const register = useCallback(
+    async (payload: RegisterPayload) => {
+      const result = await api.register(payload);
+      const profile = await establishSession(result);
+      if (result.needsEmailVerification && typeof window !== "undefined") {
+        window.setTimeout(() => {
+          window.location.assign("/verify-email");
+        }, 0);
+      }
+      return profile;
+    },
+    [establishSession]
+  );
 
   const logout = useCallback(() => {
     tokenStore.clear();
     clearFollows();
     setUser(null);
+    setSessionState("unauthenticated");
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    const profile = await loadProfile();
-    setUser(profile);
-  }, [loadProfile]);
+    await restoreSession();
+  }, [restoreSession]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithSocial, register, logout, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        sessionState,
+        login,
+        loginWithSocial,
+        register,
+        logout,
+        refreshProfile,
+        retrySession: restoreSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

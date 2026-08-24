@@ -12,7 +12,8 @@ export default function Index() {
       </View>
     );
   }
-  return <Redirect href={user ? "/(tabs)" : "/(auth)/welcome"} />;
+  // Let guests explore first; booking and account-bound actions ask for sign-in only when needed.
+  return <Redirect href={user ? "/(tabs)" : "/(tabs)/explore"} />;
 }
 
 const styles = StyleSheet.create({

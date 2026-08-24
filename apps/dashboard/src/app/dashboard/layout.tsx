@@ -892,7 +892,7 @@ function UserFooter({
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, sessionState, retrySession } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -900,8 +900,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mode, setMode] = useState<WorkspaceMode>("seeker");
 
   useEffect(() => {
-    if (!loading && !user) router.replace(loginUrl(pathname));
-  }, [loading, user, router, pathname]);
+    // Redirect only after the session is definitively invalid. A temporary API
+    // outage must not strand an already signed-in user in a login loop.
+    if (!loading && sessionState === "unauthenticated") {
+      router.replace(loginUrl(pathname));
+    }
+  }, [loading, sessionState, router, pathname]);
 
   useEffect(() => {
     let active = true;
@@ -1007,6 +1011,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .toUpperCase() ||
     user?.email?.slice(0, 2).toUpperCase() ||
     "AP";
+
+  if (sessionState === "unavailable") {
+    return (
+      <main className="dash-shell flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-5 text-center">
+        <div className="max-w-md rounded-2xl border border-hairline bg-surface p-6 shadow-sm">
+          <p className="text-lg font-bold text-foreground">Your session is still saved</p>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
+            We could not reach AyurPass to restore it. Check your connection and try again; you do not need to sign in again.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => void retrySession()}
+              className="rounded-xl bg-forest px-4 py-2.5 text-sm font-bold text-white transition hover:bg-forest-deep"
+            >
+              Retry connection
+            </button>
+            <Link href="/discover" className="rounded-xl border border-hairline px-4 py-2.5 text-sm font-bold text-forest">
+              Browse public listings
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (loading || !user) {
     return (
