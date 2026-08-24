@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "./Logo";
 import {
@@ -63,16 +63,19 @@ const linkClass = (active: boolean) =>
 export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLFormElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -144,6 +147,25 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchFocused(true);
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    setSearchFocused(false);
+    router.push(query ? `/discover?q=${encodeURIComponent(query)}` : "/discover");
+  };
+
   const moreActive = MORE_LINKS.some((l) => navActive(pathname, l.href));
 
   const initials =
@@ -171,15 +193,24 @@ export function Navbar() {
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
 
-        {/* Live Search Quick Input */}
-        <div className="relative hidden md:block flex-1 max-w-md" ref={searchRef}>
+        {/* Global discovery search */}
+        <form
+          className="relative hidden md:block flex-1 max-w-md"
+          ref={searchRef}
+          onSubmit={submitSearch}
+          role="search"
+        >
           <div className="relative">
             <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-forest" />
             <input
-              type="text"
+              ref={searchInputRef}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search practices, sessions, retreats…"
               onFocus={() => setSearchFocused(true)}
-              className="w-full rounded-full border border-hairline/80 bg-surface/90 pl-10 pr-9 py-2 text-xs font-medium placeholder:text-ink-muted shadow-2xs focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
+              aria-label="Search practices, sessions, and retreats"
+              className="w-full rounded-full border border-hairline/80 bg-surface/90 pl-10 pr-14 py-2 text-xs font-medium placeholder:text-ink-muted shadow-2xs focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded bg-clay/60 px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
               ⌘K
@@ -206,10 +237,10 @@ export function Navbar() {
               </div>
             </div>
           )}
-        </div>
+        </form>
 
         {/* Primary Links */}
-        <nav className="hidden items-center gap-1.5 text-xs lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1.5 text-xs xl:flex" aria-label="Primary">
           {PRIMARY_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className={linkClass(navActive(pathname, l.href))}>
               {l.label}
@@ -262,7 +293,7 @@ export function Navbar() {
         </nav>
 
         {/* Topbar Actions & User Area */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           <LocationSelectorButton />
 
           {/* Notification Center */}
@@ -353,7 +384,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile top controls */}
-        <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <InstallAppButton compact label="Get App" />
           <button
             type="button"
@@ -372,7 +403,7 @@ export function Navbar() {
       {mobileOpen ? (
         <div
           id={menuId}
-          className="border-t border-hairline bg-surface/95 backdrop-blur-2xl lg:hidden shadow-xl"
+          className="border-t border-hairline bg-surface/95 backdrop-blur-2xl xl:hidden shadow-xl"
         >
           <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
             <InstallAppButton
