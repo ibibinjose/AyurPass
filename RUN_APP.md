@@ -69,14 +69,10 @@ Local device: point at your LAN IP API, not production, unless using a dedicated
 **Important:** PostgreSQL must have PostGIS extension installed. Use the PostGIS-enabled Docker image:
 
 ```bash
-docker run --name ayurpass-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=ayurpass_dev \
-  -p 5432:5432 \
-  -v ayurpass-db-data:/var/lib/postgresql/data \
-  -d postgis/postgis:15-3.4
+docker compose up -d db
 ```
+
+This starts PostGIS as `ayurpass-db` on **localhost:5433** (host 5433 maps to container 5432 so it does not clash with a local Homebrew Postgres).
 
 After setting up the database, run:
 ```bash

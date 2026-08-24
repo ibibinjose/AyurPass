@@ -35,11 +35,11 @@ flowchart TB
 
 ```
 AyurPass/
-  backend/    NestJS API + Prisma (PostgreSQL/PostGIS)
-  frontend/   Next.js web app (marketing + consumer + provider dashboard)
-  mobile/     Expo/React Native consumer app (iOS + Android)  — installed standalone
-  shared/     Shared TS types/client (planned)
-  docs/       Product & engineering documentation
+  apps/api         NestJS API + Prisma (PostgreSQL/PostGIS)
+  apps/dashboard   Next.js web app (marketing + consumer + provider dashboard)
+  apps/mobile      Expo/React Native consumer app (iOS + Android)
+  packages/shared  Shared types, tokens, and API contracts
+  docs/            Product & engineering documentation
 ```
 
 ---
@@ -174,10 +174,9 @@ flowchart LR
 
 ## 9. Local development
 
-- Postgres via Docker: container `ayurpass-postgres`, image `postgis/postgis:15-3.4`, port 5432, db `ayurpass_dev`.
-- Backend on **:4000** (`npm run dev:backend`), web on **:3000** (`npm run dev:frontend`); root `npm start` runs both via `concurrently`.
-- Mobile: `cd mobile && npm install && npx expo start` (standalone).
-- No `nest-cli.json` ⇒ `nest start` type-checks and **won't boot on a compile error** — verify a dead `:4000` with `cd backend && npx nest start`.
+- Postgres via Docker Compose: service `db`, image `postgis/postgis:15-3.3-alpine`, host port **5433**, database `ayurpass`.
+- API on **:4000** (`npm run dev:api`), web on **:3000** (`npm run dev:dashboard`); root `npm start` runs both via `concurrently`.
+- Mobile: `npm run dev:mobile` from the monorepo root.
 
 ---
 

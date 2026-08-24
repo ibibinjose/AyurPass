@@ -1,7 +1,7 @@
 # AyurPass — Backend Schema & API Reference
 
 **Status:** Living document · **Last updated:** 2026-07-15
-**Source of truth:** `backend/prisma/schema.prisma` + `backend/src/modules/**`
+**Source of truth:** `apps/api/prisma/schema.prisma` + `apps/api/src/modules/**`
 **Related:** [TRD](./TRD.md) · [App Flows](./APP_FLOW.md)
 
 20 models · 6 enums · PostgreSQL 15 + PostGIS 3.4.

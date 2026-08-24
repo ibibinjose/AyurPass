@@ -31,7 +31,7 @@ The application will be available at the following local URLs.
 |---|---|
 | Web dashboard | http://localhost:3000 |
 | API | http://localhost:4000 |
-| PostGIS database | localhost:5432 |
+| PostGIS database | localhost:5433 |
 
 Use `npm run setup:local -- --skip-seed` if you require an empty migrated database. To rebuild the local database from scratch, run the following commands.
 
@@ -48,12 +48,12 @@ The setup command creates these files only when they are missing.
 |---|---|
 | `apps/api/.env` | API database, CORS, mail, payment, and server-only integration settings |
 | `apps/dashboard/.env.local` | Dashboard API base URL and optional public integration settings |
-| `apps/mobile/.env` | Optional Expo/mobile settings; copy manually when working on mobile |
+| `apps/mobile/.env` | Expo public API and website URLs for local device / simulator builds |
 
 The bundled API environment matches the credentials used by `docker-compose.yml`.
 
 ```dotenv
-DATABASE_URL="postgresql://ayurpass:ayurpass_dev_password@localhost:5432/ayurpass?schema=public"
+DATABASE_URL="postgresql://ayurpass:ayurpass_dev_password@localhost:5433/ayurpass?schema=public"
 CORS_ORIGIN="http://localhost:3000"
 FRONTEND_URL="http://localhost:3000"
 PUBLIC_API_URL="http://localhost:4000"

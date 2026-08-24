@@ -3,7 +3,7 @@
 **Status:** Living document · **Last updated:** 2026-07-15
 **Related:** [PRD](./PRD.md) · [App Flows](./APP_FLOW.md) · [TRD](./TRD.md)
 
-Design tokens are the single source of truth in code: web in `frontend/src/app/globals.css` (Tailwind v4 `@theme`), mobile in `mobile/src/theme.ts`. This document describes the system they encode.
+Design tokens are the single source of truth in code: web in `apps/dashboard/src/app/globals.css` (Tailwind v4 `@theme`), mobile in `apps/mobile/src/theme.ts`. This document describes the system they encode.
 
 ---
 

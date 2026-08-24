@@ -33,6 +33,10 @@ if [[ ! -f "apps/dashboard/.env.local" ]]; then
   cp apps/dashboard/.env.example apps/dashboard/.env.local
   echo "   Created apps/dashboard/.env.local"
 fi
+if [[ ! -f "apps/mobile/.env" ]]; then
+  cp apps/mobile/.env.example apps/mobile/.env
+  echo "   Created apps/mobile/.env"
+fi
 
 printf '%s\n' "3/5 Generating Prisma Client…"
 npm run prisma:generate
