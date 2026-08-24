@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: "standalone",
+  // Local dashboard development and browser tests use both host aliases.
+  allowedDevOrigins: ["localhost", "127.0.0.1"],
   // Workspace package ships TypeScript source — transpile in the Next bundler.
   transpilePackages: ["@ayurpass/shared"],
 

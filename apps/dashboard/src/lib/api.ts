@@ -979,6 +979,18 @@ export const api = {
     targetId: string;
     value: "like" | "dislike" | "none";
   }) => request<QualitySummary>("/quality/reactions", { method: "PUT", body: data, auth: true }),
+  follows: () =>
+    request<{ targetType: "provider" | "professional"; targetId: string; createdAt: string }[]>(
+      "/quality/follows",
+      { auth: true },
+    ),
+  setFollow: (data: { targetType: "provider" | "professional"; targetId: string; value: boolean }) =>
+    request<{
+      following: boolean;
+      targetType: "provider" | "professional";
+      targetId: string;
+      follows: { targetType: "provider" | "professional"; targetId: string; createdAt: string }[];
+    }>("/quality/follows", { method: "PUT", body: data, auth: true }),
 
   /** Report abuse, send a product suggestion, or submit a business claim request. */
   submitFeedback: (data: {

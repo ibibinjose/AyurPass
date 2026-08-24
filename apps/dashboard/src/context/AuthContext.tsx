@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, tokenStore } from "@/lib/api";
+import { clearFollows } from "@/lib/engagement";
 import type { RegisterPayload, UserProfile } from "@/lib/types";
 
 interface AuthContextValue {
@@ -125,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     tokenStore.clear();
+    clearFollows();
     setUser(null);
   }, []);
 

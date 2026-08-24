@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { loginUrl } from "@/lib/auth-redirect";
 import {
   engagementServerSnapshot,
   engagementSnapshot,
+  hydrateFollows,
   isFollowing,
   isLiked,
   subscribeEngagement,
@@ -35,6 +36,13 @@ export function useEngagement(target: EngagementTarget) {
   const following = Boolean(user) && isFollowing(target);
   const liked = Boolean(user) && isLiked(target);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    void hydrateFollows(user.id).catch(() => {
+      // A profile remains usable when a follow sync is temporarily unavailable.
+    });
+  }, [user?.id]);
+
   const requireAuth = useCallback((): boolean => {
     if (loading) return false;
     if (user) return true;
@@ -46,9 +54,13 @@ export function useEngagement(target: EngagementTarget) {
     return false;
   }, [loading, user, router, pathname]);
 
-  const onFollow = useCallback(() => {
+  const onFollow = useCallback(async () => {
     if (!requireAuth()) return false;
-    return toggleFollow(target);
+    try {
+      return await toggleFollow(target);
+    } catch {
+      return isFollowing(target);
+    }
   }, [requireAuth, target]);
 
   const onLike = useCallback(() => {

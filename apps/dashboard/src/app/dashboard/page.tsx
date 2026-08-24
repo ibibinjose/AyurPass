@@ -20,6 +20,7 @@ import type { Dosha } from "@/lib/dosha";
 import { DOSHA_INFO } from "@/lib/dosha";
 import {
   followCount,
+  hydrateFollows,
   listFollows,
   subscribeEngagement,
   type EngagementTarget,
@@ -78,8 +79,13 @@ function ConsumerOverview() {
   useEffect(() => {
     const sync = () => setFollows(listFollows());
     sync();
+    if (user?.id) {
+      void hydrateFollows(user.id).catch(() => {
+        // The wellness dashboard remains available while follow sync retries on a later visit.
+      });
+    }
     return subscribeEngagement(sync);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
