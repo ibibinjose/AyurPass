@@ -45,7 +45,7 @@
     "concurrently": "^10.0.3",
     "enhanced-resolve": "^5.24.3",
     "prisma": "^6.3.0",
-    "turbo": "^2.10.7"
+    "turbo": "^2.10.11"
   },
   "overrides": {
     "react": "19.2.0",
