@@ -44,7 +44,7 @@ EXPOSE 4000
 ENV NODE_ENV=production
 
 # Start application via entrypoint script
-COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
+COPY scripts/entrypoint.sh scripts/reset-launch-data.mjs ./scripts/
 RUN chmod +x ./scripts/entrypoint.sh
 
 # Docker healthcheck — ALB and ECS also run their own, but this catches
