@@ -22,9 +22,10 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copy package config and install production dependencies + prisma CLI for entrypoint migrations
+# Prisma is a production dependency because startup runs controlled migrations.
+# `npm ci` therefore installs the exact lockfile-resolved CLI and engine version.
 COPY package*.json ./
-RUN npm ci --omit=dev && npm install prisma@6.3.0 --no-save
+RUN npm ci --omit=dev
 
 # Copy compiled code and generated Prisma assets from builder
 COPY --from=builder /usr/src/app/dist ./dist
