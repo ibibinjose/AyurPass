@@ -11,6 +11,7 @@ env:
   ECS_CLUSTER: ayurpass
   ECS_SERVICE: ayurpass-api
   TASK_FAMILY: ayurpass-backend
+  RDS_INSTANCE_IDENTIFIER: ayurpass-db
 
 jobs:
   deploy:
@@ -131,6 +132,34 @@ jobs:
             --region "$AWS_REGION" \
             --query 'services[0].{status:status,desired:desiredCount,running:runningCount,pending:pendingCount,taskDefinition:taskDefinition,deployments:deployments[*].{status:status,rolloutState:rolloutState,desired:desiredCount,running:runningCount,pending:pendingCount,failedTasks:failedTasks,taskDefinition:taskDefinition},events:events[0:10].[createdAt,message]}' \
             --output json || true
+
+          echo "=== ECS task network configuration ==="
+          aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --region "$AWS_REGION" \
+            --query 'services[0].networkConfiguration.awsvpcConfiguration.{subnets:subnets,securityGroups:securityGroups,assignPublicIp:assignPublicIp}' \
+            --output json || true
+
+          echo "=== RDS availability and network attachment ==="
+          rds_json="$(aws rds describe-db-instances \
+            --db-instance-identifier "$RDS_INSTANCE_IDENTIFIER" \
+            --region "$AWS_REGION" \
+            --query 'DBInstances[0]' \
+            --output json || true)"
+          echo "$rds_json" | jq '{status:.DBInstanceStatus,endpoint:.Endpoint.Address,port:.Endpoint.Port,publiclyAccessible:.PubliclyAccessible,availabilityZone:.AvailabilityZone,subnetGroup:.DBSubnetGroup.DBSubnetGroupName,securityGroups:[.VpcSecurityGroups[].VpcSecurityGroupId]}' || true
+
+          rds_security_groups="$(echo "$rds_json" | jq -r '.VpcSecurityGroups[]?.VpcSecurityGroupId' | tr '\n' ' ')"
+          if [ -n "$rds_security_groups" ]; then
+            echo "=== RDS PostgreSQL ingress sources ==="
+            aws ec2 describe-security-groups \
+              --group-ids $rds_security_groups \
+              --region "$AWS_REGION" \
+              --query 'SecurityGroups[].{groupId:GroupId,postgresIngress:IpPermissions[?FromPort==`5432` && ToPort==`5432`].{protocol:IpProtocol,sourceSecurityGroups:UserIdGroupPairs[].GroupId,sourceCidrs:IpRanges[].CidrIp}}' \
+              --output json || true
+          else
+            echo "No RDS security groups were returned; check rds:DescribeDBInstances permission and instance identifier."
+          fi
 
           echo "=== Recently stopped tasks ==="
           stopped_tasks="$(aws ecs list-tasks \
