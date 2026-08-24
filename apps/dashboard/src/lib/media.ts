@@ -1,6 +1,8 @@
-/** Same base as `api.API_URL` — kept local to avoid circular imports. */
+import { API_URL } from "@/lib/env";
+
+/** Same API base used by the typed dashboard client. */
 function apiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
+  return API_URL.replace(/\/$/, "");
 }
 
 /** Public S3 media base (production). Used to heal legacy /files/ keys when possible. */

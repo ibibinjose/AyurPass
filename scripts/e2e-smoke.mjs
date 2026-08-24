@@ -18,6 +18,7 @@ import { dirname, join } from "node:path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const API = (process.env.API_URL ?? "http://localhost:4000").replace(/\/$/, "");
+const REQUEST_TIMEOUT_MS = Number(process.env.SMOKE_REQUEST_TIMEOUT_MS ?? 15_000);
 
 const stamp = Date.now().toString(36);
 const suffix = randomBytes(3).toString("hex");
@@ -39,11 +40,21 @@ function fail(label, err) {
   console.error(`    ${err instanceof Error ? err.message : String(err)}`);
 }
 
+async function fetchWithTimeout(url, init = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function api(path, { method = "GET", body, token } = {}) {
   const headers = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API}${path}`, {
+  const res = await fetchWithTimeout(`${API}${path}`, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -98,7 +109,8 @@ async function main() {
   } catch (e) {
     // Some deployments expose /health under a different path
     try {
-      await fetch(`${API}/`);
+      const fallback = await fetchWithTimeout(`${API}/`);
+      if (!fallback.ok) throw new Error(`GET / → ${fallback.status}`);
       ok("API reachable");
     } catch (e2) {
       fail("API reachable", e);

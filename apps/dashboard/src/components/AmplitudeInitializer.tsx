@@ -10,7 +10,12 @@ export function AmplitudeInitializer() {
     if (typeof window === "undefined") return;
     if (initialized) return;
 
-    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY || "4c1d5feb9a7527afedfc1d104185750e";
+    const enabled = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === "true";
+    const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY?.trim();
+
+    // Analytics is optional. Keep local and preview environments quiet unless
+    // tracking has been deliberately enabled with a real ingestion key.
+    if (!enabled || !apiKey) return;
 
     amplitude.initAll(apiKey, {
       analytics: { autocapture: true },

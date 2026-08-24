@@ -766,12 +766,42 @@ function ProviderOverview() {
 
   const isListing = provider?.listingTier === "FREE_LISTING" || services.length === 0;
   const newLeads = enquiries.filter((e) => e.status === "new").length;
+  const bookableSessions = services.filter((s) => s.category !== "PACKAGE").length;
 
   const now = new Date();
   const upcoming = bookings.filter(
     (b) => new Date(b.startTime) >= now && b.status !== "CANCELLED" && b.status !== "COMPLETED",
   );
   const pending = bookings.filter((b) => b.status === "PENDING");
+
+  const launchSteps = [
+    {
+      id: "profile",
+      done: Boolean(provider?.brandProfile) && Boolean(provider?.address),
+      title: "Complete your public profile",
+      body: "Add your brand, address, and client-facing practice details.",
+      href: "/dashboard/business",
+      cta: "Edit profile",
+    },
+    {
+      id: "session",
+      done: bookableSessions > 0,
+      title: "Publish your first bookable session",
+      body: "Turn discovery into an online booking opportunity.",
+      href: "/dashboard/services",
+      cta: "Add session",
+    },
+    {
+      id: "verification",
+      done: provider?.verificationStatus === "verified",
+      title: "Submit credentials for verification",
+      body: "Build trust with credentials and authority marks on your public page.",
+      href: "/dashboard/verification",
+      cta: "Open verification",
+    },
+  ];
+  const launchOpen = launchSteps.filter((step) => !step.done);
+  const launchProgress = Math.round(((launchSteps.length - launchOpen.length) / launchSteps.length) * 100);
 
   return (
     <div className="space-y-8">
@@ -793,6 +823,46 @@ function ProviderOverview() {
         <p className="mt-1 text-ink-muted">Your practice on AyurPass.</p>
       </div>
 
+      {launchOpen.length > 0 ? (
+        <DashCard
+          title="Practice launch checklist"
+          description={`${launchProgress}% complete — finish these essentials to help the right clients find and book you.`}
+        >
+          <div className="mb-4 h-2 overflow-hidden rounded-full bg-clay">
+            <div
+              className="h-full rounded-full bg-forest transition-all"
+              style={{ width: `${launchProgress}%` }}
+            />
+          </div>
+          <ul className="space-y-2">
+            {launchOpen.map((step) => (
+              <li
+                key={step.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hairline bg-clay/20 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-forest">{step.title}</p>
+                  <p className="text-xs font-medium text-ink-muted">{step.body}</p>
+                </div>
+                <Link
+                  href={step.href}
+                  className="shrink-0 rounded-full bg-forest px-3.5 py-1.5 text-xs font-bold text-white hover:bg-forest-deep"
+                >
+                  {step.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </DashCard>
+      ) : (
+        <div className="rounded-2xl border border-leaf/30 bg-leaf/5 px-5 py-4">
+          <p className="text-sm font-bold text-forest">Your practice launch essentials are complete.</p>
+          <p className="mt-1 text-xs font-medium text-ink-muted">
+            Keep your sessions, availability, and public profile current as your practice grows.
+          </p>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
           label="New enquiries"
@@ -806,7 +876,7 @@ function ProviderOverview() {
         />
         <StatTile
           label="Bookable sessions"
-          value={services.filter((s) => s.category !== "PACKAGE").length}
+          value={bookableSessions}
         />
         <StatTile label="Team" value={team.length} hint="Practitioners" />
       </div>
