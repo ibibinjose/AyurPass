@@ -573,21 +573,28 @@ END:VCARD`;
                   {aboutEmpty ? (
                     <div className="space-y-4">
                       <ProfileEmptyState
-                        title="Profile coming soon"
-                        body="This practice is setting up their full listing. If you manage this practice, claim it now to update details."
+                        title="This profile is still being completed"
+                        body="This practice has not published its full details yet. Continue exploring verified wellness options, or claim this listing if you manage it."
                       />
-                      {!verified ? (
-                        <div className="text-center">
+                      <div className="flex flex-wrap justify-center gap-3">
+                        <Link
+                          href="/discover"
+                          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-forest px-5 text-sm font-bold text-white shadow-[0_10px_20px_-14px_rgba(11,46,35,0.84)] transition-colors hover:bg-forest-deep"
+                        >
+                          Explore nearby care
+                          <ExternalLinkIcon className="h-4 w-4" />
+                        </Link>
+                        {!verified ? (
                           <button
                             type="button"
                             onClick={() => setClaimOpen(true)}
-                            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-600/40 bg-emerald-50 dark:bg-emerald-950/40 px-5 text-sm font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-forest/25 bg-surface px-5 text-sm font-bold text-forest transition-colors hover:border-leaf hover:bg-clay/50"
                           >
                             <ShieldIcon className="h-4 w-4" />
-                            Claim this Business
+                            Claim this business
                           </button>
-                        </div>
-                      ) : null}
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
                 </>

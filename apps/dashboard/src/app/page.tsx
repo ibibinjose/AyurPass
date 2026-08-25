@@ -211,7 +211,7 @@ function SearchDiscoverForm() {
     <form
       action="/discover"
       method="get"
-      className="glass-surface flex w-full max-w-xl flex-col gap-2 rounded-3xl sm:rounded-full p-2 sm:flex-row sm:items-center shadow-lg"
+      className="glass-surface flex w-full max-w-xl flex-col gap-2 rounded-2xl p-2 sm:flex-row sm:items-center shadow-lg"
       role="search"
     >
       <label className="relative min-w-0 flex-1">
@@ -227,7 +227,7 @@ function SearchDiscoverForm() {
       </label>
       <button
         type="submit"
-        className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-forest to-forest-deep px-6 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:from-forest-deep hover:to-forest btn-press"
+          className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-forest px-6 text-sm font-bold text-white shadow-[0_14px_24px_-16px_rgba(11,46,35,0.90)] transition-all duration-200 hover:bg-forest-deep btn-press"
       >
         Search
         <ArrowRightIcon className="h-4 w-4" />
@@ -274,7 +274,7 @@ export default async function Home() {
                   Find &amp; book · Ayurveda · Yoga · Wellness
                 </p>
 
-                <h1 className="max-w-2xl font-display text-[2.35rem] font-semibold leading-[1.08] tracking-tight text-forest sm:text-5xl lg:text-[3.25rem]">
+                  <h1 className="max-w-2xl font-display text-[2.45rem] font-semibold leading-[1.02] tracking-[-0.04em] text-forest sm:text-5xl lg:text-[3.35rem]">
                   Wellness, tuned to your{" "}
                   <em className="not-italic text-saffron">constitution</em>.
                 </h1>
@@ -299,7 +299,7 @@ export default async function Home() {
                     href="/register"
                     className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
                   >
-                    Take the free quiz
+                    Find your wellness match
                     <ArrowRightIcon className="h-4 w-4" />
                   </Link>
                   <Link
@@ -317,7 +317,7 @@ export default async function Home() {
 
               {/* Hero visual card */}
               <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-                <div className="overflow-hidden rounded-[1.75rem] border border-hairline bg-surface shadow-[0_24px_60px_rgba(45,90,71,0.10)]">
+                  <div className="overflow-hidden rounded-2xl border border-hairline bg-surface shadow-[0_28px_60px_-38px_rgba(11,46,35,0.62)]">
                   <div className="relative h-44 overflow-hidden sm:h-52">
                     <AyurvedaArt className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
@@ -344,7 +344,7 @@ export default async function Home() {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="profile-spring rounded-xl border border-hairline bg-clay/40 px-3 py-2.5 text-center text-xs font-bold text-forest transition-colors hover:border-leaf hover:bg-clay/70"
+                          className="rounded-lg border border-hairline bg-clay/45 px-3 py-2.5 text-center text-xs font-bold text-forest transition-colors hover:border-leaf hover:bg-clay/80"
                         >
                           {item.label}
                         </Link>
@@ -395,14 +395,14 @@ export default async function Home() {
                   Where to begin
                 </p>
                 <h2 id="pathways-heading" className="mt-1 font-display text-3xl text-forest sm:text-[2rem]">
-                  Four doors into AyurPass
+                  One place. Your next step.
                 </h2>
               </div>
               <Link
-                href="/packages"
+                href="/discover"
                 className="text-sm font-semibold text-forest hover:underline"
               >
-                Browse packages →
+                Explore all services →
               </Link>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

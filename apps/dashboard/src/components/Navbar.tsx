@@ -25,13 +25,13 @@ import { NotificationCenter } from "./NotificationCenter";
 
 const PRIMARY_LINKS = [
   { href: "/discover", label: "Discover" },
-  { href: "/explore", label: "Sessions" },
+  { href: "/explore", label: "Book a session" },
   { href: "/events", label: "Events" },
   { href: "/offers", label: "Offers" },
-  { href: "/dashboard/bookings", label: "Calendar" },
 ] as const;
 
 const MORE_LINKS = [
+  { href: "/dashboard/bookings", label: "Your calendar", icon: CalendarIcon },
   { href: "/retreats", label: "Retreats & Escapes", icon: MoonIcon },
   { href: "/shop", label: "Apothecary Shop", icon: LotusIcon },
   { href: "/packages", label: "Wellness Packages", icon: SparkleIcon },
@@ -54,10 +54,10 @@ function navActive(pathname: string, href: string) {
 }
 
 const linkClass = (active: boolean) =>
-  `profile-spring rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
+  `rounded-lg px-3 py-2 text-xs font-bold transition-all duration-200 ${
     active
-      ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm glow-forest scale-[1.02]"
-      : "text-ink-secondary hover:bg-surface/80 hover:text-forest hover:shadow-2xs"
+      ? "bg-forest text-white shadow-[0_8px_18px_-12px_rgba(11,46,35,0.85)]"
+      : "text-ink-secondary hover:bg-clay/70 hover:text-forest"
   }`;
 
 export function Navbar() {
@@ -187,8 +187,8 @@ export function Navbar() {
           : "border-b border-hairline/60 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/65"
       }`}
     >
-      {/* Top Gradient Accent Bar */}
-      <div className="h-[2.5px] w-full bg-gradient-to-r from-sage via-saffron to-sage-light opacity-90" />
+      {/* Brand signal: a precise saffron line between calm, botanical anchors. */}
+      <div className="h-[3px] w-full bg-gradient-to-r from-forest via-saffron to-forest" />
 
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
@@ -210,7 +210,7 @@ export function Navbar() {
               placeholder="Search practices, sessions, retreats…"
               onFocus={() => setSearchFocused(true)}
               aria-label="Search practices, sessions, and retreats"
-              className="w-full rounded-full border border-hairline/80 bg-surface/90 pl-10 pr-14 py-2 text-xs font-medium placeholder:text-ink-muted shadow-2xs focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
+              className="w-full rounded-xl border border-hairline bg-surface/90 pl-10 pr-14 py-2.5 text-xs font-semibold placeholder:text-ink-muted shadow-[0_4px_12px_-10px_rgba(11,46,35,0.55)] focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded bg-clay/60 px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
               ⌘K
@@ -219,7 +219,7 @@ export function Navbar() {
 
           {/* Quick Search Preview Popover */}
           {searchFocused && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-hairline bg-surface p-3 shadow-2xl backdrop-blur-xl">
+            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl border border-hairline bg-surface p-3 shadow-2xl backdrop-blur-xl">
               <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-2 px-1">
                 Popular Searches
               </p>
@@ -262,7 +262,7 @@ export function Navbar() {
             {moreOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 top-full z-50 mt-2.5 min-w-[15rem] rounded-2xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl"
+                className="absolute right-0 top-full z-50 mt-2.5 min-w-[15rem] rounded-xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl"
               >
                 {MORE_LINKS.map((l) => (
                   <Link
@@ -319,7 +319,7 @@ export function Navbar() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2.5 w-60 rounded-2xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
+                <div className="absolute right-0 top-full z-50 mt-2.5 w-60 rounded-xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
                   <div className="border-b border-hairline px-3 py-2 mb-1">
                     <p className="text-xs font-bold text-forest truncate">{user.fullName || "User Account"}</p>
                     <p className="text-[10px] font-medium text-ink-muted truncate">{user.email}</p>

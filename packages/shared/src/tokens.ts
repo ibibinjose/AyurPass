@@ -7,26 +7,26 @@
 
 export const colors = {
   /* ——— Surfaces & Ink ——— */
-  background: "#faf8f4", // warm white - cleaner, more modern
-  surface: "#ffffff", // pure white cards for contrast
-  foreground: "#1c1917", // warm charcoal - stone-900
-  inkSecondary: "#44403c", // stone-700
-  inkMuted: "#78716c", // stone-500
-  hairline: "#e7e5e4", // stone-200
+  background: "#f8f7f2", // clean warm base
+  surface: "#ffffff", // crisp card contrast
+  foreground: "#15251e", // deep botanical ink
+  inkSecondary: "#405048", // refined secondary ink
+  inkMuted: "#6d7872", // calm neutral label
+  hairline: "#dfe4dc", // soft structural line
 
   /* ——— Primary Brand: Sage Green ——— */
-  sage: "#2d5a47", // refined deep sage green - trust/nature/growth
-  sageDark: "#1a3a2e", // deepest sage for headers
-  sageLight: "#3d7a5f", // mid sage for accents
+  sage: "#174b3a", // deep botanical green - trust/nature/growth
+  sageDark: "#0b2e23", // sharply defined dark anchor
+  sageLight: "#31715a", // balanced green for accents
 
   /* ——— Accent: Saffron / Amber ——— */
-  saffron: "#c2722a", // warm amber-saffron - Ayurvedic warmth/vitality
-  saffronSoft: "#fef3e2", // lightest saffron wash
-  saffronDeep: "#9a5a1f", // rich amber
+  saffron: "#d38a20", // focused amber-saffron action signal
+  saffronSoft: "#fff4de", // lightest saffron wash
+  saffronDeep: "#a85f00", // rich amber
 
   /* ——— Neutrals: Sand ——— */
-  sand: "#f5f0e8", // warm sand for alternating sections
-  sandDark: "#e8e0d4", // deeper sand for borders
+  sand: "#eef0e8", // mineral-sand section surface
+  sandDark: "#d8dfd5", // deeper structural neutral
 
   /* ——— Dosha Colors (refined) ——— */
   vata: "#6366f1", // indigo-500 - cleaner purple-blue
@@ -41,12 +41,12 @@ export const colors = {
   systemRed: "#ff3b30",
 
   /* ——— Backward-compatible aliases ——— */
-  forest: "#2d5a47", // -> sage
-  forestDeep: "#1a3a2e", // -> sageDark
-  leaf: "#3d7a5f", // -> sageLight
-  gold: "#c2722a", // -> saffron
-  goldSoft: "#fef3e2", // -> saffronSoft
-  clay: "#f5f0e8", // -> sand
+  forest: "#174b3a", // -> sage
+  forestDeep: "#0b2e23", // -> sageDark
+  leaf: "#31715a", // -> sageLight
+  gold: "#d38a20", // -> saffron
+  goldSoft: "#fff4de", // -> saffronSoft
+  clay: "#eef0e8", // -> sand
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -63,12 +63,12 @@ export const doshaColor = {
  * Harmonised with new brand palette.
  */
 export const serviceCategoryColor: Record<string, string> = {
-  AYURVEDA: "#2d5a47", // sage green
+  AYURVEDA: "#174b3a", // botanical green
   YOGA: "#6366f1", // indigo
-  SPA: "#c2722a", // warm saffron
+  SPA: "#d38a20", // focused saffron
   MEDITATION: "#2563eb", // calm blue-600
   FITNESS: "#10b981", // emerald-500
-  NUTRITION: "#9a5a1f", // saffron deep
+  NUTRITION: "#a85f00", // saffron deep
   COACHING: "#7c3aed", // violet-600
   CONSULTATION: "#007aff", // system blue
   PACKAGE: "#c2722a", // saffron

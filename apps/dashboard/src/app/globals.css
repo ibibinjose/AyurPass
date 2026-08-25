@@ -10,45 +10,45 @@
   color-scheme: light;
 
   /* Surfaces & Ink */
-  --background: #faf8f4;
+  --background: #f8f7f2;
   --surface: #ffffff;
-  --foreground: #1c1917;
-  --ink-secondary: #44403c;
-  --ink-muted: #78716c;
-  --hairline: #e7e5e4;
+  --foreground: #15251e;
+  --ink-secondary: #405048;
+  --ink-muted: #6d7872;
+  --hairline: #dfe4dc;
 
   /* Primary Brand: Sage Green */
-  --sage: #2d5a47;
-  --sage-dark: #1a3a2e;
-  --sage-light: #3d7a5f;
+  --sage: #174b3a;
+  --sage-dark: #0b2e23;
+  --sage-light: #31715a;
 
   /* Accent: Saffron / Amber */
-  --saffron: #c2722a;
-  --saffron-soft: #fef3e2;
-  --saffron-deep: #9a5a1f;
+  --saffron: #d38a20;
+  --saffron-soft: #fff4de;
+  --saffron-deep: #a85f00;
 
   /* Neutrals: Sand */
-  --sand: #f5f0e8;
-  --sand-dark: #e8e0d4;
+  --sand: #eef0e8;
+  --sand-dark: #d8dfd5;
 
   /* Backward-compatible aliases */
-  --forest: #2d5a47;
-  --forest-deep: #1a3a2e;
-  --leaf: #3d7a5f;
-  --leaf-light: #6bc9a0;
-  --leaf-bright: #4fdb9a;
-  --gold: #c2722a;
-  --gold-soft: #fef3e2;
-  --gold-bright: #f5c77f;
-  --gold-deep: #9a5a1f;
-  --clay: #f5f0e8;
+  --forest: #174b3a;
+  --forest-deep: #0b2e23;
+  --leaf: #31715a;
+  --leaf-light: #77b99c;
+  --leaf-bright: #55cf9a;
+  --gold: #d38a20;
+  --gold-soft: #fff4de;
+  --gold-bright: #f5c86c;
+  --gold-deep: #a85f00;
+  --clay: #eef0e8;
 
   /* Dosha Colors (refined) */
   --vata: #6366f1;
   --pitta: #f97316;
   --kapha: #10b981;
 
-  --focus-ring: rgba(45, 90, 71, 0.3);
+  --focus-ring: rgba(23, 75, 58, 0.34);
 
   /* Apple HIG system colours */
   --system-blue: #007aff;
@@ -289,18 +289,18 @@ body {
   }
 }
 
-/* Card surface — Apple-like continuous corner + soft elevation */
+/* Card surface — crisp structure with restrained depth */
 .card-surface {
-  border-radius: 1.125rem;
-  border: 0.5px solid var(--separator);
+  border-radius: 0.875rem;
+  border: 1px solid var(--hairline);
   background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(11, 46, 35, 0.04);
   transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .card-surface:hover {
-    border-color: color-mix(in srgb, var(--sage-light) 22%, var(--separator));
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    border-color: color-mix(in srgb, var(--sage-light) 42%, var(--hairline));
+    box-shadow: 0 14px 30px -18px rgba(11, 46, 35, 0.34);
   }
 }
 
@@ -650,7 +650,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
-  box-shadow: 0 4px 20px -2px rgba(45, 90, 71, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 14px 32px -24px rgba(11, 46, 35, 0.36), inset 0 1px 1px rgba(255, 255, 255, 0.72);
 }
 
 .glass-nav {
@@ -669,11 +669,11 @@ body {
 }
 
 .glow-gold {
-  box-shadow: 0 0 30px -5px rgba(194, 114, 42, 0.25), 0 0 15px -3px rgba(194, 114, 42, 0.15);
+  box-shadow: 0 0 28px -8px rgba(211, 138, 32, 0.30), 0 0 14px -5px rgba(211, 138, 32, 0.18);
 }
 
 .glow-forest {
-  box-shadow: 0 0 35px -5px rgba(45, 90, 71, 0.2), 0 0 15px -3px rgba(45, 90, 71, 0.12);
+  box-shadow: 0 0 28px -8px rgba(23, 75, 58, 0.28), 0 0 14px -5px rgba(23, 75, 58, 0.16);
 }
 
 .glow-leaf {
@@ -757,7 +757,7 @@ body {
 }
 .apple-input:focus {
   border-color: var(--sage-light);
-  box-shadow: 0 0 0 4px rgba(45, 90, 71, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 0 0 4px var(--focus-ring), inset 0 1px 2px rgba(0, 0, 0, 0.01);
   background: var(--surface);
 }
 
