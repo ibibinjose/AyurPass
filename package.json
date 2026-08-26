@@ -38,6 +38,7 @@
     "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa",
     "e2e:smoke": "node --env-file-if-exists=apps/api/.env scripts/e2e-smoke.mjs",
     "test:e2e": "playwright test",
+    "test:setup-local": "bash ./tests/setup-local-preflight.test.sh",
     "install:all": "npm install",
     "setup:local": "bash ./setup-local.sh"
   },
