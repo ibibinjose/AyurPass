@@ -42,6 +42,28 @@ if [[ ! -f "package.json" || ! -d "apps/api" || ! -d "apps/dashboard" ]]; then
   exit 1
 fi
 
+if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+Docker Compose is required to provision the repository's local PostGIS database.
+Install Docker Desktop/Engine and Docker Compose, then run this command again.
+
+If you intentionally use a manually managed PostgreSQL/PostGIS instance, update
+apps/api/.env with its DATABASE_URL and run:
+  npm run prisma:migrate
+  npm run seed:local
+  npm start
+EOF
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+Docker is installed but its engine is not available. Start Docker Desktop or the
+Docker service, then run this command again.
+EOF
+  exit 1
+fi
+
 printf '\n%s\n' "==================================="
 printf '%s\n' "AyurPass local development setup"
 printf '%s\n\n' "==================================="
@@ -67,30 +89,17 @@ printf '%s\n' "3/5 Generating Prisma Client…"
 npm run prisma:generate
 
 printf '%s\n' "4/5 Ensuring the local PostGIS database is available…"
-if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-  docker compose up -d db
-  for attempt in {1..30}; do
-    if docker compose exec -T db pg_isready -U ayurpass -d ayurpass >/dev/null 2>&1; then
-      break
-    fi
-    if [[ "$attempt" == "30" ]]; then
-      echo "Error: the local PostGIS service did not become ready in time." >&2
-      exit 1
-    fi
-    sleep 2
-  done
-else
-  cat >&2 <<'EOF'
-Docker Compose is required to provision the repository's local PostGIS database.
-Install Docker Desktop/Engine and Docker Compose, then run this command again.
-
-If you intentionally use a manually managed PostgreSQL/PostGIS instance, update
-apps/api/.env with its DATABASE_URL and run:
-  npm run prisma:migrate
-  npm run seed:local
-EOF
-  exit 1
-fi
+docker compose up -d db
+for attempt in {1..30}; do
+  if docker compose exec -T db pg_isready -U ayurpass -d ayurpass >/dev/null 2>&1; then
+    break
+  fi
+  if [[ "$attempt" == "30" ]]; then
+    echo "Error: the local PostGIS service did not become ready in time." >&2
+    exit 1
+  fi
+  sleep 2
+done
 
 printf '%s\n' "5/5 Applying database migrations…"
 npm run prisma:migrate
