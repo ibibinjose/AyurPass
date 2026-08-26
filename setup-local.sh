@@ -102,7 +102,11 @@ for attempt in {1..30}; do
 done
 
 printf '%s\n' "5/5 Applying database migrations…"
-npm run prisma:migrate
+if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
+  npm run prisma:migrate:deploy
+else
+  npm run prisma:migrate
+fi
 
 if [[ "$SKIP_SEED" == "false" ]]; then
   printf '%s\n' "Seeding deterministic local demo data…"

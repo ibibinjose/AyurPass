@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const shouldStartWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER !== "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -16,12 +17,19 @@ export default defineConfig({
   },
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chromium", use: { ...devices["iPhone 13"], browserName: "chromium" } },
+    {
+      name: "mobile-chromium",
+      use: { ...devices["iPhone 13"], browserName: "chromium" },
+    },
   ],
-  webServer: {
-    command: "npm run dev:dashboard",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  ...(shouldStartWebServer
+    ? {
+        webServer: {
+          command: "npm run dev:dashboard",
+          url: baseURL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      }
+    : {}),
 });

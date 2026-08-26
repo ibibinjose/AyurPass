@@ -1,0 +1,78 @@
+name: Local Environment E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-stack-e2e:
+    name: Exercise the complete local stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Start the documented local environment
+        run: |
+          nohup npm run dev:local > /tmp/ayurpass-local.log 2>&1 &
+          echo $! > /tmp/ayurpass-local.pid
+
+          for attempt in {1..60}; do
+            api_ready=false
+            dashboard_ready=false
+            if curl --fail --silent http://127.0.0.1:4000/health/ready > /dev/null; then
+              api_ready=true
+            fi
+            if curl --fail --silent http://127.0.0.1:3000 > /dev/null; then
+              dashboard_ready=true
+            fi
+            if [[ "$api_ready" == true && "$dashboard_ready" == true ]]; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cat /tmp/ayurpass-local.log
+          docker compose ps
+          exit 1
+
+      - name: Run authenticated marketplace smoke journey
+        run: API_URL=http://127.0.0.1:4000 npm run e2e:smoke
+
+      - name: Install browser-test runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser journeys against the running local stack
+        env:
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: npm run test:e2e
+
+      - name: Upload local-stack diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-environment-e2e-diagnostics
+          if-no-files-found: ignore
+          path: |
+            /tmp/ayurpass-local.log
+            test-results/
+            playwright-report/
+
+      - name: Stop the local environment
+        if: always()
+        run: |
+          if [[ -f /tmp/ayurpass-local.pid ]]; then
+            kill "$(cat /tmp/ayurpass-local.pid)" || true
+          fi
+          pkill -f 'next dev|nest start|concurrently' || true
+          docker compose down -v || true
