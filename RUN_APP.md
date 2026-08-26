@@ -22,19 +22,15 @@ packages/shared  Shared types, tokens, API contracts
 
 ## Quick Start (recommended)
 
-From the project root, with PostgreSQL + PostGIS running:
+From the project root, with Docker Compose installed:
 
 ```bash
-cp apps/api/.env.example apps/api/.env
-cp apps/dashboard/.env.example apps/dashboard/.env.local
-npm install
-npm run prisma:generate
-npm run prisma:migrate
-npm run seed:local    # demo seeker + practice owner (local DB only)
-npm start
+npm run dev:local
 ```
 
-This starts the API (http://localhost:4000) and the dashboard (http://localhost:3000). `Ctrl+C` stops both.
+This one command installs locked dependencies, creates missing local environment files, starts the PostGIS database, applies migrations, loads deterministic demo data, and starts the API (http://localhost:4000) and dashboard (http://localhost:3000). `Ctrl+C` stops the API and dashboard while leaving the database container running for a faster next start.
+
+To prepare the local environment without starting the servers, use `npm run setup:local`; then run `npm start` when you are ready. Add `-- --skip-seed` to the setup command when you need an empty migrated database.
 
 ### Local demo logins
 

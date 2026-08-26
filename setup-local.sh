@@ -5,12 +5,37 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
 SKIP_SEED=false
-if [[ "${1:-}" == "--skip-seed" ]]; then
-  SKIP_SEED=true
-elif [[ $# -gt 0 ]]; then
-  echo "Usage: ./setup-local.sh [--skip-seed]" >&2
-  exit 1
-fi
+START_APP=false
+
+usage() {
+  cat <<'EOF'
+Usage: ./setup-local.sh [--skip-seed] [--start]
+
+Options:
+  --skip-seed  Apply migrations without loading deterministic local demo data.
+  --start      Start the API and dashboard after local setup completes.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-seed)
+      SKIP_SEED=true
+      ;;
+    --start)
+      START_APP=true
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
 
 if [[ ! -f "package.json" || ! -d "apps/api" || ! -d "apps/dashboard" ]]; then
   echo "Error: run this script from the AyurPass monorepo root." >&2
@@ -75,11 +100,26 @@ if [[ "$SKIP_SEED" == "false" ]]; then
   npm run seed:local
 fi
 
+if [[ "$START_APP" == "true" ]]; then
+  cat <<'EOF'
+
+Local setup is complete. Starting the API and dashboard…
+
+  API:       http://localhost:4000
+  Dashboard: http://localhost:3000
+
+Press Ctrl+C to stop the API and dashboard. The local PostGIS container remains
+running so subsequent starts are faster.
+EOF
+  exec npm start
+fi
+
 cat <<'EOF'
 
 Local setup is complete.
 
   npm start              # API at http://localhost:4000 and dashboard at http://localhost:3000
+  npm run dev:local      # Provision the local stack, then start API + dashboard
   npm run dev:mobile     # Expo mobile app
   npm run e2e:smoke      # Smoke-check a running local API and dashboard
 
