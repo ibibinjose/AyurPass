@@ -333,11 +333,8 @@ export default function ProviderProfilePage({
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : `${SITE_URL}${sharePath}`;
   const teamCount = team.length;
-  const bookHref = brand?.externalBookingUrl
-    ? brand.externalBookingUrl
-    : hasBookableServices
-      ? "/explore"
-      : null;
+  const bookHref = brand?.externalBookingUrl || null;
+  const handleChooseSession = () => setTab("services");
   const hours = brand?.openingHours?.trim() || null;
   const socialOnly = linkItems.filter((i) => i.kind === "social");
   const ratingValue = Number(provider.rating ?? 0);
@@ -385,16 +382,24 @@ END:VCARD`;
               rel="noreferrer"
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
             >
-              Book
+              Book online
             </a>
           ) : (
             <Link
               href={bookHref}
               className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
             >
-              Book
+              Book online
             </Link>
           )
+        ) : hasBookableServices ? (
+          <button
+            type="button"
+            onClick={handleChooseSession}
+            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
+          >
+            Choose a session
+          </button>
         ) : null}
       </div>
     }>
@@ -464,6 +469,8 @@ END:VCARD`;
               shareText={`${provider.businessName} — ${typeLabel}`}
               onEnquire={() => setEnquireOpen(true)}
               bookHref={bookHref}
+              onBook={hasBookableServices && !bookHref ? handleChooseSession : undefined}
+              bookLabel={bookHref ? "Book online" : "Choose a session"}
               onOpenReviews={() => setTab("reviews")}
               onSaveToPhone={handleSaveToPhone}
             />
@@ -777,7 +784,7 @@ END:VCARD`;
                         rel="noreferrer"
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
                       >
-                        Book
+                        Book online
                         <ExternalLinkIcon className="h-3.5 w-3.5" />
                       </a>
                     ) : (
@@ -785,9 +792,17 @@ END:VCARD`;
                         href={bookHref}
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
                       >
-                        Book
+                        Book online
                       </Link>
                     )
+                  ) : hasBookableServices ? (
+                    <button
+                      type="button"
+                      onClick={handleChooseSession}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
+                    >
+                      Choose a session
+                    </button>
                   ) : null}
                   {linkItems.length > 0 ? (
                     <button
