@@ -4,7 +4,11 @@ test.describe("public discovery and navigation", () => {
   test("global search routes a desktop visitor into directory discovery", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-chromium", "Desktop-only search field");
 
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
+
     await page.goto("/");
+    await page.locator('header[data-hydrated="true"]').waitFor();
     const search = page.getByRole("searchbox", {
       name: "Search practices, sessions, and retreats",
     });
@@ -19,6 +23,7 @@ test.describe("public discovery and navigation", () => {
     test.skip(testInfo.project.name !== "mobile-chromium", "Compact navigation coverage");
 
     await page.goto("/");
+    await page.locator('header[data-hydrated="true"]').waitFor();
     await page.getByRole("button", { name: "Open menu" }).click();
 
     const mobileNav = page.getByRole("navigation", { name: "Mobile" });

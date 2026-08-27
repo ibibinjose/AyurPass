@@ -64,6 +64,7 @@ export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -79,6 +80,7 @@ export function Navbar() {
   const menuId = useId();
 
   useEffect(() => {
+    setMounted(true);
     function onScroll() {
       setScrolled(window.scrollY > 12);
     }
@@ -181,6 +183,7 @@ export function Navbar() {
 
   return (
     <header
+      data-hydrated={mounted}
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "border-b border-hairline bg-surface/90 shadow-xs backdrop-blur-xl supports-[backdrop-filter]:bg-surface/80"
@@ -199,12 +202,15 @@ export function Navbar() {
           ref={searchRef}
           onSubmit={submitSearch}
           role="search"
+          action="/discover"
+          method="get"
         >
           <div className="relative">
             <SearchIcon className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-300 ${searchFocused ? "text-saffron" : "text-forest"}`} />
             <input
               ref={searchInputRef}
               type="search"
+              name="q"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search practices, sessions, retreats…"
