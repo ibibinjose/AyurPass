@@ -721,9 +721,25 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .card-lift:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 36px -8px rgba(45, 90, 71, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
-    border-color: color-mix(in srgb, var(--sage-light) 35%, var(--hairline));
+    box-shadow: 0 16px 36px -8px rgba(211, 138, 32, 0.14), 0 4px 12px rgba(211, 138, 32, 0.04);
+    border-color: color-mix(in srgb, var(--saffron) 45%, var(--hairline));
   }
+}
+
+/* Sidebar Group Collapsible Transition */
+.sidebar-group-container {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+  opacity: 0;
+  overflow: hidden;
+}
+.sidebar-group-container.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.sidebar-group-content {
+  min-height: 0;
 }
 
 .btn-press {

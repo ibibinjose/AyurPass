@@ -529,6 +529,25 @@ function ChevronIcon({ dir, className }: { dir: "left" | "right"; className?: st
   );
 }
 
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function NavLink({
   item,
   pathname,
@@ -663,8 +682,8 @@ function SidebarNav({
                   }
                 >
                   <span>{group.label}</span>
-                  <span className="text-xs normal-case tracking-normal" aria-hidden>
-                    {expanded ? "−" : "+"}
+                  <span className={`text-[10px] transition-transform duration-200 ${expanded ? "rotate-180 text-forest" : "text-ink-muted"}`} aria-hidden>
+                    <ChevronDownIcon />
                   </span>
                 </button>
               ) : (
@@ -675,8 +694,9 @@ function SidebarNav({
             ) : (
               <div className="mx-auto mb-1.5 h-px w-6 bg-hairline" aria-hidden />
             )}
-            {expanded ? (
-              <div className={`space-y-0.5 ${collapsed ? "flex flex-col items-stretch" : ""}`}>
+            
+            <div className={`sidebar-group-container ${expanded ? "expanded" : ""}`}>
+              <div className="sidebar-group-content space-y-0.5">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.href}
@@ -688,7 +708,7 @@ function SidebarNav({
                   />
                 ))}
               </div>
-            ) : null}
+            </div>
           </div>
         );
       })}

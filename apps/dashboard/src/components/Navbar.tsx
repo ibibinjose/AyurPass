@@ -201,7 +201,7 @@ export function Navbar() {
           role="search"
         >
           <div className="relative">
-            <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-forest" />
+            <SearchIcon className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-300 ${searchFocused ? "text-saffron" : "text-forest"}`} />
             <input
               ref={searchInputRef}
               type="search"
@@ -210,9 +210,17 @@ export function Navbar() {
               placeholder="Search practices, sessions, retreats…"
               onFocus={() => setSearchFocused(true)}
               aria-label="Search practices, sessions, and retreats"
-              className="w-full rounded-xl border border-hairline bg-surface/90 pl-10 pr-14 py-2.5 text-xs font-semibold placeholder:text-ink-muted shadow-[0_4px_12px_-10px_rgba(11,46,35,0.55)] focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
+              className={`w-full rounded-xl border pl-10 pr-14 py-2.5 text-xs font-semibold placeholder:text-ink-muted transition-all duration-300 ${
+                searchFocused
+                  ? "border-saffron bg-surface shadow-[0_12px_24px_-10px_rgba(211,138,32,0.18)] ring-2 ring-saffron/20 outline-none"
+                  : "border-hairline bg-surface/90 shadow-[0_4px_12px_-10px_rgba(11,46,35,0.55)] focus:outline-none"
+              }`}
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded bg-clay/60 px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
+            <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded px-1.5 py-0.5 text-[9px] font-bold transition-all duration-200 ${
+              searchFocused
+                ? "bg-saffron text-white scale-95 shadow-md shadow-saffron/20"
+                : "bg-clay/60 text-ink-muted"
+            }`}>
               ⌘K
             </kbd>
           </div>
