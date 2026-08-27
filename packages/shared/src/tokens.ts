@@ -30,12 +30,6 @@ export const colors = {
   terracottaSoft: "#FDF0EB", // soft terracotta wash for backgrounds
   terracottaDeep: "#A0583A", // deep terracotta for emphasis
 
-  /* ——— Accent: Terracotta ——— */
-  terracotta: "#C2704C", // warm earthy reddish-brown - heritage/grounding
-  terracottaLight: "#D4896A", // lighter terracotta for hover/active states
-  terracottaSoft: "#FDF0EB", // soft terracotta wash for backgrounds
-  terracottaDeep: "#A0583A", // deep terracotta for emphasis
-
   /* ——— Neutrals: Sand ——— */
   sand: "#eef0e8", // mineral-sand section surface
   sandDark: "#d8dfd5", // deeper structural neutral

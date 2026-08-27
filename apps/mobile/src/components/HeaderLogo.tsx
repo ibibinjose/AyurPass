@@ -8,12 +8,12 @@ export function HeaderLogo({ size = 38 }: { size?: number }) {
     <Pressable onPress={() => router.push("/")} accessibilityRole="button">
       <View
         style={{ width: size, height: size }}
-        className="overflow-hidden rounded-xl border border-hairline bg-surface items-center justify-center"
+        className="overflow-hidden rounded-sm border border-hairline bg-surface items-center justify-center"
       >
         <Image
           source={require("../../assets/icon.png")}
           style={{ width: size - 4, height: size - 4 }}
-          className="rounded-lg"
+          className="rounded-[8px]"
           resizeMode="contain"
           accessibilityLabel="AyurPass"
         />

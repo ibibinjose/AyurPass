@@ -20,8 +20,8 @@ export function Logo({
 
   const imgClass =
     variant === "stacked"
-      ? "h-28 w-28 shrink-0 rounded-[1.4rem] object-contain"
-      : "h-9 w-9 shrink-0 rounded-xl object-contain shadow-[0_6px_14px_-10px_rgba(11,46,35,0.72)] transition-transform duration-200 group-hover:scale-[1.04]";
+      ? "h-28 w-28 shrink-0 rounded-lg object-contain"
+      : "h-9 w-9 shrink-0 rounded-sm object-contain shadow-[0_6px_14px_-10px_rgba(11,46,35,0.72)] transition-transform duration-200 group-hover:scale-[1.04]";
 
   const content = (
     <>
