@@ -13,6 +13,7 @@ import { AmplitudeInitializer } from "@/components/AmplitudeInitializer";
 
 import {
   DEFAULT_KEYWORDS,
+  DEFAULT_SOCIAL_IMAGE,
   OG_LOCALES,
   organizationJsonLd,
   SITE_NAME,
@@ -49,8 +50,8 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-/** Landscape social card (1200×630) — better than square logo for large-image previews. */
-const OG_IMAGE = `/og-wellness.jpg?v=${BRAND_ASSET_VERSION}`;
+/** Landscape social card (1200×630) — optimised for social networks and messaging apps. */
+const OG_IMAGE = DEFAULT_SOCIAL_IMAGE;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -61,7 +62,6 @@ export const metadata: Metadata = {
   description: SITE_TAGLINE,
   keywords: DEFAULT_KEYWORDS,
   alternates: {
-    canonical: "/",
     languages: {
       "en": "/",
       "hi": "/?lang=hi",
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: SITE_TITLE_DEFAULT,
+        alt: "AyurPass — Find and book Ayurveda, Yoga and Wellness",
       },
     ],
   },
@@ -113,7 +113,21 @@ export const metadata: Metadata = {
     description: SITE_TAGLINE,
     images: [OG_IMAGE],
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  applicationName: SITE_NAME,
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  referrer: "origin-when-cross-origin",
   category: "health",
   other: {
     "geo.region": "AU",

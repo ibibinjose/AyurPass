@@ -41,7 +41,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = STATIC_ROUTES.map((r) => ({
     url: abs(r.path),
-    lastModified: now,
     changeFrequency: r.freq,
     priority: r.priority,
   }));
@@ -67,7 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!p.slug) continue;
     entries.push({
       url: abs(practicePath(p)),
-      lastModified: p.createdAt ? new Date(p.createdAt) : now,
       changeFrequency: "weekly",
       priority: 0.85,
     });
@@ -84,7 +82,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!pro.slug) continue;
     entries.push({
       url: abs(`/me/${pro.slug}`),
-      lastModified: pro.createdAt ? new Date(pro.createdAt) : now,
       changeFrequency: "weekly",
       priority: 0.85,
     });

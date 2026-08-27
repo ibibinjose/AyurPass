@@ -7,11 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { loginUrl } from "@/lib/auth-redirect";
 import { STICKY_BELOW_NAV } from "@/components/DirectoryLayout";
 import { api, formatMoney } from "@/lib/api";
+import { productWhatsAppEnquiryUrl } from "@/lib/whatsapp";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import type { Order, PaymentCheckout, Product } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { CheckIcon, LotusIcon, ShieldIcon } from "@/components/icons";
+import { WhatsAppBrandIcon } from "@/components/SocialBrandIcon";
 import { RedeemPanel, type Redemption } from "@/components/RedeemPanel";
 import { Button, EmptyState, ErrorNote, Field, Input } from "@/components/ui";
 
@@ -300,6 +302,29 @@ export default function BuyProductPage() {
               </Button>
             </>
           )}
+
+          <div className="mt-5 border-t border-hairline pt-5">
+            <p className="text-sm font-medium text-foreground">Questions before you order?</p>
+            <a
+              href={productWhatsAppEnquiryUrl({
+                productId: product.id,
+                productName: product.name,
+                providerName: product.provider?.businessName,
+                quantity,
+              })}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/35 bg-[#25D366]/10 px-5 py-2.5 text-sm font-semibold text-[#146b39] transition-colors hover:bg-[#25D366]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2"
+              aria-label={`Ask about ${product.name} on WhatsApp`}
+            >
+              <WhatsAppBrandIcon className="h-4 w-4" />
+              Ask about this product on WhatsApp
+            </a>
+            <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              WhatsApp opens a message draft with this product&apos;s details. Please do not share
+              payment or delivery information in chat.
+            </p>
+          </div>
 
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-ink-muted">
             <ShieldIcon className="mt-0.5 h-4 w-4 shrink-0" />

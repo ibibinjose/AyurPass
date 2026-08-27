@@ -67,7 +67,7 @@ const ACCOUNT_OPTIONS: AccountOption[] = [
     emoji: "🧘",
     title: "Professional",
     subtitle: "Practitioner & Therapist",
-    tagline: "Build your clinical practice",
+    tagline: "Build your wellness practice",
     description:
       "Build your public practitioner profile, earn verified credentials, accept client consultation leads, and manage your schedules seamlessly.",
     perks: [
@@ -134,7 +134,30 @@ function AccountTypeContent() {
 
   const selectedOption = ACCOUNT_OPTIONS.find((o) => o.role === selectedRole)!;
 
+  function selectRoleFromKeyboard(event: React.KeyboardEvent<HTMLDivElement>, index: number) {
+    const lastIndex = ACCOUNT_OPTIONS.length - 1;
+    let nextIndex: number | null = null;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = index === lastIndex ? 0 : index + 1;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = index === 0 ? lastIndex : index - 1;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = lastIndex;
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      const nextRole = ACCOUNT_OPTIONS[nextIndex].role;
+      setSelectedRole(nextRole);
+      window.requestAnimationFrame(() => document.getElementById(`account-role-${nextRole}`)?.focus());
+    }
+  }
+
   function handleContinue() {
+    setError(null);
     try {
       const registerUrlWithRole = nextParam
         ? `/register?role=${selectedRole}&next=${encodeURIComponent(nextParam)}`
@@ -196,11 +219,11 @@ function AccountTypeContent() {
             </div>
 
             <h1 className="text-3xl md:text-5xl font-display font-bold text-[#1e3228] tracking-tight mb-3">
-              What brings you to <span className="text-[#a67a24] font-extrabold">AyurPass</span>?
+              Choose how you&apos;ll use <span className="text-[#a67a24] font-extrabold">AyurPass</span>
             </h1>
 
             <p className="text-sm md:text-base text-[#1e3228]/85 font-medium max-w-xl mx-auto">
-              Select your account type below. You can seamlessly switch or add roles anytime in your profile settings.
+              Start with the workspace that fits you best. You can add or switch roles later in your profile settings.
             </p>
 
             {/* Quick Role Switcher Pills (Mobile / Desktop Quick Select) */}
@@ -212,6 +235,7 @@ function AccountTypeContent() {
                     key={opt.role}
                     type="button"
                     onClick={() => setSelectedRole(opt.role)}
+                    aria-pressed={isActive}
                     className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                       isActive
                         ? "bg-[#1e3228] text-white shadow-md"
@@ -226,29 +250,44 @@ function AccountTypeContent() {
             </div>
           </div>
 
+          <div
+            id="account-role-help"
+            className="mx-auto mb-6 max-w-3xl rounded-2xl border border-[#1e3228]/15 bg-[#fffdf9]/85 px-5 py-4 text-center shadow-sm"
+            aria-live="polite"
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#a67a24]">Selected starting point</p>
+            <p className="mt-1 font-display text-xl font-semibold text-[#1e3228]">{selectedOption.title}</p>
+            <p className="mt-1 text-sm text-[#3f3b34]">{selectedOption.tagline}</p>
+          </div>
+
           {/* 3 Account Selection Cards Grid */}
           <div
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
             role="radiogroup"
             aria-label="Account Type Options"
+            aria-describedby="account-role-help"
           >
-            {ACCOUNT_OPTIONS.map((option) => {
+            {ACCOUNT_OPTIONS.map((option, index) => {
               const isSelected = selectedRole === option.role;
 
               return (
                 <Card
                   key={option.role}
+                  id={`account-role-${option.role}`}
                   onClick={() => setSelectedRole(option.role)}
                   onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setSelectedRole(option.role);
+                      return;
                     }
+                    selectRoleFromKeyboard(e, index);
                   }}
                   role="radio"
+                  aria-label={`Choose ${option.title} account`}
                   aria-checked={isSelected}
-                  tabIndex={0}
-                  className={`cursor-pointer transition-all duration-300 overflow-hidden outline-none flex flex-col justify-between ${
+                  tabIndex={isSelected ? 0 : -1}
+                  className={`cursor-pointer transition-all duration-300 overflow-hidden outline-none flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-[#a67a24] focus-visible:ring-offset-2 ${
                     isSelected
                       ? "ring-2 ring-[#1e3228] shadow-2xl scale-[1.02] border-transparent bg-[#fffdf9]"
                       : "border-[#1e3228]/15 hover:border-[#a67a24] bg-[#fffdf9]/90 hover:scale-[1.01]"
@@ -320,7 +359,7 @@ function AccountTypeContent() {
                   {/* Radio Selection Footer */}
                   <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-[#ddd6c8]">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-[#5c574e]">
-                      {isSelected ? "Active Selection" : "Click to Select"}
+                      {isSelected ? "Selected" : "Select this role"}
                     </span>
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -346,13 +385,13 @@ function AccountTypeContent() {
               onClick={handleContinue}
               className={`w-full py-4 text-base font-bold rounded-2xl bg-gradient-to-r ${selectedOption.btnGradient} text-white shadow-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] flex items-center justify-center gap-2`}
             >
-              <span>Continue as {selectedOption.title}</span>
+              <span>Continue to create a {selectedOption.title} account</span>
               <ArrowRight className="h-4 w-4 stroke-[2.5]" />
             </Button>
 
             <p className="mt-3.5 text-xs text-[#1e3228]/80 font-medium text-center flex items-center justify-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-[#1e3228]" />
-              <span>Free registration • Upgrade or switch roles anytime in Settings</span>
+              <span>Free registration • Confirm your details on the next step</span>
             </p>
 
             {/* Toggle Comparison Table */}
@@ -362,7 +401,7 @@ function AccountTypeContent() {
               className="mt-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#1e3228] hover:text-[#a67a24] transition-colors"
             >
               <HelpCircle className="h-3.5 w-3.5" />
-              <span>{showComparison ? "Hide Feature Matrix" : "Compare Account Privileges"}</span>
+              <span>{showComparison ? "Hide account comparison" : "Compare account starting points"}</span>
               {showComparison ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
           </div>

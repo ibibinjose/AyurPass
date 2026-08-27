@@ -29,7 +29,16 @@ function LoginForm() {
       : null,
   );
   const [busy, setBusy] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const roleContextCopy =
+    roleContext === "seeker"
+      ? {
+          label: "Wellness seeker",
+          description: "Access your appointments, wellness preferences, and care journey.",
+        }
+      : {
+          label: "Practitioner or practice",
+          description: "Access your schedule, services, and business workspace.",
+        };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,16 +106,21 @@ function LoginForm() {
                 Welcome back
               </h1>
               <p className="text-sm text-ink-muted leading-relaxed">
-                Sign in to manage your appointments, Dosha profile & care plans.
+                Use one account to access the workspace that matches your role after sign-in.
               </p>
             </div>
 
             {/* Quick Context Switcher */}
-            <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl bg-sand/60 p-1 border border-hairline/60">
+            <div
+              className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-hairline/60 bg-sand/60 p-1"
+              role="group"
+              aria-label="Sign-in context"
+            >
               <button
                 type="button"
                 onClick={() => setRoleContext("seeker")}
-                className={`py-2 text-xs font-semibold rounded-xl transition-all ${
+                aria-pressed={roleContext === "seeker"}
+                className={`rounded-xl py-2 text-xs font-semibold transition-all ${
                   roleContext === "seeker"
                     ? "bg-surface text-forest shadow-xs"
                     : "text-ink-muted hover:text-foreground"
@@ -117,7 +131,8 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRoleContext("provider")}
-                className={`py-2 text-xs font-semibold rounded-xl transition-all ${
+                aria-pressed={roleContext === "provider"}
+                className={`rounded-xl py-2 text-xs font-semibold transition-all ${
                   roleContext === "provider"
                     ? "bg-surface text-forest shadow-xs"
                     : "text-ink-muted hover:text-foreground"
@@ -126,6 +141,14 @@ function LoginForm() {
                 🩺 Practitioner / Practice
               </button>
             </div>
+
+            <p
+              className="mt-3 rounded-xl border border-hairline/70 bg-clay/25 px-3 py-2 text-xs leading-relaxed text-ink-secondary"
+              aria-live="polite"
+            >
+              <span className="font-semibold text-forest">{roleContextCopy.label}:</span>{" "}
+              {roleContextCopy.description}
+            </p>
 
             {/* Social OAuth Buttons */}
             <div className="mt-6">
@@ -174,19 +197,16 @@ function LoginForm() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-1">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded-md border-hairline text-forest focus:ring-2 focus:ring-forest/20 transition-all cursor-pointer"
-                  />
-                  <span className="text-xs font-medium text-ink-secondary group-hover:text-foreground transition-colors">
-                    Keep me signed in on this device
-                  </span>
-                </label>
-              </div>
+              <p className="rounded-xl border border-hairline/70 bg-clay/25 px-3 py-2 text-xs leading-relaxed text-ink-secondary">
+                Sign in with the email address linked to your AyurPass account. Need access help?{" "}
+                <Link
+                  href="/forgot-password"
+                  className="font-semibold text-forest hover:text-forest-deep hover:underline"
+                >
+                  Reset your password
+                </Link>
+                .
+              </p>
 
               <ErrorNote message={error} />
 
@@ -222,16 +242,17 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Security & Compliance Micro Footer */}
-        <div className="flex items-center justify-center gap-4 text-[11px] text-ink-muted/80 pt-4 border-t border-hairline/60">
-          <span className="flex items-center gap-1">
-            <Shield className="h-3.5 w-3.5 text-leaf" /> 256-Bit SSL
-          </span>
-          <span>•</span>
-          <span>HIPAA & GDPR Compliant</span>
-          <span>•</span>
-          <span>AyurPass Encrypted Vault</span>
-        </div>
+          {/* Account-access footer — states supported product capabilities only. */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-hairline/60 pt-4 text-[11px] text-ink-muted/80">
+            <span className="flex items-center gap-1">
+              <Shield className="h-3.5 w-3.5 text-leaf" /> Account access
+            </span>
+            <span aria-hidden>•</span>
+            <span>Email verification</span>
+            <span aria-hidden>•</span>
+            <span>Password recovery</span>
+          </div>
+
       </div>
     </main>
   );

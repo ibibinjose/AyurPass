@@ -6,6 +6,22 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
   private readonly transporter: nodemailer.Transporter | null = null;
 
+  /**
+   * A visible text wordmark remains beside the image so the sender is clear
+   * even when an email client blocks remote images by default.
+   */
+  private emailBrandHeader(): string {
+    const appUrl = (
+      process.env.WEB_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ayurpass.com'
+    ).replace(/\/$/, '');
+    const logoUrl = `${appUrl}/brand/ayurpass-botanical-a-mark.png`;
+
+    return `<div style="margin:0 0 30px;text-align:center;">
+      <img src="${logoUrl}" width="42" height="42" alt="AyurPass botanical A-mark" style="display:inline-block;vertical-align:middle;margin:0 10px 0 0;object-fit:contain;" />
+      <span style="color:#174b3a;font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;letter-spacing:-0.5px;vertical-align:middle;">Ayur<span style="color:#a67a24;">Pass</span></span>
+    </div>`;
+  }
+
   constructor() {
     const host = process.env.SMTP_HOST;
     const port = Number(process.env.SMTP_PORT || 587);
@@ -60,7 +76,8 @@ export class MailService {
   async sendPasswordResetEmail(email: string, fullName: string, resetLink: string): Promise<boolean> {
     const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const subject = 'Reset Your AyurPass Password';
-    
+    const brandHeader = this.emailBrandHeader();
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -138,7 +155,7 @@ export class MailService {
       </head>
       <body>
         <div class="container">
-          <div class="logo">🌿 AyurPass</div>
+          ${brandHeader}
           <h1>Reset your password</h1>
           <p>Hello ${fullName},</p>
           <p>We received a request to reset the password for your AyurPass account. Click the button below to choose a new password. This link is valid for 15 minutes.</p>
@@ -186,6 +203,7 @@ export class MailService {
   ): Promise<boolean> {
     const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const subject = 'Verify your AyurPass email';
+    const brandHeader = this.emailBrandHeader();
 
     const html = `
       <!DOCTYPE html>
@@ -260,7 +278,7 @@ export class MailService {
       </head>
       <body>
         <div class="container">
-          <div class="logo">🌿 AyurPass</div>
+          ${brandHeader}
           <h1>Confirm your email</h1>
           <p>Hello ${fullName},</p>
           <p>Thanks for joining AyurPass. Please confirm your email address so we can keep your account secure and send booking updates.</p>
@@ -309,6 +327,7 @@ export class MailService {
     const from = process.env.SMTP_FROM || '"AyurPass" <noreply@mail.ayurpass.com>';
     const timeNotice = reminderType === '24h' ? 'tomorrow' : 'in 2 hours';
     const subject = `Reminder: Upcoming Session with ${providerName} (${timeNotice})`;
+    const brandHeader = this.emailBrandHeader();
 
     const html = `
       <!DOCTYPE html>
@@ -319,7 +338,8 @@ export class MailService {
       </head>
       <body style="font-family: sans-serif; background-color: #f6f8f6; padding: 20px;">
         <div style="max-width: 580px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; border: 1px solid #e1e8e4;">
-          <h2 style="color: #1b3d2f;">🌿 Appointment Reminder</h2>
+          ${brandHeader}
+          <h2 style="color: #174b3a; margin-top: 0;">Appointment reminder</h2>
           <p>Hello ${fullName},</p>
           <p>This is a reminder for your upcoming session <strong>${serviceName}</strong> at <strong>${providerName}</strong>.</p>
           <p style="font-size: 16px; font-weight: bold; color: #1b3d2f;">Scheduled Time: ${new Date(startTime).toLocaleString()}</p>
@@ -332,7 +352,13 @@ export class MailService {
 
     if (this.transporter) {
       try {
-        await this.transporter.sendMail({ from, to: email, subject, html });
+        await this.transporter.sendMail({
+          from,
+          to: email,
+          subject,
+          html,
+          text: `AyurPass appointment reminder\n\nHello ${fullName},\n\nYour upcoming session is ${serviceName} at ${providerName}.\nScheduled time: ${new Date(startTime).toLocaleString()}\n\nPlease arrive 10 minutes before your scheduled start time.`,
+        });
         this.logger.log(`Booking ${reminderType} reminder email sent to ${email}`);
         return true;
       } catch (error) {

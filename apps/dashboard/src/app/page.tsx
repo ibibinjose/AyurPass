@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
+import { DEFAULT_SOCIAL_IMAGE, SITE_TAGLINE, SITE_TITLE_DEFAULT } from "@/lib/seo";
 import {
   AyurvedaArt,
   HealthClubArt,
@@ -23,6 +25,31 @@ import {
   SparkleIcon,
   UsersIcon,
 } from "@/components/icons";
+
+export const metadata: Metadata = {
+  title: { absolute: SITE_TITLE_DEFAULT },
+  description: SITE_TAGLINE,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SITE_TITLE_DEFAULT,
+    description: SITE_TAGLINE,
+    url: "/",
+    images: [
+      {
+        url: DEFAULT_SOCIAL_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "AyurPass — Find and book Ayurveda, Yoga and Wellness",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE_DEFAULT,
+    description: SITE_TAGLINE,
+    images: [{ url: DEFAULT_SOCIAL_IMAGE, alt: "AyurPass — Find and book Ayurveda, Yoga and Wellness" }],
+  },
+};
 
 const PATHWAYS = [
   {

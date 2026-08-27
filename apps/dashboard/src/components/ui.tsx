@@ -263,6 +263,8 @@ export function Card({
   onClick,
   onKeyDown,
   role,
+  id,
+  "aria-label": ariaLabel,
   "aria-checked": ariaChecked,
   tabIndex,
 }: {
@@ -271,6 +273,8 @@ export function Card({
   onClick?: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   role?: string;
+  id?: string;
+  "aria-label"?: string;
   "aria-checked"?: boolean;
   tabIndex?: number;
 }) {
@@ -279,6 +283,8 @@ export function Card({
       onClick={onClick}
       onKeyDown={onKeyDown}
       role={role}
+      id={id}
+      aria-label={ariaLabel}
       aria-checked={ariaChecked}
       tabIndex={tabIndex}
       className={`apple-card ${className}`}

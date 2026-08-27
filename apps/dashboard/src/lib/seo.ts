@@ -16,7 +16,10 @@ export const SITE_TAGLINE =
   "Find & book Ayurveda, Yoga, Spa, Meditation & Wellness with verified practices worldwide.";
 
 export const SITE_TITLE_DEFAULT =
-  "AyurPass — Global Ayurveda, Yoga & Wellness Booking";
+  "AyurPass — Find and Book Ayurveda, Yoga and Wellness";
+
+/** Canonical social card supplied by the root Open Graph image route. */
+export const DEFAULT_SOCIAL_IMAGE = abs("/opengraph-image");
 
 export const DEFAULT_KEYWORDS = [
   "Ayurveda",
@@ -217,7 +220,17 @@ export function pageMetadata({
   noindex,
 }: PageMetaInput): Metadata {
   const url = abs(path);
-  const ogImages = (images ?? []).filter(Boolean).map((u) => ({ url: u }));
+  const suppliedImages = (images ?? []).filter(Boolean).map((u) => ({ url: u, alt: title }));
+  const ogImages = suppliedImages.length
+    ? suppliedImages
+    : [
+        {
+          url: DEFAULT_SOCIAL_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: "AyurPass — Find and book Ayurveda, Yoga and Wellness",
+        },
+      ];
   return {
     title,
     description,
@@ -230,14 +243,15 @@ export function pageMetadata({
       url,
       siteName: SITE_NAME,
       type: "website",
-      locale: "en_US",
-      images: ogImages.length ? ogImages : undefined,
+      locale: "en_AU",
+      alternateLocale: [...OG_LOCALES.filter((locale) => locale !== "en_AU")],
+      images: ogImages,
     },
     twitter: {
-      card: ogImages.length ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: ogImages.length ? ogImages.map((i) => i.url) : undefined,
+      images: ogImages.map((image) => ({ url: image.url, alt: image.alt })),
     },
   };
 }

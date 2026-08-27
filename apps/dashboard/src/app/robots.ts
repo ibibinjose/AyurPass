@@ -2,7 +2,16 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
-  const commonDisallows = ["/dashboard", "/login", "/register", "/forgot-password", "/api"];
+  const commonDisallows = [
+    "/dashboard",
+    "/login",
+    "/register",
+    "/account-type",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+    "/api",
+  ];
 
   return {
     rules: [
