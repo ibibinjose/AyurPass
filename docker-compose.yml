@@ -9,7 +9,8 @@ services:
       POSTGRES_PASSWORD: ayurpass_dev_password
       POSTGRES_DB: ayurpass
     ports:
-      - "5432:5432"
+      # Host 5433 avoids clashing with a local Homebrew Postgres on 5432.
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,12 +29,15 @@ services:
     ports:
       - "4000:4000"
     environment:
-      NODE_ENV: production
+      # Compose is a local development stack. Production is deployed through ECS.
+      NODE_ENV: development
       PORT: 4000
       DATABASE_URL: postgresql://ayurpass:ayurpass_dev_password@db:5432/ayurpass?schema=public
-      JWT_ACCESS_SECRET: dev_jwt_access_secret_key_ayurpass_2026
-      JWT_REFRESH_SECRET: dev_jwt_refresh_secret_key_ayurpass_2026
+      JWT_ACCESS_SECRET: local_ayurpass_access_secret_change_before_deploy
+      JWT_REFRESH_SECRET: local_ayurpass_refresh_secret_change_before_deploy
       CORS_ORIGIN: http://localhost:3000,http://localhost:8081,http://localhost:19006
+      FRONTEND_URL: http://localhost:3000
+      PUBLIC_API_URL: http://localhost:4000
     depends_on:
       db:
         condition: service_healthy
@@ -43,6 +47,9 @@ services:
     build:
       context: .
       dockerfile: apps/dashboard/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_ANALYTICS_ENABLED: ${NEXT_PUBLIC_ANALYTICS_ENABLED:-false}
     container_name: ayurpass-dashboard
     restart: always
     ports:
@@ -50,7 +57,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_ANALYTICS_ENABLED: ${NEXT_PUBLIC_ANALYTICS_ENABLED:-false}
     depends_on:
       - api
 

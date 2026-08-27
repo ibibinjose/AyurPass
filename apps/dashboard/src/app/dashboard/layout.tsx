@@ -56,7 +56,7 @@ type NavItem = {
   chip?: boolean;
 };
 
-type NavGroup = { label: string; items: NavItem[] };
+type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
 
 const CONSUMER_GROUPS: NavGroup[] = [
   {
@@ -81,14 +81,6 @@ const CONSUMER_GROUPS: NavGroup[] = [
         label: "Discover",
         icon: CompassIcon,
         hint: "Practices near you",
-        chip: true,
-      },
-      {
-        href: "/dashboard/bookings",
-        label: "Calendar",
-        shortLabel: "Calendar",
-        icon: CalendarIcon,
-        hint: "Colour-coded sessions",
         chip: true,
       },
       {
@@ -147,10 +139,10 @@ const CONSUMER_GROUPS: NavGroup[] = [
       },
       {
         href: "/dashboard/bookings",
-        label: "My Bookings",
-        shortLabel: "List",
+        label: "Bookings",
+        shortLabel: "Bookings",
         icon: CalendarIcon,
-        hint: "Pay & manage",
+        hint: "Sessions, payment & calendar",
       },
       {
         href: "/dashboard/assessment",
@@ -267,6 +259,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Catalogue",
+    collapsible: true,
     items: [
       {
         href: "/dashboard/services",
@@ -289,6 +282,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Sales",
+    collapsible: true,
     items: [
       { href: "/dashboard/orders", label: "Orders", icon: FlameIcon, chip: true, hint: "Sales history" },
       {
@@ -311,6 +305,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
   },
   {
     label: "Practice",
+    collapsible: true,
     items: [
       { href: "/dashboard/channels", label: "Online Channels", icon: GlobeIcon, hint: "Integrations & APIs" },
       {
@@ -534,6 +529,25 @@ function ChevronIcon({ dir, className }: { dir: "left" | "right"; className?: st
   );
 }
 
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function NavLink({
   item,
   pathname,
@@ -640,34 +654,64 @@ function SidebarNav({
   onNavigate?: () => void;
   dense?: boolean;
 }) {
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
   return (
     <nav
       className="flex-1 space-y-4 overflow-y-auto overscroll-contain py-1 [-webkit-overflow-scrolling:touch]"
       aria-label="Dashboard"
     >
-      {groups.map((group) => (
-        <div key={group.label}>
-          {!collapsed ? (
-            <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
-              {group.label}
-            </p>
-          ) : (
-            <div className="mx-auto mb-1.5 h-px w-6 bg-hairline" aria-hidden />
-          )}
-          <div className={`space-y-0.5 ${collapsed ? "flex flex-col items-stretch" : ""}`}>
-            {group.items.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                pathname={pathname}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                dense={dense}
-              />
-            ))}
+      {groups.map((group) => {
+        const groupHasActiveItem = group.items.some((item) => isActive(pathname, item.href, item.exact));
+        const canCollapse = Boolean(group.collapsible && !collapsed && !dense);
+        const expanded = !canCollapse || groupHasActiveItem || expandedGroups[group.label];
+
+        return (
+          <div key={group.label}>
+            {!collapsed ? (
+              canCollapse ? (
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted transition-colors hover:bg-clay/50 hover:text-forest"
+                  aria-expanded={expanded}
+                  onClick={() =>
+                    setExpandedGroups((current) => ({
+                      ...current,
+                      [group.label]: !expanded,
+                    }))
+                  }
+                >
+                  <span>{group.label}</span>
+                  <span className={`text-[10px] transition-transform duration-200 ${expanded ? "rotate-180 text-forest" : "text-ink-muted"}`} aria-hidden>
+                    <ChevronDownIcon />
+                  </span>
+                </button>
+              ) : (
+                <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
+                  {group.label}
+                </p>
+              )
+            ) : (
+              <div className="mx-auto mb-1.5 h-px w-6 bg-hairline" aria-hidden />
+            )}
+            
+            <div className={`sidebar-group-container ${expanded ? "expanded" : ""}`}>
+              <div className="sidebar-group-content space-y-0.5">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    collapsed={collapsed}
+                    onNavigate={onNavigate}
+                    dense={dense}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </nav>
   );
 }
@@ -743,7 +787,7 @@ function UserFooter({
           closeMenu();
           onNavigate?.();
         }}
-        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+        className="flex min-h-[var(--tap-min)] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest"
       >
         <PencilIcon className="h-3.5 w-3.5" />
         Settings &amp; Profile
@@ -756,7 +800,7 @@ function UserFooter({
             closeMenu();
             onNavigate?.();
           }}
-          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest transition-colors"
+          className="flex min-h-[var(--tap-min)] w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink-secondary hover:bg-clay/50 hover:text-forest"
         >
           <ExternalLinkIcon className="h-3.5 w-3.5" />
           View Public Practice
@@ -777,7 +821,7 @@ function UserFooter({
                   closeMenu();
                   onSelectMode(m);
                 }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs font-bold transition-colors ${
+                className={`flex min-h-[var(--tap-min)] w-full items-center justify-between rounded-xl px-3 py-1.5 text-left text-xs font-bold ${
                   m === mode
                     ? "bg-forest text-white shadow-2xs"
                     : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
@@ -799,7 +843,7 @@ function UserFooter({
           closeMenu();
           onLogout();
         }}
-        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors mt-1 pt-2 border-t border-hairline"
+        className="mt-1 flex min-h-[var(--tap-min)] w-full items-center gap-2 rounded-xl border-t border-hairline px-3 py-2 pt-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
       >
         <span>Sign Out</span>
       </button>
@@ -832,11 +876,11 @@ function UserFooter({
   }
 
   return (
-    <div className="mt-auto space-y-3 border-t border-hairline pt-3 relative">
+    <div className="relative mt-auto shrink-0 space-y-3 border-t border-hairline pt-3">
       <button
         type="button"
         onClick={toggle}
-        className="w-full flex items-center gap-2.5 rounded-2xl px-2 py-2 text-left hover:bg-clay/40 transition-colors"
+        className="dash-nav-link flex min-h-[var(--tap-min)] w-full items-center gap-2.5 rounded-2xl px-2 py-2 text-left hover:bg-clay/40"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-forest text-xs font-bold text-white ring-2 ring-surface shadow-2xs">
           {resolveMediaUrl(user.avatarUrl) ? (
@@ -868,7 +912,7 @@ function UserFooter({
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, sessionState, retrySession } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -876,8 +920,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mode, setMode] = useState<WorkspaceMode>("seeker");
 
   useEffect(() => {
-    if (!loading && !user) router.replace(loginUrl(pathname));
-  }, [loading, user, router, pathname]);
+    // Redirect only after the session is definitively invalid. A temporary API
+    // outage must not strand an already signed-in user in a login loop.
+    if (!loading && sessionState === "unauthenticated") {
+      router.replace(loginUrl(pathname));
+    }
+  }, [loading, sessionState, router, pathname]);
 
   useEffect(() => {
     let active = true;
@@ -983,6 +1031,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .toUpperCase() ||
     user?.email?.slice(0, 2).toUpperCase() ||
     "AP";
+
+  if (sessionState === "unavailable") {
+    return (
+      <main className="dash-shell flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-5 text-center">
+        <div className="max-w-md rounded-2xl border border-hairline bg-surface p-6 shadow-sm">
+          <p className="text-lg font-bold text-foreground">Your session is still saved</p>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
+            We could not reach AyurPass to restore it. Check your connection and try again; you do not need to sign in again.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => void retrySession()}
+              className="rounded-xl bg-forest px-4 py-2.5 text-sm font-bold text-white transition hover:bg-forest-deep"
+            >
+              Retry connection
+            </button>
+            <Link href="/discover" className="rounded-xl border border-hairline px-4 py-2.5 text-sm font-bold text-forest">
+              Browse public listings
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (loading || !user) {
     return (
@@ -1100,54 +1173,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      {/* Mobile Drawer */}
-      {mobileOpen ? (
-        <div
-          className="fixed inset-0 z-50 md:hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu"
-        >
-          <button
-            type="button"
-            className="absolute inset-0 bg-forest/45 backdrop-blur-[2px]"
-            aria-label="Close menu"
-            onClick={() => setMobileOpen(false)}
-          />
-          <aside className="dash-drawer-panel absolute inset-y-0 left-0 flex w-[min(20.5rem,90vw)] flex-col border-r border-hairline bg-surface px-3 shadow-2xl">
-            <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-              <Logo />
-              <button
-                type="button"
-                onClick={() => setMobileOpen(false)}
-                className="dash-nav-link flex h-11 w-11 items-center justify-center rounded-xl text-ink-muted hover:bg-clay/70 hover:text-forest"
-                aria-label="Close menu"
-              >
-                <XIcon className="h-5 w-5" />
-              </button>
-            </div>
+      {/* Mobile drawer — ends above the tab bar so the account footer is never clipped */}
+      <AnimatePresence>
+        {mobileOpen ? (
+          <div
+            className="dash-drawer-root fixed md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+          >
+            <motion.button
+              type="button"
+              className="absolute inset-0 bg-forest/45 backdrop-blur-[2px]"
+              aria-label="Close menu"
+              onClick={() => setMobileOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.aside
+              className="dash-drawer-panel absolute inset-y-0 left-0 flex w-[min(20.5rem,92vw)] flex-col border-r border-hairline bg-surface px-3 shadow-2xl"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 340 }}
+            >
+              <div className="mb-2 flex shrink-0 items-center justify-between gap-2 px-0.5">
+                <Logo />
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="dash-nav-link flex h-11 w-11 items-center justify-center rounded-xl text-ink-muted hover:bg-clay/70 hover:text-forest"
+                  aria-label="Close menu"
+                >
+                  <XIcon className="h-5 w-5" />
+                </button>
+              </div>
 
-            <div className="flex min-h-0 flex-1 flex-col">
-              <SidebarNav
-                groups={groups}
-                pathname={pathname}
-                dense
-                onNavigate={() => setMobileOpen(false)}
-              />
-              <UserFooter
-                user={user}
-                practiceName={practiceName}
-                publicHref={publicHref}
-                mode={mode}
-                modes={modes}
-                onLogout={handleLogout}
-                onNavigate={() => setMobileOpen(false)}
-                onSelectMode={handleSelectMode}
-              />
-            </div>
-          </aside>
-        </div>
-      ) : null}
+              <div className="flex min-h-0 flex-1 flex-col">
+                <SidebarNav
+                  groups={groups}
+                  pathname={pathname}
+                  dense
+                  onNavigate={() => setMobileOpen(false)}
+                />
+                <UserFooter
+                  user={user}
+                  practiceName={practiceName}
+                  publicHref={publicHref}
+                  mode={mode}
+                  modes={modes}
+                  onLogout={handleLogout}
+                  onNavigate={() => setMobileOpen(false)}
+                  onSelectMode={handleSelectMode}
+                />
+              </div>
+            </motion.aside>
+          </div>
+        ) : null}
+      </AnimatePresence>
 
       {/* Main Layout Body & Desktop Top Bar */}
       <div className="flex min-w-0 flex-1 flex-col">
@@ -1228,7 +1313,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex shrink-0 items-center gap-1.5">
             <Link
               href="/explore"
-              className="dash-nav-link inline-flex min-h-10 items-center rounded-full bg-forest px-3.5 text-xs font-bold text-white active:bg-forest-deep"
+              className="dash-nav-link inline-flex min-h-11 items-center rounded-full bg-forest px-3.5 text-xs font-bold text-white active:bg-forest-deep"
             >
               Book
             </Link>
@@ -1267,7 +1352,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                className={`dash-nav-link inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-semibold transition-colors active:scale-[0.98] ${
+                className={`dash-nav-link inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[13px] font-semibold transition-colors active:scale-[0.98] ${
                   active
                     ? "bg-forest text-white shadow-sm"
                     : "border border-hairline bg-surface text-ink-secondary active:bg-clay/50"
@@ -1281,7 +1366,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="dash-nav-link inline-flex min-h-9 shrink-0 items-center rounded-full border border-dashed border-hairline px-3.5 text-[13px] font-semibold text-ink-muted active:bg-clay/40"
+            className="dash-nav-link inline-flex min-h-11 shrink-0 items-center rounded-full border border-dashed border-hairline px-3.5 text-[13px] font-semibold text-ink-muted active:bg-clay/40"
           >
             More
           </button>
@@ -1289,9 +1374,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <main
           id="dashboard-main"
-          className={`mx-auto w-full flex-1 px-[var(--space-page-x)] py-5 sm:py-8 md:pb-10 ${
+          className={`mx-auto w-full flex-1 px-[var(--space-page-x)] py-5 sm:py-8 ${
             wide ? "max-w-[88rem]" : "max-w-5xl"
-          } pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-10`}
+          } pb-tab-bar md:pb-10`}
           style={{
             paddingLeft: "max(var(--space-page-x), env(safe-area-inset-left, 0px))",
             paddingRight: "max(var(--space-page-x), env(safe-area-inset-right, 0px))",

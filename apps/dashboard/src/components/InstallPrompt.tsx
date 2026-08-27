@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { XIcon } from "@/components/icons";
 
 const DISMISS_KEY = "ayurpass.install.dismissedAt";
-const DISMISS_DAYS = 14;
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -22,18 +21,6 @@ function isStandalone(): boolean {
     window.matchMedia("(display-mode: standalone)").matches ||
     Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
   );
-}
-
-function isDismissedRecently(): boolean {
-  try {
-    const raw = localStorage.getItem(DISMISS_KEY);
-    if (!raw) return false;
-    const at = Number(raw);
-    if (!Number.isFinite(at)) return false;
-    return Date.now() - at < DISMISS_DAYS * 24 * 60 * 60 * 1000;
-  } catch {
-    return false;
-  }
 }
 
 function markDismissed() {
@@ -130,30 +117,16 @@ export function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", onBip);
 
-    const timer = window.setTimeout(() => {
-      if (isDismissedRecently() || isStandalone()) return;
-      if (detectIos()) {
-        setOpen(true);
-      }
-    }, 4500);
-
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
-      window.clearTimeout(timer);
     };
   }, []);
-
-  useEffect(() => {
-    if (!canInstall || isDismissedRecently() || isStandalone()) return;
-    const t = window.setTimeout(() => setOpen(true), 1200);
-    return () => window.clearTimeout(t);
-  }, [canInstall]);
 
   useEffect(() => {
     function onOpen() {
       if (isStandalone()) return;
       setOpen(true);
-      setIosHelp(detectIos());
+      setIosHelp(false);
     }
     window.addEventListener("ayurpass-open-install", onOpen);
     return () => window.removeEventListener("ayurpass-open-install", onOpen);
@@ -161,7 +134,11 @@ export function InstallPrompt() {
 
   const handleInstall = async () => {
     if (ios) {
-      setIosHelp(true);
+      if (iosHelp) {
+        close(true);
+      } else {
+        setIosHelp(true);
+      }
       return;
     }
     if (!deferredPrompt) {

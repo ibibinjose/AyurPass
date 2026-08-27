@@ -39,6 +39,23 @@ export async function assertProviderAccess(
   throw new ForbiddenException('You do not manage this practice');
 }
 
+/** Clinic billing changes are restricted to the practice owner or a platform administrator. */
+export async function assertProviderOwner(
+  prisma: PrismaService,
+  user: AuthedUser,
+  providerId: string,
+): Promise<void> {
+  if (user.role === 'PLATFORM_ADMIN') return;
+  const provider = await prisma.provider.findUnique({
+    where: { id: providerId },
+    select: { userId: true },
+  });
+  if (!provider) throw new NotFoundException('Provider not found');
+  if (provider.userId !== user.sub) {
+    throw new ForbiddenException('Only the practice owner can manage subscription billing');
+  }
+}
+
 export async function assertServiceProviderAccess(
   prisma: PrismaService,
   user: AuthedUser,

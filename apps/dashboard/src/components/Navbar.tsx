@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "./Logo";
 import {
@@ -25,13 +25,13 @@ import { NotificationCenter } from "./NotificationCenter";
 
 const PRIMARY_LINKS = [
   { href: "/discover", label: "Discover" },
-  { href: "/explore", label: "Sessions" },
+  { href: "/explore", label: "Book a session" },
   { href: "/events", label: "Events" },
   { href: "/offers", label: "Offers" },
-  { href: "/dashboard/bookings", label: "Calendar" },
 ] as const;
 
 const MORE_LINKS = [
+  { href: "/dashboard/bookings", label: "Your calendar", icon: CalendarIcon },
   { href: "/retreats", label: "Retreats & Escapes", icon: MoonIcon },
   { href: "/shop", label: "Apothecary Shop", icon: LotusIcon },
   { href: "/packages", label: "Wellness Packages", icon: SparkleIcon },
@@ -54,28 +54,33 @@ function navActive(pathname: string, href: string) {
 }
 
 const linkClass = (active: boolean) =>
-  `profile-spring rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
+  `rounded-lg px-3 py-2 text-xs font-bold transition-all duration-200 ${
     active
-      ? "bg-gradient-to-r from-forest to-forest-deep text-white shadow-sm glow-forest scale-[1.02]"
-      : "text-ink-secondary hover:bg-surface/80 hover:text-forest hover:shadow-2xs"
+      ? "bg-forest text-white shadow-[0_8px_18px_-12px_rgba(11,46,35,0.85)]"
+      : "text-ink-secondary hover:bg-clay/70 hover:text-forest"
   }`;
 
 export function Navbar() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLFormElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const menuId = useId();
 
   useEffect(() => {
+    setMounted(true);
     function onScroll() {
       setScrolled(window.scrollY > 12);
     }
@@ -144,6 +149,25 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchFocused(true);
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    setSearchFocused(false);
+    router.push(query ? `/discover?q=${encodeURIComponent(query)}` : "/discover");
+  };
+
   const moreActive = MORE_LINKS.some((l) => navActive(pathname, l.href));
 
   const initials =
@@ -159,36 +183,57 @@ export function Navbar() {
 
   return (
     <header
+      data-hydrated={mounted}
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "border-b border-hairline bg-surface/90 shadow-xs backdrop-blur-xl supports-[backdrop-filter]:bg-surface/80"
           : "border-b border-hairline/60 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/65"
       }`}
     >
-      {/* Top Gradient Accent Bar */}
-      <div className="h-[2.5px] w-full bg-gradient-to-r from-sage via-saffron to-sage-light opacity-90" />
+      {/* Brand signal: a precise saffron line between calm, botanical anchors. */}
+      <div className="h-[3px] w-full bg-gradient-to-r from-forest via-saffron to-forest" />
 
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo />
 
-        {/* Live Search Quick Input */}
-        <div className="relative hidden md:block flex-1 max-w-md" ref={searchRef}>
+        {/* Global discovery search */}
+        <form
+          className="relative hidden md:block flex-1 max-w-md"
+          ref={searchRef}
+          onSubmit={submitSearch}
+          role="search"
+          action="/discover"
+          method="get"
+        >
           <div className="relative">
-            <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-forest" />
+            <SearchIcon className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-300 ${searchFocused ? "text-saffron" : "text-forest"}`} />
             <input
-              type="text"
+              ref={searchInputRef}
+              type="search"
+              name="q"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search practices, sessions, retreats…"
               onFocus={() => setSearchFocused(true)}
-              className="w-full rounded-full border border-hairline/80 bg-surface/90 pl-10 pr-9 py-2 text-xs font-medium placeholder:text-ink-muted shadow-2xs focus:border-forest focus:bg-surface focus:outline-none focus:ring-2 focus:ring-forest/20 transition-all"
+              aria-label="Search practices, sessions, and retreats"
+              className={`w-full rounded-xl border pl-10 pr-14 py-2.5 text-xs font-semibold placeholder:text-ink-muted transition-all duration-300 ${
+                searchFocused
+                  ? "border-saffron bg-surface shadow-[0_12px_24px_-10px_rgba(211,138,32,0.18)] ring-2 ring-saffron/20 outline-none"
+                  : "border-hairline bg-surface/90 shadow-[0_4px_12px_-10px_rgba(11,46,35,0.55)] focus:outline-none"
+              }`}
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded bg-clay/60 px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
+            <kbd className={`absolute right-3 top-1/2 -translate-y-1/2 hidden lg:inline-block rounded px-1.5 py-0.5 text-[9px] font-bold transition-all duration-200 ${
+              searchFocused
+                ? "bg-saffron text-white scale-95 shadow-md shadow-saffron/20"
+                : "bg-clay/60 text-ink-muted"
+            }`}>
               ⌘K
             </kbd>
           </div>
 
           {/* Quick Search Preview Popover */}
           {searchFocused && (
-            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-hairline bg-surface p-3 shadow-2xl backdrop-blur-xl">
+            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl border border-hairline bg-surface p-3 shadow-2xl backdrop-blur-xl">
               <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted mb-2 px-1">
                 Popular Searches
               </p>
@@ -206,10 +251,10 @@ export function Navbar() {
               </div>
             </div>
           )}
-        </div>
+        </form>
 
         {/* Primary Links */}
-        <nav className="hidden items-center gap-1.5 text-xs lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1.5 text-xs xl:flex" aria-label="Primary">
           {PRIMARY_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className={linkClass(navActive(pathname, l.href))}>
               {l.label}
@@ -231,7 +276,7 @@ export function Navbar() {
             {moreOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 top-full z-50 mt-2.5 min-w-[15rem] rounded-2xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl"
+                className="absolute right-0 top-full z-50 mt-2.5 min-w-[15rem] rounded-xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl"
               >
                 {MORE_LINKS.map((l) => (
                   <Link
@@ -262,7 +307,7 @@ export function Navbar() {
         </nav>
 
         {/* Topbar Actions & User Area */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           <LocationSelectorButton />
 
           {/* Notification Center */}
@@ -288,7 +333,7 @@ export function Navbar() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2.5 w-60 rounded-2xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
+                <div className="absolute right-0 top-full z-50 mt-2.5 w-60 rounded-xl border border-hairline bg-surface/95 p-2 shadow-2xl backdrop-blur-xl">
                   <div className="border-b border-hairline px-3 py-2 mb-1">
                     <p className="text-xs font-bold text-forest truncate">{user.fullName || "User Account"}</p>
                     <p className="text-[10px] font-medium text-ink-muted truncate">{user.email}</p>
@@ -353,7 +398,7 @@ export function Navbar() {
         </div>
 
         {/* Mobile top controls */}
-        <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <InstallAppButton compact label="Get App" />
           <button
             type="button"
@@ -368,21 +413,24 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile navigation drawer */}
+      {/* Mobile navigation drawer — account actions stay pinned above the tab bar */}
       {mobileOpen ? (
         <div
           id={menuId}
-          className="border-t border-hairline bg-surface/95 backdrop-blur-2xl lg:hidden shadow-xl"
+          className="flex max-h-[calc(100dvh-var(--mobile-tab-bar-offset)-4.5rem)] flex-col border-t border-hairline bg-surface/95 shadow-xl backdrop-blur-2xl xl:hidden"
         >
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-4" aria-label="Mobile">
+          <nav
+            className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-5 py-4"
+            aria-label="Mobile"
+          >
             <InstallAppButton
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-forest/10 border border-forest/20 px-4 py-3 text-sm font-bold text-forest shadow-2xs btn-press"
+              className="mb-3 flex min-h-[var(--tap-min)] w-full items-center justify-center gap-2 rounded-2xl border border-forest/20 bg-forest/10 px-4 py-3 text-sm font-bold text-forest shadow-2xs btn-press"
               label="Add AyurPass to Home Screen"
             />
             <Link
               href="/discover"
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 rounded-2xl border border-hairline bg-background/80 p-3 text-xs font-bold text-ink-muted mb-2 shadow-2xs"
+              className="mb-2 flex min-h-[var(--tap-min)] items-center gap-2.5 rounded-2xl border border-hairline bg-background/80 p-3 text-xs font-bold text-ink-muted shadow-2xs"
             >
               <SearchIcon className="h-4 w-4 text-forest" />
               <span>Search practices, sessions, retreats…</span>
@@ -392,7 +440,7 @@ export function Navbar() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all ${
+                className={`flex min-h-[var(--tap-min)] items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all ${
                   navActive(pathname, l.href)
                     ? "bg-forest text-white shadow-2xs"
                     : "text-ink-secondary hover:bg-clay/50 hover:text-forest"
@@ -402,24 +450,22 @@ export function Navbar() {
                 <span>{l.label}</span>
               </Link>
             ))}
-            <div className="mt-3 flex flex-col gap-2.5 border-t border-hairline pt-4">
-              <LocationSelectorButton className="w-full justify-between py-2.5 px-4 text-xs font-bold" />
-              <InstallAppButton
-                label="Add to Home Screen"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-forest bg-forest px-4 text-xs font-bold text-white shadow-2xs"
-              />
+          </nav>
+          <div className="shrink-0 border-t border-hairline bg-surface px-5 py-3">
+            <div className="mx-auto flex max-w-6xl flex-col gap-2.5">
+              <LocationSelectorButton className="w-full justify-between px-4 py-2.5 text-xs font-bold" />
               {loading ? null : user ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className="rounded-full bg-forest px-4 py-3 text-center text-xs font-bold text-white shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full bg-forest px-4 text-center text-xs font-bold text-white shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Go to Dashboard
                   </Link>
                   <button
                     type="button"
-                    className="rounded-xl px-3 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50"
+                    className="min-h-[var(--tap-min)] rounded-xl px-3 text-left text-xs font-semibold text-red-600 hover:bg-red-50"
                     onClick={() => {
                       logout();
                       setMobileOpen(false);
@@ -429,17 +475,17 @@ export function Navbar() {
                   </button>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
                   <Link
                     href="/login"
-                    className="rounded-full border border-hairline bg-surface py-3 text-center text-xs font-bold text-forest shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full border border-hairline bg-surface text-center text-xs font-bold text-forest shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/account-type"
-                    className="rounded-full bg-forest py-3 text-center text-xs font-bold text-white shadow-2xs"
+                    className="inline-flex min-h-[var(--tap-min)] items-center justify-center rounded-full bg-forest text-center text-xs font-bold text-white shadow-2xs"
                     onClick={() => setMobileOpen(false)}
                   >
                     Get Started
@@ -447,7 +493,7 @@ export function Navbar() {
                 </div>
               )}
             </div>
-          </nav>
+          </div>
         </div>
       ) : null}
     </header>

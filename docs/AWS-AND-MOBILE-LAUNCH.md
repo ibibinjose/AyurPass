@@ -17,7 +17,7 @@ Hosting on AWS does **not** remove the need for data, secrets, media, and paymen
 | **Host API + web** | Backend + Next.js must be public | **ECS Fargate** or **App Runner** (API); **Amplify** / **CloudFront+S3** or **ECS** (web); **ALB** + ACM TLS | App hits `https://api…` only |
 | **Real secrets** | Prod boot refuses weak JWT / open CORS | **Secrets Manager** / SSM; `DATABASE_URL`, `JWT_*`, `CORS_ORIGIN` | `EXPO_PUBLIC_API_URL` in EAS env (public API base, not DB secrets) |
 | **Stripe test (or payments off)** | Soft launch can be directory + enquiry first | Same Stripe keys in Secrets Manager | Pay flows call your API; no Stripe secret in the app |
-| **Object storage for media** | Local `backend/uploads/` is lost on every new task | **S3** + **CloudFront** | Profile photos via API → S3 |
+| **Object storage for media** | Local `apps/api/uploads/` is lost on every new task | **S3** + **CloudFront** | Profile photos via API → S3 |
 | **Staging DNS first** | Avoid marketing “live” until payments/media solid | Route 53: `staging.ayurpass.com`, `api-staging…` | Preview EAS profile → staging API |
 
 **CORS note:** React Native does **not** use browser CORS. Mobile needs a reachable HTTPS API and correct TLS. Web (Next) still needs `CORS_ORIGIN` allowlisting your web domain(s).

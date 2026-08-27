@@ -32,7 +32,7 @@ Engineering and product documentation for **AyurPass**, a dual-sided premium wel
 
 ## Conventions
 - The **core documents** describe the system *as built*, marking what is implemented, mocked, or planned.
-- Source of truth for data/API is `backend/prisma/schema.prisma` and `backend/src/modules/**`; the docs are kept in sync with it.
+- Source of truth for data/API is `apps/api/prisma/schema.prisma` and `apps/api/src/modules/**`; the docs are kept in sync with it.
 - Diagrams use Mermaid (render on GitHub and most Markdown viewers).
 
 _Last updated: 2026-07-20._

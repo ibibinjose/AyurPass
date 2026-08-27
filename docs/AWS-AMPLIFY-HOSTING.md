@@ -25,17 +25,17 @@ AWS Amplify Hosting is used to build, deploy, and host the Next.js SSR applicati
 
 ### Step 2: Configure Monorepo Settings
 1. Check the box **"My app is a monorepo"**.
-2. Set the **Mono-repo root directory** to: `frontend`
+2. Set the **Mono-repo root directory** to: `apps/dashboard`
 3. Amplify will automatically read the `amplify.yml` configuration from the root of the repository, which specifies:
    - Installing all dependencies from the root (`npm ci`).
-   - Running the Next.js production build (`next build`) in `standalone` output mode.
+   - Building `@ayurpass/shared` then `@ayurpass/dashboard`.
    - Targeting the `.next` artifacts directory.
 
 > [!IMPORTANT]
 > **Monorepo Build Error (Cannot read 'next' version in package.json)**:
 > If the build fails with this error, go to **App Settings > Environment Variables** in the Amplify Console and manually add:
 > *   **Key**: `AMPLIFY_MONOREPO_APP_ROOT`
-> *   **Value**: `frontend`
+> *   **Value**: `apps/dashboard`
 >
 > Re-run the build after saving the environment variable.
 
@@ -66,8 +66,8 @@ Run the following commands from your local machine to build and push the backend
 # 1. Login to Amazon ECR
 aws ecr get-login-password --region <aws-region> | docker login --username AWS --password-stdin <aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com
 
-# 2. Build the NestJS Docker image (from the backend/ directory context)
-cd backend
+# 2. Build the NestJS Docker image (from the apps/api directory context)
+cd apps/api
 docker build -t ayurpass-backend .
 
 # 3. Tag and push to ECR
@@ -97,7 +97,7 @@ docker push <aws-account-id>.dkr.ecr.<aws-region>.amazonaws.com/ayurpass-backend
 | `STRIPE_SECRET_KEY` | `sk_live_...` | Secret API key for Stripe |
 
 > [!TIP]
-> The backend container's entrypoint script ([entrypoint.sh](file:///Users/cultureos/Codebase/Projects/AyurPass/backend/scripts/entrypoint.sh)) automatically runs `npx prisma migrate deploy` prior to launching the NestJS server. This ensures RDS database schemas are updated incrementally on every container start.
+> The backend container's entrypoint script ([entrypoint.sh](../apps/api/scripts/entrypoint.sh)) automatically runs `npx prisma migrate deploy` prior to launching the NestJS server. This ensures RDS database schemas are updated incrementally on every container start.
 
 ---
 

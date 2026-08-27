@@ -23,7 +23,7 @@ function TabBarIcon({
         style={{
           height: 30,
           paddingHorizontal: 16,
-          borderRadius: 999,
+          borderRadius: 12,
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: focused ? "rgba(194,112,76,0.10)" : "transparent",
@@ -41,7 +41,7 @@ function TabBarIcon({
           fontSize: 11,
           marginTop: 3,
           color: focused ? colors.sage : colors.inkMuted,
-          letterSpacing: 0.2,
+          letterSpacing: 0.35,
         }}
       >
         {title}
@@ -75,15 +75,15 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.hairline,
-          borderTopWidth: Platform.OS === "ios" ? 0.5 : 1,
+          borderTopWidth: 1,
           height: 68 + bottom,
           paddingTop: 10,
           paddingBottom: bottom,
           elevation: 8,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.04,
-          shadowRadius: 6,
+          shadowColor: colors.sageDark,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
         },
         tabBarItemStyle: {
           flex: 1,

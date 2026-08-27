@@ -10,22 +10,28 @@
   color-scheme: light;
 
   /* Surfaces & Ink */
-  --background: #faf8f4;
+  --background: #f8f7f2;
   --surface: #ffffff;
-  --foreground: #1c1917;
-  --ink-secondary: #44403c;
-  --ink-muted: #78716c;
-  --hairline: #e7e5e4;
+  --foreground: #15251e;
+  --ink-secondary: #405048;
+  --ink-muted: #6d7872;
+  --hairline: #dfe4dc;
 
   /* Primary Brand: Sage Green */
-  --sage: #2d5a47;
-  --sage-dark: #1a3a2e;
-  --sage-light: #3d7a5f;
+  --sage: #174b3a;
+  --sage-dark: #0b2e23;
+  --sage-light: #31715a;
 
   /* Accent: Saffron / Amber */
-  --saffron: #c2722a;
-  --saffron-soft: #fef3e2;
-  --saffron-deep: #9a5a1f;
+  --saffron: #d38a20;
+  --saffron-soft: #fff4de;
+  --saffron-deep: #a85f00;
+
+  /* Accent: Terracotta */
+  --terracotta: #C2704C;
+  --terracotta-light: #D4896A;
+  --terracotta-soft: #FDF0EB;
+  --terracotta-deep: #A0583A;
 
   /* Accent: Terracotta */
   --terracotta: #C2704C;
@@ -34,27 +40,27 @@
   --terracotta-deep: #A0583A;
 
   /* Neutrals: Sand */
-  --sand: #f5f0e8;
-  --sand-dark: #e8e0d4;
+  --sand: #eef0e8;
+  --sand-dark: #d8dfd5;
 
   /* Backward-compatible aliases */
-  --forest: #2d5a47;
-  --forest-deep: #1a3a2e;
-  --leaf: #3d7a5f;
-  --leaf-light: #6bc9a0;
-  --leaf-bright: #4fdb9a;
-  --gold: #c2722a;
-  --gold-soft: #fef3e2;
-  --gold-bright: #f5c77f;
-  --gold-deep: #9a5a1f;
-  --clay: #f5f0e8;
+  --forest: #174b3a;
+  --forest-deep: #0b2e23;
+  --leaf: #31715a;
+  --leaf-light: #77b99c;
+  --leaf-bright: #55cf9a;
+  --gold: #d38a20;
+  --gold-soft: #fff4de;
+  --gold-bright: #f5c86c;
+  --gold-deep: #a85f00;
+  --clay: #eef0e8;
 
   /* Dosha Colors (refined) */
   --vata: #6366f1;
   --pitta: #f97316;
   --kapha: #10b981;
 
-  --focus-ring: rgba(45, 90, 71, 0.3);
+  --focus-ring: rgba(23, 75, 58, 0.34);
 
   /* Apple HIG system colours */
   --system-blue: #007aff;
@@ -90,6 +96,13 @@
   --safe-right: env(safe-area-inset-right, 0px);
 
   --tap-min: 44px;
+
+  /* Fixed mobile tab bar: 56px content row + home-indicator inset */
+  --mobile-tab-bar-content: 3.5rem;
+  --mobile-tab-bar-pad: 0.35rem;
+  --mobile-tab-bar-offset: calc(
+    var(--mobile-tab-bar-content) + max(var(--mobile-tab-bar-pad), env(safe-area-inset-bottom, 0px))
+  );
 }
 
 @theme inline {
@@ -292,18 +305,18 @@ body {
   }
 }
 
-/* Card surface — Apple-like continuous corner + soft elevation */
+/* Card surface — crisp structure with restrained depth */
 .card-surface {
-  border-radius: 1.125rem;
-  border: 0.5px solid var(--separator);
+  border-radius: 0.875rem;
+  border: 1px solid var(--hairline);
   background: var(--surface);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgba(11, 46, 35, 0.04);
   transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .card-surface:hover {
-    border-color: color-mix(in srgb, var(--sage-light) 22%, var(--separator));
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+    border-color: color-mix(in srgb, var(--sage-light) 42%, var(--hairline));
+    box-shadow: 0 14px 30px -18px rgba(11, 46, 35, 0.34);
   }
 }
 
@@ -467,7 +480,7 @@ body {
 
 /* Space for fixed mobile bottom tab bar */
 .pb-tab-bar {
-  padding-bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--mobile-tab-bar-offset) + 0.5rem);
 }
 @media (min-width: 768px) {
   .pb-tab-bar {
@@ -485,15 +498,27 @@ body {
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
   padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
 }
+/* Drawer sits above the tab bar; account footer stays fully visible */
+.dash-drawer-root {
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: var(--mobile-tab-bar-offset);
+  z-index: 60;
+  overflow: hidden;
+}
 .dash-drawer-panel {
-  padding-top: max(1rem, env(safe-area-inset-top, 0px));
-  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-bottom: 0.75rem;
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  overscroll-behavior: contain;
 }
 .dash-tab-bar {
   /* Isolate paint; avoid jank when scrolling content under the bar */
   transform: translateZ(0);
   -webkit-backdrop-filter: blur(16px);
+  z-index: 50;
+  padding-bottom: max(var(--mobile-tab-bar-pad), env(safe-area-inset-bottom, 0px));
 }
 .dash-nav-link {
   -webkit-tap-highlight-color: transparent;
@@ -641,7 +666,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
-  box-shadow: 0 4px 20px -2px rgba(45, 90, 71, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 14px 32px -24px rgba(11, 46, 35, 0.36), inset 0 1px 1px rgba(255, 255, 255, 0.72);
 }
 
 .glass-nav {
@@ -660,11 +685,11 @@ body {
 }
 
 .glow-gold {
-  box-shadow: 0 0 30px -5px rgba(194, 114, 42, 0.25), 0 0 15px -3px rgba(194, 114, 42, 0.15);
+  box-shadow: 0 0 28px -8px rgba(211, 138, 32, 0.30), 0 0 14px -5px rgba(211, 138, 32, 0.18);
 }
 
 .glow-forest {
-  box-shadow: 0 0 35px -5px rgba(45, 90, 71, 0.2), 0 0 15px -3px rgba(45, 90, 71, 0.12);
+  box-shadow: 0 0 28px -8px rgba(23, 75, 58, 0.28), 0 0 14px -5px rgba(23, 75, 58, 0.16);
 }
 
 .glow-leaf {
@@ -702,8 +727,36 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .card-lift:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 36px -8px rgba(45, 90, 71, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
-    border-color: color-mix(in srgb, var(--sage-light) 35%, var(--hairline));
+    box-shadow: 0 16px 36px -8px rgba(211, 138, 32, 0.14), 0 4px 12px rgba(211, 138, 32, 0.04);
+    border-color: color-mix(in srgb, var(--saffron) 45%, var(--hairline));
+  }
+}
+
+/* Sidebar Group Collapsible Transition */
+.sidebar-group-container {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+  opacity: 0;
+  overflow: hidden;
+}
+.sidebar-group-container.expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.sidebar-group-content {
+  min-height: 0;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
   }
 }
 
@@ -759,7 +812,7 @@ body {
 }
 .apple-input:focus {
   border-color: var(--sage-light);
-  box-shadow: 0 0 0 4px rgba(45, 90, 71, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 0 0 4px var(--focus-ring), inset 0 1px 2px rgba(0, 0, 0, 0.01);
   background: var(--surface);
 }
 

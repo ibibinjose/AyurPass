@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Href } from "expo-router";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -23,6 +23,12 @@ import { colors, fonts } from "../../src/theme";
 export default function Login() {
   const { login, loginWithSocial } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ next?: string }>();
+  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next;
+  const nextHref =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? (rawNext as Href)
+      : ("/(tabs)" as Href);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +52,7 @@ export default function Login() {
         // Navigate to a verification screen or show a modal
         router.push("/(auth)/verify-email-prompt" as Href);
       } else {
-        router.replace("/(tabs)");
+        router.replace(nextHref);
       }
     } catch (err) {
       setError(
@@ -387,7 +393,7 @@ export default function Login() {
             {/* New user footer */}
             <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
               <Text style={{ fontSize: 14, color: colors.inkSecondary, fontFamily: fonts.body }}>New to AyurPass?</Text>
-              <Pressable onPress={() => router.replace("/(auth)/register")} hitSlop={8}>
+              <Pressable onPress={() => router.replace({ pathname: "/(auth)/register", params: rawNext ? { next: rawNext } : {} })} hitSlop={8}>
                 <Text style={{ fontSize: 14, color: colors.forest, fontFamily: fonts.bodySemi, textDecorationLine: "underline" }}>Create an account</Text>
               </Pressable>
             </View>
@@ -466,7 +472,7 @@ export default function Login() {
                   if (!profile.emailVerifiedAt) {
                     router.push("/(auth)/verify-email-prompt" as Href);
                   } else {
-                    router.replace("/(tabs)");
+                    router.replace(nextHref);
                   }
                 } catch (err) {
                   setError(err instanceof Error ? err.message : `${provider} sign-in failed.`);

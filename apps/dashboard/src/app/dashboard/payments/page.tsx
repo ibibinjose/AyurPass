@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
-import type { PaymentModeConfig, StripeConnectStatus } from "@/lib/types";
+import type { ClinicBillingSubscription, PaymentModeConfig, StripeConnectStatus } from "@/lib/types";
 import { Button, EmptyState } from "@/components/ui";
 import { CheckIcon, SparkleIcon, ShieldIcon } from "@/components/icons";
 
@@ -40,7 +40,9 @@ function PaymentsContent() {
   const provider = user?.provider ?? user?.professional?.provider ?? null;
   const [platform, setPlatform] = useState<PaymentModeConfig | null>(null);
   const [status, setStatus] = useState<StripeConnectStatus | null>(null);
+  const [billing, setBilling] = useState<ClinicBillingSubscription | null>(null);
   const [busy, setBusy] = useState(false);
+  const [billingBusy, setBillingBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
@@ -50,6 +52,10 @@ function PaymentsContent() {
       .stripeConnectStatus(provider.id)
       .then(setStatus)
       .catch(() => setStatus(null));
+    api
+      .clinicBillingStatus(provider.id)
+      .then(setBilling)
+      .catch(() => setBilling(null));
   }, [provider]);
 
   useEffect(reload, [reload]);
@@ -79,8 +85,43 @@ function PaymentsContent() {
     }
   }
 
+  async function startGrowthBilling() {
+    if (!provider) return;
+    setBillingBusy(true);
+    setError(null);
+    try {
+      const base = `${window.location.origin}/dashboard/payments`;
+      const result = await api.clinicBillingCheckout(provider.id, {
+        successUrl: `${base}?billing=success`,
+        cancelUrl: `${base}?billing=cancelled`,
+      });
+      window.location.assign(result.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn’t start Growth checkout — please try again.");
+    } finally {
+      setBillingBusy(false);
+    }
+  }
+
+  async function manageBilling() {
+    if (!provider) return;
+    setBillingBusy(true);
+    setError(null);
+    try {
+      const result = await api.clinicBillingPortal(provider.id, {
+        returnUrl: `${window.location.origin}/dashboard/payments`,
+      });
+      window.location.assign(result.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn’t open billing management — please try again.");
+    } finally {
+      setBillingBusy(false);
+    }
+  }
+
   const ready = status?.connected && status.chargesEnabled;
   const justConnected = searchParams.get("connected") === "1";
+  const billingResult = searchParams.get("billing");
 
   return (
     <div>
@@ -135,6 +176,63 @@ function PaymentsContent() {
           Check status anytime: <code className="rounded bg-clay px-1.5 py-0.5">npm run stripe:status</code>
         </p>
       </div>
+
+      <section className="mt-6 rounded-2xl border border-hairline bg-surface p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
+              Clinic subscription
+            </p>
+            <h2 className="mt-1 font-display text-xl text-forest">Growth — $369/month</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
+              Online bookings, team calendar, rooms, staff roles, client records, and direct-payment tools for multi-practitioner practices.
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+              billing?.plan === "GROWTH" && ["ACTIVE", "TRIALING", "PAST_DUE"].includes(billing.status)
+                ? "bg-forest text-white"
+                : "border border-hairline text-ink-secondary"
+            }`}
+          >
+            {billing?.plan === "GROWTH" ? billing.status.replaceAll("_", " ") : "Free"}
+          </span>
+        </div>
+
+        {billingResult === "success" && (
+          <p className="mt-4 rounded-xl border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-forest">
+            Checkout completed. We’re confirming your subscription securely with Stripe now.
+          </p>
+        )}
+        {billingResult === "cancelled" && (
+          <p className="mt-4 rounded-xl border border-gold/40 bg-gold-soft px-4 py-3 text-sm text-ink-secondary">
+            Growth checkout was cancelled. Your practice remains on the current plan.
+          </p>
+        )}
+
+        {billing?.configured && billing.priceConfigured ? (
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            {billing.portalAvailable ? (
+              <Button disabled={billingBusy} onClick={manageBilling} variant="soft">
+                {billingBusy ? "Opening Stripe…" : "Manage billing"}
+              </Button>
+            ) : (
+              <Button disabled={billingBusy} onClick={startGrowthBilling}>
+                {billingBusy ? "Opening Stripe…" : "Start Growth"}
+              </Button>
+            )}
+            {billing.currentPeriodEnd && (
+              <p className="text-sm text-ink-muted">
+                {billing.cancelAtPeriodEnd ? "Ends" : "Renews"} {new Date(billing.currentPeriodEnd).toLocaleDateString()}.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="mt-5 rounded-xl border border-gold/40 bg-gold-soft px-4 py-3 text-sm text-ink-secondary">
+            Growth billing will appear here after the platform owner configures the Stripe Price ID and live billing settings.
+          </p>
+        )}
+      </section>
 
       <div className="mt-6 rounded-2xl border border-hairline bg-surface p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">

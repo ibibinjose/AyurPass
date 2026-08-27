@@ -20,9 +20,11 @@ import {
   assertOrderParty,
   assertOrderPayer,
   assertProviderAccess,
+  assertProviderOwner,
 } from '../../common/ownership';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentMethod } from '@prisma/client';
+import { ClinicBillingService } from './clinic-billing.service';
 
 export class RedemptionDto {
   @IsString()
@@ -33,6 +35,19 @@ export class RedemptionDto {
   @Min(0)
   @IsOptional()
   redeemPoints?: number;
+}
+
+export class BillingRedirectDto {
+  @IsUrl({ require_tld: false })
+  returnUrl: string;
+}
+
+export class CheckoutBillingDto {
+  @IsUrl({ require_tld: false })
+  successUrl: string;
+
+  @IsUrl({ require_tld: false })
+  cancelUrl: string;
 }
 
 export class ConnectOnboardDto {
@@ -53,6 +68,7 @@ type RawBodyRequest = Request & { rawBody?: Buffer };
 export class PaymentsController {
   constructor(
     private readonly service: PaymentsService,
+    private readonly billing: ClinicBillingService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -126,6 +142,32 @@ export class PaymentsController {
   async refundOrder(@Param('orderId') orderId: string, @Req() req: AuthedRequest) {
     await assertOrderParty(this.prisma, req.user, orderId);
     return this.service.refundOrder(orderId);
+  }
+
+  @Get('billing/:providerId')
+  async billingStatus(@Param('providerId') providerId: string, @Req() req: AuthedRequest) {
+    await assertProviderOwner(this.prisma, req.user, providerId);
+    return this.billing.getSubscription(providerId);
+  }
+
+  @Post('billing/:providerId/checkout')
+  async billingCheckout(
+    @Param('providerId') providerId: string,
+    @Body() body: CheckoutBillingDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProviderOwner(this.prisma, req.user, providerId);
+    return this.billing.createCheckout(providerId, body.successUrl, body.cancelUrl);
+  }
+
+  @Post('billing/:providerId/portal')
+  async billingPortal(
+    @Param('providerId') providerId: string,
+    @Body() body: BillingRedirectDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProviderOwner(this.prisma, req.user, providerId);
+    return this.billing.createPortal(providerId, body.returnUrl);
   }
 
   @Post('connect/:providerId/onboard')

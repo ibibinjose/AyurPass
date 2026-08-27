@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsBoolean,
+  IsIn,
   MinLength,
   MaxLength,
 } from 'class-validator';
@@ -105,6 +106,27 @@ export class RefreshTokenDto {
   @IsString()
   @IsNotEmpty()
   refreshToken: string;
+}
+
+export class SocialCredentialsDto {
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(160)
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(8_192)
+  idToken?: string;
+}
+
+export class SocialAuthDto extends SocialCredentialsDto {
+  @IsIn(['google', 'apple'])
+  provider: 'google' | 'apple';
 }
 
 export class AuthTokens {

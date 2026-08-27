@@ -10,8 +10,8 @@
   "display": "standalone",
   "display_override": ["standalone", "browser"],
   "orientation": "portrait-primary",
-  "background_color": "#1e3228",
-  "theme_color": "#1e3228",
+  "background_color": "#0b2e23",
+  "theme_color": "#0b2e23",
   "categories": ["health", "lifestyle", "medical", "travel"],
   "prefer_related_applications": false,
   "icons": [

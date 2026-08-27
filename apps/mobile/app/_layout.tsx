@@ -11,7 +11,7 @@ import {
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -70,24 +70,33 @@ class RootErrorBoundary extends Component<
 }
 
 function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionState, retrySession } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const pathname = usePathname();
 
-  const inAuthGroup = segments[0] === "(auth)";
+  const group = segments[0];
+  const child = segments[1];
+  const inAuthGroup = group === "(auth)";
   const statusStyle = !user || inAuthGroup ? "light" : "dark";
+
+  // Discovery is intentionally public. Only irreversible/account-bound work
+  // requires a session, preventing a sign-in prompt on ordinary page changes.
+  const requiresAuthentication =
+    group === "book" ||
+    group === "assessment" ||
+    (group === "jobs" && child === "apply") ||
+    (group === "(tabs)" && ["bookings", "calendar", "profile"].includes(child || ""));
 
   useEffect(() => {
     if (loading) return;
-    const group = segments[0];
-    // Wait until router has a group (avoid racing empty segments)
-    if (!group) return;
-    if (!user && group !== "(auth)") {
-      router.replace("/(auth)/welcome");
-    } else if (user && group === "(auth)") {
+    if (user && inAuthGroup) {
       router.replace("/(tabs)");
+      return;
     }
-  }, [user, loading, segments, router]);
+    if (sessionState !== "unauthenticated" || user || !requiresAuthentication) return;
+    router.replace({ pathname: "/(auth)/welcome", params: { next: pathname } });
+  }, [user, loading, sessionState, inAuthGroup, requiresAuthentication, pathname, router]);
 
   // While auth boots, keep dark shell (not ivory/white)
   if (loading) {
@@ -96,6 +105,24 @@ function RootNavigator() {
         <StatusBar style="light" />
         <FullScreenLoader />
       </>
+    );
+  }
+
+  if (sessionState === "unavailable" && requiresAuthentication) {
+    return (
+      <View style={styles.sessionRecovery}>
+        <StatusBar style="light" />
+        <Text style={styles.sessionRecoveryTitle}>Your session is still saved</Text>
+        <Text style={styles.sessionRecoveryBody}>
+          AyurPass could not reach the server to restore it. You do not need to sign in again.
+        </Text>
+        <Pressable style={styles.errorBtn} onPress={() => void retrySession()}>
+          <Text style={styles.errorBtnText}>Retry connection</Text>
+        </Pressable>
+        <Pressable onPress={() => router.replace("/(tabs)")} hitSlop={8}>
+          <Text style={styles.sessionRecoveryLink}>Browse public listings</Text>
+        </Pressable>
+      </View>
     );
   }
 
@@ -260,5 +287,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     fontSize: 15,
     color: colors.sageDark,
+  },
+  sessionRecovery: {
+    flex: 1,
+    backgroundColor: colors.sageDark,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 28,
+    gap: 14,
+  },
+  sessionRecoveryTitle: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    color: colors.white,
+    textAlign: "center",
+  },
+  sessionRecoveryBody: {
+    fontFamily: fonts.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: "rgba(255,255,255,0.82)",
+    textAlign: "center",
+    maxWidth: 330,
+  },
+  sessionRecoveryLink: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.goldSoft,
+    textDecorationLine: "underline",
   },
 });

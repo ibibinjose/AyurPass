@@ -221,6 +221,26 @@ export interface Order {
   consumer?: { userId: string; user?: { id: string; fullName?: string | null; email?: string } };
 }
 
+export interface ClinicBillingSubscription {
+  configured: boolean;
+  priceConfigured: boolean;
+  plan: "FREE" | "GROWTH";
+  status:
+    | "INACTIVE"
+    | "TRIALING"
+    | "ACTIVE"
+    | "PAST_DUE"
+    | "UNPAID"
+    | "CANCELLED"
+    | "INCOMPLETE"
+    | "INCOMPLETE_EXPIRED"
+    | "PAUSED";
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+  trialEnd: string | null;
+  portalAvailable: boolean;
+}
+
 export interface Channel {
   type: string;
   name: string;

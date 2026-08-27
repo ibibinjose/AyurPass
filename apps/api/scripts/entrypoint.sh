@@ -11,6 +11,20 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
+# A scheduled ECS task invokes this command to process due outbox records.
+# Migrations belong to the controlled API deployment, not every short-lived worker.
+if [ "${1:-}" = "communications:dispatch" ]; then
+  echo "=== Dispatching AyurPass transactional communications ==="
+  exec node dist/src/modules/communications/dispatch.js
+fi
+
+# A separately launched, confirmation-guarded ECS task uses these commands to
+# prepare an empty launch database. It never starts the API or runs migrations.
+if [ "${1:-}" = "data:reset:dry-run" ] || [ "${1:-}" = "data:reset:execute" ]; then
+  echo "=== Running AyurPass fresh-launch data reset command ==="
+  exec node scripts/reset-launch-data.mjs "$@"
+fi
+
 echo "Running database migrations..."
 npx prisma migrate deploy
 

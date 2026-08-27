@@ -14,14 +14,14 @@ export function Logo({
   className?: string;
   asLink?: boolean;
 }) {
-  const wordmarkClass = `font-display tracking-tight ${
+  const wordmarkClass = `font-display tracking-[-0.035em] ${
     dark ? "text-white" : "text-forest"
-  } text-xl`;
+  } text-xl font-semibold`;
 
   const imgClass =
     variant === "stacked"
-      ? "h-28 w-28 shrink-0 object-contain"
-      : "h-9 w-9 shrink-0 object-contain";
+      ? "h-28 w-28 shrink-0 rounded-[1.4rem] object-contain"
+      : "h-9 w-9 shrink-0 rounded-xl object-contain shadow-[0_6px_14px_-10px_rgba(11,46,35,0.72)] transition-transform duration-200 group-hover:scale-[1.04]";
 
   const content = (
     <>
@@ -37,7 +37,7 @@ export function Logo({
 
   if (!asLink) {
     return (
-      <span className={`inline-flex items-center gap-2.5 ${className}`}>
+      <span className={`inline-flex items-center gap-2 ${className}`}>
         {content}
       </span>
     );
@@ -46,7 +46,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      className={`inline-flex items-center gap-2.5 group ${className}`}
+      className={`inline-flex items-center gap-2 group ${className}`}
       aria-label="AyurPass home"
     >
       {content}

@@ -16,6 +16,7 @@
     "dev:dashboard": "npm run dev -w @ayurpass/dashboard",
     "dev:frontend": "npm run dev -w @ayurpass/dashboard",
     "dev:mobile": "cd apps/mobile && npm run start",
+    "dev:local": "bash ./setup-local.sh --start",
     "start": "concurrently -k -n api,web -c green,yellow \"npm run dev:api\" \"npm run dev:dashboard\"",
     "build": "turbo run build",
     "build:api": "npm run build -w @ayurpass/api",
@@ -35,14 +36,18 @@
     "seed:aaa-scrape": "node apps/api/scripts/scrape-aaa-practitioners.mjs",
     "seed:aaa": "node apps/api/scripts/seed-aaa-practitioners.mjs",
     "seed:aaa:full": "npm run seed:aaa-scrape && npm run seed:aaa",
-    "e2e:smoke": "node scripts/e2e-smoke.mjs",
-    "install:all": "npm install"
+    "e2e:smoke": "node --env-file-if-exists=apps/api/.env scripts/e2e-smoke.mjs",
+    "test:e2e": "playwright test",
+    "test:setup-local": "bash ./tests/setup-local-preflight.test.sh",
+    "check:readiness": "bash ./scripts/check-production-readiness.sh",
+    "install:all": "npm install",
+    "setup:local": "bash ./setup-local.sh"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "concurrently": "^10.0.3",
     "enhanced-resolve": "^5.24.3",
-    "prisma": "^7.9.0",
-    "turbo": "^2.10.7"
+    "turbo": "^2.10.11"
   },
   "overrides": {
     "react": "19.2.0",

@@ -53,20 +53,16 @@ packages/
 ## Quick Start (Local Dev)
 
 ```bash
-# Prerequisites: Node 20+, PostgreSQL with PostGIS
-cp apps/api/.env.example apps/api/.env
-cp apps/dashboard/.env.example apps/dashboard/.env.local
-# optional mobile: copy apps/mobile/.env.example → apps/mobile/.env
-
-npm install
-npm run prisma:generate
-npm run prisma:migrate
-npm start   # API :4000 + dashboard :3000
+# Prerequisites: Node 20+ and Docker Compose
+npm run dev:local  # PostGIS + migrations + deterministic demo data + API :4000 + dashboard :3000
 ```
+
+To prepare the environment without starting the API and dashboard, run `npm run setup:local`; use `npm start` afterwards. Add `-- --skip-seed` to setup when you need an empty migrated database.
 
 | Script | Purpose |
 |---|---|
-| `npm start` / `npm run dev` | API + dashboard together |
+| `npm run dev:local` | Provision PostGIS, migrations, deterministic demo data, API, and dashboard in one command |
+| `npm start` / `npm run dev` | API + dashboard together after local setup |
 | `npm run dev:api` | Nest watch mode |
 | `npm run dev:dashboard` | Next.js web/dashboard |
 | `npm run dev:mobile` | Expo (iOS/Android) |

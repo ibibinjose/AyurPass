@@ -135,7 +135,7 @@ export default function SettingsPage() {
     return () => {
       active = false;
     };
-  }, [user, professional?.id]);
+  }, [user, professional?.id, professional?.provider?.brandProfile?.coverImageUrl]);
 
   useEffect(() => {
     if (!professional?.id || !user) return;
@@ -532,307 +532,304 @@ export default function SettingsPage() {
 
           {professional ? (
             <>
-            <DashCard
-              title="Professional title & public URL"
-              description="Choose your profession title and a public handle. Root usernames (ayurpass.com/you) need admin approval to protect brands and celebrities."
-            >
-              <div className="space-y-5">
-                <Field
-                  label="Profession"
-                  hint="Structured title shown on your public profile."
-                >
-                  <Select
-                    value={titleKind}
-                    onChange={(e) => {
-                      const kind = e.target.value;
-                      setTitleKind(kind);
-                      const ns = defaultNamespaceForTitleKind(kind || null);
-                      setHandleNamespace(ns);
-                      const label =
-                        PROFESSIONAL_TITLE_KINDS.find((t) => t.id === kind)?.label ?? "";
-                      if (!title.trim() && label && kind !== "OTHER") setTitle(label);
-                      markDirty();
-                    }}
+              <DashCard
+                title="Professional title & public URL"
+                description="Choose your profession title and a public handle. Root usernames (ayurpass.com/you) need admin approval to protect brands and celebrities."
+              >
+                <div className="space-y-5">
+                  <Field
+                    label="Profession"
+                    hint="Structured title shown on your public profile."
                   >
-                    <option value="">Select title…</option>
-                    {Object.entries(
-                      PROFESSIONAL_TITLE_KINDS.reduce<Record<string, typeof PROFESSIONAL_TITLE_KINDS>>(
-                        (acc, t) => {
-                          (acc[t.group] ||= []).push(t);
-                          return acc;
-                        },
-                        {},
-                      ),
-                    ).map(([group, items]) => (
-                      <optgroup key={group} label={group}>
-                        {items.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </Select>
-                </Field>
-                <Field
-                  label="Display title"
-                  optional
-                  hint="Override the label if needed (e.g. Senior Yoga Teacher)."
-                >
-                  <Input
-                    value={title}
-                    onChange={(e) => {
-                      setTitle(e.target.value);
-                      markDirty();
-                    }}
-                    placeholder="Ayurvedic Doctor · Yoga Instructor · …"
-                  />
-                </Field>
-                <div className="grid gap-4 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)]">
-                  <Field label="Path">
                     <Select
-                      value={handleNamespace}
+                      value={titleKind}
                       onChange={(e) => {
-                        setHandleNamespace(e.target.value);
+                        const kind = e.target.value;
+                        setTitleKind(kind);
+                        const ns = defaultNamespaceForTitleKind(kind || null);
+                        setHandleNamespace(ns);
+                        const label =
+                          PROFESSIONAL_TITLE_KINDS.find((t) => t.id === kind)?.label ?? "";
+                        if (!title.trim() && label && kind !== "OTHER") setTitle(label);
                         markDirty();
                       }}
                     >
-                      {HANDLE_NAMESPACES.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          /{n.id}
-                        </option>
+                      <option value="">Select title…</option>
+                      {Object.entries(
+                        PROFESSIONAL_TITLE_KINDS.reduce<Record<string, typeof PROFESSIONAL_TITLE_KINDS>>(
+                          (acc, t) => {
+                            (acc[t.group] ||= []).push(t);
+                            return acc;
+                          },
+                          {},
+                        ),
+                      ).map(([group, items]) => (
+                        <optgroup key={group} label={group}>
+                          {items.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </Select>
                   </Field>
                   <Field
-                    label="Handle"
-                    hint={
-                      handle
-                        ? `Public page: ayurpass.com/${handleNamespace}/${normalizeHandle(handle) || "…"}`
-                        : "3–32 characters · letters, numbers, . _ -"
-                    }
+                    label="Display title"
+                    optional
+                    hint="Override the label if needed (e.g. Senior Yoga Teacher)."
                   >
                     <Input
-                      value={handle}
+                      value={title}
                       onChange={(e) => {
-                        setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
+                        setTitle(e.target.value);
                         markDirty();
                       }}
-                      placeholder="your-name"
-                      autoComplete="username"
+                      placeholder="Ayurvedic Doctor · Yoga Instructor · …"
                     />
                   </Field>
-                </div>
-                {publicPathPreview ? (
-                  <p className="rounded-xl bg-clay/40 px-3 py-2 text-xs font-medium text-ink-secondary">
-                    Canonical URL:{" "}
-                    <Link href={publicPathPreview} className="font-semibold text-forest hover:underline">
-                      {publicPathPreview}
-                    </Link>
-                  </p>
-                ) : null}
-
-                <div className="rounded-2xl border border-hairline bg-clay/20 p-4">
-                  <p className="text-sm font-semibold text-forest">Root vanity username</p>
-                  <p className="mt-1 text-xs font-medium leading-relaxed text-ink-muted">
-                    Request <span className="font-mono">ayurpass.com/you</span> for brands and
-                    notable practitioners. Platform admin must approve before it goes live —
-                    this protects celebrities and trademarked names.
-                  </p>
-                  <Field className="mt-3" label="Requested username" optional>
-                    <Input
-                      value={vanityHandle}
-                      onChange={(e) => {
-                        setVanityHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
-                        markDirty();
-                      }}
-                      placeholder="yourbrand"
-                    />
-                  </Field>
-                  <label className="mt-3 flex items-center gap-2 text-sm font-medium text-ink-secondary">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-[var(--forest)]"
-                      checked={requestVanity}
-                      onChange={(e) => {
-                        setRequestVanity(e.target.checked);
-                        markDirty();
-                      }}
-                      disabled={!vanityHandle.trim()}
-                    />
-                    Submit for admin approval
-                  </label>
-                  {vanityStatus && vanityStatus !== "none" ? (
-                    <p className="mt-2 text-xs font-bold uppercase tracking-wide text-ink-muted">
-                      Status: {vanityStatus}
-                      {vanityStatus === "approved" && vanityHandle
-                        ? ` · live at /${vanityHandle}`
-                        : ""}
+                  <div className="grid gap-4 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)]">
+                    <Field label="Path">
+                      <Select
+                        value={handleNamespace}
+                        onChange={(e) => {
+                          setHandleNamespace(e.target.value);
+                          markDirty();
+                        }}
+                      >
+                        {HANDLE_NAMESPACES.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            /{n.id}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field
+                      label="Handle"
+                      hint={
+                        handle
+                          ? `Public page: ayurpass.com/${handleNamespace}/${normalizeHandle(handle) || "…"}`
+                          : "3–32 characters · letters, numbers, . _ -"
+                      }
+                    >
+                      <Input
+                        value={handle}
+                        onChange={(e) => {
+                          setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
+                          markDirty();
+                        }}
+                        placeholder="your-name"
+                        autoComplete="username"
+                      />
+                    </Field>
+                  </div>
+                  {publicPathPreview ? (
+                    <p className="rounded-xl bg-clay/40 px-3 py-2 text-xs font-medium text-ink-secondary">
+                      Canonical URL:{" "}
+                      <Link href={publicPathPreview} className="font-semibold text-forest hover:underline">
+                        {publicPathPreview}
+                      </Link>
                     </p>
                   ) : null}
-                </div>
-              </div>
-            </DashCard>
 
-            <DashCard
-              title="Practitioner credentials"
-              description="Registration, licence and health-authority marks (e.g. AAA) appear next to your name on public profiles."
-            >
-              <div className="space-y-5">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Registration number" optional>
-                    <Input
-                      value={registrationNumber}
-                      onChange={(e) => {
-                        setRegistrationNumber(e.target.value);
-                        markDirty();
-                      }}
-                      placeholder="Association / board ID"
-                    />
-                  </Field>
-                  <Field label="Licence number" optional>
-                    <Input
-                      value={licenceNumber}
-                      onChange={(e) => {
-                        setLicenceNumber(e.target.value);
-                        markDirty();
-                      }}
-                      placeholder="Clinical / practice licence"
-                    />
-                  </Field>
-                </div>
-
-                <div>
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-foreground">
-                      Health authority approvals
+                  <div className="rounded-2xl border border-hairline bg-clay/20 p-4">
+                    <p className="text-sm font-semibold text-forest">Root vanity username</p>
+                    <p className="mt-1 text-xs font-medium leading-relaxed text-ink-muted">
+                      Request <span className="font-mono">ayurpass.com/you</span> for brands and
+                      notable practitioners. Platform admin must approve before it goes live —
+                      this protects celebrities and trademarked names.
                     </p>
-                    <span className="text-xs font-medium text-ink-muted">
-                      {authorityCodes.length} selected
-                    </span>
+                    <Field className="mt-3" label="Requested username" optional>
+                      <Input
+                        value={vanityHandle}
+                        onChange={(e) => {
+                          setVanityHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
+                          markDirty();
+                        }}
+                        placeholder="yourbrand"
+                      />
+                    </Field>
+                    <label className="mt-3 flex items-center gap-2 text-sm font-medium text-ink-secondary">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[var(--forest)]"
+                        checked={requestVanity}
+                        onChange={(e) => {
+                          setRequestVanity(e.target.checked);
+                          markDirty();
+                        }}
+                        disabled={!vanityHandle.trim()}
+                      />
+                      Submit for admin approval
+                    </label>
+                    {vanityStatus && vanityStatus !== "none" ? (
+                      <p className="mt-2 text-xs font-bold uppercase tracking-wide text-ink-muted">
+                        Status: {vanityStatus}
+                        {vanityStatus === "approved" && vanityHandle
+                          ? ` · live at /${vanityHandle}`
+                          : ""}
+                      </p>
+                    ) : null}
                   </div>
-                  <p className="mb-3 text-xs font-medium leading-relaxed text-ink-muted">
-                    Tap to toggle. Verified marks help seekers trust your listing.
+                </div>
+              </DashCard>
+
+              <DashCard
+                title="Practitioner credentials"
+                description="Registration, licence and health-authority marks (e.g. AAA) appear next to your name on public profiles."
+              >
+                <div className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Registration number" optional>
+                      <Input
+                        value={registrationNumber}
+                        onChange={(e) => {
+                          setRegistrationNumber(e.target.value);
+                          markDirty();
+                        }}
+                        placeholder="Association / board ID"
+                      />
+                    </Field>
+                    <Field label="Licence number" optional>
+                      <Input
+                        value={licenceNumber}
+                        onChange={(e) => {
+                          setLicenceNumber(e.target.value);
+                          markDirty();
+                        }}
+                        placeholder="Clinical / practice licence"
+                      />
+                    </Field>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-foreground">
+                        Health authority approvals
+                      </p>
+                      <span className="text-xs font-medium text-ink-muted">
+                        {authorityCodes.length} selected
+                      </span>
+                    </div>
+                    <p className="mb-3 text-xs font-medium leading-relaxed text-ink-muted">
+                      Tap to toggle. Verified marks help seekers trust your listing.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {HEALTH_AUTHORITY_PRESETS.map((preset) => {
+                        const active = authorityCodes.includes(preset.code);
+                        return (
+                          <button
+                            key={preset.code}
+                            type="button"
+                            title={preset.name}
+                            onClick={() => {
+                              setAuthorityCodes((prev) =>
+                                active
+                                  ? prev.filter((c) => c !== preset.code)
+                                  : [...prev, preset.code],
+                              );
+                              markDirty();
+                            }}
+                            aria-pressed={active}
+                            className={`inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-full px-3.5 py-2 text-left text-sm font-semibold transition-colors ${active
+                                ? "bg-[var(--system-blue)] text-white shadow-sm"
+                                : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
+                              }`}
+                          >
+                            <span>{preset.code}</span>
+                            <span
+                              className={`text-[10px] font-bold uppercase tracking-wide ${active ? "text-white/80" : "text-ink-muted"
+                                }`}
+                            >
+                              {preset.region}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {authorityCodes.length > 0 ? (
+                      <ul className="mt-3 space-y-1 rounded-xl bg-clay/40 px-3 py-2.5">
+                        {authorityCodes.map((code) => {
+                          const preset = HEALTH_AUTHORITY_PRESETS.find((p) => p.code === code);
+                          return (
+                            <li key={code} className="text-xs font-medium text-ink-secondary">
+                              <span className="font-bold text-forest">{code}</span>
+                              {preset ? ` — ${preset.name}` : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
+                    <Field
+                      className="mt-4"
+                      label="Custom authority"
+                      optional
+                      hint="Any board or association not listed above."
+                    >
+                      <Input
+                        value={customAuthority}
+                        onChange={(e) => {
+                          setCustomAuthority(e.target.value);
+                          markDirty();
+                        }}
+                        placeholder="Other board or association"
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </DashCard>
+
+              <DashCard
+                title="Languages Spoken"
+                description="Select the languages you and your consultation team speak fluently (e.g., English, Malayalam, Hindi, Tamil, Sanskrit)."
+              >
+                <div className="space-y-3">
+                  <p className="text-xs font-medium leading-relaxed text-ink-muted">
+                    Tap languages to toggle. Spoken languages are highlighted on your public practice directory profile for seekers worldwide.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {HEALTH_AUTHORITY_PRESETS.map((preset) => {
-                      const active = authorityCodes.includes(preset.code);
+                    {[
+                      "English",
+                      "Malayalam",
+                      "Hindi",
+                      "Tamil",
+                      "Sanskrit",
+                      "Telugu",
+                      "Kannada",
+                      "Gujarati",
+                      "Marathi",
+                      "Bengali",
+                      "German",
+                      "French",
+                      "Spanish",
+                      "Arabic",
+                    ].map((lang) => {
+                      const active = authorityCodes.includes(`LANG_${lang}`) || lang === "English" || lang === "Malayalam" || lang === "Hindi";
                       return (
                         <button
-                          key={preset.code}
+                          key={lang}
                           type="button"
-                          title={preset.name}
                           onClick={() => {
                             setAuthorityCodes((prev) =>
-                              active
-                                ? prev.filter((c) => c !== preset.code)
-                                : [...prev, preset.code],
+                              prev.includes(`LANG_${lang}`)
+                                ? prev.filter((c) => c !== `LANG_${lang}`)
+                                : [...prev, `LANG_${lang}`],
                             );
                             markDirty();
                           }}
-                          aria-pressed={active}
-                          className={`inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-full px-3.5 py-2 text-left text-sm font-semibold transition-colors ${
-                            active
-                              ? "bg-[var(--system-blue)] text-white shadow-sm"
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${active
+                              ? "bg-forest text-gold-soft shadow-sm ring-1 ring-gold/40"
                               : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-                          }`}
-                        >
-                          <span>{preset.code}</span>
-                          <span
-                            className={`text-[10px] font-bold uppercase tracking-wide ${
-                              active ? "text-white/80" : "text-ink-muted"
                             }`}
-                          >
-                            {preset.region}
-                          </span>
+                        >
+                          <span>🗣️</span>
+                          <span>{lang}</span>
                         </button>
                       );
                     })}
                   </div>
-                  {authorityCodes.length > 0 ? (
-                    <ul className="mt-3 space-y-1 rounded-xl bg-clay/40 px-3 py-2.5">
-                      {authorityCodes.map((code) => {
-                        const preset = HEALTH_AUTHORITY_PRESETS.find((p) => p.code === code);
-                        return (
-                          <li key={code} className="text-xs font-medium text-ink-secondary">
-                            <span className="font-bold text-forest">{code}</span>
-                            {preset ? ` — ${preset.name}` : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : null}
-                  <Field
-                    className="mt-4"
-                    label="Custom authority"
-                    optional
-                    hint="Any board or association not listed above."
-                  >
-                    <Input
-                      value={customAuthority}
-                      onChange={(e) => {
-                        setCustomAuthority(e.target.value);
-                        markDirty();
-                      }}
-                      placeholder="Other board or association"
-                    />
-                  </Field>
                 </div>
-              </div>
-            </DashCard>
-
-            <DashCard
-              title="Languages Spoken"
-              description="Select the languages you and your consultation team speak fluently (e.g., English, Malayalam, Hindi, Tamil, Sanskrit)."
-            >
-              <div className="space-y-3">
-                <p className="text-xs font-medium leading-relaxed text-ink-muted">
-                  Tap languages to toggle. Spoken languages are highlighted on your public practice directory profile for seekers worldwide.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "English",
-                    "Malayalam",
-                    "Hindi",
-                    "Tamil",
-                    "Sanskrit",
-                    "Telugu",
-                    "Kannada",
-                    "Gujarati",
-                    "Marathi",
-                    "Bengali",
-                    "German",
-                    "French",
-                    "Spanish",
-                    "Arabic",
-                  ].map((lang) => {
-                    const active = authorityCodes.includes(`LANG_${lang}`) || lang === "English" || lang === "Malayalam" || lang === "Hindi";
-                    return (
-                      <button
-                        key={lang}
-                        type="button"
-                        onClick={() => {
-                          setAuthorityCodes((prev) =>
-                            prev.includes(`LANG_${lang}`)
-                              ? prev.filter((c) => c !== `LANG_${lang}`)
-                              : [...prev, `LANG_${lang}`],
-                          );
-                          markDirty();
-                        }}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                          active
-                            ? "bg-forest text-gold-soft shadow-sm ring-1 ring-gold/40"
-                            : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-                        }`}
-                      >
-                        <span>🗣️</span>
-                        <span>{lang}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </DashCard>
+              </DashCard>
             </>
           ) : null}
 

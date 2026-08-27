@@ -22,13 +22,15 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-# Copy package config and install production-only dependencies
+# Prisma is a production dependency because startup runs controlled migrations.
+# `npm ci` therefore installs the exact lockfile-resolved CLI and engine version.
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy compiled code from builder
+# Copy compiled code and generated Prisma assets from builder
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/src/app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /usr/src/app/prisma ./prisma
 
 # Create a non-root user for security
@@ -42,7 +44,7 @@ EXPOSE 4000
 ENV NODE_ENV=production
 
 # Start application via entrypoint script
-COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
+COPY scripts/entrypoint.sh scripts/reset-launch-data.mjs ./scripts/
 RUN chmod +x ./scripts/entrypoint.sh
 
 # Docker healthcheck — ALB and ECS also run their own, but this catches

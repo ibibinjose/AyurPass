@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsIn,
   IsInt,
@@ -23,6 +24,9 @@ export const QUALITY_TARGET_TYPES = [
 ] as const;
 
 export type QualityTargetType = (typeof QUALITY_TARGET_TYPES)[number];
+
+export const FOLLOW_TARGET_TYPES = ['provider', 'professional'] as const;
+export type FollowTargetType = (typeof FOLLOW_TARGET_TYPES)[number];
 
 export const ABUSE_CATEGORIES = [
   'spam',
@@ -87,6 +91,19 @@ export class SetReactionDto {
   /** like | dislike | none (clear) */
   @IsIn(['like', 'dislike', 'none'])
   value: 'like' | 'dislike' | 'none';
+}
+
+export class SetFollowDto {
+  @IsIn(FOLLOW_TARGET_TYPES)
+  targetType: FollowTargetType;
+
+  @IsString()
+  @MaxLength(64)
+  targetId: string;
+
+  /** true saves the target; false removes it from the member's following list. */
+  @IsBoolean()
+  value: boolean;
 }
 
 export const FEEDBACK_STATUSES = ['open', 'reviewing', 'resolved', 'dismissed'] as const;

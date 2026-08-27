@@ -7,6 +7,7 @@ import type {
   AuthTokens,
   Booking,
   ClientConsent,
+  ClinicBillingSubscription,
   BookingCheckout,
   BookingStatus,
   BrandProfile,
@@ -55,8 +56,9 @@ import type {
   EventCategory,
 } from "./types";
 import { resolveMediaUrl } from "@/lib/media";
+import { API_URL } from "@/lib/env";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export { API_URL };
 
 export type UploadedImage = {
   url: string;
@@ -198,9 +200,9 @@ export class ApiError extends Error {
     this.code = code;
   }
 
-  /** True for 5xx or network failures. */
+  /** True for 5xx responses or failures before an HTTP response is received. */
   get isServerError(): boolean {
-    return this.status >= 500;
+    return this.status === 0 || this.status >= 500;
   }
 
   /** True when the user's session has expired (401 after refresh attempt). */
@@ -232,12 +234,18 @@ interface RequestOptions {
   _retried?: boolean;
 }
 
-let refreshInFlight: Promise<boolean> | null = null;
+type RefreshOutcome = "refreshed" | "rejected" | "unavailable";
 
-/** Attempt a single shared token refresh. Returns true when a new access token is stored. */
-async function tryRefreshAccessToken(): Promise<boolean> {
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+
+/**
+ * Attempt a single shared token refresh. A temporary network/API problem is
+ * deliberately distinct from a rejected refresh credential so callers do not
+ * convert an outage into a forced sign-out.
+ */
+async function tryRefreshAccessToken(): Promise<RefreshOutcome> {
   const refresh = tokenStore.refresh;
-  if (!refresh) return false;
+  if (!refresh) return "rejected";
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
@@ -247,10 +255,15 @@ async function tryRefreshAccessToken(): Promise<boolean> {
           _retried: true,
         });
         tokenStore.set(tokens);
-        return true;
-      } catch {
-        tokenStore.clear();
-        return false;
+        return "refreshed";
+      } catch (error) {
+        // A server/network issue must not erase a still-valid local session.
+        // Clear credentials only when the refresh credential itself was rejected.
+        if (error instanceof ApiError && [400, 401, 403].includes(error.status)) {
+          tokenStore.clear();
+          return "rejected";
+        }
+        return "unavailable";
       } finally {
         refreshInFlight = null;
       }
@@ -274,19 +287,27 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    // Network failure, CORS block, or offline
-    throw new ApiError(
-      "Unable to reach the server. Please check your connection and try again.",
-      0,
-      "NETWORK_ERROR",
-    );
+    // Network failure, CORS block, or offline. In local development, name the
+    // missing dependency explicitly so developers can recover without guessing.
+    const localApi = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?$/i.test(API_URL);
+    const message = localApi
+      ? "Unable to reach the local API. Start it with `npm start` or `npm run dev:api`, then try again."
+      : "Unable to reach the server. Please check your connection and try again.";
+    throw new ApiError(message, 0, "NETWORK_ERROR");
   }
 
   // Transparent access-token refresh for authenticated calls.
   if (res.status === 401 && auth && !_retried) {
-    const ok = await tryRefreshAccessToken();
-    if (ok) {
+    const refreshOutcome = await tryRefreshAccessToken();
+    if (refreshOutcome === "refreshed") {
       return request<T>(path, { ...options, _retried: true });
+    }
+    if (refreshOutcome === "unavailable") {
+      throw new ApiError(
+        "Unable to restore your saved session right now. Please check your connection and try again.",
+        0,
+        "SESSION_RESTORE_UNAVAILABLE",
+      );
     }
   }
 
@@ -534,6 +555,23 @@ export const api = {
     ),
   stripeConnectStatus: (providerId: string) =>
     request<StripeConnectStatus>(`/payments/connect/${providerId}/status`, { auth: true }),
+  clinicBillingStatus: (providerId: string) =>
+    request<ClinicBillingSubscription>(`/payments/billing/${providerId}`, { auth: true }),
+  clinicBillingCheckout: (
+    providerId: string,
+    data: { successUrl: string; cancelUrl: string },
+  ) =>
+    request<{ url: string; sessionId: string }>(`/payments/billing/${providerId}/checkout`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
+  clinicBillingPortal: (providerId: string, data: { returnUrl: string }) =>
+    request<{ url: string }>(`/payments/billing/${providerId}/portal`, {
+      method: "POST",
+      body: data,
+      auth: true,
+    }),
 
   // --- providers (business profile) ---
   providers: (params?: { q?: string; type?: ProviderType; city?: string; country?: string }) => {
@@ -977,6 +1015,18 @@ export const api = {
     targetId: string;
     value: "like" | "dislike" | "none";
   }) => request<QualitySummary>("/quality/reactions", { method: "PUT", body: data, auth: true }),
+  follows: () =>
+    request<{ targetType: "provider" | "professional"; targetId: string; createdAt: string }[]>(
+      "/quality/follows",
+      { auth: true },
+    ),
+  setFollow: (data: { targetType: "provider" | "professional"; targetId: string; value: boolean }) =>
+    request<{
+      following: boolean;
+      targetType: "provider" | "professional";
+      targetId: string;
+      follows: { targetType: "provider" | "professional"; targetId: string; createdAt: string }[];
+    }>("/quality/follows", { method: "PUT", body: data, auth: true }),
 
   /** Report abuse, send a product suggestion, or submit a business claim request. */
   submitFeedback: (data: {

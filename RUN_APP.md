@@ -22,19 +22,15 @@ packages/shared  Shared types, tokens, API contracts
 
 ## Quick Start (recommended)
 
-From the project root, with PostgreSQL + PostGIS running:
+From the project root, with Docker Compose installed:
 
 ```bash
-cp apps/api/.env.example apps/api/.env
-cp apps/dashboard/.env.example apps/dashboard/.env.local
-npm install
-npm run prisma:generate
-npm run prisma:migrate
-npm run seed:local    # demo seeker + practice owner (local DB only)
-npm start
+npm run dev:local
 ```
 
-This starts the API (http://localhost:4000) and the dashboard (http://localhost:3000). `Ctrl+C` stops both.
+This one command installs locked dependencies, creates missing local environment files, starts the PostGIS database, applies migrations, loads deterministic demo data, and starts the API (http://localhost:4000) and dashboard (http://localhost:3000). `Ctrl+C` stops the API and dashboard while leaving the database container running for a faster next start.
+
+To prepare the local environment without starting the servers, use `npm run setup:local`; then run `npm start` when you are ready. Add `-- --skip-seed` to the setup command when you need an empty migrated database.
 
 ### Local demo logins
 
@@ -69,14 +65,10 @@ Local device: point at your LAN IP API, not production, unless using a dedicated
 **Important:** PostgreSQL must have PostGIS extension installed. Use the PostGIS-enabled Docker image:
 
 ```bash
-docker run --name ayurpass-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=ayurpass_dev \
-  -p 5432:5432 \
-  -v ayurpass-db-data:/var/lib/postgresql/data \
-  -d postgis/postgis:15-3.4
+docker compose up -d db
 ```
+
+This starts PostGIS as `ayurpass-db` on **localhost:5433** (host 5433 maps to container 5432 so it does not clash with a local Homebrew Postgres).
 
 After setting up the database, run:
 ```bash
