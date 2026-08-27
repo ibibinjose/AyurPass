@@ -6,22 +6,22 @@
  */
 const colors = {
   /* Surfaces & Ink */
-  background: "#faf8f4",
+  background: "#f8f7f2",
   surface: "#ffffff",
-  foreground: "#1c1917",
-  inkSecondary: "#44403c",
-  inkMuted: "#78716c",
-  hairline: "#e7e5e4",
+  foreground: "#15251e",
+  inkSecondary: "#405048",
+  inkMuted: "#6d7872",
+  hairline: "#dfe4dc",
 
   /* Primary Brand: Sage Green */
-  sage: "#2d5a47",
-  sageDark: "#1a3a2e",
-  sageLight: "#3d7a5f",
+  sage: "#174b3a",
+  sageDark: "#0b2e23",
+  sageLight: "#31715a",
 
   /* Accent: Saffron / Amber */
-  saffron: "#c2722a",
-  saffronSoft: "#fef3e2",
-  saffronDeep: "#9a5a1f",
+  saffron: "#d38a20",
+  saffronSoft: "#fff4de",
+  saffronDeep: "#a85f00",
 
   /* Accent: Terracotta */
   terracotta: "#C2704C",
@@ -30,8 +30,8 @@ const colors = {
   terracottaDeep: "#A0583A",
 
   /* Neutrals: Sand */
-  sand: "#f5f0e8",
-  sandDark: "#e8e0d4",
+  sand: "#eef0e8",
+  sandDark: "#d8dfd5",
 
   /* Dosha Colors (refined) */
   vata: "#6366f1",
@@ -46,12 +46,12 @@ const colors = {
   systemRed: "#ff3b30",
 
   /* Backward-compatible aliases */
-  forest: "#2d5a47",
-  forestDeep: "#1a3a2e",
-  leaf: "#3d7a5f",
-  gold: "#c2722a",
-  goldSoft: "#fef3e2",
-  clay: "#f5f0e8",
+  forest: "#174b3a",
+  forestDeep: "#0b2e23",
+  leaf: "#31715a",
+  gold: "#d38a20",
+  goldSoft: "#fff4de",
+  clay: "#eef0e8",
 };
 
 const tailwindColors = {
