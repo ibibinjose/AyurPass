@@ -322,6 +322,15 @@ export default function SettingsPage() {
         avatarUrl: nextAvatar,
       });
       if (nextAvatar) setAvatarUrl(nextAvatar);
+
+      const providerId = user.provider?.id ?? professional?.providerId;
+      if (providerId) {
+        await api.updateProvider(providerId, {
+          brandProfile: {
+            coverImageUrl: coverImageUrl.trim() || null,
+          },
+        });
+      }
       if (professional?.id) {
         const h = normalizeHandle(handle);
         if (h && !isValidHandle(h)) {

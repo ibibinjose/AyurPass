@@ -129,6 +129,9 @@ export const metadata: Metadata = {
   publisher: SITE_NAME,
   referrer: "origin-when-cross-origin",
   category: "health",
+  verification: {
+    google: "v2jV524tdwGS1RZl4_feQ--4yR89wkALhsnI2UQoPdk",
+  },
   other: {
     "geo.region": "AU",
     "geo.placename": "Global",
