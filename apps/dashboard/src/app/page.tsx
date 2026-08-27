@@ -294,24 +294,21 @@ export default async function Home() {
                   <SearchDiscoverForm />
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center gap-3">
+                <p className="mt-5 text-xs font-semibold text-ink-secondary">
+                  Looking to personalize your results?{" "}
                   <Link
                     href="/register"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-forest-deep"
+                    className="text-forest underline underline-offset-2 hover:text-forest-deep"
                   >
-                    Find your wellness match
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
+                    Take the Prakriti Quiz
+                  </Link>{" "}
+                  · Are you a provider?{" "}
                   <Link
                     href="/list-your-business"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-hairline bg-surface px-5 py-2.5 text-sm font-semibold text-forest transition-colors hover:border-leaf"
+                    className="text-terracotta underline underline-offset-2 hover:text-terracotta-deep"
                   >
-                    List your practice free
+                    List your practice
                   </Link>
-                </div>
-
-                <p className="mt-4 text-xs font-medium text-ink-muted">
-                  No account needed to browse · Free for seekers · Free to list a practice
                 </p>
               </div>
 
@@ -473,21 +470,7 @@ export default async function Home() {
               ))}
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/wellness"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-hairline bg-surface px-5 py-2.5 text-sm font-semibold text-forest hover:border-leaf"
-              >
-                Wellness guide
-              </Link>
-              <Link
-                href="/discover"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-deep"
-              >
-                Open Discover
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-            </div>
+            {/* Clean footer spacing */}
           </div>
         </section>
 
@@ -540,19 +523,13 @@ export default async function Home() {
                   A few minutes maps three energy patterns (Vata, Pitta, Kapha) so listings and tips
                   can feel personal. Skip it anytime — browsing stays free.
                 </p>
-                <div className="mt-5 flex flex-wrap gap-3">
+                <div className="mt-5">
                   <Link
                     href="/register"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-deep"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-white hover:bg-forest-deep animate-pulse-slow"
                   >
                     Start free quiz
                     <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/dashboard/assessment"
-                    className="inline-flex min-h-11 items-center rounded-full border border-hairline px-5 py-2.5 text-sm font-semibold text-forest hover:border-leaf"
-                  >
-                    Already signed in?
                   </Link>
                 </div>
               </div>
