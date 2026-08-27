@@ -308,6 +308,8 @@ export function ProfileActionBar({
   shareText,
   onEnquire,
   bookHref,
+  onBook,
+  bookLabel,
   enquireDisabled,
   onOpenReviews,
   onSaveToPhone,
@@ -318,6 +320,10 @@ export function ProfileActionBar({
   shareText?: string;
   onEnquire: () => void;
   bookHref?: string | null;
+  /** Opens a local session selector when a profile has bookable services. */
+  onBook?: () => void;
+  /** Describes the next booking decision, such as "Choose a session". */
+  bookLabel?: string;
   enquireDisabled?: boolean;
   /** Jump to reviews / rate panel */
   onOpenReviews?: () => void;
@@ -352,7 +358,7 @@ export function ProfileActionBar({
   }
 
   // When there's nothing bookable, surface Enquire as the primary conversion action.
-  const enquirePrimary = !bookHref;
+  const enquirePrimary = !bookHref && !onBook;
 
   return (
     <div className="mt-4 space-y-2.5">
@@ -382,7 +388,12 @@ export function ProfileActionBar({
           <MailIcon className="h-4 w-4" />
           Enquire
         </button>
-        {bookHref ? (
+        {onBook ? (
+          <button type="button" onClick={onBook} className={actionPrimary}>
+            <CalendarIcon className="h-4 w-4" />
+            {bookLabel ?? "Choose a session"}
+          </button>
+        ) : bookHref ? (
           bookHref.startsWith("http") ? (
             <a
               href={bookHref}
@@ -391,12 +402,12 @@ export function ProfileActionBar({
               className={actionPrimary}
             >
               <CalendarIcon className="h-4 w-4" />
-              Book
+              {bookLabel ?? "Book"}
             </a>
           ) : (
             <Link href={bookHref} className={actionPrimary}>
               <CalendarIcon className="h-4 w-4" />
-              Book
+              {bookLabel ?? "Book"}
             </Link>
           )
         ) : null}

@@ -321,11 +321,8 @@ END:VCARD`;
   const rating = Number(professional.rating ?? 0);
   const years = professional.yearsExperience;
 
-  const bookHref = brand?.externalBookingUrl
-    ? brand.externalBookingUrl
-    : hasBookableServices
-      ? `/explore`
-      : null;
+  const bookHref = brand?.externalBookingUrl || null;
+  const handleChooseSession = () => setTab("services");
 
   return (
     <PageWrap
@@ -348,16 +345,24 @@ END:VCARD`;
                   rel="noreferrer"
                   className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
                 >
-                  Book
+                  Book online
                 </a>
               ) : (
                 <Link
                   href={bookHref}
                   className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
                 >
-                  Book
+                  Book online
                 </Link>
               )
+            ) : hasBookableServices ? (
+              <button
+                type="button"
+                onClick={handleChooseSession}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-hairline bg-surface px-4 text-sm font-semibold text-forest"
+              >
+                Choose a session
+              </button>
             ) : null}
           </div>
         ) : undefined
@@ -447,6 +452,8 @@ END:VCARD`;
               shareText={`${displayName} — ${title}`}
               onEnquire={() => setEnquireOpen(true)}
               bookHref={bookHref}
+              onBook={hasBookableServices && !bookHref ? handleChooseSession : undefined}
+              bookLabel={bookHref ? "Book online" : "Choose a session"}
               enquireDisabled={!provider}
               onOpenReviews={() => setTab("reviews")}
               onSaveToPhone={handleSaveToPhone}
@@ -644,7 +651,7 @@ END:VCARD`;
                         rel="noreferrer"
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
                       >
-                        Book
+                        Book online
                         <ExternalLinkIcon className="h-3.5 w-3.5" />
                       </a>
                     ) : (
@@ -652,9 +659,17 @@ END:VCARD`;
                         href={bookHref}
                         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
                       >
-                        Book sessions
+                        Book online
                       </Link>
                     )
+                  ) : hasBookableServices ? (
+                    <button
+                      type="button"
+                      onClick={handleChooseSession}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-hairline bg-surface text-sm font-semibold text-forest hover:border-leaf"
+                    >
+                      Choose a session
+                    </button>
                   ) : null}
                   {linkItems.length > 0 ? (
                     <button
