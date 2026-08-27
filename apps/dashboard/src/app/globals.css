@@ -33,6 +33,12 @@
   --terracotta-soft: #FDF0EB;
   --terracotta-deep: #A0583A;
 
+  /* Accent: Terracotta */
+  --terracotta: #C2704C;
+  --terracotta-light: #D4896A;
+  --terracotta-soft: #FDF0EB;
+  --terracotta-deep: #A0583A;
+
   /* Neutrals: Sand */
   --sand: #eef0e8;
   --sand-dark: #d8dfd5;

@@ -26,7 +26,7 @@ function TabBarIcon({
           borderRadius: 12,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: focused ? "rgba(23,75,58,0.12)" : "transparent",
+          backgroundColor: focused ? "rgba(194,112,76,0.10)" : "transparent",
         }}
       >
         <Ionicons

@@ -29,6 +29,12 @@ const colors = {
   terracottaSoft: "#FDF0EB",
   terracottaDeep: "#A0583A",
 
+  /* Accent: Terracotta */
+  terracotta: "#C2704C",
+  terracottaLight: "#D4896A",
+  terracottaSoft: "#FDF0EB",
+  terracottaDeep: "#A0583A",
+
   /* Neutrals: Sand */
   sand: "#eef0e8",
   sandDark: "#d8dfd5",
