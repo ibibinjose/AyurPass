@@ -25,6 +25,7 @@ import {
 import {
   CalendarIcon,
   CompassIcon,
+  CpuIcon,
   ExternalLinkIcon,
   FlameIcon,
   GiftIcon,
@@ -221,6 +222,14 @@ const PROVIDER_GROUPS: NavGroup[] = [
         exact: true,
         chip: true,
         hint: "Practice stats",
+      },
+      {
+        href: "/dashboard/centralink",
+        label: "CentraLink OS",
+        icon: CpuIcon,
+        exact: true,
+        chip: true,
+        hint: "Practice operating system",
       },
     ],
   },
@@ -492,6 +501,7 @@ const CAREERS_GROUPS: NavGroup[] = [
 
 const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
   { test: (p) => p === "/dashboard", title: "Overview" },
+  { test: (p) => p.startsWith("/dashboard/centralink"), title: "CentraLink OS" },
   { test: (p) => p.startsWith("/dashboard/bookings"), title: "Calendar & Bookings" },
   { test: (p) => p.startsWith("/dashboard/assessment"), title: "Dosha Profile" },
   { test: (p) => p.startsWith("/dashboard/concierge"), title: "AI Care Concierge" },

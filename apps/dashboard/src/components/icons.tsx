@@ -392,4 +392,23 @@ export function ClockIcon({ className }: IconProps) {
   );
 }
 
+export function CpuIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" />
+      <path d="M15 2v2M9 2v2M15 20v2M9 20v2M20 15h2M20 9h2M2 15h2M2 9h2" />
+    </svg>
+  );
+}
+
+export function ActivityIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  );
+}
+
+
 
