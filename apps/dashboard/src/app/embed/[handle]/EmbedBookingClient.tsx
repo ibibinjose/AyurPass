@@ -40,14 +40,62 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
 
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+  const addOnsList = useMemo(() => {
+    const fromClinic = services
+      .filter(
+        (s) =>
+          Boolean((s.doshaCompatibility as any)?.isAddOn) ||
+          s.name.toLowerCase().includes("add-on"),
+      )
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        durationMinutes: s.durationMinutes,
+        price: Number(s.price ?? 0),
+      }));
+
+    if (fromClinic.length > 0) return fromClinic;
+
+    return [
+      { id: "emb-addon-1", name: "Shiro-Abhyanga Head Massage", durationMinutes: 15, price: 35 },
+      { id: "emb-addon-2", name: "Mukha Abhyanga Face Massage", durationMinutes: 15, price: 40 },
+      { id: "emb-addon-3", name: "Pada Abhyanga Foot Massage", durationMinutes: 15, price: 40 },
+      { id: "emb-addon-4", name: "Swedana Herbal Steam Chamber", durationMinutes: 20, price: 30 },
+    ];
+  }, [services]);
+
+  const selectedAddOns = useMemo(
+    () => addOnsList.filter((a) => selectedAddOnIds.includes(a.id)),
+    [addOnsList, selectedAddOnIds],
+  );
+  const addOnsDuration = useMemo(
+    () => selectedAddOns.reduce((acc, a) => acc + a.durationMinutes, 0),
+    [selectedAddOns],
+  );
+  const addOnsPrice = useMemo(
+    () => selectedAddOns.reduce((acc, a) => acc + a.price, 0),
+    [selectedAddOns],
+  );
+
+  const totalDuration = (selectedService?.durationMinutes ?? 60) + addOnsDuration;
+  const totalPrice = Number(selectedService?.price ?? 0) + addOnsPrice;
+
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOnIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+    setSelectedSlot(null);
+  };
+
   const selectedDay = days.find((d) => d.iso === dayIso) ?? days[0];
   const bufferMinutes = Number((selectedService?.doshaCompatibility as any)?.bufferMinutes) || 0;
   const slots = useMemo(
     () =>
       selectedService
-        ? slotsForDay(selectedDay.date, selectedService.durationMinutes, bufferMinutes)
+        ? slotsForDay(selectedDay.date, totalDuration, bufferMinutes)
         : [],
-    [selectedService, selectedDay, bufferMinutes],
+    [selectedService, selectedDay, totalDuration, bufferMinutes],
   );
 
   async function handleBook(e: React.FormEvent) {
@@ -64,7 +112,12 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
     setBusy(true);
     setError(null);
 
-    const end = new Date(selectedSlot.start.getTime() + selectedService.durationMinutes * 60_000);
+    const end = new Date(selectedSlot.start.getTime() + totalDuration * 60_000);
+    const addOnNote =
+      selectedAddOns.length > 0
+        ? ` [Add-Ons Selected: ${selectedAddOns.map((a) => `${a.name} (+${a.durationMinutes}m, $${a.price})`).join("; ")}]`
+        : "";
+    const finalNotes = (notes.trim() + addOnNote).trim();
 
     try {
       // Find or register client on backend, or proceed with guest booking
@@ -96,7 +149,7 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
         startTime: selectedSlot.start.toISOString(),
         endTime: end.toISOString(),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        notes: [notes.trim(), phone.trim() ? `Phone: ${phone.trim()}` : ""].filter(Boolean).join("\n"),
+        notes: [finalNotes, phone.trim() ? `Phone: ${phone.trim()}` : ""].filter(Boolean).join("\n"),
         contactPhone: phone.trim() || undefined,
         status: "CONFIRMED",
       });
@@ -327,10 +380,59 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
 
         {/* Step 2: Choose Date & Time */}
         {selectedService && (
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
-              2. Choose Date &amp; Time
-            </label>
+          <div className="space-y-4">
+            {/* Treatment Add-Ons Selector */}
+            <div className="rounded-2xl border border-gold/30 bg-gold/5 p-3.5 sm:p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-forest flex items-center gap-1.5">
+                  <span>🌿</span> Enhance Your Session (Add-On Therapies)
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-forest bg-gold/20 px-2 py-0.5 rounded">
+                  Add-on
+                </span>
+              </div>
+              <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
+                {addOnsList.map((addon) => {
+                  const selected = selectedAddOnIds.includes(addon.id);
+                  return (
+                    <button
+                      key={addon.id}
+                      type="button"
+                      onClick={() => toggleAddOn(addon.id)}
+                      className={`flex items-center justify-between rounded-xl border p-2.5 text-left transition-colors ${
+                        selected
+                          ? "border-forest bg-forest/10 ring-1 ring-forest"
+                          : "border-hairline bg-surface hover:border-gold"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 pr-1">
+                        <span
+                          className={`h-4 w-4 rounded border flex items-center justify-center text-[9px] ${
+                            selected
+                              ? "bg-forest border-forest text-white font-bold"
+                              : "border-hairline bg-surface"
+                          }`}
+                        >
+                          {selected ? "✓" : ""}
+                        </span>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground line-clamp-1">{addon.name}</p>
+                          <p className="text-[10px] text-ink-muted">+{addon.durationMinutes}m</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-forest shrink-0">
+                        +{formatMoney(addon.price, selectedService.currency)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+                2. Choose Date &amp; Time
+              </label>
 
             {/* Date Carousel */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -387,6 +489,7 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
               )}
             </div>
           </div>
+        </div>
         )}
 
         {/* Step 3: Your Information */}
@@ -435,6 +538,23 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
         )}
 
         <ErrorNote message={error} />
+
+        {selectedService && selectedSlot && (
+          <div className="rounded-xl bg-clay/50 p-3 text-xs flex justify-between items-center text-foreground border border-hairline">
+            <div>
+              <span className="font-bold">{selectedService.name}</span>
+              {selectedAddOns.length > 0 && (
+                <span className="text-ink-muted font-medium"> (+{selectedAddOns.length} add-on{selectedAddOns.length > 1 ? "s" : ""})</span>
+              )}
+              <div className="text-[11px] text-ink-muted mt-0.5">
+                {totalDuration} min · {selectedSlot.label}
+              </div>
+            </div>
+            <span className="text-sm font-bold text-forest">
+              {formatMoney(totalPrice, selectedService.currency)}
+            </span>
+          </div>
+        )}
 
         {/* Submit */}
         <div className="pt-2">

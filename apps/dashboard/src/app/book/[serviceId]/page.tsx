@@ -72,11 +72,100 @@ export default function BookServicePage() {
       .catch(() => setService(null));
   }, [serviceId]);
 
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+  const [practiceServices, setPracticeServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    if (!service?.providerId) return;
+    api
+      .servicesByProvider(service.providerId)
+      .then((list) => {
+        setPracticeServices(list.filter((s) => s.id !== service.id));
+      })
+      .catch(() => {});
+  }, [service?.providerId, service?.id]);
+
+  // Practice-created add-ons or classical Ayurvedic add-on therapies
+  const addOnOptions = useMemo(() => {
+    const fromClinic = practiceServices
+      .filter(
+        (s) =>
+          Boolean((s.doshaCompatibility as any)?.isAddOn) ||
+          s.name.toLowerCase().includes("add-on"),
+      )
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        durationMinutes: s.durationMinutes,
+        price: Number(s.price ?? 0),
+        currency: s.currency,
+      }));
+
+    if (fromClinic.length > 0) return fromClinic;
+
+    // Authentic fallback Ayurvedic add-ons (inspired by Fresha Ayur Healthcare clinic)
+    return [
+      {
+        id: "addon-shiro",
+        name: "Shiro-Abhyanga (Warm Herbal Head Massage)",
+        durationMinutes: 15,
+        price: 35,
+        currency: service?.currency || "AUD",
+      },
+      {
+        id: "addon-mukha",
+        name: "Mukha Abhyanga (Ayurvedic Facial Marma)",
+        durationMinutes: 15,
+        price: 40,
+        currency: service?.currency || "AUD",
+      },
+      {
+        id: "addon-pada",
+        name: "Pada Abhyanga (Medicated Foot & Calf Massage)",
+        durationMinutes: 15,
+        price: 40,
+        currency: service?.currency || "AUD",
+      },
+      {
+        id: "addon-steam",
+        name: "Swedana Herbal Steam Chamber",
+        durationMinutes: 20,
+        price: 30,
+        currency: service?.currency || "AUD",
+      },
+    ];
+  }, [practiceServices, service?.currency]);
+
+  const selectedAddOns = useMemo(
+    () => addOnOptions.filter((a) => selectedAddOnIds.includes(a.id)),
+    [addOnOptions, selectedAddOnIds],
+  );
+
+  const addOnsDuration = useMemo(
+    () => selectedAddOns.reduce((acc, a) => acc + a.durationMinutes, 0),
+    [selectedAddOns],
+  );
+
+  const addOnsPrice = useMemo(
+    () => selectedAddOns.reduce((acc, a) => acc + a.price, 0),
+    [selectedAddOns],
+  );
+
+  const totalDuration = (service?.durationMinutes ?? 60) + addOnsDuration;
+  const totalPrice = Number(service?.price ?? 0) + addOnsPrice;
+
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOnIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+    setSlot(null);
+  };
+
   const selectedDay = days.find((d) => d.iso === dayIso) ?? days[0];
   const bufferMinutes = Number((service?.doshaCompatibility as any)?.bufferMinutes) || 0;
   const slots = useMemo(
-    () => (service ? slotsForDay(selectedDay.date, service.durationMinutes, bufferMinutes) : []),
-    [service, selectedDay, bufferMinutes],
+    () => (service ? slotsForDay(selectedDay.date, totalDuration, bufferMinutes) : []),
+    [service, selectedDay, totalDuration, bufferMinutes],
   );
 
   const [prevDayIso, setPrevDayIso] = useState(dayIso);
@@ -94,7 +183,13 @@ export default function BookServicePage() {
     setBusy(true);
     setError(null);
     const contactPhone = formatInternationalPhone(phoneDial, phoneNational);
-    const end = new Date(slot.start.getTime() + service.durationMinutes * 60_000);
+    const end = new Date(slot.start.getTime() + totalDuration * 60_000);
+    const addOnNote =
+      selectedAddOns.length > 0
+        ? ` [Add-Ons Selected: ${selectedAddOns.map((a) => `${a.name} (+${a.durationMinutes}m, $${a.price})`).join("; ")}]`
+        : "";
+    const finalNotes = (notes.trim() + addOnNote).trim();
+
     try {
       const booking = await api.createBooking({
         consumerId: user.id,
@@ -104,7 +199,7 @@ export default function BookServicePage() {
         startTime: slot.start.toISOString(),
         endTime: end.toISOString(),
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        notes: notes.trim() || undefined,
+        notes: finalNotes || undefined,
         contactPhone,
       });
       void refreshProfile?.();
@@ -340,6 +435,62 @@ export default function BookServicePage() {
             </p>
           )}
 
+          {/* Therapeutic Add-Ons Selector */}
+          <div className="mt-8 rounded-2xl border border-gold/30 bg-gold/5 p-4 sm:p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-forest flex items-center gap-1.5">
+                  <span>🌿</span> Enhance Your Session (Recommended Add-Ons)
+                </h3>
+                <p className="text-xs text-ink-muted mt-0.5">
+                  Combine targeted restorative therapies with your {service.name}.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-forest bg-gold/20 px-2 py-0.5 rounded">
+                Add-on Therapy
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+              {addOnOptions.map((addon) => {
+                const selected = selectedAddOnIds.includes(addon.id);
+                return (
+                  <button
+                    key={addon.id}
+                    type="button"
+                    onClick={() => toggleAddOn(addon.id)}
+                    className={`flex items-start justify-between rounded-xl border p-3 text-left transition-colors ${
+                      selected
+                        ? "border-forest bg-forest/10 ring-1 ring-forest"
+                        : "border-hairline bg-surface hover:border-gold"
+                    }`}
+                  >
+                    <div className="pr-2">
+                      <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <span
+                          className={`h-4 w-4 rounded border flex items-center justify-center text-[10px] ${
+                            selected
+                              ? "bg-forest border-forest text-white font-bold"
+                              : "border-hairline bg-surface"
+                          }`}
+                        >
+                          {selected ? "✓" : ""}
+                        </span>
+                        {addon.name}
+                      </p>
+                      <p className="text-[11px] text-ink-muted mt-0.5 ml-5">
+                        +{formatDuration(addon.durationMinutes)}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-forest shrink-0">
+                      +{formatMoney(addon.price, service.currency)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <h2 className="mt-8 text-sm font-semibold uppercase tracking-wider text-ink-muted">
             Choose a day
           </h2>
@@ -452,10 +603,20 @@ export default function BookServicePage() {
               <dt className="text-ink-muted">Session</dt>
               <dd className="text-right font-medium text-foreground">{service.name}</dd>
             </div>
+            {selectedAddOns.map((addon) => (
+              <div key={addon.id} className="flex justify-between gap-3 text-xs bg-gold/10 p-2 rounded-lg">
+                <dt className="text-forest font-semibold flex items-center gap-1">
+                  <span>+</span> {addon.name}
+                </dt>
+                <dd className="font-bold text-forest whitespace-nowrap">
+                  +{formatMoney(addon.price, service.currency)}
+                </dd>
+              </div>
+            ))}
             <div className="flex justify-between gap-3">
-              <dt className="text-ink-muted">Duration</dt>
+              <dt className="text-ink-muted">Total Duration</dt>
               <dd className="font-medium text-foreground">
-                {formatDuration(service.durationMinutes)}
+                {formatDuration(totalDuration)}
               </dd>
             </div>
             <div className="flex justify-between gap-3">
@@ -469,7 +630,7 @@ export default function BookServicePage() {
             <div className="flex justify-between gap-3 border-t border-hairline pt-3">
               <dt className="text-ink-muted">Total</dt>
               <dd className="text-lg font-semibold text-foreground">
-                {formatMoney(service.price, service.currency)}
+                {formatMoney(totalPrice, service.currency)}
               </dd>
             </div>
           </dl>

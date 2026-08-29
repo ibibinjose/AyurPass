@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/media";
 import { trackRecentView } from "@/hooks/useRecentViews";
 import { formatAddress, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import { practiceBioPath, practicePath, practitionerPath } from "@/lib/paths";
+import { centerPublicPath, practiceBioPath, practicePath, practitionerPath } from "@/lib/paths";
 import { SITE_URL } from "@/lib/seo";
 import type {
   Product,
@@ -869,19 +869,33 @@ END:VCARD`;
                 </div>
               ) : null}
 
-              <div className="rounded-2xl border border-dashed border-hairline bg-clay/15 px-4 py-3.5">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
-                  Link-in-bio
+              <div className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">
+                    Permanent Center Link
+                  </p>
+                  <span className="text-[10px] font-bold uppercase text-forest bg-forest/10 px-1.5 py-0.5 rounded">
+                    SEO Canonical
+                  </span>
+                </div>
+                <p className="mt-1 text-xs font-mono text-forest font-semibold truncate">
+                  {centerPublicPath(provider)}
                 </p>
-                <p className="mt-1 text-xs font-medium leading-relaxed text-ink-secondary">
-                  Share a clean page for Instagram, TikTok and other bios.
-                </p>
-                <Link
-                  href={practiceBioPath(provider)}
-                  className="mt-2.5 inline-flex text-sm font-bold text-forest hover:underline"
-                >
-                  Open link-in-bio →
-                </Link>
+                <div className="mt-2.5 flex items-center gap-3">
+                  <Link
+                    href={centerPublicPath(provider)}
+                    className="text-xs font-bold text-forest hover:underline"
+                  >
+                    View Center Page →
+                  </Link>
+                  <span className="text-ink-muted text-xs">·</span>
+                  <Link
+                    href={practiceBioPath(provider)}
+                    className="text-xs font-medium text-ink-secondary hover:text-forest"
+                  >
+                    Link-in-bio
+                  </Link>
+                </div>
               </div>
 
               {!verified ? (

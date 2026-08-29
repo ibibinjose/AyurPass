@@ -61,3 +61,31 @@ export function namespacedHandlePath(namespace: string, handle: string): string 
 export function isValidNamespace(ns: string): ns is HandleNamespace {
   return isHandleNamespace(ns);
 }
+
+/**
+ * Canonical SEO path for a wellness center with Category and Hex-ID:
+ * e.g. /ayurveda/ayur-healthcare-parramatta-1a2b3c4d
+ */
+export function centerPublicPath(provider: {
+  id: string;
+  slug?: string | null;
+  type?: string | null;
+}): string {
+  const category = (provider.type?.toLowerCase() || "ayurveda").replace(/_/g, "-");
+  const hex = provider.id.replace(/-/g, "").slice(0, 8);
+  const baseSlug = provider.slug || "center";
+  return `/${category}/${baseSlug}-${hex}`;
+}
+
+/**
+ * Short Fresha-style path: /a/:slug-:hexId
+ */
+export function centerShortPath(provider: {
+  id: string;
+  slug?: string | null;
+}): string {
+  const hex = provider.id.replace(/-/g, "").slice(0, 8);
+  const baseSlug = provider.slug || "center";
+  return `/a/${baseSlug}-${hex}`;
+}
+

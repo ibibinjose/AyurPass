@@ -291,13 +291,30 @@ export class ProvidersService {
     });
   }
 
-  /** Public practice profile — /practice/:slug */
+  /** Public practice profile — /practice/:slug or /[category]/:slug-:hexId */
   async findBySlug(slug: string) {
     const normalized = slug.trim().toLowerCase();
-    const provider = await this.prisma.provider.findFirst({
+    let provider = await this.prisma.provider.findFirst({
       where: { slug: normalized },
       include: { _count: PUBLIC_COUNTS },
     });
+
+    if (!provider && normalized.includes('-')) {
+      const lastDash = normalized.lastIndexOf('-');
+      const baseSlug = normalized.slice(0, lastDash);
+      const suffix = normalized.slice(lastDash + 1);
+
+      provider = await this.prisma.provider.findFirst({
+        where: {
+          OR: [
+            { slug: baseSlug },
+            { id: { startsWith: suffix } },
+          ],
+        },
+        include: { _count: PUBLIC_COUNTS },
+      });
+    }
+
     if (!provider) throw new NotFoundException('Practice not found');
     return provider;
   }

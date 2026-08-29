@@ -50,6 +50,7 @@ interface FormState {
   maxParticipants: string;
   professionalId: string;
   imageUrl: string;
+  isAddOn: boolean;
 }
 
 const BLANK: FormState = {
@@ -60,6 +61,7 @@ const BLANK: FormState = {
   bufferMinutes: "15",
   price: "",
   isVirtual: false,
+  isAddOn: false,
   maxParticipants: "1",
   professionalId: "",
   imageUrl: "",
@@ -102,6 +104,7 @@ export default function ProviderServicesPage() {
     const doshaCompatibility = {
       ...(existing && typeof existing === "object" ? existing : {}),
       bufferMinutes: Number(form.bufferMinutes) || 0,
+      isAddOn: form.isAddOn,
     };
     const payload = {
       name: form.name.trim(),
@@ -344,15 +347,26 @@ export default function ProviderServicesPage() {
                 ))}
               </Select>
             </Field>
-            <label className="flex items-center gap-2.5 text-sm font-medium text-foreground">
-              <input
-                type="checkbox"
-                checked={form.isVirtual}
-                onChange={(e) => setForm({ ...form, isVirtual: e.target.checked })}
-                className="h-4 w-4 accent-(--forest)"
-              />
-              Virtual session (video)
-            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex items-center gap-2.5 text-sm font-medium text-foreground">
+                <input
+                  type="checkbox"
+                  checked={form.isVirtual}
+                  onChange={(e) => setForm({ ...form, isVirtual: e.target.checked })}
+                  className="h-4 w-4 accent-(--forest)"
+                />
+                Virtual session (video)
+              </label>
+              <label className="flex items-center gap-2.5 text-sm font-medium text-foreground">
+                <input
+                  type="checkbox"
+                  checked={form.isAddOn}
+                  onChange={(e) => setForm({ ...form, isAddOn: e.target.checked })}
+                  className="h-4 w-4 accent-(--forest)"
+                />
+                Available as Add-On with other sessions
+              </label>
+            </div>
             <MediaField
               label="Session image"
               shape="rect"
@@ -441,6 +455,11 @@ export default function ProviderServicesPage() {
                       Virtual
                     </span>
                   ) : null}
+                  {(s.doshaCompatibility as any)?.isAddOn ? (
+                    <span className="rounded-full bg-gold/15 border border-gold/30 px-2 py-0.5 text-[10px] font-bold text-forest-deep">
+                      🌿 Add-On
+                    </span>
+                  ) : null}
                 </div>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
                   {s.durationMinutes} min
@@ -478,6 +497,7 @@ export default function ProviderServicesPage() {
                       bufferMinutes: String((s.doshaCompatibility as any)?.bufferMinutes ?? "15"),
                       price: String(Number(s.price)),
                       isVirtual: s.isVirtual,
+                      isAddOn: Boolean((s.doshaCompatibility as any)?.isAddOn),
                       maxParticipants: String(s.maxParticipants),
                       professionalId: s.professionalId ?? "",
                       imageUrl: s.imageUrl ?? "",
