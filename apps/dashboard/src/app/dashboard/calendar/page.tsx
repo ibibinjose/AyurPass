@@ -750,6 +750,97 @@ export default function CalendarPage() {
                 </div>
               </div>
 
+              {selected.service?.isVirtual ? (
+                <div className="rounded-xl border border-leaf/30 bg-leaf/10 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-forest">
+                      📹 Telehealth Consultation Room
+                    </span>
+                    <span className="rounded-full bg-forest text-white px-2 py-0.5 text-[10px] font-bold">
+                      Virtual Session
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink-secondary">
+                    Patient consultation room ready. Click below to launch video conference with the client.
+                  </p>
+                  <a
+                    href={`https://meet.ayurpass.com/room/${selected.id.slice(0, 12)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full rounded-xl bg-forest py-2.5 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+                  >
+                    Start Telehealth Call →
+                  </a>
+                </div>
+              ) : null}
+
+              {selected.service?.maxParticipants && selected.service.maxParticipants > 1 ? (
+                <div className="rounded-xl border border-hairline bg-surface-raised/40 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-forest">
+                      Class Roster (
+                      {
+                        bookings.filter(
+                          (b) =>
+                            b.serviceId === selected.serviceId &&
+                            b.startTime === selected.startTime &&
+                            b.status !== "CANCELLED",
+                        ).length
+                      }{" "}
+                      / {selected.service.maxParticipants} spots)
+                    </span>
+                    <span className="rounded-full bg-forest/10 px-2 py-0.5 text-[10px] font-bold text-forest">
+                      Group Workshop
+                    </span>
+                  </div>
+                  <div className="divide-y divide-hairline">
+                    {bookings
+                      .filter(
+                        (b) =>
+                          b.serviceId === selected.serviceId &&
+                          b.startTime === selected.startTime &&
+                          b.status !== "CANCELLED",
+                      )
+                      .map((att) => (
+                        <div key={att.id} className="py-2 flex items-center justify-between text-xs">
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {att.consumer?.user?.fullName || att.consumer?.user?.email || "Attendee"}
+                            </p>
+                            <p className="text-[11px] text-ink-muted">
+                              {att.consumer?.user?.email ?? att.contactPhone ?? "Registered"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                att.status === "COMPLETED"
+                                  ? "bg-forest text-white"
+                                  : "bg-clay text-forest"
+                              }`}
+                            >
+                              {att.status === "COMPLETED" ? "Checked In" : att.status}
+                            </span>
+                            {att.status !== "COMPLETED" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void api
+                                    .updateBooking(att.id, { status: "COMPLETED" })
+                                    .then(reload);
+                                }}
+                                className="text-[11px] font-semibold text-forest hover:underline"
+                              >
+                                Check in
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Date">
                   <Input
@@ -974,10 +1065,15 @@ function EventBlock({
       } ${selected?.id === b.id ? "ring-2 ring-gold z-10" : ""}`}
       style={style}
     >
-      <span className="block truncate font-semibold">{b.service?.name ?? "Session"}</span>
+      <span className="block truncate font-semibold">
+        {b.service?.maxParticipants && b.service.maxParticipants > 1 ? "🧘 " : ""}
+        {b.service?.name ?? "Session"}
+      </span>
       {!compact ? (
         <span className="block truncate opacity-85">
-          {b.consumer?.user?.fullName ?? "Client"}
+          {b.service?.maxParticipants && b.service.maxParticipants > 1
+            ? `Class (${b.consumer?.user?.fullName ?? "Attendee"})`
+            : (b.consumer?.user?.fullName ?? "Client")}
           {b.professional?.user?.fullName ? ` · ${b.professional.user.fullName}` : ""}
           {b.room?.name ? ` · ${b.room.name}` : ""}
         </span>

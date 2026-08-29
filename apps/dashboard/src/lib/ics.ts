@@ -8,11 +8,20 @@ function esc(text: string): string {
   return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
+export function getBookingVideoUrl(booking: Booking): string | null {
+  if (!booking.service?.isVirtual) return null;
+  return `https://meet.ayurpass.com/room/${booking.id.slice(0, 12)}`;
+}
+
 /** Build an RFC 5545 calendar event for a booking and trigger a download. */
 export function downloadBookingIcs(booking: Booking) {
   const title = booking.service?.name ?? "Wellness session";
-  const location = booking.provider?.businessName ?? "AyurPass";
+  const videoUrl = getBookingVideoUrl(booking);
+  const location = videoUrl
+    ? `Virtual Video Call (${videoUrl})`
+    : (booking.provider?.businessName ?? "AyurPass");
   const description = [
+    videoUrl && `📹 Telehealth Video Room: ${videoUrl}`,
     booking.professional?.user?.fullName && `Practitioner: ${booking.professional.user.fullName}`,
     booking.room?.name && `Room: ${booking.room.name}`,
     booking.notes && `Notes: ${booking.notes}`,
@@ -49,8 +58,12 @@ export function downloadBookingIcs(booking: Booking) {
 /** Build a Google Calendar template URL for a booking. */
 export function getGoogleCalendarUrl(booking: Booking): string {
   const title = booking.service?.name ?? "Wellness session";
-  const location = booking.provider?.businessName ?? "AyurPass";
+  const videoUrl = getBookingVideoUrl(booking);
+  const location = videoUrl
+    ? `Virtual Video Call (${videoUrl})`
+    : (booking.provider?.businessName ?? "AyurPass");
   const description = [
+    videoUrl && `📹 Telehealth Video Room: ${videoUrl}`,
     booking.professional?.user?.fullName && `Practitioner: ${booking.professional.user.fullName}`,
     booking.room?.name && `Room: ${booking.room.name}`,
     booking.notes && `Notes: ${booking.notes}`,

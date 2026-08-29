@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api, ApiError, formatMoney } from "@/lib/api";
-import { downloadBookingIcs } from "@/lib/ics";
+import { downloadBookingIcs, getBookingVideoUrl } from "@/lib/ics";
 import { practicePath } from "@/lib/paths";
+import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, EventTicket, PaymentCheckout, ServiceCategory } from "@/lib/types";
 import { BookingStatusBadge } from "@/components/BookingStatusBadge";
 import { PaymentBadge } from "@/components/PaymentBadge";
@@ -130,6 +131,26 @@ export default function BookingsPage() {
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
+  const [reschedulingBooking, setReschedulingBooking] = useState<Booking | null>(null);
+  const rescheduleDays = useMemo(() => nextDays(14), []);
+  const [rescheduleDayIso, setRescheduleDayIso] = useState(rescheduleDays[0].iso);
+  const [rescheduleSlot, setRescheduleSlot] = useState<SlotOption | null>(null);
+  const [rescheduleBusy, setRescheduleBusy] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+
+  const selectedRescheduleDay =
+    rescheduleDays.find((d) => d.iso === rescheduleDayIso) ?? rescheduleDays[0];
+  const rescheduleDuration = reschedulingBooking?.service?.durationMinutes ?? 60;
+  const rescheduleBuffer =
+    Number((reschedulingBooking?.service?.doshaCompatibility as Record<string, unknown>)?.bufferMinutes) || 0;
+  const rescheduleSlots = useMemo(
+    () =>
+      reschedulingBooking
+        ? slotsForDay(selectedRescheduleDay.date, rescheduleDuration, rescheduleBuffer)
+        : [],
+    [reschedulingBooking, selectedRescheduleDay, rescheduleDuration, rescheduleBuffer],
+  );
+
   useEffect(() => {
     if (!user) return;
     api
@@ -249,7 +270,13 @@ export default function BookingsPage() {
   }, [filtered]);
 
   async function cancel(b: Booking) {
-    if (!window.confirm(`Cancel “${b.service?.name ?? "this session"}”?`)) return;
+    const hoursToStart = (new Date(b.startTime).getTime() - Date.now()) / 3_600_000;
+    const policyPrompt =
+      hoursToStart < 24
+        ? `⚠️ Cancellation Policy Notice:\nThis session is in less than 24 hours (${Math.max(1, Math.round(hoursToStart))}h away).\n\nLate cancellations are subject to the clinic's policy and non-refundable deposit terms.\n\nProceed to cancel “${b.service?.name ?? "this session"}”?`
+        : `Cancel “${b.service?.name ?? "this session"}”? Free cancellation is available up to 24 hours prior.`;
+
+    if (!window.confirm(policyPrompt)) return;
     setCancelling(b.id);
     setError(null);
     try {
@@ -267,6 +294,55 @@ export default function BookingsPage() {
       );
     } finally {
       setCancelling(null);
+    }
+  }
+
+  function startReschedule(b: Booking) {
+    setReschedulingBooking(b);
+    setRescheduleDayIso(rescheduleDays[0].iso);
+    setRescheduleSlot(null);
+    setRescheduleError(null);
+  }
+
+  async function submitReschedule() {
+    if (!reschedulingBooking || !rescheduleSlot) return;
+    setRescheduleBusy(true);
+    setRescheduleError(null);
+    const durationMs =
+      new Date(reschedulingBooking.endTime).getTime() -
+        new Date(reschedulingBooking.startTime).getTime() ||
+      rescheduleDuration * 60_000;
+    const newStart = rescheduleSlot.start;
+    const newEnd = new Date(newStart.getTime() + durationMs);
+    try {
+      await api.updateBooking(reschedulingBooking.id, {
+        startTime: newStart.toISOString(),
+        endTime: newEnd.toISOString(),
+        status: "CONFIRMED",
+      });
+      reload();
+      if (
+        inspectedItem?.kind === "booking" &&
+        inspectedItem.booking.id === reschedulingBooking.id
+      ) {
+        setInspectedItem({
+          ...inspectedItem,
+          booking: {
+            ...inspectedItem.booking,
+            startTime: newStart.toISOString(),
+            endTime: newEnd.toISOString(),
+            status: "CONFIRMED",
+          },
+        });
+      }
+      setReschedulingBooking(null);
+      setRescheduleSlot(null);
+    } catch (err) {
+      setRescheduleError(
+        err instanceof Error ? err.message : "Could not reschedule to this time.",
+      );
+    } finally {
+      setRescheduleBusy(false);
     }
   }
 
@@ -782,6 +858,7 @@ export default function BookingsPage() {
                       cancelling={cancelling}
                       onPay={() => void startPay(item.booking)}
                       onCancel={() => void cancel(item.booking)}
+                      onReschedule={() => startReschedule(item.booking)}
                       onInspect={() => setInspectedItem(item)}
                     />
                   ) : (
@@ -1004,6 +1081,7 @@ export default function BookingsPage() {
                     cancelling={cancelling}
                     onPay={() => void startPay(item.booking)}
                     onCancel={() => void cancel(item.booking)}
+                    onReschedule={() => startReschedule(item.booking)}
                     onInspect={() => setInspectedItem(item)}
                   />
                 </li>
@@ -1083,6 +1161,31 @@ export default function BookingsPage() {
                   </div>
                 ) : null}
 
+                {inspectedItem.booking.service?.isVirtual &&
+                inspectedItem.booking.status !== "CANCELLED" ? (
+                  <div className="rounded-2xl border border-leaf/30 bg-leaf/10 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-forest">
+                        📹 Telehealth Consultation Room
+                      </span>
+                      <span className="rounded-full bg-forest text-white px-2 py-0.5 text-[10px] font-bold">
+                        Virtual Room
+                      </span>
+                    </div>
+                    <p className="text-xs text-ink-secondary">
+                      Your session is conducted via private, end-to-end encrypted video. Click below to launch your call.
+                    </p>
+                    <a
+                      href={getBookingVideoUrl(inspectedItem.booking) ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full rounded-xl bg-forest py-2.5 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+                    >
+                      Join Video Consultation →
+                    </a>
+                  </div>
+                ) : null}
+
                 <div className="pt-3 flex flex-wrap gap-2 justify-end">
                   {inspectedItem.booking.paymentStatus === "unpaid" &&
                   inspectedItem.booking.status !== "CANCELLED" ? (
@@ -1095,13 +1198,22 @@ export default function BookingsPage() {
                     </button>
                   ) : null}
                   {isCancellable(inspectedItem.booking) ? (
-                    <button
-                      type="button"
-                      onClick={() => void cancel(inspectedItem.booking)}
-                      className="profile-spring rounded-full border border-hairline bg-surface px-4 py-2 text-xs font-bold text-ink-secondary hover:border-red-300 hover:bg-red-50 hover:text-red-700"
-                    >
-                      Cancel Booking
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => startReschedule(inspectedItem.booking)}
+                        className="profile-spring rounded-full border border-hairline bg-surface px-4 py-2 text-xs font-bold text-forest hover:border-forest hover:bg-forest/5"
+                      >
+                        Reschedule
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void cancel(inspectedItem.booking)}
+                        className="profile-spring rounded-full border border-hairline bg-surface px-4 py-2 text-xs font-bold text-ink-secondary hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                      >
+                        Cancel Booking
+                      </button>
+                    </>
                   ) : null}
                   {inspectedItem.booking.status !== "CANCELLED" ? (
                     <button
@@ -1194,6 +1306,122 @@ export default function BookingsPage() {
           </div>
         </div>
       ) : null}
+
+      {/* RESCHEDULE MODAL */}
+      {reschedulingBooking ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-3xl bg-surface p-6 shadow-2xl border border-hairline max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="rounded-full bg-gold/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-forest-deep">
+                  Self-Service Reschedule
+                </span>
+                <h3 className="font-display text-xl font-bold text-forest mt-1.5">
+                  Reschedule {reschedulingBooking.service?.name ?? "Appointment"}
+                </h3>
+                <p className="text-xs text-ink-muted mt-0.5">
+                  Current:{" "}
+                  {new Date(reschedulingBooking.startTime).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReschedulingBooking(null)}
+                className="rounded-full p-1 text-ink-muted hover:text-foreground"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-gold-soft bg-clay/40 p-3 text-xs text-ink-secondary">
+              ℹ️ <strong>Clinic Policy:</strong> Free schedule changes are available up to 24 hours prior to session.
+            </div>
+
+            {/* Choose Day */}
+            <div className="mt-4">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+                1. Pick a new date
+              </label>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {rescheduleDays.map((d) => (
+                  <button
+                    key={d.iso}
+                    type="button"
+                    onClick={() => {
+                      setRescheduleDayIso(d.iso);
+                      setRescheduleSlot(null);
+                    }}
+                    className={`flex min-w-[58px] flex-col items-center rounded-xl border py-2 px-1 text-xs transition-all ${
+                      d.iso === rescheduleDayIso
+                        ? "border-forest bg-forest text-white shadow-xs"
+                        : "border-hairline bg-surface text-ink-secondary hover:border-forest/50"
+                    }`}
+                  >
+                    <span className="text-[10px] font-medium">{d.weekday}</span>
+                    <span className="text-sm font-bold my-0.5">{d.dayOfMonth}</span>
+                    <span className="text-[10px] opacity-80">{d.month}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Choose Slot */}
+            <div className="mt-4">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
+                2. Available time slots
+              </label>
+              {rescheduleSlots.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-hairline p-4 text-center text-xs text-ink-muted">
+                  No availability on this day. Please select another date.
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {rescheduleSlots.map((s) => {
+                    const isSelected = rescheduleSlot?.start.getTime() === s.start.getTime();
+                    return (
+                      <button
+                        key={s.label}
+                        type="button"
+                        onClick={() => setRescheduleSlot(s)}
+                        className={`rounded-lg border py-2 text-xs font-medium transition-all ${
+                          isSelected
+                            ? "border-forest bg-forest text-white font-semibold shadow-xs"
+                            : "border-hairline bg-surface text-foreground hover:border-forest/40"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <ErrorNote message={rescheduleError} />
+
+            <div className="mt-6 flex items-center justify-end gap-2 pt-3 border-t border-hairline">
+              <button
+                type="button"
+                onClick={() => setReschedulingBooking(null)}
+                className="rounded-full px-4 py-2 text-xs font-semibold text-ink-muted hover:text-foreground"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                disabled={rescheduleBusy || !rescheduleSlot}
+                onClick={() => void submitReschedule()}
+                className="rounded-full bg-forest px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep disabled:opacity-50"
+              >
+                {rescheduleBusy ? "Rescheduling…" : "Confirm Reschedule"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1204,6 +1432,7 @@ function BookingCard({
   cancelling,
   onPay,
   onCancel,
+  onReschedule,
   onInspect,
 }: {
   b: Booking;
@@ -1211,6 +1440,7 @@ function BookingCard({
   cancelling: string | null;
   onPay: () => void;
   onCancel: () => void;
+  onReschedule?: () => void;
   onInspect?: () => void;
 }) {
   const cat = b.service?.category;
@@ -1277,6 +1507,25 @@ function BookingCard({
               className="profile-spring inline-flex items-center rounded-full bg-forest px-4 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-forest-deep active:scale-95 disabled:opacity-50"
             >
               {paying === b.id ? "Processing…" : "Pay Now"}
+            </button>
+          ) : null}
+          {b.service?.isVirtual && b.status !== "CANCELLED" ? (
+            <a
+              href={getBookingVideoUrl(b) ?? undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="profile-spring inline-flex items-center gap-1 rounded-full bg-leaf/20 border border-leaf/40 px-3.5 py-1.5 text-xs font-bold text-forest shadow-2xs hover:bg-leaf/30 active:scale-95"
+            >
+              📹 Join Call
+            </a>
+          ) : null}
+          {isCancellable(b) && onReschedule ? (
+            <button
+              type="button"
+              onClick={onReschedule}
+              className="profile-spring inline-flex items-center rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-xs font-bold text-forest shadow-2xs hover:border-forest hover:bg-forest/5 active:scale-95"
+            >
+              Reschedule
             </button>
           ) : null}
           {isCancellable(b) ? (

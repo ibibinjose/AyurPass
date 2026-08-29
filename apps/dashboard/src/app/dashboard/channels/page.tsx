@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import type { Channel, SyncReport } from "@/lib/types";
@@ -161,6 +162,12 @@ export default function ChannelsPage() {
           <SparkleIcon className="h-4 w-4" />
           Calendar Sync &amp; POS Integrations
         </button>
+        <Link
+          href="/dashboard/desktop-app"
+          className="pb-3 text-forest hover:underline flex items-center gap-1.5 ml-auto text-xs font-bold"
+        >
+          💻 Desktop App for Mac & Windows →
+        </Link>
       </div>
 
       {activeTab === "widget" ? (

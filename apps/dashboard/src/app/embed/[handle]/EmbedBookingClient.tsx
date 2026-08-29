@@ -170,6 +170,25 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
           </div>
         </div>
 
+        {selectedService.isVirtual ? (
+          <div className="mt-4 rounded-xl border border-leaf/30 bg-leaf/10 p-3 text-center space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-forest">
+              📹 Telehealth Video Room Ready
+            </span>
+            <p className="text-xs text-ink-secondary">
+              Your consultation link is saved to your calendar export.
+            </p>
+            <a
+              href={`https://meet.ayurpass.com/room/${confirmed.id.slice(0, 12)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+            >
+              Join Video Room →
+            </a>
+          </div>
+        ) : null}
+
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
             type="button"
@@ -289,9 +308,16 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
                   </div>
                   <div className="mt-2.5 flex items-center justify-between text-[11px] text-ink-secondary">
                     <span>{formatDuration(s.durationMinutes)}</span>
-                    <span className="text-[10px] uppercase font-bold text-ink-muted">
-                      {CATEGORY_LABEL[s.category] ?? s.category}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {s.maxParticipants && s.maxParticipants > 1 ? (
+                        <span className="text-[10px] font-bold text-forest-deep bg-gold/15 px-1.5 py-0.5 rounded">
+                          Class ({s.maxParticipants})
+                        </span>
+                      ) : null}
+                      <span className="text-[10px] uppercase font-bold text-ink-muted">
+                        {CATEGORY_LABEL[s.category] ?? s.category}
+                      </span>
+                    </div>
                   </div>
                 </button>
               );

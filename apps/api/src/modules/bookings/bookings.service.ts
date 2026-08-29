@@ -54,6 +54,8 @@ export class BookingsService {
     professionalId?: string | null;
     roomId?: string | null;
     excludeBookingId?: string;
+    serviceId?: string | null;
+    maxParticipants?: number | null;
   }) {
     const start = new Date(params.startTime);
     const end = new Date(params.endTime);
@@ -61,12 +63,45 @@ export class BookingsService {
       throw new BadRequestException('End time must be after start time.');
     }
 
+    // Check capacity for group classes / workshops
+    const isGroupClass = Boolean(
+      params.serviceId && params.maxParticipants && params.maxParticipants > 1,
+    );
+    if (isGroupClass && params.serviceId && params.maxParticipants) {
+      const attendeesCount = await this.prisma.booking.count({
+        where: {
+          serviceId: params.serviceId,
+          startTime: params.startTime,
+          status: { in: [...ACTIVE_STATUSES] },
+          ...(params.excludeBookingId ? { NOT: { id: params.excludeBookingId } } : {}),
+        },
+      });
+
+      if (attendeesCount >= params.maxParticipants) {
+        throw new BadRequestException(
+          `This class or workshop is fully booked (${attendeesCount}/${params.maxParticipants} spots filled). Please choose another session.`,
+        );
+      }
+    }
+
+    // Overlapping bookings query
+    // If it's a group class, fellow attendees sharing this exact class slot are not in conflict
     const overlapWhere: Prisma.BookingWhereInput = {
       providerId: params.providerId,
       status: { in: [...ACTIVE_STATUSES] },
       startTime: { lt: end },
       endTime: { gt: start },
       ...(params.excludeBookingId ? { NOT: { id: params.excludeBookingId } } : {}),
+      ...(isGroupClass && params.serviceId
+        ? {
+            NOT: {
+              AND: [
+                { serviceId: params.serviceId },
+                { startTime: params.startTime },
+              ],
+            },
+          }
+        : {}),
     };
 
     if (params.professionalId) {
@@ -106,16 +141,25 @@ export class BookingsService {
     let totalAmount = data.totalAmount;
     let professionalId = data.professionalId;
     let bufferMinutes = 0;
+    let maxParticipants = 1;
     if (data.serviceId) {
       const service = await this.prisma.service.findUnique({
         where: { id: data.serviceId },
-        select: { price: true, professionalId: true, doshaCompatibility: true },
+        select: {
+          price: true,
+          professionalId: true,
+          doshaCompatibility: true,
+          maxParticipants: true,
+        },
       });
       if (totalAmount === undefined) {
         totalAmount = service ? Number(service.price) : 0;
       }
       if (!professionalId && service?.professionalId) {
         professionalId = service.professionalId;
+      }
+      if (service?.maxParticipants) {
+        maxParticipants = service.maxParticipants;
       }
       if (service?.doshaCompatibility) {
         bufferMinutes =
@@ -147,6 +191,8 @@ export class BookingsService {
       endTime: effectiveEndTime,
       professionalId,
       roomId: data.roomId,
+      serviceId: data.serviceId,
+      maxParticipants,
     });
 
     // Link to permanent Wellness Pass (Apple/Google Wallet identity).
@@ -265,6 +311,8 @@ export class BookingsService {
             endTime: occurrenceEffectiveEnd,
             professionalId,
             roomId: data.roomId,
+            serviceId: data.serviceId,
+            maxParticipants,
           });
 
           await this.prisma.booking.create({
@@ -430,19 +478,54 @@ export class BookingsService {
     const nextStatus = data.status ?? existing.status;
 
     if (ACTIVE_STATUSES.includes(nextStatus as (typeof ACTIVE_STATUSES)[number])) {
+      let bufferMinutes = 0;
+      let maxParticipants = 1;
+      if (existing.serviceId) {
+        const service = await this.prisma.service.findUnique({
+          where: { id: existing.serviceId },
+          select: { doshaCompatibility: true, maxParticipants: true },
+        });
+        if (service?.doshaCompatibility) {
+          bufferMinutes =
+            Number((service.doshaCompatibility as Record<string, any>)?.bufferMinutes) || 0;
+        }
+        if (service?.maxParticipants) {
+          maxParticipants = service.maxParticipants;
+        }
+      }
+
+      const effectiveEndTime =
+        bufferMinutes > 0
+          ? new Date(new Date(endTime).getTime() + bufferMinutes * 60_000)
+          : endTime;
+
       await this.assertNoConflicts({
         providerId: existing.providerId,
         startTime,
-        endTime,
+        endTime: effectiveEndTime,
         professionalId,
         roomId,
         excludeBookingId: id,
+        serviceId: existing.serviceId,
+        maxParticipants,
       });
+    }
+
+    let notes = data.notes !== undefined ? data.notes : existing.notes;
+    if (
+      data.startTime &&
+      new Date(data.startTime).getTime() !== new Date(existing.startTime).getTime()
+    ) {
+      const auditMsg = `[Rescheduled from ${new Date(existing.startTime).toLocaleString()} to ${new Date(data.startTime).toLocaleString()}]`;
+      notes = notes ? `${notes}\n${auditMsg}` : auditMsg;
     }
 
     return this.prisma.booking.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        notes,
+      },
       include: BOOKING_INCLUDES,
     });
   }

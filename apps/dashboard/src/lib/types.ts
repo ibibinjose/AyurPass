@@ -92,6 +92,7 @@ export interface Booking extends SharedBooking {
   } | null;
   paymentMethod?: string | null;
   posTransactionId?: string | null;
+  contactPhone?: string | null;
 }
 
 export interface WellnessPackage extends SharedWellnessPackage {

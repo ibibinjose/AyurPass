@@ -259,6 +259,28 @@ export default function BookServicePage() {
             </div>
           )}
 
+          {service.isVirtual ? (
+            <div className="mt-6 rounded-2xl border border-leaf/30 bg-leaf/10 p-4 text-center space-y-2">
+              <span className="rounded-full bg-forest text-white px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                Virtual Video Session
+              </span>
+              <h4 className="font-display font-bold text-forest text-base">
+                Telehealth Room Ready
+              </h4>
+              <p className="text-xs text-ink-secondary max-w-sm mx-auto">
+                Your private video consultation link is generated and attached to your calendar invite.
+              </p>
+              <a
+                href={`https://meet.ayurpass.com/room/${confirmed.id.slice(0, 12)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+              >
+                📹 Join Video Room
+              </a>
+            </div>
+          ) : null}
+
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Button onClick={() => router.push("/dashboard/bookings")}>View my bookings</Button>
             <a
@@ -292,10 +314,24 @@ export default function BookServicePage() {
         {/* Left: schedule picker */}
         <div>
           <h1 className="font-display text-3xl text-forest">{service.name}</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            {CATEGORY_LABEL[service.category]}
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span className="rounded-full bg-clay px-2.5 py-0.5 text-xs font-bold text-forest">
+              {CATEGORY_LABEL[service.category]}
+            </span>
+            {service.maxParticipants && service.maxParticipants > 1 ? (
+              <span className="rounded-full bg-gold/15 border border-gold/30 px-2.5 py-0.5 text-xs font-bold text-forest-deep">
+                👥 Group Class · Max {service.maxParticipants} Attendees
+              </span>
+            ) : null}
+            {service.isVirtual ? (
+              <span className="rounded-full border border-hairline px-2.5 py-0.5 text-xs font-semibold text-ink-muted">
+                Virtual
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1.5 text-sm text-ink-muted">
             {service.provider &&
-              ` · ${service.provider.businessName} (${PROVIDER_TYPE_LABEL[service.provider.type] ?? service.provider.type})`}
+              `${service.provider.businessName} (${PROVIDER_TYPE_LABEL[service.provider.type] ?? service.provider.type})`}
             {practitioner && ` · with ${practitioner}`}
           </p>
           {service.description && (

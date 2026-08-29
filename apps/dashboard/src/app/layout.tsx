@@ -78,6 +78,7 @@ export const metadata: Metadata = {
       "x-default": "/",
     },
   },
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
