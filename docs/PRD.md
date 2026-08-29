@@ -93,9 +93,17 @@ Wellness discovery is fragmented and generic. Clients can't easily find *verifie
 - **Treatment plans** per consumer (phased, optionally AI-generated) — data model in place.
 
 ### 4.9 Provider business tools
-- Manage services, products, packages, rooms, staff (professionals).
-- View bookings and orders; connect sales channels/integrations (Square POS, etc. — mock).
-- Tiered SaaS: **Starter $149/mo, Growth $349/mo, Enterprise custom**.
+- Manage services, products, packages, treatment rooms, staff (professionals), and client CRM records.
+- **Unlimited appointments & recurring series** (weekly, bi-weekly, monthly) with conflict detection.
+- **Block customers**: CRM protection against repeat no-shows, harassment, or chargeback fraud with booking enforcement.
+- **2-Way Calendar Sync**: live bi-directional sync with Google Calendar, Apple Calendar, and Outlook (.ics feed).
+- **Accept payments & deposits** via Stripe Connect with direct bank payouts.
+- **Branded Booking Page** (`ayurpass.com/@yourbrand`) and directory listing with credentials.
+- **Automated email communications**: instant confirmations with `.ics` calendar invites, plus 24h & 2h reminders.
+- **Integrations with leading apps**: Google Calendar two-way sync, Apple iCal, Square POS inventory, Stripe Payments, and Mailchimp.
+- **Native iOS and Android apps** for on-the-go practitioner schedule and client booking.
+- **Team collaboration tools**: multi-practitioner schedules, treatment room assignment, role permissions, and clinical notes.
+- Tiered SaaS: **Free listing $0, Growth $369/mo, Enterprise custom** (including dedicated Branded Mobile App).
 
 ### 4.10 Privacy & consent
 - Health data shared with a practitioner only on booking, scoped by **consent** records.

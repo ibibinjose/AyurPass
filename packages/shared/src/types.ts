@@ -296,6 +296,7 @@ export interface Service {
   price: string | number;
   currency: string;
   imageUrl?: string | null;
+  doshaCompatibility?: unknown;
   isVirtual: boolean;
   maxParticipants: number;
   /** Denormalized service-level quality (not the practitioner's). */

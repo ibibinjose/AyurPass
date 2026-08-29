@@ -139,9 +139,13 @@ const STEPS = [
 ] as const;
 
 const PROVIDER_PERKS = [
-  "Free public directory page",
-  "Enquiries in one inbox",
-  "Upgrade to bookings when ready",
+  "Branded Booking Page & public profile",
+  "Unlimited & recurring appointments",
+  "2-way Google Calendar & Apple iCal sync",
+  "Accept payments & deposits (Stripe)",
+  "Block disruptive customers & CRM protection",
+  "Automated email reminders & confirmations",
+  "iOS & Android mobile apps",
 ] as const;
 
 const TIERS: {
@@ -162,10 +166,11 @@ const TIERS: {
     cadence: " forever",
     blurb: "Get discovered — no card required.",
     features: [
-      "Public practice profile",
-      "Discover & search visibility",
-      "Enquiry inbox",
-      "Logo, cover & gallery",
+      "Branded public practice profile",
+      "Discover & search directory visibility",
+      "Presence on iOS & Android apps",
+      "Client enquiry inbox & custom handle",
+      "Logo, cover photography & bio",
     ],
     cta: "List for free",
     href: "/list-your-business",
@@ -176,14 +181,19 @@ const TIERS: {
     cadence: "/month",
     highlight: true,
     badge: "Clinic ops",
-    blurb: "Full booking stack for multi-practitioner clinics.",
-    note: "Built for clinics replacing separate booking + calendar tools. Start free; upgrade when you need online bookings.",
+    blurb: "Complete booking & practice stack for clinics and studios.",
+    note: "Built for practices replacing separate booking, payment, and calendar apps. Start free; upgrade when you need live online bookings.",
     features: [
       "Everything in Free",
-      "Online bookings & availability",
-      "Team calendar, rooms & staff roles",
-      "Payments, reports & client records",
-      "Credential badges on your profile",
+      "Unlimited & recurring appointments",
+      "2-Way Calendar Sync (Google & Apple iCal)",
+      "Accept payments & deposits (Stripe Connect)",
+      "Branded Booking Page (ayurpass.com/@yourbrand)",
+      "Automated 24h/2h email reminders & confirmations",
+      "Block disruptive customers & CRM protection",
+      "Team collaboration: multi-staff & rooms",
+      "Integrations: Google Calendar, Apple iCal & Square",
+      "iOS & Android apps for clients & practitioners",
     ],
     cta: "Start free, upgrade later",
     href: "/list-your-business",
@@ -192,13 +202,15 @@ const TIERS: {
     name: "Enterprise",
     price: "Custom",
     cadence: "",
-    blurb: "Multi-location brands & franchises.",
-    note: "Marketing extras (sites, social, content) and white-label are scoped here — not bolted onto Growth.",
+    blurb: "Multi-location brands & luxury retreats.",
+    note: "Dedicated custom branded mobile apps, custom domains, and white-label operations scoped to your franchise.",
     features: [
-      "Multi-location brands",
-      "White-label & custom domains",
-      "Dedicated success partner",
-      "Integrations & marketing add-ons",
+      "Everything in Growth across all locations",
+      "Dedicated Branded Mobile App (custom app store listing)",
+      "White-label booking widgets & custom domains",
+      "Advanced team collaboration & permission tiers",
+      "Custom integrations & dedicated success partner",
+      "Priority payouts & SLA support",
     ],
     cta: "Talk to us",
     href: "/contact",
@@ -697,7 +709,7 @@ export default async function Home() {
                   {stats.practices > 0
                     ? ` — alongside ${formatCount(stats.practices, "dozens of")} practices already listed`
                     : ""}
-                  . Add bookable sessions, team calendars and payments only when you need them.
+                  . Accept unlimited appointments, take direct payments via Stripe, manage team calendars and send automated email reminders when you&apos;re ready.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
                   {PROVIDER_PERKS.map((perk) => (

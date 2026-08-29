@@ -15,11 +15,16 @@ import { MediaField } from "@/components/MediaField";
 import { Button, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
 import {
   ArrowRightIcon,
+  CalendarIcon,
   CheckIcon,
   CompassIcon,
+  CreditCardIcon,
+  GlobeIcon,
   LeafIcon,
   LotusIcon,
+  MailIcon,
   MoonIcon,
+  SmartphoneIcon,
   SparkleIcon,
   UsersIcon,
 } from "@/components/icons";
@@ -43,39 +48,67 @@ const TYPE_ICON: Partial<Record<ProviderType, typeof LeafIcon>> = {
 
 const PRO_PILLARS = [
   {
-    title: "Smart Scheduling",
-    icon: CompassIcon,
-    badge: "iCal & Google Sync",
+    title: "Unlimited & Recurring Appointments",
+    icon: CalendarIcon,
+    badge: "Recurring Series & Zero Caps",
     description:
-      "Multi-staff calendars, room management, timezone conversion, and automated SMS & email appointment reminders.",
+      "Accept unlimited single and recurring appointment series (weekly, bi-weekly, monthly) with live availability and no booking surcharges.",
   },
   {
-    title: "Direct Payments",
+    title: "Accept Payments & Deposits",
+    icon: CreditCardIcon,
+    badge: "Stripe Direct Payouts",
+    description:
+      "Accept credit cards, Apple Pay, deposits and gift cards directly to your bank account via Stripe Connect. No commission lock-in.",
+  },
+  {
+    title: "2-Way Calendar Sync",
     icon: SparkleIcon,
-    badge: "100% Direct Payouts",
+    badge: "Google Cal & Apple iCal",
     description:
-      "100% of client fees land directly in your bank account via Stripe Connect. Zero commission fee lock-in.",
+      "Two-way live synchronization with Google Calendar, Apple Calendar, and Outlook to ensure personal busy slots block appointment availability.",
   },
   {
-    title: "Client CRM & Records",
-    icon: UsersIcon,
-    badge: "Secure Profiles & Files",
+    title: "Branded Booking Page",
+    icon: GlobeIcon,
+    badge: "ayurpass.com/@yourbrand",
     description:
-      "Client health profiles, consultation logs, progress tracking, and secure document storage for intake forms and assessments.",
+      "Your dedicated public booking URL with your logo, photography gallery, service menu, practitioner bios, and direct client checkout.",
   },
   {
-    title: "Secure Messaging",
+    title: "Native iOS & Android Apps",
+    icon: SmartphoneIcon,
+    badge: "App Store & Google Play",
+    description:
+      "Clients can discover your practice, book treatments, and manage sessions through high-performance native iOS and Android apps.",
+  },
+  {
+    title: "Email Reminders & Confirmations",
+    icon: MailIcon,
+    badge: "Automated 24h & 2h",
+    description:
+      "Automated booking confirmations with .ics calendar invites plus 24h and 2h email reminders that prevent costly client no-shows.",
+  },
+  {
+    title: "Block Disruptive Customers",
     icon: MoonIcon,
-    badge: "HIPAA & Health Compliant",
+    badge: "One-Click CRM Protection",
     description:
-      "Direct end-to-end encrypted practitioner-to-client chat between sessions with automated follow-ups.",
+      "Protect your practice, rooms, and staff against repeat no-shows, chargeback fraud, or abuse with instantaneous customer blocking.",
   },
   {
-    title: "Public Directory",
-    icon: LotusIcon,
-    badge: "Verified Practice Page",
+    title: "Team Collaboration Tools",
+    icon: UsersIcon,
+    badge: "Multi-Staff & Rooms",
     description:
-      "Polished practice profiles with verified AHPRA/health authority badges, specialties, hourly rates, and real client reviews.",
+      "Multi-practitioner calendars, treatment room assignment, role-based staff access permissions, and shared clinical records.",
+  },
+  {
+    title: "Branded Mobile App (Enterprise)",
+    icon: CompassIcon,
+    badge: "White-Label Ready",
+    description:
+      "For multi-location clinic chains and luxury retreats: deploy your very own standalone branded mobile app with custom app store listing.",
   },
 ];
 

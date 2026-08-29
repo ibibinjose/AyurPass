@@ -128,6 +128,33 @@ export default function ClientDetailPage() {
     }
   }
 
+  async function handleToggleBlock() {
+    if (!provider || !consumerId || !client) return;
+    const isCurrentlyBlocked = client.status === "blocked";
+    const action = isCurrentlyBlocked ? "unblock" : "block";
+    if (
+      !window.confirm(
+        isCurrentlyBlocked
+          ? "Unblock this client? They will be able to book appointments with your practice again."
+          : "Are you sure you want to block this customer? They will be prevented from booking any new online appointments with your practice.",
+      )
+    ) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.updateCrmClient(provider.id, consumerId as string, {
+        status: isCurrentlyBlocked ? "active" : "blocked",
+      });
+      reload();
+    } catch {
+      setError(`Failed to ${action} client.`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!client) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -149,11 +176,58 @@ export default function ClientDetailPage() {
         </button>
       </div>
 
-      <DashHeader
-        eyebrow="Client Record"
-        title={clientUser?.fullName ?? "Unnamed Client"}
-        description={`${clientUser?.email} · ${clientUser?.phone ?? "No phone recorded"}`}
-      />
+      {client.status === "blocked" && (
+        <div className="rounded-xl border border-red-200 bg-red-50/90 p-4 text-red-900 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-200 text-red-900 font-bold text-sm">
+              ✕
+            </span>
+            <div>
+              <p className="font-semibold text-sm">Customer is Blocked</p>
+              <p className="text-xs text-red-700">
+                This customer is currently prevented from booking appointments online with your practice.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleToggleBlock}
+            disabled={busy}
+            className="rounded-full bg-red-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-800 transition-colors"
+          >
+            Unblock Customer
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <DashHeader
+          eyebrow="Client Record"
+          title={clientUser?.fullName ?? "Unnamed Client"}
+          description={`${clientUser?.email} · ${clientUser?.phone ?? "No phone recorded"}`}
+        />
+        <div className="flex items-center gap-2">
+          {client.status === "blocked" ? (
+            <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800">
+              Blocked
+            </span>
+          ) : (
+            <span className="inline-flex items-center rounded-full bg-forest/10 px-3 py-1 text-xs font-bold text-forest">
+              Active Client
+            </span>
+          )}
+          <button
+            onClick={handleToggleBlock}
+            disabled={busy}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              client.status === "blocked"
+                ? "border border-hairline bg-surface text-forest hover:border-forest"
+                : "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+            }`}
+          >
+            {client.status === "blocked" ? "Unblock Client" : "Block Customer"}
+          </button>
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px] mt-8">
         {/* Left Column: Notes & File Details */}

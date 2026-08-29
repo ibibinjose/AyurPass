@@ -19,11 +19,11 @@
 
 ## Tiered SaaS Subscriptions for Providers
 
-| Tier       | Price              | Features                                      |
-|------------|--------------------|-----------------------------------------------|
-| Starter    | $149/mo or $1,490/yr | Basic calendar, up to 5 staff, basic analytics |
-| Growth     | $349/mo            | Unlimited staff, inventory, marketing tools, reports, Google Calendar sync |
-| Enterprise | Custom ($799+/mo)  | White-label, API access, dedicated support, advanced AI, multi-location, priority payouts |
+| Tier | Price | Features |
+|---|---|---|
+| **Free Listing** | $0 forever | Branded public practice profile (`ayurpass.com/@yourbrand`), directory search visibility, enquiry inbox, iOS & Android listing |
+| **Growth** | $369/mo | **Unlimited appointments & recurring series** (weekly/bi-weekly/monthly), **2-Way Calendar Sync** (Google Calendar & Apple iCal), **Block customers** (CRM protection against no-shows/fraud), **Accept payments & deposits** (Stripe Connect), **Branded Booking Page**, **Automated email reminders & confirmations** (24h & 2h), **Integrations with leading apps** (Square POS, Stripe, Mailchimp), **iOS & Android apps** for staff/clients, **Team collaboration tools** (multi-staff calendars, rooms, permissions), analytics & client CRM |
+| **Enterprise** | Custom ($799+/mo) | Everything in Growth across multi-location practices, **Dedicated Branded Mobile App** (custom app store listing & app icon), custom domains & white-label web embeds, custom API/webhooks, dedicated partner manager, priority payouts |
 
 ## Additional Revenue Streams
 - Product marketplace commissions (10–15%)

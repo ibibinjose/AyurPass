@@ -14,6 +14,7 @@ export default function ClientsDirectoryPage() {
 
   const [clients, setClients] = useState<ClientRecord[] | null>(null);
   const [filter, setFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "blocked">("all");
   const [campaignModal, setCampaignModal] = useState(false);
   const [campaignSubject, setCampaignSubject] = useState("");
   const [campaignBody, setCampaignBody] = useState("");
@@ -36,6 +37,9 @@ export default function ClientsDirectoryPage() {
   }
 
   const filtered = (clients ?? []).filter((c) => {
+    if (statusFilter === "blocked" && c.status !== "blocked") return false;
+    if (statusFilter === "active" && c.status === "blocked") return false;
+
     const term = filter.toLowerCase().trim();
     if (!term) return true;
     const name = c.consumer?.user?.fullName?.toLowerCase() ?? "";
@@ -50,18 +54,33 @@ export default function ClientsDirectoryPage() {
       <DashHeader
         eyebrow="CRM"
         title="Clients Directory"
-        description={`Manage clinical records, tags, notes, and activity for clients of ${provider.businessName}.`}
+        description={`Manage clinical records, tags, notes, activity and customer blocking for clients of ${provider.businessName}.`}
       />
 
       <div className="flex flex-wrap items-end justify-between gap-4 mt-6">
-        <div className="flex-1 max-w-md">
-          <Field label="Search directory">
-            <Input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Search by name, email, phone or tags..."
-            />
-          </Field>
+        <div className="flex flex-1 flex-wrap items-center gap-3 max-w-xl">
+          <div className="flex-1 min-w-[220px]">
+            <Field label="Search directory">
+              <Input
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Search by name, email, phone or tags..."
+              />
+            </Field>
+          </div>
+          <div className="w-36">
+            <Field label="Status">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "blocked")}
+                className="w-full rounded-xl border border-hairline bg-surface px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-forest"
+              >
+                <option value="all">All Clients</option>
+                <option value="active">Active Only</option>
+                <option value="blocked">Blocked Only</option>
+              </select>
+            </Field>
+          </div>
         </div>
         <Button
           onClick={() => {
@@ -108,7 +127,14 @@ export default function ClientsDirectoryPage() {
                   return (
                     <tr key={c.id} className="hover:bg-clay/10 transition-colors">
                       <td className="px-5 py-4 font-semibold text-foreground">
-                        {clientUser?.fullName ?? "Unnamed Client"}
+                        <div className="flex items-center gap-2">
+                          <span>{clientUser?.fullName ?? "Unnamed Client"}</span>
+                          {c.status === "blocked" && (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800">
+                              Blocked
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-ink-secondary">
                         <div>{clientUser?.email}</div>

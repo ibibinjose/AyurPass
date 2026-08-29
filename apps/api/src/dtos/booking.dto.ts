@@ -148,6 +148,16 @@ export class CreateBookingDto {
   @IsString()
   @IsOptional()
   paymentStatus?: string;
+
+  /** Recurrence frequency: 'none' | 'weekly' | 'biweekly' | 'monthly' */
+  @IsString()
+  @IsOptional()
+  recurrence?: string;
+
+  /** Number of occurrences to create in a recurring series (e.g. 4, 8, 12) */
+  @IsNumber()
+  @IsOptional()
+  recurrenceCount?: number;
 }
 
 export class UpdateBookingDto {

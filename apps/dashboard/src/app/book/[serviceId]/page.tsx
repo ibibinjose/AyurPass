@@ -73,9 +73,10 @@ export default function BookServicePage() {
   }, [serviceId]);
 
   const selectedDay = days.find((d) => d.iso === dayIso) ?? days[0];
+  const bufferMinutes = Number((service?.doshaCompatibility as any)?.bufferMinutes) || 0;
   const slots = useMemo(
-    () => (service ? slotsForDay(selectedDay.date, service.durationMinutes) : []),
-    [service, selectedDay],
+    () => (service ? slotsForDay(selectedDay.date, service.durationMinutes, bufferMinutes) : []),
+    [service, selectedDay, bufferMinutes],
   );
 
   const [prevDayIso, setPrevDayIso] = useState(dayIso);

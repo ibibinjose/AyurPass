@@ -36,11 +36,12 @@ export interface SlotOption {
 const OPEN_HOUR = 8;
 const CLOSE_HOUR = 19;
 
-/** Start times on a 30-min grid such that start+duration fits before closing. */
-export function slotsForDay(day: Date, durationMinutes: number): SlotOption[] {
+/** Start times on a grid such that start + duration + bufferMinutes fits before closing. */
+export function slotsForDay(day: Date, durationMinutes: number, bufferMinutes = 0): SlotOption[] {
   const slots: SlotOption[] = [];
   const now = new Date();
-  for (let minutes = OPEN_HOUR * 60; minutes + durationMinutes <= CLOSE_HOUR * 60; minutes += 30) {
+  const totalOccupied = durationMinutes + bufferMinutes;
+  for (let minutes = OPEN_HOUR * 60; minutes + totalOccupied <= CLOSE_HOUR * 60; minutes += 30) {
     const start = new Date(day);
     start.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
     if (start <= now) continue; // no past slots

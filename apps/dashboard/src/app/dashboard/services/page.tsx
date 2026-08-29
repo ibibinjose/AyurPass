@@ -44,6 +44,7 @@ interface FormState {
   category: ServiceCategory;
   description: string;
   durationMinutes: string;
+  bufferMinutes: string;
   price: string;
   isVirtual: boolean;
   maxParticipants: string;
@@ -56,6 +57,7 @@ const BLANK: FormState = {
   category: "AYURVEDA",
   description: "",
   durationMinutes: "60",
+  bufferMinutes: "15",
   price: "",
   isVirtual: false,
   maxParticipants: "1",
@@ -96,6 +98,11 @@ export default function ProviderServicesPage() {
     if (!form || !provider) return;
     setBusy(true);
     setError(null);
+    const existing = form.id ? (services?.find((s) => s.id === form.id)?.doshaCompatibility as any) : null;
+    const doshaCompatibility = {
+      ...(existing && typeof existing === "object" ? existing : {}),
+      bufferMinutes: Number(form.bufferMinutes) || 0,
+    };
     const payload = {
       name: form.name.trim(),
       category: form.category,
@@ -106,6 +113,7 @@ export default function ProviderServicesPage() {
       maxParticipants: Number(form.maxParticipants) || 1,
       professionalId: form.professionalId || undefined,
       imageUrl: form.imageUrl.trim() || undefined,
+      doshaCompatibility,
     };
     try {
       if (form.id) {
@@ -119,6 +127,7 @@ export default function ProviderServicesPage() {
           maxParticipants: payload.maxParticipants,
           professionalId: form.professionalId || null,
           imageUrl: form.imageUrl.trim() || null,
+          doshaCompatibility: payload.doshaCompatibility,
         } as Partial<Service>);
       } else {
         await api.createService({
@@ -305,6 +314,21 @@ export default function ProviderServicesPage() {
               </Field>
             </div>
             <Field
+              label="Prep & Clean-up Buffer"
+              hint="Window reserved after treatment to sanitize rooms, replace linens, and prepare herbal oils before the next client."
+            >
+              <Select
+                value={form.bufferMinutes}
+                onChange={(e) => setForm({ ...form, bufferMinutes: e.target.value })}
+              >
+                <option value="0">No buffer (0 mins)</option>
+                <option value="10">10 minutes</option>
+                <option value="15">15 minutes (Standard oil clean-up)</option>
+                <option value="20">20 minutes</option>
+                <option value="30">30 minutes (Deep sanitization & herbal steam)</option>
+              </Select>
+            </Field>
+            <Field
               label="Default practitioner"
               hint="Optional. Clients and the calendar can still use other team members."
             >
@@ -407,6 +431,11 @@ export default function ProviderServicesPage() {
                   <span className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
                     {CATEGORY_LABEL[s.category]}
                   </span>
+                  {(s.doshaCompatibility as any)?.bufferMinutes ? (
+                    <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-forest-deep">
+                      +{(s.doshaCompatibility as any).bufferMinutes}m buffer
+                    </span>
+                  ) : null}
                   {s.isVirtual ? (
                     <span className="rounded-full border border-hairline px-2 py-0.5 text-[10px] font-bold uppercase text-ink-muted">
                       Virtual
@@ -414,7 +443,11 @@ export default function ProviderServicesPage() {
                   ) : null}
                 </div>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
-                  {s.durationMinutes} min · {formatMoney(s.price, s.currency)}
+                  {s.durationMinutes} min
+                  {(s.doshaCompatibility as any)?.bufferMinutes
+                    ? ` (+${(s.doshaCompatibility as any).bufferMinutes}m clean-up)`
+                    : ""}{" "}
+                  · {formatMoney(s.price, s.currency)}
                   {s.professional?.user?.fullName
                     ? ` · ${s.professional.user.fullName}`
                     : s.professionalId
@@ -442,6 +475,7 @@ export default function ProviderServicesPage() {
                       category: s.category,
                       description: s.description ?? "",
                       durationMinutes: String(s.durationMinutes),
+                      bufferMinutes: String((s.doshaCompatibility as any)?.bufferMinutes ?? "15"),
                       price: String(Number(s.price)),
                       isVirtual: s.isVirtual,
                       maxParticipants: String(s.maxParticipants),

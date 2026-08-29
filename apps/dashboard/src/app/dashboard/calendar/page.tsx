@@ -71,6 +71,8 @@ interface DraftAppointment {
   roomId: string;
   professionalId: string;
   notes: string;
+  recurrence?: "none" | "weekly" | "biweekly" | "monthly";
+  recurrenceCount?: number;
 }
 
 function proName(p: Professional) {
@@ -281,6 +283,8 @@ export default function CalendarPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         notes: draft.notes.trim() || undefined,
         status: "CONFIRMED",
+        recurrence: draft.recurrence !== "none" ? draft.recurrence : undefined,
+        recurrenceCount: draft.recurrence !== "none" ? (draft.recurrenceCount ?? 4) : undefined,
       });
       setDraft(null);
       reload();
@@ -343,6 +347,8 @@ export default function CalendarPage() {
                 roomId: "",
                 professionalId: "",
                 notes: "",
+                recurrence: "none",
+                recurrenceCount: 4,
               });
             }}
           >
@@ -658,6 +664,47 @@ export default function CalendarPage() {
                   ))}
                 </Select>
               </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Repeat appointment">
+                  <Select
+                    value={draft.recurrence ?? "none"}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        recurrence: e.target.value as "none" | "weekly" | "biweekly" | "monthly",
+                      })
+                    }
+                  >
+                    <option value="none">Does not repeat</option>
+                    <option value="weekly">Repeats weekly</option>
+                    <option value="biweekly">Every 2 weeks</option>
+                    <option value="monthly">Monthly</option>
+                  </Select>
+                </Field>
+                {draft.recurrence && draft.recurrence !== "none" ? (
+                  <Field label="Occurrences">
+                    <Select
+                      value={String(draft.recurrenceCount ?? 4)}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          recurrenceCount: parseInt(e.target.value, 10),
+                        })
+                      }
+                    >
+                      <option value="2">2 sessions</option>
+                      <option value="4">4 sessions (1 mo)</option>
+                      <option value="6">6 sessions</option>
+                      <option value="8">8 sessions (2 mo)</option>
+                      <option value="12">12 sessions (3 mo)</option>
+                    </Select>
+                  </Field>
+                ) : (
+                  <div className="flex items-end pb-2 text-xs text-ink-muted">
+                    Single session
+                  </div>
+                )}
+              </div>
               <Field label="Notes">
                 <Textarea
                   rows={2}
@@ -866,6 +913,8 @@ export default function CalendarPage() {
                     roomId: rooms[0]?.id ?? "",
                     professionalId: team[0]?.id ?? "",
                     notes: "",
+                    recurrence: "none",
+                    recurrenceCount: 4,
                   });
                 }}
               >

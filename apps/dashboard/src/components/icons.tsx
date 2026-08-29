@@ -364,3 +364,22 @@ export function FlagIcon({ className, filled }: IconProps & { filled?: boolean }
     </svg>
   );
 }
+
+export function SmartphoneIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="5" y="2" width="14" height="20" rx="3" />
+      <path d="M12 18h.01" />
+    </svg>
+  );
+}
+
+export function CreditCardIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20M6 15h3" />
+    </svg>
+  );
+}
+

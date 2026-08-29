@@ -105,10 +105,11 @@ export class BookingsService {
   async createBooking(data: CreateBookingDto) {
     let totalAmount = data.totalAmount;
     let professionalId = data.professionalId;
-    if (totalAmount === undefined || professionalId === undefined) {
+    let bufferMinutes = 0;
+    if (data.serviceId) {
       const service = await this.prisma.service.findUnique({
         where: { id: data.serviceId },
-        select: { price: true, professionalId: true },
+        select: { price: true, professionalId: true, doshaCompatibility: true },
       });
       if (totalAmount === undefined) {
         totalAmount = service ? Number(service.price) : 0;
@@ -116,24 +117,34 @@ export class BookingsService {
       if (!professionalId && service?.professionalId) {
         professionalId = service.professionalId;
       }
+      if (service?.doshaCompatibility) {
+        bufferMinutes =
+          Number((service.doshaCompatibility as Record<string, any>)?.bufferMinutes) || 0;
+      }
     }
 
+    const safeTotalAmount = totalAmount ?? 0;
     const provider = await this.prisma.provider.findUnique({
       where: { id: data.providerId },
       select: { address: true },
     });
     const country = (provider?.address as Record<string, any> | null)?.country;
-    const tax = calculateTaxForCountry(country, totalAmount);
+    const tax = calculateTaxForCountry(country, safeTotalAmount);
     
     // For tax exclusive, tax is added on top of the base totalAmount.
-    const finalTotalAmount = tax.inclusive ? totalAmount : totalAmount + tax.amount;
+    const finalTotalAmount = tax.inclusive ? safeTotalAmount : safeTotalAmount + tax.amount;
     const platformCommission =
-      Math.round(totalAmount * PLATFORM_COMMISSION_RATE * 100) / 100;
+      Math.round(safeTotalAmount * PLATFORM_COMMISSION_RATE * 100) / 100;
+
+    const effectiveEndTime =
+      bufferMinutes > 0
+        ? new Date(new Date(data.endTime).getTime() + bufferMinutes * 60_000)
+        : data.endTime;
 
     await this.assertNoConflicts({
       providerId: data.providerId,
       startTime: data.startTime,
-      endTime: data.endTime,
+      endTime: effectiveEndTime,
       professionalId,
       roomId: data.roomId,
     });
@@ -176,10 +187,41 @@ export class BookingsService {
       }
     }
 
-    const { contactPhone: _drop, ...bookingFields } = data as CreateBookingDto & {
+    // Check if client is blocked by this provider in CRM
+    const clientRecord = await this.prisma.clientRecord.findUnique({
+      where: {
+        providerId_consumerId: {
+          providerId: data.providerId,
+          consumerId: data.consumerId,
+        },
+      },
+    });
+    if (clientRecord?.status === 'blocked') {
+      throw new BadRequestException(
+        'This provider is currently unable to accept online appointments from this account.',
+      );
+    }
+
+    const {
+      contactPhone: _drop,
+      recurrence,
+      recurrenceCount,
+      ...bookingFields
+    } = data as CreateBookingDto & {
       contactPhone?: string;
+      recurrence?: string;
+      recurrenceCount?: number;
     };
-    const noteParts = [data.notes?.trim(), contactPhone ? `Contact phone: ${contactPhone}` : '']
+
+    const isRecurring =
+      recurrence && recurrence !== 'none' && (recurrenceCount ?? 1) > 1;
+    const totalOccurrences = isRecurring ? Math.min(recurrenceCount!, 12) : 1;
+
+    const baseNote = [
+      data.notes?.trim(),
+      contactPhone ? `Contact phone: ${contactPhone}` : '',
+      isRecurring ? `[Recurring: ${recurrence} · 1/${totalOccurrences}]` : '',
+    ]
       .filter(Boolean)
       .join('\n');
 
@@ -188,7 +230,7 @@ export class BookingsService {
         ...bookingFields,
         professionalId,
         wellnessPassId,
-        notes: noteParts || data.notes,
+        notes: baseNote || data.notes,
         totalAmount: finalTotalAmount,
         taxAmount: tax.amount,
         taxRate: tax.rate,
@@ -200,6 +242,60 @@ export class BookingsService {
       include: BOOKING_INCLUDES,
     });
 
+    // Schedule remaining recurring occurrences if requested
+    if (isRecurring) {
+      const durationMs = new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+      const intervalDays =
+        recurrence === 'biweekly' ? 14 : recurrence === 'monthly' ? 28 : 7;
+
+      for (let i = 2; i <= totalOccurrences; i++) {
+        const offsetDays = (i - 1) * intervalDays;
+        const nextStart = new Date(new Date(data.startTime).getTime() + offsetDays * 86_400_000);
+        const nextEnd = new Date(nextStart.getTime() + durationMs);
+
+        try {
+          const occurrenceEffectiveEnd =
+            bufferMinutes > 0
+              ? new Date(nextEnd.getTime() + bufferMinutes * 60_000)
+              : nextEnd;
+
+          await this.assertNoConflicts({
+            providerId: data.providerId,
+            startTime: nextStart,
+            endTime: occurrenceEffectiveEnd,
+            professionalId,
+            roomId: data.roomId,
+          });
+
+          await this.prisma.booking.create({
+            data: {
+              ...bookingFields,
+              startTime: nextStart,
+              endTime: nextEnd,
+              professionalId,
+              wellnessPassId,
+              notes: [
+                data.notes?.trim(),
+                contactPhone ? `Contact phone: ${contactPhone}` : '',
+                `[Recurring: ${recurrence} · ${i}/${totalOccurrences}] (Series parent: ${booking.id})`,
+              ]
+                .filter(Boolean)
+                .join('\n'),
+              totalAmount: finalTotalAmount,
+              taxAmount: tax.amount,
+              taxRate: tax.rate,
+              taxName: tax.name,
+              taxExclusive: !tax.inclusive,
+              platformCommission,
+              providerPayout: Math.round((finalTotalAmount - platformCommission) * 100) / 100,
+            },
+          });
+        } catch (err) {
+          // If a slot in the series has a conflict, skip or continue without failing the primary booking
+        }
+      }
+    }
+
     await this.grantBookingHealthConsents(booking);
     await this.communications.queueBookingCreated(booking.id);
 
@@ -209,6 +305,8 @@ export class BookingsService {
       service_id: booking.serviceId,
       total_amount: Number(booking.totalAmount),
       currency: 'AUD',
+      is_recurring: isRecurring,
+      recurrence_frequency: recurrence || 'none',
     });
 
     return booking;

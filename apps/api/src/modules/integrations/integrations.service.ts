@@ -25,6 +25,18 @@ import { PrismaService } from '../../prisma/prisma.service';
  */
 export const AVAILABLE_CHANNELS = [
   {
+    type: 'GOOGLE_CALENDAR',
+    name: 'Google Calendar (2-Way Sync)',
+    description: 'Bi-directional synchronization. Busy external slots block AyurPass availability, and AyurPass appointments mirror to Google Calendar in real time.',
+    connectable: true,
+  },
+  {
+    type: 'APPLE_ICAL',
+    name: 'Apple Calendar & Outlook (2-Way iCal)',
+    description: 'Universal live .ics subscription feed and two-way sync for Apple Calendar, Mac, iPhone, and Microsoft Outlook.',
+    connectable: true,
+  },
+  {
     type: 'SQUARE_POS',
     name: 'Square POS',
     description: 'Sync your catalog, inventory and appointments with Square Point of Sale.',
@@ -33,18 +45,12 @@ export const AVAILABLE_CHANNELS = [
   {
     type: 'STRIPE_PAYMENTS',
     name: 'Stripe Payments',
-    description: 'Online card payments and marketplace payouts (currently in test mode).',
-    connectable: true,
-  },
-  {
-    type: 'GOOGLE_CALENDAR',
-    name: 'Google Calendar',
-    description: 'Two-way appointment sync. Booking exports (.ics) work today without connecting.',
+    description: 'Online card payments and direct marketplace payouts with Apple Pay support.',
     connectable: true,
   },
   {
     type: 'MAILCHIMP',
-    name: 'Mailchimp',
+    name: 'Mailchimp CRM',
     description: 'Sync your client CRM list automatically to Mailchimp for marketing campaigns.',
     connectable: true,
   },

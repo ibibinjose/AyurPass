@@ -461,6 +461,7 @@ export const api = {
     imageUrl?: string;
     isVirtual?: boolean;
     maxParticipants?: number;
+    doshaCompatibility?: unknown;
   }) => request<Service>("/services", { method: "POST", body: data, auth: true }),
   updateService: (id: string, data: Partial<Omit<Service, "id" | "provider" | "professional">>) =>
     request<Service>(`/services/${id}`, { method: "PUT", body: data, auth: true }),
@@ -481,6 +482,8 @@ export const api = {
     /** International phone e.g. +61412345678 */
     contactPhone?: string;
     status?: BookingStatus;
+    recurrence?: string;
+    recurrenceCount?: number;
   }) => request<Booking>("/bookings", { method: "POST", body: data, auth: true }),
   bookingsByConsumer: (consumerId: string) =>
     request<Booking[]>(`/bookings/consumer/${consumerId}`, { auth: true }),
