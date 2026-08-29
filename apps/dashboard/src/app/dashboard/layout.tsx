@@ -160,6 +160,14 @@ const CONSUMER_GROUPS: NavGroup[] = [
         hint: "Shared care",
       },
       {
+        href: "/dashboard/concierge",
+        label: "AI Care Concierge",
+        shortLabel: "Concierge",
+        icon: SparkleIcon,
+        hint: "7-Layer Memory Assistant",
+        chip: true,
+      },
+      {
         href: "/dashboard/purchases",
         label: "My Orders",
         shortLabel: "Orders",
@@ -308,6 +316,7 @@ const PROVIDER_GROUPS: NavGroup[] = [
     collapsible: true,
     items: [
       { href: "/dashboard/channels", label: "Online Channels", icon: GlobeIcon, hint: "Integrations & APIs" },
+      { href: "/dashboard/concierge", label: "AI Care Concierge", icon: SparkleIcon, hint: "Agent Memory Engine", chip: true },
       {
         href: "/dashboard/verification",
         label: "Verification",
@@ -485,6 +494,7 @@ const PAGE_TITLES: { test: (p: string) => boolean; title: string }[] = [
   { test: (p) => p === "/dashboard", title: "Overview" },
   { test: (p) => p.startsWith("/dashboard/bookings"), title: "Calendar & Bookings" },
   { test: (p) => p.startsWith("/dashboard/assessment"), title: "Dosha Profile" },
+  { test: (p) => p.startsWith("/dashboard/concierge"), title: "AI Care Concierge" },
   { test: (p) => p.startsWith("/dashboard/plans"), title: "Treatment Plans" },
   { test: (p) => p.startsWith("/dashboard/purchases"), title: "Orders & Receipts" },
   { test: (p) => p.startsWith("/dashboard/rewards"), title: "Rewards & Tiers" },

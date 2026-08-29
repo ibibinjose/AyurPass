@@ -1141,6 +1141,50 @@ export const api = {
       method: "DELETE",
       auth: true,
     }),
+  aiConcierge: (message: string, history?: { role: "system" | "user" | "assistant"; content: string }[]) =>
+    request<{
+      reply: string;
+      memorySnapshot: {
+        dosha: string;
+        clientName: string | null;
+        episodesCount: number;
+        upcomingCount: number;
+        guardrailsCount: number;
+      };
+    }>("/ai/concierge", {
+      method: "POST",
+      body: { message, history },
+      auth: true,
+    }),
+  getAiMemoryProfile: () =>
+    request<{
+      semantic: {
+        fullName: string | null;
+        email: string | null;
+        primaryDosha: string;
+        currentImbalances: string[];
+        dietaryPreferences?: string;
+        sensitivitiesAllergies: string[];
+        lastAssessmentDate?: string;
+      };
+      episodes: {
+        id: string;
+        serviceName: string;
+        serviceCategory: string;
+        date: string;
+        providerName: string;
+        practitionerName?: string;
+        clinicalNotes?: string;
+      }[];
+      upcomingAppointments: {
+        id: string;
+        serviceName: string;
+        startTime: string;
+        isVirtual: boolean;
+        videoUrl?: string;
+      }[];
+      proceduralGuardrails: string[];
+    }>("/ai/memory-profile", { auth: true }),
 };
 
 export type FeedbackCounts = {
