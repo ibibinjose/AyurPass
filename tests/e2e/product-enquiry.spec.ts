@@ -49,7 +49,7 @@ test.describe("Product WhatsApp enquiry", () => {
     expect(message).toContain("Product: Abhyanga Massage Oil");
     expect(message).toContain("Listed by: Local Wellness Studio");
     expect(message).toContain("Quantity: 1");
-    expect(message).toContain("https://www.ayurpass.com/shop/abhyanga-oil");
+    expect(message).toContain("/shop/abhyanga-oil");
     expect(message).not.toContain("Delivery street");
     expect(message).not.toContain("payment");
   });

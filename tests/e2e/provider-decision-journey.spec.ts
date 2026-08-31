@@ -23,6 +23,6 @@ test.describe("Provider decision journey", () => {
     await expect(
       page.getByText("Services & sessions", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Abhyanga", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Abhyanga" })).toBeVisible();
   });
 });

@@ -14,12 +14,11 @@ test.describe("Seeker registration and wellness journey", () => {
     // Fill in registration form
     await nameInput.fill("Ananya Seeker");
     await page.getByLabel("Email address").fill(uniqueEmail);
-    await page.getByLabel("City").fill("Melbourne");
-    await page.getByLabel("State / Region").fill("VIC");
+    await page.getByLabel(/City/).fill("Melbourne");
     await page.locator('input[type="password"]').fill("SecurePass123!");
 
     // Submit form
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: /Create (free )?account/i }).click();
 
     // 2. Expect redirect to email verification notice or dashboard assessment
     await expect(page).toHaveURL(/\/verify-email|\/dashboard\/assessment/, { timeout: 15000 });

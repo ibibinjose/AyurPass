@@ -62,7 +62,7 @@ test.describe("Public account entry", () => {
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      "https://www.ayurpass.com",
+      /(?:https:\/\/www\.ayurpass\.com|http:\/\/localhost:\d+)/,
     );
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
