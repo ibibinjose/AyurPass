@@ -77,6 +77,7 @@ export class ProfessionalsService {
       email: true,
       phone: true,
       avatarUrl: true,
+      coverImageUrl: true,
     },
   } as const;
 
@@ -134,6 +135,7 @@ export class ProfessionalsService {
         email: true,
         phone: true,
         avatarUrl: true,
+        coverImageUrl: true,
       },
     },
     provider: PROVIDER_PUBLIC,

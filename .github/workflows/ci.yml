@@ -75,9 +75,27 @@ jobs:
 
   dashboard:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3-alpine
+        env:
+          POSTGRES_USER: ayurpass
+          POSTGRES_PASSWORD: ayurpass_ci_password
+          POSTGRES_DB: ayurpass_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ayurpass -d ayurpass_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
+      DATABASE_URL: postgresql://ayurpass:ayurpass_ci_password@localhost:5432/ayurpass_ci?schema=public
       NEXT_PUBLIC_API_URL: http://localhost:4000
       NEXT_PUBLIC_SITE_URL: https://www.ayurpass.com
+      CORS_ORIGIN: http://localhost:3001
+      FRONTEND_URL: http://localhost:3001
+      PORT: 4000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -86,10 +104,26 @@ jobs:
           cache: npm
           cache-dependency-path: "package-lock.json"
       - run: npm ci
+      - run: npm run prisma:generate
+      - name: Apply database migrations
+        run: npm run prisma:migrate:deploy -w @ayurpass/api
+      - name: Seed deterministic local data
+        run: npm run seed:local
       - name: Lint
         run: npm run lint -w @ayurpass/dashboard
       - name: Build (includes typecheck)
         run: npm run build -w @ayurpass/dashboard
+      - name: Start API for browser journeys
+        run: |
+          nohup npm run dev:api > /tmp/ayurpass-api.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:4000/health/ready > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ayurpass-api.log
+          exit 1
       - name: Install browser-test runtime
         run: npx playwright install --with-deps chromium
       - name: Run public browser journeys

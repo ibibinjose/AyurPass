@@ -197,6 +197,7 @@ export default function PractitionerProfileClient({
   const brand = provider?.brandProfile;
   const avatar = resolveMediaUrl(professional?.user?.avatarUrl ?? brand?.logoUrl ?? null);
   const coverUrl =
+    resolveMediaUrl(professional?.user?.coverImageUrl) ??
     resolveMediaUrl(brand?.coverImageUrl) ??
     resolveMediaUrl(brand?.logoUrl) ??
     avatar;

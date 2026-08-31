@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for Nest CLI and Prisma)
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy database schema and generate Prisma client
 COPY prisma ./prisma/
@@ -25,7 +25,7 @@ WORKDIR /usr/src/app
 # Prisma is a production dependency because startup runs controlled migrations.
 # `npm ci` therefore installs the exact lockfile-resolved CLI and engine version.
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Copy compiled code and generated Prisma assets from builder
 COPY --from=builder /usr/src/app/dist ./dist

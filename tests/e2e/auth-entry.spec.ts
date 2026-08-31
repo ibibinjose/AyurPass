@@ -9,46 +9,44 @@ test.describe("Public account entry", () => {
     await expect(
       page.getByRole("heading", { name: "Welcome back" }),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: /Practitioner \/ Practice/ })
-      .click();
-    await expect(page.getByText("Practitioner or practice:")).toBeVisible();
     await expect(
-      page.getByText("Access your schedule, services, and business workspace."),
+      page.getByText("Sign in to your AyurPass account"),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Reset your password" }),
+      page.getByRole("link", { name: "Forgot password?" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Sign in" }),
     ).toBeVisible();
 
     await page.goto("/account-type");
 
-    const logo = page.getByRole("link", { name: "AyurPass home" });
-    await expect(logo).toBeVisible();
-    await expect(logo).toContainText("AyurPass");
+    await expect(
+      page.getByRole("heading", { name: "How will you use AyurPass?" }),
+    ).toBeVisible();
 
     const providerRole = page.getByRole("radio", {
-      name: "Choose Provider account",
+      name: /Provider/,
     });
     await expect(providerRole).toHaveAttribute("aria-checked", "false");
     await providerRole.click();
     await expect(providerRole).toHaveAttribute("aria-checked", "true");
-    await expect(page.getByText("Selected starting point")).toBeVisible();
     await expect(
       page.getByRole("button", {
-        name: "Continue to create a Provider account",
+        name: "Continue as Provider",
       }),
     ).toBeVisible();
 
     await providerRole.press("ArrowLeft");
     const professionalRole = page.getByRole("radio", {
-      name: "Choose Professional account",
+      name: /Practitioner/,
     });
     await expect(professionalRole).toHaveAttribute("aria-checked", "true");
     await expect(professionalRole).toBeFocused();
 
     await page
       .getByRole("button", {
-        name: "Continue to create a Professional account",
+        name: "Continue as Practitioner",
       })
       .click();
     await expect(page).toHaveURL(/\/register\?role=PROFESSIONAL$/);

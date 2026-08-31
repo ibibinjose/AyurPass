@@ -6,6 +6,7 @@ import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { SOCIAL_LABEL, type SocialLinkRow } from "@/lib/social";
 import type { ProviderType } from "@/lib/types";
 import { VerifiedTick } from "@/components/VerifiedTick";
+import { resolveMediaUrl } from "@/lib/media";
 import { MapPinIcon, GlobeIcon, MailIcon, PhoneIcon } from "@/components/icons";
 
 type PreviewMode = "card" | "profile";
@@ -509,7 +510,7 @@ export function SettingsLivePreview({
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={coverImageUrl}
+                src={resolveMediaUrl(coverImageUrl) || coverImageUrl}
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -519,7 +520,7 @@ export function SettingsLivePreview({
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={avatarUrl}
+                src={resolveMediaUrl(avatarUrl) || avatarUrl}
                 alt=""
                 className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-md"
               />

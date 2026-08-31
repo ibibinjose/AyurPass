@@ -139,8 +139,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    await restoreSession();
-  }, [restoreSession]);
+    if (!tokenStore.access) return;
+    try {
+      const profile = await api.profile();
+      setUser(profile);
+    } catch (error) {
+      if (error instanceof ApiError && error.isUnauthorized) {
+        tokenStore.clear();
+        setUser(null);
+        setSessionState("unauthenticated");
+      }
+    }
+  }, []);
 
   return (
     <AuthContext.Provider

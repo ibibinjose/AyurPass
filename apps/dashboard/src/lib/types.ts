@@ -60,7 +60,7 @@ export interface Professional extends SharedProfessional {
 export interface ProfessionalDetail extends Professional {
   services?: Service[];
   provider?: import("@ayurpass/shared").Provider;
-  user?: Pick<User, "id" | "fullName" | "email" | "phone" | "avatarUrl">;
+  user?: Pick<User, "id" | "fullName" | "email" | "phone" | "avatarUrl" | "coverImageUrl">;
 }
 
 export interface ProviderProfileBundle {

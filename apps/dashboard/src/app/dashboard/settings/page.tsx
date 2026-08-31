@@ -140,9 +140,10 @@ export default function SettingsPage() {
 
       // Check user.coverImageUrl first, then fallback to provider brandProfile
       const initialCover =
-        user.coverImageUrl ??
-        user.provider?.brandProfile?.coverImageUrl ??
-        professional?.provider?.brandProfile?.coverImageUrl ??
+        (user.coverImageUrl && user.coverImageUrl.trim()) ||
+        (user.provider?.brandProfile?.coverImageUrl && user.provider.brandProfile.coverImageUrl.trim()) ||
+        (professional?.provider?.brandProfile?.coverImageUrl &&
+          professional.provider.brandProfile.coverImageUrl.trim()) ||
         "";
 
       const next = {
@@ -164,7 +165,7 @@ export default function SettingsPage() {
       setFullName(next.fullName);
       setPhone(next.phone);
       setAvatarUrl(next.avatarUrl);
-      setCoverImageUrl(next.coverImageUrl);
+      setCoverImageUrl((prev) => (initialCover ? initialCover : prev));
 
       if (!professional?.id) {
         setBaseline(snapshot(next));
@@ -190,9 +191,9 @@ export default function SettingsPage() {
       .then((list) => {
         const me = list.find((p) => p.id === professional.id) ?? professional;
         const initialCover =
-          user.coverImageUrl ??
-          user.provider?.brandProfile?.coverImageUrl ??
-          me.provider?.brandProfile?.coverImageUrl ??
+          (user.coverImageUrl && user.coverImageUrl.trim()) ||
+          (user.provider?.brandProfile?.coverImageUrl && user.provider.brandProfile.coverImageUrl.trim()) ||
+          (me.provider?.brandProfile?.coverImageUrl && me.provider.brandProfile.coverImageUrl.trim()) ||
           "";
 
         const next = {
@@ -212,7 +213,7 @@ export default function SettingsPage() {
           customAuthority: "",
         };
         setAvatarUrl(next.avatarUrl);
-        setCoverImageUrl(next.coverImageUrl);
+        setCoverImageUrl((prev) => (initialCover ? initialCover : prev));
         setTitle(next.title);
         setTitleKind(next.titleKind);
         setHandle(next.handle);
@@ -228,9 +229,10 @@ export default function SettingsPage() {
       })
       .catch(() => {
         const initialCover =
-          user.coverImageUrl ??
-          user.provider?.brandProfile?.coverImageUrl ??
-          professional.provider?.brandProfile?.coverImageUrl ??
+          (user.coverImageUrl && user.coverImageUrl.trim()) ||
+          (user.provider?.brandProfile?.coverImageUrl && user.provider.brandProfile.coverImageUrl.trim()) ||
+          (professional.provider?.brandProfile?.coverImageUrl &&
+            professional.provider.brandProfile.coverImageUrl.trim()) ||
           "";
 
         const next = {
@@ -249,7 +251,7 @@ export default function SettingsPage() {
           authorityCodes: normalizeAuthorities(professional.healthAuthorities).map((a) => a.code),
           customAuthority: "",
         };
-        setCoverImageUrl(next.coverImageUrl);
+        setCoverImageUrl((prev) => (initialCover ? initialCover : prev));
         setTitle(next.title);
         setTitleKind(next.titleKind);
         setHandle(next.handle);
@@ -378,11 +380,15 @@ export default function SettingsPage() {
       // 2. If user is linked to a practice provider, sync brandProfile cover as well
       const providerId = user.provider?.id ?? professional?.providerId;
       if (providerId) {
-        await api.updateProvider(providerId, {
-          brandProfile: {
-            coverImageUrl: nextCover,
-          },
-        });
+        try {
+          await api.updateProvider(providerId, {
+            brandProfile: {
+              coverImageUrl: nextCover,
+            },
+          });
+        } catch {
+          // If the user does not have owner rights on the clinic provider, ignore and continue saving personal profile
+        }
       }
 
       // 3. If professional record exists, update practitioner fields
@@ -437,6 +443,7 @@ export default function SettingsPage() {
 
       // 4. Refresh global AuthContext and update baseline
       await refreshProfile();
+      if (nextCover) setCoverImageUrl(nextCover);
       setBaseline(
         snapshot({
           fullName,
