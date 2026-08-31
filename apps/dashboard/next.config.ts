@@ -90,6 +90,10 @@ const nextConfig: NextConfig = {
         source: "/ai/:path*",
         destination: `${apiTarget}/ai/:path*`,
       },
+      {
+        source: "/consents/:path*",
+        destination: `${apiTarget}/consents/:path*`,
+      },
     ];
   },
 };

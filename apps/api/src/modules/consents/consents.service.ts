@@ -122,7 +122,7 @@ export class ConsentsService {
       throw new NotFoundException('Consent not found');
     }
 
-    return this.prisma.accessAuditLog.findMany({
+    const rows = await this.prisma.accessAuditLog.findMany({
       where: {
         consumerId,
         ...(consent.granteeId
@@ -138,14 +138,22 @@ export class ConsentsService {
       orderBy: { timestamp: 'desc' },
       take: 50,
     });
+    return rows.map((r) => ({
+      ...r,
+      id: r.id.toString(),
+    }));
   }
 
   async getAccessAuditForConsumer(consumerId: string) {
-    return this.prisma.accessAuditLog.findMany({
+    const rows = await this.prisma.accessAuditLog.findMany({
       where: { consumerId },
       orderBy: { timestamp: 'desc' },
       take: 100,
     });
+    return rows.map((r) => ({
+      ...r,
+      id: r.id.toString(),
+    }));
   }
 
   private async enrichConsents(

@@ -29,9 +29,14 @@ export default function PermissionsPage() {
     if (!user || !isConsumer) return;
     setError(null);
     try {
-      const [c, a] = await Promise.all([api.myConsents(), api.myAccessAudit()]);
+      const [cRes, aRes] = await Promise.allSettled([api.myConsents(), api.myAccessAudit()]);
+      const c = cRes.status === "fulfilled" && Array.isArray(cRes.value) ? cRes.value : [];
+      const a = aRes.status === "fulfilled" && Array.isArray(aRes.value) ? aRes.value : [];
       setConsents(c);
       setAudit(a);
+      if (cRes.status === "rejected" && aRes.status === "rejected") {
+        setError("We couldn't load your privacy settings right now.");
+      }
     } catch {
       setConsents([]);
       setAudit([]);

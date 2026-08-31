@@ -10,6 +10,12 @@ import { assertProductionConfig, isStrictEnv } from './common/env';
 
 const logger = new Logger('Bootstrap');
 
+// Ensure BigInt can be cleanly serialized to JSON in Express responses.
+// @ts-expect-error BigInt prototype extension for JSON.stringify
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   assertProductionConfig();
 
