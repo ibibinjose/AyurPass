@@ -126,6 +126,14 @@ export class AuthService {
     throw new Error(`Could not generate unique slug for "${businessName}" after ${MAX_RETRIES} attempts`);
   }
 
+  private isConfiguredPlatformAdmin(email: string): boolean {
+    const configured = (process.env.PLATFORM_ADMIN_EMAILS || 'bibin.inc@gmail.com')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    return configured.includes(email.trim().toLowerCase());
+  }
+
   async register(registerDto: RegisterDto) {
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
@@ -133,7 +141,8 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    const role = registerDto.role || 'CONSUMER';
+    const isPlatformAdmin = this.isConfiguredPlatformAdmin(registerDto.email);
+    const role = isPlatformAdmin ? 'PLATFORM_ADMIN' : (registerDto.role || 'CONSUMER');
 
     const user = await this.usersService.createUser({
       email: registerDto.email,
@@ -141,7 +150,7 @@ export class AuthService {
       role,
       passwordHash: hashedPassword,
       phone: registerDto.phone,
-      emailVerifiedAt: null,
+      emailVerifiedAt: isPlatformAdmin ? new Date() : null,
     });
 
     const locationPrefs: Record<string, unknown> = {};
@@ -339,11 +348,24 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    let activeUser = user;
+    if (this.isConfiguredPlatformAdmin(user.email) && user.role !== 'PLATFORM_ADMIN') {
+      activeUser = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'PLATFORM_ADMIN', emailVerifiedAt: user.emailVerifiedAt || new Date() },
+        include: {
+          consumer: true,
+          provider: true,
+          professional: { include: { provider: true } },
+        },
+      });
+    }
 
-    const isEmailVerified = !!user.emailVerifiedAt;
+    const tokens = await this.generateTokens(activeUser.id, activeUser.email, activeUser.role);
+
+    const isEmailVerified = !!activeUser.emailVerifiedAt;
     const response: Record<string, unknown> = {
-      user: sanitizeUser(user),
+      user: sanitizeUser(activeUser),
       ...tokens,
     };
 
@@ -435,12 +457,18 @@ export class AuthService {
     }
 
     let user = await this.usersService.findByEmail(cleanEmail);
+    const isPlatformAdmin = this.isConfiguredPlatformAdmin(cleanEmail);
 
     if (user) {
-      if (!user.emailVerifiedAt) {
+      const needsVerification = !user.emailVerifiedAt;
+      const needsElevation = isPlatformAdmin && user.role !== 'PLATFORM_ADMIN';
+      if (needsVerification || needsElevation) {
         user = await this.prisma.user.update({
           where: { id: user.id },
-          data: { emailVerifiedAt: new Date() },
+          data: {
+            ...(needsVerification ? { emailVerifiedAt: new Date() } : {}),
+            ...(needsElevation ? { role: 'PLATFORM_ADMIN' } : {}),
+          },
         });
       }
     } else {
@@ -453,7 +481,7 @@ export class AuthService {
           email: cleanEmail,
           fullName: name,
           passwordHash,
-          role: 'CONSUMER',
+          role: isPlatformAdmin ? 'PLATFORM_ADMIN' : 'CONSUMER',
           emailVerifiedAt: new Date(),
         },
       });
