@@ -4,27 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { api, formatMoney } from "@/lib/api";
-import { formatDuration, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
-import { centerPublicPath, practiceBioPath } from "@/lib/paths";
+import { centerPublicPath } from "@/lib/paths";
 import type { Booking, BookingStatus, Room, Service } from "@/lib/types";
 import {
   ActivityIcon,
   CalendarIcon,
   CheckIcon,
-  ClockIcon,
   CpuIcon,
   CreditCardIcon,
-  FlameIcon,
   LeafIcon,
   LotusIcon,
   MoonIcon,
-  PencilIcon,
   PlusIcon,
   ShieldIcon,
   SmartphoneIcon,
   SparkleIcon,
-  TrashIcon,
-  UsersIcon,
 } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
 
@@ -77,8 +71,6 @@ export function CentraLinkClient() {
     return () => clearInterval(interval);
   }, [reloadData]);
 
-  // These must be computed before any early return so hooks are called unconditionally
-  const allBookings = bookings ?? [];
   const today = new Date();
   const todayStart = useMemo(
     () => new Date(today.getFullYear(), today.getMonth(), today.getDate()),
@@ -91,13 +83,13 @@ export function CentraLinkClient() {
   );
 
   const todayBookings = useMemo(() => {
-    return allBookings
+    return (bookings ?? [])
       .filter((b) => {
         const d = new Date(b.startTime);
         return d >= todayStart && d < todayEnd;
       })
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }, [allBookings, todayStart, todayEnd]);
+  }, [bookings, todayStart, todayEnd]);
 
   if (!provider) {
     return (
@@ -314,6 +306,12 @@ export function CentraLinkClient() {
           </p>
           <div className="mt-1 flex items-center gap-2 text-xs text-ink-secondary">
             <span className="text-forest font-semibold">{arrivedCount} Arrived</span>
+            {inTreatmentCount > 0 && (
+              <>
+                <span>·</span>
+                <span className="text-amber-600 font-semibold">{inTreatmentCount} In Treatment</span>
+              </>
+            )}
             <span>·</span>
             <span className="text-emerald-600 font-semibold">{completedCount} Done</span>
           </div>

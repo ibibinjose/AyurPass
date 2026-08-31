@@ -9,7 +9,7 @@ import type { Booking, ProviderProfileBundle, Service } from "@/lib/types";
 import { parseDoshaCompatibility } from "@/lib/types";
 import { downloadBookingIcs } from "@/lib/ics";
 import { CalendarIcon, CheckIcon, SparkleIcon } from "@/components/icons";
-import { Button, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
+import { ErrorNote, Field, Input } from "@/components/ui";
 
 interface Props {
   profile: ProviderProfileBundle;

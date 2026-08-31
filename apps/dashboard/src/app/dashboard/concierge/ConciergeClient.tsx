@@ -5,12 +5,9 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import {
-  CalendarIcon,
   SparkleIcon,
   ShieldIcon,
-  CheckCircleIcon,
   ArrowRightIcon,
-  ClockIcon,
 } from "@/components/icons";
 import { ErrorNote } from "@/components/ui";
 

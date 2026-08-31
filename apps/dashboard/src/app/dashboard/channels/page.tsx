@@ -14,11 +14,10 @@ import {
   GlobeIcon,
   LeafIcon,
   MoonIcon,
-  ShareIcon,
   SparkleIcon,
 } from "@/components/icons";
 import { DashHeader } from "@/components/dashboard/DashboardKit";
-import { Button, EmptyState, Field, Input } from "@/components/ui";
+import { Button, EmptyState } from "@/components/ui";
 
 const CHANNEL_ICON: Record<string, typeof LeafIcon> = {
   SQUARE_POS: CompassIcon,
@@ -47,7 +46,7 @@ export default function ChannelsPage() {
   // Widget Builder States
   const [widgetFormat, setWidgetFormat] = useState<"iframe" | "button">("iframe");
   const [brandColor, setBrandColor] = useState("#1e3228");
-  const [widgetHeight, setWidgetHeight] = useState("750");
+  const widgetHeight = "750";
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const reload = useCallback(() => {
