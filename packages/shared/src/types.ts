@@ -603,6 +603,14 @@ export interface WellnessPass {
   publicToken: string;
   status: string;
   holderName?: string | null;
+  holderEmail?: string | null;
+  avatarUrl?: string | null;
+  memberSince?: string | Date;
+  primaryDosha?: string;
+  prakritiScores?: Record<string, number> | null;
+  completedBookingsCount?: number;
+  tier?: string;
+  quickCode?: string;
   qrPayload?: string;
   createdAt: string;
   updatedAt: string;

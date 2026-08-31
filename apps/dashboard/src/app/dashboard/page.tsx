@@ -257,6 +257,13 @@ function ConsumerOverview() {
         action={
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/dashboard/pass"
+              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-forest/20 bg-forest/5 px-4 text-sm font-semibold text-forest hover:bg-forest hover:text-white transition-colors"
+            >
+              <LotusIcon className="h-4 w-4" />
+              <span>Digital Pass</span>
+            </Link>
+            <Link
               href="/explore"
               className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
             >
@@ -346,6 +353,41 @@ function ConsumerOverview() {
           />
         </Link>
       </div>
+
+      {/* Permanent Digital Pass Card */}
+      <Link
+        href="/dashboard/pass"
+        className="group relative block overflow-hidden rounded-2xl bg-gradient-to-br from-[#063b33] via-[#0b5345] to-[#128c7e] p-5 text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-xl border border-white/15"
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <LotusIcon className="h-5 w-5 text-[#d4f419]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#d4f419]">
+                AyurPass · Permanent Member Pass
+              </span>
+            </div>
+            <p className="mt-2 font-display text-xl font-bold">
+              {user?.fullName || "Wellness Member"}
+            </p>
+            <p className="mt-1 text-xs text-white/80">
+              Present your QR code at sanctuary check-in or add to Apple &amp; Google Wallet.
+            </p>
+          </div>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 group-hover:bg-white/20 transition-colors">
+            <CompassIcon className="h-6 w-6 text-[#d4f419]" />
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-3 text-xs">
+          <span className="flex items-center gap-1.5 font-semibold text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            Active Sanctuary Identity
+          </span>
+          <span className="font-bold text-white group-hover:underline flex items-center gap-1">
+            Open Wellness Pass &rarr;
+          </span>
+        </div>
+      </Link>
 
       {/* Primary CTAs */}
       <div className="grid gap-3 sm:grid-cols-2">

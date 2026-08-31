@@ -427,6 +427,13 @@ export default function BookingsPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
+              href="/dashboard/pass"
+              className="profile-spring inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-5 text-xs font-bold text-forest hover:bg-emerald-500/20 active:scale-95"
+            >
+              <span>View AyurPass</span>
+              <SparkleIcon className="h-4 w-4 text-[#128c7e]" />
+            </Link>
+            <Link
               href="/explore"
               className="profile-spring inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-xs font-bold text-white shadow-sm hover:bg-forest-deep active:scale-95"
             >

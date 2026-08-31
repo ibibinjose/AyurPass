@@ -99,13 +99,52 @@ export class WellnessPassService {
 
     const qrPayload = this.buildPassPayload(pass.serialNumber, pass.publicToken);
 
+    // Fetch consumer profile details (dosha, member since, completed visits)
+    let consumer = await this.prisma.consumer.findUnique({
+      where: { userId },
+      include: {
+        user: { select: { createdAt: true, email: true, fullName: true, avatarUrl: true } },
+      },
+    });
+
+    let completedBookingsCount = 0;
+    try {
+      completedBookingsCount = await this.prisma.booking.count({
+        where: { consumerId: userId, status: 'COMPLETED' },
+      });
+    } catch {
+      completedBookingsCount = 0;
+    }
+
+    let primaryDosha = 'Tridoshic Balanced';
+    const scores = consumer?.prakritiScores as Record<string, number> | null;
+    if (scores && typeof scores === 'object') {
+      const vata = Number(scores.vata || 0);
+      const pitta = Number(scores.pitta || 0);
+      const kapha = Number(scores.kapha || 0);
+      if (vata > pitta && vata > kapha) primaryDosha = 'Vata Dominant';
+      else if (pitta > vata && pitta > kapha) primaryDosha = 'Pitta Dominant';
+      else if (kapha > vata && kapha > pitta) primaryDosha = 'Kapha Dominant';
+      else if (vata > 0 && vata === pitta) primaryDosha = 'Vata-Pitta';
+      else if (pitta > 0 && pitta === kapha) primaryDosha = 'Pitta-Kapha';
+      else if (vata > 0 && vata === kapha) primaryDosha = 'Vata-Kapha';
+    }
+
     return {
       id: pass.id,
       consumerId: pass.consumerId,
       serialNumber: pass.serialNumber,
       publicToken: pass.publicToken,
       status: pass.status,
-      holderName: pass.holderName,
+      holderName: pass.holderName || consumer?.user?.fullName || 'Wellness Member',
+      holderEmail: consumer?.user?.email || null,
+      avatarUrl: consumer?.user?.avatarUrl || null,
+      memberSince: consumer?.user?.createdAt || pass.createdAt,
+      primaryDosha,
+      prakritiScores: consumer?.prakritiScores || null,
+      completedBookingsCount,
+      tier: completedBookingsCount >= 5 ? 'AyurPass Gold Sanctuary' : 'AyurPass Founding Member',
+      quickCode: pass.serialNumber,
       createdAt: pass.createdAt,
       updatedAt: pass.updatedAt,
       qrPayload,

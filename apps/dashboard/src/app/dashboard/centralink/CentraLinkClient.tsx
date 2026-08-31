@@ -58,6 +58,18 @@ export function CentraLinkClient() {
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const [broadcastSent, setBroadcastSent] = useState(false);
 
+  // Scan AyurPass state
+  const [scanOpen, setScanOpen] = useState(false);
+  const [scanInput, setScanInput] = useState("");
+  const [scanBusy, setScanBusy] = useState(false);
+  const [scanResult, setScanResult] = useState<{
+    ok: boolean;
+    message: string;
+    holder?: string;
+    service?: string;
+    startTime?: string;
+  } | null>(null);
+
   const reloadData = useCallback(() => {
     if (!provider) return;
     api.bookingsByProvider(provider.id).then(setBookings).catch(() => setBookings([]));
@@ -228,6 +240,18 @@ export function CentraLinkClient() {
 
           {/* Quick Action Dock */}
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setScanOpen(true);
+                setScanResult(null);
+                setScanInput("");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-forest-deep px-4 py-2.5 text-xs font-bold shadow-md transition active:scale-95"
+            >
+              <LotusIcon className="h-4 w-4" />
+              Scan AyurPass
+            </button>
             <button
               type="button"
               onClick={() => setWalkInOpen(true)}
@@ -1062,6 +1086,111 @@ export function CentraLinkClient() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* ========================================================================= */}
+      {/* MODAL: SCAN AYURPASS */}
+      {/* ========================================================================= */}
+      {scanOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl border border-hairline bg-surface p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-hairline pb-3">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <LotusIcon className="h-5 w-5 text-emerald-600" />
+                <span>AyurPass Desk Reader</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setScanOpen(false)}
+                className="text-ink-muted hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-ink-muted">
+                Scan member QR code with barcode scanner or enter pass serial (e.g. <code>AP-7F3A2C1</code>) for contactless check-in.
+              </p>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!scanInput.trim()) return;
+                  setScanBusy(true);
+                  setScanResult(null);
+                  try {
+                    const res = await api.scanWellnessPass(scanInput.trim());
+                    const detail = (res.detail as { message?: string; holder?: string; service?: string; startTime?: string }) || {};
+                    if (res.result === "ok" || res.targetKind === "booking") {
+                      setScanResult({
+                        ok: true,
+                        message: detail.message || "Check-in verified successfully!",
+                        holder: detail.holder,
+                        service: detail.service,
+                        startTime: detail.startTime,
+                      });
+                      reloadData();
+                    } else {
+                      setScanResult({
+                        ok: false,
+                        message: detail.message || "Pass verified, but no session booked at this clinic today.",
+                        holder: detail.holder,
+                      });
+                    }
+                  } catch (err: unknown) {
+                    setScanResult({
+                      ok: false,
+                      message: err instanceof Error ? err.message : "Could not verify AyurPass.",
+                    });
+                  } finally {
+                    setScanBusy(false);
+                  }
+                }}
+                className="space-y-3"
+              >
+                <Field label="AyurPass QR Payload or Serial Code">
+                  <Input
+                    placeholder="e.g. AP-7F3A2C1 or scan barcode"
+                    value={scanInput}
+                    onChange={(e) => setScanInput(e.target.value)}
+                    autoFocus
+                  />
+                </Field>
+
+                {scanResult && (
+                  <div
+                    className={`rounded-2xl p-4 text-xs ${
+                      scanResult.ok
+                        ? "bg-emerald-50 border border-emerald-200 text-emerald-950"
+                        : "bg-amber-50 border border-amber-200 text-amber-950"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                      <span>{scanResult.ok ? "✅" : "ℹ️"}</span>
+                      <span>{scanResult.ok ? "Check-in Confirmed" : "Notice"}</span>
+                    </div>
+                    <p className="mt-1 font-medium">{scanResult.message}</p>
+                    {scanResult.holder && (
+                      <p className="mt-1 text-[11px] text-ink-muted">
+                        Member: <strong>{scanResult.holder}</strong>
+                        {scanResult.service ? ` · ${scanResult.service}` : ""}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <Button type="button" variant="ghost" onClick={() => setScanOpen(false)}>
+                    Close
+                  </Button>
+                  <Button type="submit" disabled={scanBusy || !scanInput.trim()}>
+                    {scanBusy ? "Verifying..." : "Verify & Check-in"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
