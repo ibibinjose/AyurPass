@@ -79,6 +79,19 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  async rewrites() {
+    const apiTarget =
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:4000";
+    return [
+      {
+        source: "/ai/:path*",
+        destination: `${apiTarget}/ai/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
