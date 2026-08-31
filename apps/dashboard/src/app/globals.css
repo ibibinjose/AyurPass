@@ -1,78 +1,76 @@
 @import "tailwindcss";
 
 /*
-  AyurPass design tokens — premium wellness palette.
-  Sage greens, saffron warmth, modern cream backgrounds.
-  Psychology-driven: deep sage (trust/nature), warm saffron (vitality/Ayurveda),
-  soft cream (calm/openness), muted earth neutrals (grounding/stability).
+  AyurPass design tokens — WhatsApp-inspired fresh green palette.
+  WhatsApp green primary, lemon-lime energy, fire-bush warmth,
+  early-dawn cream surfaces, gainsboro-lavender accents.
 */
 :root {
   color-scheme: light;
 
   /* Surfaces & Ink */
-  --background: #f8f7f2;
+  --background: #fef7eb;        /* Early Dawn cream */
   --surface: #ffffff;
-  --foreground: #15251e;
-  --ink-secondary: #405048;
-  --ink-muted: #6d7872;
-  --hairline: #dfe4dc;
+  --foreground: #0d1f0f;        /* deep forest ink */
+  --ink-secondary: #2d4a32;
+  --ink-muted: #5a7560;
+  --hairline: #d6e8d3;
 
-  /* Primary Brand: Sage Green */
-  --sage: #174b3a;
-  --sage-dark: #0b2e23;
-  --sage-light: #31715a;
+  /* Primary Brand: WhatsApp Green */
+  --sage: #128c7e;              /* WA teal-green — headings / primary actions */
+  --sage-dark: #075e54;         /* WA dark green */
+  --sage-light: #25d366;        /* WA bright green — CTAs / active states */
 
-  /* Accent: Saffron / Amber */
-  --saffron: #d38a20;
-  --saffron-soft: #fff4de;
-  --saffron-deep: #a85f00;
+  /* Accent 1: Lemon Lime — energy / highlights */
+  --saffron: #d4f419;
+  --saffron-soft: #f7fdd0;
+  --saffron-deep: #8faa00;
 
-  /* Accent: Terracotta */
-  --terracotta: #C2704C;
-  --terracotta-light: #D4896A;
-  --terracotta-soft: #FDF0EB;
-  --terracotta-deep: #A0583A;
+  /* Accent 2: Fire Bush — warmth / badges */
+  --terracotta: #f4971e;
+  --terracotta-light: #f7b254;
+  --terracotta-soft: #fef3e2;
+  --terracotta-deep: #c06a00;
 
-  /* Accent: Terracotta */
-  --terracotta: #C2704C;
-  --terracotta-light: #D4896A;
-  --terracotta-soft: #FDF0EB;
-  --terracotta-deep: #A0583A;
+  /* Accent 3: Blue Dress — info / links */
+  --blue-dress: #0073e5;
+  --blue-dress-soft: #e0efff;
+  --blue-dress-deep: #004fab;
 
-  /* Neutrals: Sand */
-  --sand: #eef0e8;
-  --sand-dark: #d8dfd5;
+  /* Neutrals */
+  --sand: #e4d6ea;              /* Gainsboro lavender */
+  --sand-dark: #c9b8d4;
 
-  /* Backward-compatible aliases */
-  --forest: #174b3a;
-  --forest-deep: #0b2e23;
-  --leaf: #31715a;
-  --leaf-light: #77b99c;
-  --leaf-bright: #55cf9a;
-  --gold: #d38a20;
-  --gold-soft: #fff4de;
-  --gold-bright: #f5c86c;
-  --gold-deep: #a85f00;
-  --clay: #eef0e8;
+  /* Backward-compatible aliases (no component edits needed) */
+  --forest: #128c7e;
+  --forest-deep: #075e54;
+  --leaf: #25d366;
+  --leaf-light: #6dd99c;
+  --leaf-bright: #3df57a;
+  --gold: #d4f419;
+  --gold-soft: #f7fdd0;
+  --gold-bright: #e6ff4f;
+  --gold-deep: #8faa00;
+  --clay: #e4d6ea;
 
-  /* Dosha Colors (refined) */
-  --vata: #6366f1;
-  --pitta: #f97316;
-  --kapha: #10b981;
+  /* Dosha Colors */
+  --vata: #0073e5;              /* Blue Dress — airy/spacious */
+  --pitta: #f4971e;             /* Fire Bush — fiery/warm */
+  --kapha: #25d366;             /* WA bright green — earthy/stable */
 
-  --focus-ring: rgba(23, 75, 58, 0.34);
+  --focus-ring: rgba(18, 140, 126, 0.30);
 
   /* Apple HIG system colours */
-  --system-blue: #007aff;
-  --system-blue-pressed: #0066d6;
-  --system-green: #34c759;
+  --system-blue: #0073e5;
+  --system-blue-pressed: #004fab;
+  --system-green: #25d366;
   --system-red: #ff3b30;
-  --separator: rgba(60, 60, 67, 0.12);
-  --fill-secondary: rgba(120, 120, 128, 0.08);
-  --fill-tertiary: rgba(120, 120, 128, 0.05);
-  --grouped-bg: #f8f6f2;
-  --label: #1c1917;
-  --secondary-label: rgba(60, 60, 67, 0.65);
+  --separator: rgba(0, 0, 0, 0.10);
+  --fill-secondary: rgba(18, 140, 126, 0.06);
+  --fill-tertiary: rgba(18, 140, 126, 0.03);
+  --grouped-bg: #fef7eb;
+  --label: #0d1f0f;
+  --secondary-label: rgba(13, 31, 15, 0.60);
 
   /* Fluid type scale (mobile → large desktop) */
   --text-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
@@ -113,7 +111,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-hairline: var(--hairline);
 
-  /* New primary names */
+  /* Primary names */
   --color-sage: var(--sage);
   --color-sage-dark: var(--sage-dark);
   --color-sage-light: var(--sage-light);
@@ -124,6 +122,9 @@
   --color-terracotta-light: var(--terracotta-light);
   --color-terracotta-soft: var(--terracotta-soft);
   --color-terracotta-deep: var(--terracotta-deep);
+  --color-blue-dress: var(--blue-dress);
+  --color-blue-dress-soft: var(--blue-dress-soft);
+  --color-blue-dress-deep: var(--blue-dress-deep);
   --color-sand: var(--sand);
   --color-sand-dark: var(--sand-dark);
 
@@ -211,7 +212,7 @@ p {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--sage);
+  outline: 2px solid var(--sage-light);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--focus-ring);
 }

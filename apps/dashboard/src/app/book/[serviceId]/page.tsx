@@ -11,6 +11,7 @@ import { downloadBookingIcs, getGoogleCalendarUrl } from "@/lib/ics";
 import { CATEGORY_LABEL, formatDuration, PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, PaymentCheckout, Service } from "@/lib/types";
+import { parseDoshaCompatibility } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { PayWithStripe } from "@/components/PayWithStripe";
 import { CalendarIcon, CheckIcon, ShieldIcon } from "@/components/icons";
@@ -90,7 +91,7 @@ export default function BookServicePage() {
     const fromClinic = practiceServices
       .filter(
         (s) =>
-          Boolean((s.doshaCompatibility as any)?.isAddOn) ||
+          Boolean(parseDoshaCompatibility(s.doshaCompatibility).isAddOn) ||
           s.name.toLowerCase().includes("add-on"),
       )
       .map((s) => ({
@@ -162,7 +163,7 @@ export default function BookServicePage() {
   };
 
   const selectedDay = days.find((d) => d.iso === dayIso) ?? days[0];
-  const bufferMinutes = Number((service?.doshaCompatibility as any)?.bufferMinutes) || 0;
+  const bufferMinutes = Number(parseDoshaCompatibility(service?.doshaCompatibility).bufferMinutes) || 0;
   const slots = useMemo(
     () => (service ? slotsForDay(selectedDay.date, totalDuration, bufferMinutes) : []),
     [service, selectedDay, totalDuration, bufferMinutes],

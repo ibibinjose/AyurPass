@@ -183,7 +183,7 @@ function PaymentsContent() {
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--system-blue)]">
               Clinic subscription
             </p>
-            <h2 className="mt-1 font-display text-xl text-forest">Growth — $369/month</h2>
+            <h2 className="mt-1 font-display text-xl text-forest">Growth — $29/month</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">
               Online bookings, team calendar, rooms, staff roles, client records, and direct-payment tools for multi-practitioner practices.
             </p>

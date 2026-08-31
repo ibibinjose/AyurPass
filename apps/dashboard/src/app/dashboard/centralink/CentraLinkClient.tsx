@@ -77,19 +77,18 @@ export function CentraLinkClient() {
     return () => clearInterval(interval);
   }, [reloadData]);
 
-  if (!provider) {
-    return (
-      <EmptyState
-        title="CentraLink OS Unavailable"
-        body="CentraLink Operating System requires a verified practice or wellness center account."
-      />
-    );
-  }
-
+  // These must be computed before any early return so hooks are called unconditionally
   const allBookings = bookings ?? [];
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const todayEnd = new Date(todayStart.getTime() + 86400000);
+  const todayStart = useMemo(
+    () => new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [today.toDateString()],
+  );
+  const todayEnd = useMemo(
+    () => new Date(todayStart.getTime() + 86400000),
+    [todayStart],
+  );
 
   const todayBookings = useMemo(() => {
     return allBookings
@@ -100,9 +99,18 @@ export function CentraLinkClient() {
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [allBookings, todayStart, todayEnd]);
 
+  if (!provider) {
+    return (
+      <EmptyState
+        title="CentraLink OS Unavailable"
+        body="CentraLink Operating System requires a verified practice or wellness center account."
+      />
+    );
+  }
+
   // Operational breakdown
   const arrivedCount = todayBookings.filter((b) => b.status === "CONFIRMED").length;
-  const inTreatmentCount = todayBookings.filter((b) => (b as any).status === "IN_TREATMENT").length;
+  const inTreatmentCount = todayBookings.filter((b) => (b.status as string) === "IN_TREATMENT").length;
   const completedCount = todayBookings.filter((b) => b.status === "COMPLETED").length;
   const totalVolumeToday = todayBookings
     .filter((b) => b.status !== "CANCELLED")
@@ -178,8 +186,8 @@ export function CentraLinkClient() {
       setWalkInNotes("");
       setWalkInAddOns([]);
       reloadData();
-    } catch (err: any) {
-      setWalkInError(err.message || "Failed to register walk-in booking");
+    } catch (err: unknown) {
+      setWalkInError((err instanceof Error ? err.message : null) || "Failed to register walk-in booking");
     } finally {
       setWalkInBusy(false);
     }

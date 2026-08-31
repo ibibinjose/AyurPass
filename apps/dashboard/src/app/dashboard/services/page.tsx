@@ -10,6 +10,7 @@ import {
   CATEGORY_LABEL,
 } from "@/lib/catalog";
 import type { Service, ServiceCategory } from "@/lib/types";
+import { parseDoshaCompatibility } from "@/lib/types";
 import {
   DashCard,
   DashFormActions,
@@ -100,7 +101,7 @@ export default function ProviderServicesPage() {
     if (!form || !provider) return;
     setBusy(true);
     setError(null);
-    const existing = form.id ? (services?.find((s) => s.id === form.id)?.doshaCompatibility as any) : null;
+    const existing = form.id ? parseDoshaCompatibility(services?.find((s) => s.id === form.id)?.doshaCompatibility) : null;
     const doshaCompatibility = {
       ...(existing && typeof existing === "object" ? existing : {}),
       bufferMinutes: Number(form.bufferMinutes) || 0,
@@ -445,9 +446,9 @@ export default function ProviderServicesPage() {
                   <span className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
                     {CATEGORY_LABEL[s.category]}
                   </span>
-                  {(s.doshaCompatibility as any)?.bufferMinutes ? (
+                  {parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes ? (
                     <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-forest-deep">
-                      +{(s.doshaCompatibility as any).bufferMinutes}m buffer
+                      +{parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes}m buffer
                     </span>
                   ) : null}
                   {s.isVirtual ? (
@@ -455,7 +456,7 @@ export default function ProviderServicesPage() {
                       Virtual
                     </span>
                   ) : null}
-                  {(s.doshaCompatibility as any)?.isAddOn ? (
+                  {parseDoshaCompatibility(s.doshaCompatibility).isAddOn ? (
                     <span className="rounded-full bg-gold/15 border border-gold/30 px-2 py-0.5 text-[10px] font-bold text-forest-deep">
                       🌿 Add-On
                     </span>
@@ -463,8 +464,8 @@ export default function ProviderServicesPage() {
                 </div>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
                   {s.durationMinutes} min
-                  {(s.doshaCompatibility as any)?.bufferMinutes
-                    ? ` (+${(s.doshaCompatibility as any).bufferMinutes}m clean-up)`
+                  {parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes
+                    ? ` (+${parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes}m clean-up)`
                     : ""}{" "}
                   · {formatMoney(s.price, s.currency)}
                   {s.professional?.user?.fullName
@@ -494,10 +495,10 @@ export default function ProviderServicesPage() {
                       category: s.category,
                       description: s.description ?? "",
                       durationMinutes: String(s.durationMinutes),
-                      bufferMinutes: String((s.doshaCompatibility as any)?.bufferMinutes ?? "15"),
+                      bufferMinutes: String(parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes ?? "15"),
                       price: String(Number(s.price)),
                       isVirtual: s.isVirtual,
-                      isAddOn: Boolean((s.doshaCompatibility as any)?.isAddOn),
+                      isAddOn: Boolean(parseDoshaCompatibility(s.doshaCompatibility).isAddOn),
                       maxParticipants: String(s.maxParticipants),
                       professionalId: s.professionalId ?? "",
                       imageUrl: s.imageUrl ?? "",

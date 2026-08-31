@@ -80,6 +80,25 @@ export interface UserProfile extends User {
 
 export type { Service, Room };
 
+/**
+ * Shape of the `doshaCompatibility` JSON field on a Service.
+ * This is a Prisma `Json` column — the shared type is `unknown`, so we use
+ * this interface as a typed projection when reading the field.
+ */
+export interface DoshaCompatibility {
+  isAddOn?: boolean;
+  bufferMinutes?: number;
+  [key: string]: unknown;
+}
+
+/** Safely reads the doshaCompatibility JSON blob from a Service. */
+export function parseDoshaCompatibility(value: unknown): DoshaCompatibility {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return value as DoshaCompatibility;
+  }
+  return {};
+}
+
 export interface Booking extends SharedBooking {
   platformCommission?: string | number | null;
   providerPayout?: string | number | null;

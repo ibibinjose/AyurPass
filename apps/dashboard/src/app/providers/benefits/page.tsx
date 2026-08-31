@@ -135,7 +135,7 @@ const TIERS = [
   },
   {
     name: "Growth",
-    price: "$369",
+    price: "$29",
     cadence: "/month",
     blurb: "Complete booking, payment & operations stack for clinics and studios.",
     features: [
@@ -400,7 +400,7 @@ export default function ProviderBenefitsPage() {
                   <tr className="border-b border-hairline bg-surface/50 text-xs font-semibold uppercase tracking-wider text-ink-muted">
                     <th className="px-6 py-3.5">Feature</th>
                     <th className="px-6 py-3.5">Free Listing</th>
-                    <th className="px-6 py-3.5 text-forest font-bold">Growth ($369/mo)</th>
+                    <th className="px-6 py-3.5 text-forest font-bold">Growth ($29/mo)</th>
                     <th className="px-6 py-3.5">Enterprise</th>
                   </tr>
                 </thead>

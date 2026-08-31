@@ -6,6 +6,7 @@ import { api, formatMoney } from "@/lib/api";
 import { formatDuration, CATEGORY_LABEL } from "@/lib/catalog";
 import { nextDays, slotsForDay, type SlotOption } from "@/lib/slots";
 import type { Booking, ProviderProfileBundle, Service } from "@/lib/types";
+import { parseDoshaCompatibility } from "@/lib/types";
 import { downloadBookingIcs } from "@/lib/ics";
 import { CalendarIcon, CheckIcon, SparkleIcon } from "@/components/icons";
 import { Button, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
@@ -45,7 +46,7 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
     const fromClinic = services
       .filter(
         (s) =>
-          Boolean((s.doshaCompatibility as any)?.isAddOn) ||
+          Boolean(parseDoshaCompatibility(s.doshaCompatibility).isAddOn) ||
           s.name.toLowerCase().includes("add-on"),
       )
       .map((s) => ({
@@ -89,7 +90,7 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
   };
 
   const selectedDay = days.find((d) => d.iso === dayIso) ?? days[0];
-  const bufferMinutes = Number((selectedService?.doshaCompatibility as any)?.bufferMinutes) || 0;
+  const bufferMinutes = Number(parseDoshaCompatibility(selectedService?.doshaCompatibility).bufferMinutes) || 0;
   const slots = useMemo(
     () =>
       selectedService
@@ -249,7 +250,7 @@ export default function EmbedBookingClient({ profile, brandColor, initialService
               downloadBookingIcs({
                 ...confirmed,
                 service: selectedService,
-                provider: provider as any,
+                provider: provider as Parameters<typeof downloadBookingIcs>[0]["provider"],
               })
             }
             className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface px-4 py-2 text-xs font-semibold text-forest hover:bg-forest/5 shadow-2xs"
