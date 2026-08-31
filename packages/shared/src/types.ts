@@ -73,6 +73,7 @@ export interface User {
   role: Role;
   fullName?: string | null;
   avatarUrl?: string | null;
+  coverImageUrl?: string | null;
   /** Set when the user has confirmed their email. Null = pending verification. */
   emailVerifiedAt?: string | null;
   createdAt: string;

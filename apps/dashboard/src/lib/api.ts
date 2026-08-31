@@ -404,6 +404,12 @@ export const api = {
       body: data,
       auth: true,
     }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ success: boolean; message: string }>("/auth/change-password", {
+      method: "POST",
+      body: { currentPassword, newPassword },
+      auth: true,
+    }),
 
   // --- users ---
   userByEmail: (email: string) =>
@@ -414,8 +420,10 @@ export const api = {
   /** Batch image upload (up to 8 files). */
   uploadImages: (files: File[]) => uploadImagesRequest(files),
 
-  updateUser: (id: string, data: { fullName?: string; phone?: string; avatarUrl?: string }) =>
-    request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
+  updateUser: (
+    id: string,
+    data: { fullName?: string; phone?: string; avatarUrl?: string; coverImageUrl?: string | null },
+  ) => request<UserProfile>(`/users/${id}`, { method: "PUT", body: data, auth: true }),
 
   // --- consents / health permissions ---
   myConsents: (activeOnly = false) =>

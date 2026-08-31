@@ -466,6 +466,7 @@ export function SettingsLivePreview({
   phone,
   email,
   avatarUrl,
+  coverImageUrl,
   authorityCodes = [],
   registrationNumber,
   licenceNumber,
@@ -476,6 +477,7 @@ export function SettingsLivePreview({
   phone: string;
   email?: string;
   avatarUrl: string;
+  coverImageUrl?: string;
   authorityCodes?: string[];
   registrationNumber?: string;
   licenceNumber?: string;
@@ -503,7 +505,17 @@ export function SettingsLivePreview({
                 "var(--profile-gradient, linear-gradient(145deg,#1e3228,#3d6650,#e9d9b8))",
             }}
           />
-          {avatarUrl ? (
+          {coverImageUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverImageUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-surface" />
+            </>
+          ) : avatarUrl ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

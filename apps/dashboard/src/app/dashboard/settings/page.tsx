@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
-import { resolveMediaUrl } from "@/lib/media";
 import type { HealthAuthorityBadge } from "@/lib/types";
 import { HEALTH_AUTHORITY_PRESETS, normalizeAuthorities } from "@/lib/credentials";
 import {
@@ -25,23 +24,46 @@ import {
 import { SettingsLivePreview } from "@/components/dashboard/DashboardPreview";
 import { MediaField } from "@/components/MediaField";
 import { Button, ErrorNote, Field, Input, Select, SuccessNote } from "@/components/ui";
+import { CheckCircleIcon, ShieldIcon, SparkleIcon } from "@/components/icons";
 
 const ROLE_LABEL: Record<string, string> = {
-  CONSUMER: "Seeker",
-  PROFESSIONAL: "Practitioner",
-  PROVIDER_ADMIN: "Practice admin",
-  PLATFORM_ADMIN: "Platform admin",
+  CONSUMER: "Seeker (Member)",
+  PROFESSIONAL: "Ayurvedic Practitioner",
+  PROVIDER_ADMIN: "Practice & Sanctuary Admin",
+  PLATFORM_ADMIN: "Platform Administrator",
 };
+
+const COVER_PRESETS = [
+  {
+    name: "Kerala Herbarium",
+    url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
+    name: "Himalayan Sanctuary",
+    url: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
+    name: "Botanical Copper",
+    url: "https://images.unsplash.com/photo-1512290900672-1f4864119ec8?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
+    name: "Zen Bamboo Grove",
+    url: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=1600&q=80",
+  },
+];
 
 export default function SettingsPage() {
   const { user, refreshProfile } = useAuth();
   const professional = user?.professional ?? null;
   const hasPractice = Boolean(user?.provider ?? professional?.provider);
 
+  // Profile details
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+
+  // Practitioner details
   const [title, setTitle] = useState("");
   const [titleKind, setTitleKind] = useState("");
   const [handle, setHandle] = useState("");
@@ -53,6 +75,16 @@ export default function SettingsPage() {
   const [licenceNumber, setLicenceNumber] = useState("");
   const [authorityCodes, setAuthorityCodes] = useState<string[]>([]);
   const [customAuthority, setCustomAuthority] = useState("");
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+  // Form states
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,17 +130,24 @@ export default function SettingsPage() {
     setSaved(false);
   }
 
+  // Load user profile & persistent cover image
   useEffect(() => {
     if (!user) return;
     let active = true;
     const run = async () => {
       await Promise.resolve();
       if (!active) return;
-      const initialCover = user.provider?.brandProfile?.coverImageUrl ?? professional?.provider?.brandProfile?.coverImageUrl ?? "";
+
+      // Check user.coverImageUrl first, then fallback to provider brandProfile
+      const initialCover =
+        user.coverImageUrl ??
+        user.provider?.brandProfile?.coverImageUrl ??
+        professional?.provider?.brandProfile?.coverImageUrl ??
+        "";
+
       const next = {
         fullName: user.fullName ?? "",
         phone: user.phone ?? "",
-        // Keep raw DB URL — MediaField resolves / heals preview; don't rewrite on load
         avatarUrl: user.avatarUrl ?? "",
         coverImageUrl: initialCover,
         title: "",
@@ -126,6 +165,7 @@ export default function SettingsPage() {
       setPhone(next.phone);
       setAvatarUrl(next.avatarUrl);
       setCoverImageUrl(next.coverImageUrl);
+
       if (!professional?.id) {
         setBaseline(snapshot(next));
         setDirty(false);
@@ -135,15 +175,26 @@ export default function SettingsPage() {
     return () => {
       active = false;
     };
-  }, [user, professional?.id, professional?.provider?.brandProfile?.coverImageUrl]);
+  }, [
+    user,
+    user?.coverImageUrl,
+    professional?.id,
+    professional?.provider?.brandProfile?.coverImageUrl,
+  ]);
 
+  // Load professional profile if exists
   useEffect(() => {
     if (!professional?.id || !user) return;
     api
       .publicProfessionalsByProvider(professional.providerId)
       .then((list) => {
         const me = list.find((p) => p.id === professional.id) ?? professional;
-        const initialCover = user.provider?.brandProfile?.coverImageUrl ?? me.provider?.brandProfile?.coverImageUrl ?? "";
+        const initialCover =
+          user.coverImageUrl ??
+          user.provider?.brandProfile?.coverImageUrl ??
+          me.provider?.brandProfile?.coverImageUrl ??
+          "";
+
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
@@ -176,7 +227,12 @@ export default function SettingsPage() {
         setDirty(false);
       })
       .catch(() => {
-        const initialCover = user.provider?.brandProfile?.coverImageUrl ?? professional.provider?.brandProfile?.coverImageUrl ?? "";
+        const initialCover =
+          user.coverImageUrl ??
+          user.provider?.brandProfile?.coverImageUrl ??
+          professional.provider?.brandProfile?.coverImageUrl ??
+          "";
+
         const next = {
           fullName: user.fullName ?? "",
           phone: user.phone ?? "",
@@ -259,15 +315,6 @@ export default function SettingsPage() {
     };
   }, [currentSnap, baseline]);
 
-  const initials =
-    fullName
-      .split(" ")
-      .map((s) => s[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "AP";
-
   function discard() {
     if (!baseline) return;
     try {
@@ -275,6 +322,7 @@ export default function SettingsPage() {
         fullName: string;
         phone: string;
         avatarUrl: string;
+        coverImageUrl: string;
         title: string;
         titleKind: string;
         handle: string;
@@ -289,6 +337,7 @@ export default function SettingsPage() {
       setFullName(data.fullName);
       setPhone(data.phone);
       setAvatarUrl(data.avatarUrl);
+      setCoverImageUrl(data.coverImageUrl);
       setTitle(data.title);
       setTitleKind(data.titleKind);
       setHandle(data.handle);
@@ -313,24 +362,30 @@ export default function SettingsPage() {
     setBusy(true);
     setSaved(false);
     setError(null);
+
     try {
-      // Persist the URL the uploader returned (S3 in prod). Don't rewrite to a guessed path.
-      const nextAvatar = avatarUrl.trim() || undefined;
+      const nextAvatar = avatarUrl.trim() || null;
+      const nextCover = coverImageUrl.trim() || null;
+
+      // 1. Permanently update user record in database
       await api.updateUser(user.id, {
         fullName: fullName.trim(),
         phone: phone.trim() || undefined,
-        avatarUrl: nextAvatar,
+        avatarUrl: nextAvatar ?? undefined,
+        coverImageUrl: nextCover,
       });
-      if (nextAvatar) setAvatarUrl(nextAvatar);
 
+      // 2. If user is linked to a practice provider, sync brandProfile cover as well
       const providerId = user.provider?.id ?? professional?.providerId;
       if (providerId) {
         await api.updateProvider(providerId, {
           brandProfile: {
-            coverImageUrl: coverImageUrl.trim() || null,
+            coverImageUrl: nextCover,
           },
         });
       }
+
+      // 3. If professional record exists, update practitioner fields
       if (professional?.id) {
         const h = normalizeHandle(handle);
         if (h && !isValidHandle(h)) {
@@ -379,6 +434,8 @@ export default function SettingsPage() {
         setVanityStatus(updated.vanityStatus ?? "none");
         setRequestVanity(false);
       }
+
+      // 4. Refresh global AuthContext and update baseline
       await refreshProfile();
       setBaseline(
         snapshot({
@@ -410,68 +467,80 @@ export default function SettingsPage() {
     }
   }
 
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+
+    setPasswordBusy(true);
+    try {
+      const res = await api.changePassword(currentPassword, newPassword);
+      setPasswordSuccess(res.message || "Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      setPasswordError(
+        err instanceof Error ? err.message : "Failed to change password. Check your current password.",
+      );
+    } finally {
+      setPasswordBusy(false);
+    }
+  }
+
   const publicPathPreview =
     professional &&
     practitionerPath({
       id: professional.id,
       slug: professional.slug,
-      handle: handle || null,
-      handleNamespace: handleNamespace || null,
-      vanityHandle: vanityHandle || null,
-      vanityStatus: requestVanity ? "pending" : vanityStatus,
+      handle: handle.trim() || undefined,
+      handleNamespace: handle.trim() ? (handleNamespace as unknown as undefined) : undefined,
     });
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-8">
       <DashHeader
-        eyebrow="Account"
-        title="Settings"
-        description="Your personal profile, contact details, and practitioner credentials."
+        eyebrow="Account Sanctuary"
+        title="Settings & Profile"
+        description="Manage your sanctuary identity, visual branding, practitioner credentials, and account security in one place."
+        action={
+          <div className="flex items-center gap-2">
+            {user?.role ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-3.5 py-1.5 text-xs font-bold text-forest">
+                <ShieldIcon className="h-3.5 w-3.5 text-forest" />
+                <span>{ROLE_LABEL[user.role] ?? user.role}</span>
+              </span>
+            ) : null}
+            <Link
+              href="/dashboard/pass"
+              className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-xs font-semibold text-forest hover:border-leaf"
+            >
+              <SparkleIcon className="h-3.5 w-3.5 text-gold" />
+              <span>Digital Pass</span>
+            </Link>
+          </div>
+        }
       />
 
-      {/* Account strip */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-hairline bg-surface px-4 py-3 sm:px-5">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-clay text-sm font-bold text-forest">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={resolveMediaUrl(avatarUrl) || avatarUrl}
-              alt=""
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            initials
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-forest">
-            {fullName.trim() || user?.email || "Your account"}
-          </p>
-          <p className="truncate text-xs font-medium text-ink-muted">{user?.email}</p>
-        </div>
-        <span className="inline-flex items-center rounded-full bg-clay px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
-          {ROLE_LABEL[user?.role ?? ""] ?? user?.role ?? "Account"}
-        </span>
-        {hasPractice ? (
-          <Link
-            href="/dashboard/business"
-            className="inline-flex min-h-9 items-center rounded-full border border-hairline px-3 text-xs font-semibold text-forest hover:border-leaf"
-          >
-            Business profile
-          </Link>
-        ) : null}
-      </div>
-
-      <form id="settings-form" onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
-        <div className="min-w-0 space-y-5">
+      <form id="settings-form" onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {/* ========================================================================= */}
+          {/* SECTION 1: PROFILE VISUALS (AVATAR + 1600x900 COVER BANNER) */}
+          {/* ========================================================================= */}
           <DashCard
             title="Profile Visuals"
-            description="How your photo and cover banner appear across bookings, team rosters, and public practitioner pages."
+            description="How your avatar photo and hero cover banner appear across public practitioner pages, directory listings, and booking headers."
           >
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div className="grid gap-5 sm:grid-cols-2">
                 <MediaField
                   label="Profile photo"
@@ -484,23 +553,51 @@ export default function SettingsPage() {
                   recommended="square · 512×512"
                   hint="Upload a clear headshot or paste an image link. Shown on practitioner cards and team roster."
                 />
-                <MediaField
-                  label="Profile cover banner"
-                  shape="cover"
-                  value={coverImageUrl}
-                  onChange={(url) => {
-                    setCoverImageUrl(url);
-                    markDirty();
-                  }}
-                  recommended="wide · 1600×900"
-                  hint="Hero cover banner image displayed at the top of your public profile page."
-                />
+                <div>
+                  <MediaField
+                    label="Profile cover banner"
+                    shape="cover"
+                    value={coverImageUrl}
+                    onChange={(url) => {
+                      setCoverImageUrl(url);
+                      markDirty();
+                    }}
+                    recommended="wide · 1600×900"
+                    hint="Hero cover banner image displayed at the top of your public profile page."
+                  />
+                  {/* Preset cover options for 1-click styling */}
+                  <div className="mt-3">
+                    <p className="text-[11px] font-semibold text-ink-muted mb-1.5">
+                      Or choose a curated Ayurvedic sanctuary preset:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COVER_PRESETS.map((preset) => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => {
+                            setCoverImageUrl(preset.url);
+                            markDirty();
+                          }}
+                          className={`rounded-full px-2.5 py-1 text-[10px] font-medium border transition-colors ${
+                            coverImageUrl === preset.url
+                              ? "bg-forest text-white border-forest"
+                              : "bg-surface border-hairline text-ink-secondary hover:border-leaf hover:text-forest"
+                          }`}
+                        >
+                          {preset.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Full name"
                   required
-                  hint="Used on bookings and public profiles."
+                  hint="Used on bookings, treatment notes, and public listings."
                 >
                   <Input
                     required
@@ -510,13 +607,13 @@ export default function SettingsPage() {
                       setFullName(e.target.value);
                       markDirty();
                     }}
-                    placeholder="Your name"
+                    placeholder="Your legal or practice name"
                   />
                 </Field>
                 <Field
-                  label="Phone"
+                  label="Phone number"
                   optional
-                  hint="For booking reminders and enquiries."
+                  hint="For automated booking reminders and sanctuary notifications."
                 >
                   <Input
                     type="tel"
@@ -530,20 +627,30 @@ export default function SettingsPage() {
                   />
                 </Field>
               </div>
+
               <Field
-                label="Email"
-                hint="Sign-in email can’t be changed here. Contact support if you need a new address."
+                label="Sign-in Email"
+                hint="Your authenticated account email. Verified for secure access."
               >
-                <Input value={user?.email ?? ""} disabled readOnly />
+                <div className="relative flex items-center">
+                  <Input value={user?.email ?? ""} disabled readOnly className="pr-24" />
+                  <span className="absolute right-3 inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                    <CheckCircleIcon className="h-3 w-3" />
+                    Verified
+                  </span>
+                </div>
               </Field>
             </div>
           </DashCard>
 
+          {/* ========================================================================= */}
+          {/* SECTION 2: PRACTITIONER CREDENTIALS & HANDLES (FOR PROFESSIONALS) */}
+          {/* ========================================================================= */}
           {professional ? (
             <>
               <DashCard
                 title="Professional title & public URL"
-                description="Choose your profession title and a public handle. Root usernames (ayurpass.com/you) need admin approval to protect brands and celebrities."
+                description="Choose your profession title and a public handle. Root usernames (ayurpass.com/you) require admin approval to protect trademarks and reserved paths."
               >
                 <div className="space-y-5">
                   <Field
@@ -572,9 +679,9 @@ export default function SettingsPage() {
                           },
                           {},
                         ),
-                      ).map(([group, items]) => (
+                      ).map(([group, titles]) => (
                         <optgroup key={group} label={group}>
-                          {items.map((t) => (
+                          {titles.map((t) => (
                             <option key={t.id} value={t.id}>
                               {t.label}
                             </option>
@@ -583,10 +690,11 @@ export default function SettingsPage() {
                       ))}
                     </Select>
                   </Field>
+
                   <Field
                     label="Display title"
                     optional
-                    hint="Override the label if needed (e.g. Senior Yoga Teacher)."
+                    hint="Custom honorific e.g. “Senior BAMS Ayurvedic Physician” or “Hatha Yoga Master”."
                   >
                     <Input
                       value={title}
@@ -594,59 +702,54 @@ export default function SettingsPage() {
                         setTitle(e.target.value);
                         markDirty();
                       }}
-                      placeholder="Ayurvedic Doctor · Yoga Instructor · …"
+                      placeholder="e.g. Ayurvedic Vaidya"
                     />
                   </Field>
-                  <div className="grid gap-4 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)]">
-                    <Field label="Path">
+
+                  <div className="rounded-2xl border border-hairline bg-surface/80 p-4">
+                    <p className="text-sm font-bold text-foreground">Public profile handle</p>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Your instant public link across search and directory pages:
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Select
+                        className="w-auto font-mono text-xs"
                         value={handleNamespace}
                         onChange={(e) => {
                           setHandleNamespace(e.target.value);
                           markDirty();
                         }}
                       >
-                        {HANDLE_NAMESPACES.map((n) => (
-                          <option key={n.id} value={n.id}>
-                            /{n.id}
+                        {HANDLE_NAMESPACES.map((ns) => (
+                          <option key={ns.id} value={ns.id}>
+                            /{ns.id}/ ({ns.label})
                           </option>
                         ))}
                       </Select>
-                    </Field>
-                    <Field
-                      label="Handle"
-                      hint={
-                        handle
-                          ? `Public page: ayurpass.com/${handleNamespace}/${normalizeHandle(handle) || "…"}`
-                          : "3–32 characters · letters, numbers, . _ -"
-                      }
-                    >
                       <Input
+                        className="max-w-xs font-mono text-xs"
                         value={handle}
                         onChange={(e) => {
                           setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
                           markDirty();
                         }}
-                        placeholder="your-name"
-                        autoComplete="username"
+                        placeholder="yourname"
                       />
-                    </Field>
+                    </div>
+                    {publicPathPreview ? (
+                      <p className="mt-2 font-mono text-xs text-forest">
+                        Preview URL:{" "}
+                        <span className="font-semibold underline underline-offset-2">
+                          {publicPathPreview}
+                        </span>
+                      </p>
+                    ) : null}
                   </div>
-                  {publicPathPreview ? (
-                    <p className="rounded-xl bg-clay/40 px-3 py-2 text-xs font-medium text-ink-secondary">
-                      Canonical URL:{" "}
-                      <Link href={publicPathPreview} className="font-semibold text-forest hover:underline">
-                        {publicPathPreview}
-                      </Link>
-                    </p>
-                  ) : null}
 
-                  <div className="rounded-2xl border border-hairline bg-clay/20 p-4">
-                    <p className="text-sm font-semibold text-forest">Root vanity username</p>
-                    <p className="mt-1 text-xs font-medium leading-relaxed text-ink-muted">
-                      Request <span className="font-mono">ayurpass.com/you</span> for brands and
-                      notable practitioners. Platform admin must approve before it goes live —
-                      this protects celebrities and trademarked names.
+                  <div className="rounded-2xl border border-hairline bg-surface/80 p-4">
+                    <p className="text-sm font-bold text-foreground">Root vanity URL</p>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Direct short link: <code>ayurpass.com/:handle</code>. Subject to admin approval.
                     </p>
                     <Field className="mt-3" label="Requested username" optional>
                       <Input
@@ -669,7 +772,7 @@ export default function SettingsPage() {
                         }}
                         disabled={!vanityHandle.trim()}
                       />
-                      Submit for admin approval
+                      Submit for platform admin approval
                     </label>
                     {vanityStatus && vanityStatus !== "none" ? (
                       <p className="mt-2 text-xs font-bold uppercase tracking-wide text-ink-muted">
@@ -720,9 +823,6 @@ export default function SettingsPage() {
                         {authorityCodes.length} selected
                       </span>
                     </div>
-                    <p className="mb-3 text-xs font-medium leading-relaxed text-ink-muted">
-                      Tap to toggle. Verified marks help seekers trust your listing.
-                    </p>
                     <div className="flex flex-wrap gap-2">
                       {HEALTH_AUTHORITY_PRESETS.map((preset) => {
                         const active = authorityCodes.includes(preset.code);
@@ -740,15 +840,17 @@ export default function SettingsPage() {
                               markDirty();
                             }}
                             aria-pressed={active}
-                            className={`inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-full px-3.5 py-2 text-left text-sm font-semibold transition-colors ${active
+                            className={`inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-full px-3.5 py-2 text-left text-sm font-semibold transition-colors ${
+                              active
                                 ? "bg-[var(--system-blue)] text-white shadow-sm"
                                 : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-                              }`}
+                            }`}
                           >
                             <span>{preset.code}</span>
                             <span
-                              className={`text-[10px] font-bold uppercase tracking-wide ${active ? "text-white/80" : "text-ink-muted"
-                                }`}
+                              className={`text-[10px] font-bold uppercase tracking-wide ${
+                                active ? "text-white/80" : "text-ink-muted"
+                              }`}
                             >
                               {preset.region}
                             </span>
@@ -756,19 +858,6 @@ export default function SettingsPage() {
                         );
                       })}
                     </div>
-                    {authorityCodes.length > 0 ? (
-                      <ul className="mt-3 space-y-1 rounded-xl bg-clay/40 px-3 py-2.5">
-                        {authorityCodes.map((code) => {
-                          const preset = HEALTH_AUTHORITY_PRESETS.find((p) => p.code === code);
-                          return (
-                            <li key={code} className="text-xs font-medium text-ink-secondary">
-                              <span className="font-bold text-forest">{code}</span>
-                              {preset ? ` — ${preset.name}` : null}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    ) : null}
                     <Field
                       className="mt-4"
                       label="Custom authority"
@@ -787,63 +876,66 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </DashCard>
-
-              <DashCard
-                title="Languages Spoken"
-                description="Select the languages you and your consultation team speak fluently (e.g., English, Malayalam, Hindi, Tamil, Sanskrit)."
-              >
-                <div className="space-y-3">
-                  <p className="text-xs font-medium leading-relaxed text-ink-muted">
-                    Tap languages to toggle. Spoken languages are highlighted on your public practice directory profile for seekers worldwide.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "English",
-                      "Malayalam",
-                      "Hindi",
-                      "Tamil",
-                      "Sanskrit",
-                      "Telugu",
-                      "Kannada",
-                      "Gujarati",
-                      "Marathi",
-                      "Bengali",
-                      "German",
-                      "French",
-                      "Spanish",
-                      "Arabic",
-                    ].map((lang) => {
-                      const active = authorityCodes.includes(`LANG_${lang}`) || lang === "English" || lang === "Malayalam" || lang === "Hindi";
-                      return (
-                        <button
-                          key={lang}
-                          type="button"
-                          onClick={() => {
-                            setAuthorityCodes((prev) =>
-                              prev.includes(`LANG_${lang}`)
-                                ? prev.filter((c) => c !== `LANG_${lang}`)
-                                : [...prev, `LANG_${lang}`],
-                            );
-                            markDirty();
-                          }}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${active
-                              ? "bg-forest text-gold-soft shadow-sm ring-1 ring-gold/40"
-                              : "border border-hairline bg-surface text-ink-secondary hover:border-leaf hover:text-forest"
-                            }`}
-                        >
-                          <span>🗣️</span>
-                          <span>{lang}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </DashCard>
             </>
           ) : null}
 
+          {/* ========================================================================= */}
+          {/* SECTION 3: SECURITY & PASSWORD */}
+          {/* ========================================================================= */}
+          <DashCard
+            title="Password & Security"
+            description="Manage your password credentials and account protection."
+          >
+            <div className="space-y-4">
+              {passwordError && <ErrorNote message={passwordError} />}
+              {passwordSuccess && <SuccessNote message={passwordSuccess} />}
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="Current password">
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </Field>
+                <Field label="New password" hint="Min. 8 characters">
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </Field>
+                <Field label="Confirm new password">
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </Field>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="button"
+                  variant="soft"
+                  disabled={passwordBusy || !newPassword}
+                  onClick={handlePasswordChange}
+                >
+                  <ShieldIcon className="h-4 w-4 mr-1.5" />
+                  {passwordBusy ? "Updating…" : "Update Password"}
+                </Button>
+              </div>
+            </div>
+          </DashCard>
+
           <ErrorNote message={error} />
-          <SuccessNote message={saved && !dirty ? "Your details were saved." : null} />
+          <SuccessNote message={saved && !dirty ? "Your profile details and cover image were saved successfully." : null} />
 
           <DashFormActions>
             <Button type="submit" disabled={busy || !dirty} className="min-h-11 px-6">
@@ -856,34 +948,27 @@ export default function SettingsPage() {
             ) : null}
           </DashFormActions>
 
-          {user?.role === "CONSUMER" ? (
-            <p className="text-sm font-medium text-ink-muted">
-              Manage who can see your health data in{" "}
-              <Link
-                href="/dashboard/permissions"
-                className="font-semibold text-forest hover:underline"
-              >
-                Privacy & permissions
-              </Link>
-              .
-            </p>
-          ) : null}
-
-          {hasPractice ? (
-            <p className="text-sm font-medium text-ink-muted">
-              Practice logo, cover and public listing live on{" "}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-hairline text-xs text-ink-muted">
+            <Link
+              href="/dashboard/permissions"
+              className="font-semibold text-forest hover:underline"
+            >
+              Privacy &amp; Permissions Settings &rarr;
+            </Link>
+            {hasPractice && (
               <Link
                 href="/dashboard/business"
                 className="font-semibold text-forest hover:underline"
               >
-                Business profile
+                Clinic Business Profile &rarr;
               </Link>
-              .
-            </p>
-          ) : null}
+            )}
+          </div>
         </div>
 
-        {/* Live preview */}
+        {/* ========================================================================= */}
+        {/* RIGHT ASIDE: LIVE INTERACTIVE PREVIEW WITH REAL COVER BANNER */}
+        {/* ========================================================================= */}
         <aside className="hidden lg:sticky lg:top-20 lg:block lg:self-start">
           <SettingsLivePreview
             fullName={fullName}
@@ -891,6 +976,7 @@ export default function SettingsPage() {
             phone={phone}
             email={user?.email}
             avatarUrl={avatarUrl}
+            coverImageUrl={coverImageUrl}
             authorityCodes={
               customAuthority.trim()
                 ? [...authorityCodes, customAuthority.trim().slice(0, 24)]
@@ -903,6 +989,7 @@ export default function SettingsPage() {
         </aside>
       </form>
 
+      {/* Mobile Live preview */}
       <div className="lg:hidden">
         <SettingsLivePreview
           fullName={fullName}
@@ -910,6 +997,7 @@ export default function SettingsPage() {
           phone={phone}
           email={user?.email}
           avatarUrl={avatarUrl}
+          coverImageUrl={coverImageUrl}
           authorityCodes={
             customAuthority.trim()
               ? [...authorityCodes, customAuthority.trim().slice(0, 24)]

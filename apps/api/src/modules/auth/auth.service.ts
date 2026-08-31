@@ -601,4 +601,26 @@ export class AuthService {
 
     return { message: 'Password has been reset successfully' };
   }
+
+  async changePassword(userId: string, currentPass: string, newPass: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.passwordHash) {
+      const isValid = await bcrypt.compare(currentPass, user.passwordHash);
+      if (!isValid) {
+        throw new BadRequestException('Current password does not match.');
+      }
+    }
+    if (!newPass || newPass.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters long.');
+    }
+    const hashedPassword = await bcrypt.hash(newPass, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hashedPassword },
+    });
+    return { success: true, message: 'Password updated successfully.' };
+  }
 }

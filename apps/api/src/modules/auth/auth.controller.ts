@@ -114,6 +114,19 @@ export class AuthController {
     return this.authService.resetPassword(dto.token, dto.password);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('change-password')
+  changePassword(
+    @Body() dto: { currentPassword?: string; newPassword: string },
+    @Req() req: AuthedRequest,
+  ) {
+    return this.authService.changePassword(
+      req.user.sub,
+      dto.currentPassword ?? '',
+      dto.newPassword,
+    );
+  }
+
   @Public()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('verify-email')
