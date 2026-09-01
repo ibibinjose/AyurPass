@@ -6,7 +6,7 @@ import PartnersClient from "./PartnersClient";
 export const metadata: Metadata = pageMetadata({
   title: "Partner Programs — Clinics, Corporate & Retreats",
   description:
-    "Partner with AyurPass — for wellness clinics, corporate employee benefits, retreat resorts, and authentic Ayurvedic brands across 48+ countries.",
+    "Partner with AyurPass — for wellness clinics, corporate employee benefits, retreat resorts, and authentic Ayurvedic brands.",
   path: "/partners",
   keywords: [
     "wellness partner program",

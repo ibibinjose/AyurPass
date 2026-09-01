@@ -228,7 +228,7 @@ export default function AboutPage() {
               Ready to explore your personal wellness journey?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base text-goldSoft">
-              Join thousands of seekers and verified practitioners on AyurPass today.
+              Create a free account or list your practice on AyurPass.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
