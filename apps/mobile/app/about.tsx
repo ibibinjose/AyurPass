@@ -15,9 +15,9 @@ const PILLARS = [
 ];
 
 const STATS = [
-  { label: "Vetted Clinics", value: "100+" },
-  { label: "Happy Seekers", value: "10,000+" },
-  { label: "Authentic Care", value: "100%" },
+  { label: "Focus", value: "Australia" },
+  { label: "Listings", value: "Open" },
+  { label: "Setup", value: "Free" },
 ];
 
 export default function AboutScreen() {

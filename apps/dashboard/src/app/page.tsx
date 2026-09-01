@@ -160,7 +160,7 @@ const TIERS = [
     name: "Free Listing",
     price: "$0",
     cadence: " forever",
-    blurb: "Get discovered by thousands of wellness seekers.",
+    blurb: "Get a public profile in the AyurPass directory.",
     features: [
       "Branded public practice profile",
       "Listing in global wellness directory",
@@ -221,11 +221,11 @@ async function getMarketplaceStats(): Promise<{
     const providers = providersRes.ok ? await providersRes.json() : [];
     const pros = prosRes.ok ? await prosRes.json() : [];
     return {
-      practices: Array.isArray(providers) && providers.length > 0 ? providers.length : 480,
-      practitioners: Array.isArray(pros) && pros.length > 0 ? pros.length : 1250,
+      practices: Array.isArray(providers) ? providers.length : 0,
+      practitioners: Array.isArray(pros) ? pros.length : 0,
     };
   } catch {
-    return { practices: 480, practitioners: 1250 };
+    return { practices: 0, practitioners: 0 };
   }
 }
 
@@ -263,8 +263,8 @@ export default async function Home() {
   const stats = await getMarketplaceStats();
 
   const trustStrip = [
-    { label: "Vetted practices", value: `${stats.practices}+` },
-    { label: "Accredited specialists", value: `${stats.practitioners}+` },
+    { label: "Practices listed", value: String(stats.practices) },
+    { label: "Specialists listed", value: String(stats.practitioners) },
     { label: "Holistic disciplines", value: "5" },
     { label: "Seeker access", value: "100% Free" },
   ] as const;
@@ -340,76 +340,68 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* Hero Visual Card: Live Preview of a Verified Listing */}
+              {/* Hero Visual Card: honest directory, no demo clinic */}
               <div className="relative mx-auto w-full max-w-md lg:max-w-none">
                 <div className="overflow-hidden rounded-3xl border border-hairline bg-surface p-6 shadow-xl">
-                  {/* Card Header with Badges */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-sage/10 px-2.5 py-0.5 text-[11px] font-bold text-sage">
                         <span className="h-1.5 w-1.5 rounded-full bg-sage" />
-                        Featured Sanctuary
+                        Live directory
                       </div>
                       <h3 className="mt-2 font-display text-xl font-bold text-forest">
-                        Soma Ayurvedic Centre
+                        Real practices, as they join
                       </h3>
                       <p className="text-xs text-ink-muted">
-                        Melbourne &amp; Virtual Consultations
+                        Profiles here are live listings — not placeholder sanctuaries.
                       </p>
-                    </div>
-
-                    <div className="flex items-center gap-1 rounded-xl bg-terracotta-soft px-2.5 py-1 text-xs font-bold text-terracotta-deep">
-                      <span>★ 4.9</span>
-                      <span className="text-[10px] text-terracotta-deep/70">(128)</span>
                     </div>
                   </div>
 
-                  {/* Artwork Banner */}
                   <div className="relative mt-4 h-36 w-full overflow-hidden rounded-2xl bg-sand/60">
                     <AyurvedaArt className="h-full w-full object-cover" />
                     <div className="absolute bottom-3 left-3 rounded-full bg-surface/90 px-3 py-1 text-[11px] font-bold text-forest backdrop-blur-md shadow-xs">
-                      98% Dosha Match · Vata-Pitta
+                      Browse what is actually listed
                     </div>
                   </div>
 
-                  {/* Tag Pills */}
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     <span className="rounded-md border border-hairline bg-sand/40 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
-                      Panchakarma Detox
+                      Ayurveda
                     </span>
                     <span className="rounded-md border border-hairline bg-sand/40 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
-                      Abhyanga
+                      Yoga
                     </span>
                     <span className="rounded-md border border-hairline bg-sand/40 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
-                      AAA Accredited
+                      Wellness
                     </span>
                   </div>
 
-                  {/* Booking Preview Box */}
                   <div className="mt-5 rounded-2xl border border-hairline bg-sand/30 p-3.5 flex items-center justify-between">
                     <div>
                       <p className="text-[11px] font-semibold text-ink-muted">
-                        Next Consultation
+                        Directory
                       </p>
                       <p className="text-xs font-bold text-forest">
-                        Tomorrow, 10:30 AM · Dr. Ananya
+                        See live practices on AyurPass
                       </p>
                     </div>
                     <Link
                       href="/discover"
                       className="rounded-xl bg-sage px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-sage-dark transition-all"
                     >
-                      Book Session
+                      Browse
                     </Link>
                   </div>
 
-                  {/* Trust indicator */}
                   <div className="mt-4 flex items-center justify-between text-[11px] font-medium text-ink-muted pt-2 border-t border-hairline">
                     <span className="flex items-center gap-1 text-sage">
                       <CheckIcon className="h-3.5 w-3.5 stroke-[3]" />
-                      Verified Credentials
+                      No demo clinics
                     </span>
-                    <span>Instant confirmation</span>
+                    <Link href="/list-your-business" className="hover:text-forest">
+                      List your practice
+                    </Link>
                   </div>
                 </div>
               </div>

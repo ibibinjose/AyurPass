@@ -77,10 +77,10 @@ const PARTNER_TRACKS = [
 ];
 
 const STATS = [
-  { value: "48+", label: "Countries & Currencies", icon: GlobeIcon },
-  { value: "100+", label: "Verified Clinics & Centers", icon: LeafIcon },
-  { value: "98%", label: "Client Satisfaction", icon: SparkleIcon },
-  { value: "$0", label: "Upfront Setup Fee", icon: ShieldIcon },
+  { value: "AU", label: "Home market", icon: GlobeIcon },
+  { value: "Now", label: "Onboarding clinics", icon: LeafIcon },
+  { value: "Stripe", label: "Payments", icon: SparkleIcon },
+  { value: "$0", label: "Upfront setup fee", icon: ShieldIcon },
 ];
 
 const FAQS = [
@@ -152,9 +152,9 @@ export default function PartnersClient() {
     <LayoutWrapper>
       {/* Hero Banner */}
       <PageHero
-        eyebrow="For Global Wellness Partners"
+        eyebrow="For wellness partners"
         title="Scale Your Practice with AyurPass"
-        subtitle="Empowering clinics, corporate wellness teams, retreat resorts, and authentic herbal brands across 48+ countries."
+        subtitle="For clinics, corporate wellness teams, retreat resorts, and authentic herbal brands. We are onboarding practices in Australia now."
       />
 
       {/* Stats Section */}
