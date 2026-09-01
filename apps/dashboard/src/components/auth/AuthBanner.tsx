@@ -77,7 +77,7 @@ export function AuthBanner() {
             Transform Your Mind, Body & Vital Energy
           </h2>
           <p className="mt-3 text-sm text-white/75 leading-relaxed max-w-lg">
-            Join thousands of individuals and licensed Ayurveda practitioners integrating ancient wisdom with modern clinical care.
+            Create an account to book verified Ayurveda practices, or list your clinic on AyurPass.
           </p>
         </div>
 

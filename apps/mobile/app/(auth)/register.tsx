@@ -98,7 +98,7 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
     accentColor: "#fbbf24",
     heroTitle: "List your wellness business",
     heroSubtitle:
-      "Reach thousands of seekers. Manage staff, services & bookings from one beautiful dashboard.",
+      "List your practice. Manage staff, services & bookings from one dashboard.",
     submitLabel: "Create Business Account",
     postRegisterPath: "/",
   },

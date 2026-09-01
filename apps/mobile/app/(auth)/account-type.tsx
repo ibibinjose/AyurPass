@@ -72,7 +72,7 @@ const ACCOUNT_OPTIONS: AccountOption[] = [
     title: "Provider",
     subtitle: "Clinic · Studio · Retreat",
     description:
-      "List your wellness business, manage staff and services, and reach thousands of seekers looking for what you offer.",
+      "List your wellness business, manage staff and services, and appear in the AyurPass directory.",
     perks: [
       "Business listing & profile",
       "Staff & service management",
