@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -378,7 +379,7 @@ export function ProfileActionBar({
           ) : null}
         </button>
       )}
-      <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-2 md:justify-start">
         <button
           type="button"
           onClick={onEnquire}
@@ -577,7 +578,49 @@ export function ProfileAffiliationPill({
 /**
  * Avatar with optional glowing activity ring (neo-vibe status).
  * Ring uses profile accent CSS variables.
+ *
+ * Logo load resilience (AAA / external hosts often block hotlinks):
+ * 1) next/image when hostname is in remotePatterns allowlist
+ * 2) plain <img referrerPolicy="no-referrer">
+ * 3) allowlisted `/api/img` proxy
+ * 4) monogram initials
  */
+type AvatarLoadStage = "next" | "img" | "proxy" | "mono";
+
+function avatarHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/** Hosts configured in next.config images.remotePatterns (plus wildcard CDNs). */
+function isNextImageAllowedHost(hostname: string): boolean {
+  if (
+    hostname === "api.ayurpass.com" ||
+    hostname === "api-staging.ayurpass.com" ||
+    hostname === "picsum.photos" ||
+    hostname === "www.ayurved.org.au" ||
+    hostname === "ayurved.org.au"
+  ) {
+    return true;
+  }
+  return hostname.endsWith(".amazonaws.com") || hostname.endsWith(".cloudfront.net");
+}
+
+function isLogoProxyAllowedHost(hostname: string): boolean {
+  return (
+    hostname === "www.ayurved.org.au" ||
+    hostname === "ayurved.org.au" ||
+    hostname.endsWith(".ayurved.org.au")
+  );
+}
+
+function logoProxySrc(url: string): string {
+  return `/api/img?url=${encodeURIComponent(url)}`;
+}
+
 export function ProfileAvatar({
   name,
   imageUrl,
@@ -591,15 +634,26 @@ export function ProfileAvatar({
   size?: number;
   status?: "online" | "offline" | "none";
 }) {
-  const [imgBroken, setImgBroken] = useState(false);
+  const [stage, setStage] = useState<AvatarLoadStage>("next");
   const [hubBroken, setHubBroken] = useState(false);
+  const [hubStage, setHubStage] = useState<"img" | "proxy" | "hide">("img");
+
+  const trimmed = imageUrl?.trim() || "";
+  const hubTrimmed = hubLogoUrl?.trim() || "";
+
+  const host = trimmed ? avatarHostname(trimmed) : null;
+  const canNext = Boolean(host && isNextImageAllowedHost(host));
+  const canProxy = Boolean(host && isLogoProxyAllowedHost(host));
 
   useEffect(() => {
-    setImgBroken(false);
-  }, [imageUrl]);
+    if (!trimmed) setStage("mono");
+    else if (canNext) setStage("next");
+    else setStage("img");
+  }, [trimmed, canNext]);
   useEffect(() => {
     setHubBroken(false);
-  }, [hubLogoUrl]);
+    setHubStage("img");
+  }, [hubTrimmed]);
 
   const initials = name
     .split(/\s+/)
@@ -609,7 +663,25 @@ export function ProfileAvatar({
     .toUpperCase();
   const ringPad = status === "none" ? 0 : 5;
   const outer = size + ringPad * 2;
-  const showPhoto = Boolean(imageUrl?.trim()) && !imgBroken;
+
+  const effective: AvatarLoadStage =
+    !trimmed || stage === "proxy" && !canProxy ? "mono" : stage;
+
+  const fail = () => {
+    setStage((prev) => {
+      if (prev === "next") return "img";
+      if (prev === "img") return canProxy ? "proxy" : "mono";
+      return "mono";
+    });
+  };
+
+  const hubHost = hubTrimmed ? avatarHostname(hubTrimmed) : null;
+  const hubCanProxy = Boolean(hubHost && isLogoProxyAllowedHost(hubHost));
+  const showHub = Boolean(hubTrimmed) && !hubBroken && hubStage !== "hide";
+  const hubSrc =
+    hubStage === "proxy" && hubCanProxy ? logoProxySrc(hubTrimmed) : hubTrimmed;
+
+  const photoClass = "h-full w-full object-cover object-center";
 
   return (
     <div
@@ -634,14 +706,34 @@ export function ProfileAvatar({
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-white/90 shadow-[0_14px_36px_rgba(15,35,25,0.22)] ring-4 ring-surface"
         style={{ width: size, height: size }}
       >
-        {showPhoto ? (
+        {effective === "next" ? (
+          <Image
+            src={trimmed}
+            alt=""
+            width={size}
+            height={size}
+            className={photoClass}
+            onError={fail}
+            sizes={`${size}px`}
+          />
+        ) : effective === "img" ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl!}
+            src={trimmed}
             alt=""
             decoding="async"
-            className="h-full w-full object-cover object-center"
-            onError={() => setImgBroken(true)}
+            referrerPolicy="no-referrer"
+            className={photoClass}
+            onError={fail}
+          />
+        ) : effective === "proxy" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoProxySrc(trimmed)}
+            alt=""
+            decoding="async"
+            className={photoClass}
+            onError={fail}
           />
         ) : (
           <div
@@ -653,13 +745,21 @@ export function ProfileAvatar({
           </div>
         )}
       </div>
-      {hubLogoUrl && !hubBroken ? (
+      {showHub ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={hubLogoUrl}
+          src={hubSrc}
           alt=""
+          referrerPolicy={hubStage === "img" ? "no-referrer" : undefined}
           className="absolute bottom-0.5 right-0.5 z-[1] h-10 w-10 rounded-full border-[3px] border-surface object-cover shadow-md"
-          onError={() => setHubBroken(true)}
+          onError={() => {
+            if (hubStage === "img" && hubCanProxy) {
+              setHubStage("proxy");
+              return;
+            }
+            setHubBroken(true);
+            setHubStage("hide");
+          }}
         />
       ) : null}
     </div>
@@ -692,7 +792,7 @@ export function ProfileMetaLine({ parts }: { parts: (string | null | undefined |
   const clean = parts.map((p) => (typeof p === "string" ? p.trim() : "")).filter(Boolean);
   if (!clean.length) return null;
   return (
-    <p className="mt-1.5 max-w-xl text-sm font-medium leading-relaxed text-ink-secondary md:text-[0.9375rem]">
+    <p className="mt-1.5 max-w-full break-words text-sm font-medium leading-relaxed text-ink-secondary sm:max-w-xl md:text-[0.9375rem]">
       {clean.map((part, i) => (
         <span key={`${part}-${i}`}>
           {i > 0 ? <span className="mx-1.5 text-ink-muted/50" aria-hidden>·</span> : null}
@@ -705,9 +805,9 @@ export function ProfileMetaLine({ parts }: { parts: (string | null | undefined |
 
 export function ProfileMetaItem({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
-      {icon}
-      {children}
+    <span className="inline-flex max-w-full min-w-0 items-start gap-1.5 text-sm text-ink-muted">
+      <span className="mt-0.5 shrink-0">{icon}</span>
+      <span className="min-w-0 break-words text-left">{children}</span>
     </span>
   );
 }
@@ -774,7 +874,7 @@ export function ProfileStatSep() {
 
 export function ProfileShell({ children }: { children: ReactNode }) {
   return (
-    <div className="profile-shell mx-auto w-full max-w-[1040px] overflow-hidden rounded-[1.75rem] border border-[var(--separator)] bg-surface/95 shadow-[0_20px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:rounded-[2rem]">
+    <div className="profile-shell mx-auto w-full max-w-[1040px] overflow-x-clip rounded-[1.75rem] border border-[var(--separator)] bg-surface/95 shadow-[0_20px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:rounded-[2rem]">
       {children}
     </div>
   );
@@ -790,7 +890,7 @@ export function ProfileHeroShell({ children }: { children: ReactNode }) {
 
 export function ProfileHeroInfo({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full flex-col items-center gap-2 text-center md:flex-1 md:items-start md:gap-1.5 md:pb-1 md:text-left">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-center gap-2 text-center md:flex-1 md:items-start md:gap-1.5 md:pb-1 md:text-left">
       {children}
     </div>
   );
