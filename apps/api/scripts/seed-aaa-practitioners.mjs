@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 /**
+ * @deprecated Prefer apps/api/scripts/import-aaa-practitioners.mjs
+ * (claimable, unverified, production-gated). This seed marks listings
+ * verified and is kept only for local/dev backwards compatibility.
+ *
  * Idempotent seed: AAA practitioner directory → AyurPass professionals.
  * Requires apps/api/data/aaa-practitioners.json (run scrape-aaa-practitioners.mjs first).
  */

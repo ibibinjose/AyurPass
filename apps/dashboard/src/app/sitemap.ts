@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { RETREAT_CATEGORIES } from "@/lib/catalog";
 import { practicePath } from "@/lib/paths";
 import { abs } from "@/lib/seo";
+import { isUnclaimedAaaProvider, isUnclaimedAaaProfessional } from "@/lib/aaaDirectory";
 
 // Re-generate at most hourly — keeps the sitemap fresh without hammering the API.
 export const revalidate = 3600;
@@ -64,6 +65,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const p of providers) {
     if (!p.slug) continue;
+    // Unclaimed AAA directory imports stay noindex / out of sitemap until claimed
+    if (isUnclaimedAaaProvider(p)) continue;
     entries.push({
       url: abs(practicePath(p)),
       changeFrequency: "weekly",
@@ -80,6 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   for (const pro of professionals) {
     if (!pro.slug) continue;
+    if (isUnclaimedAaaProfessional(pro)) continue;
     entries.push({
       url: abs(`/me/${pro.slug}`),
       changeFrequency: "weekly",

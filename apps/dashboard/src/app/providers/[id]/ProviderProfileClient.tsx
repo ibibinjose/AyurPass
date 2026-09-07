@@ -49,12 +49,14 @@ import {
   ProfileSocialStrip,
   ProfileTabs,
   ProfileThemeScope,
+  ProfileAaaBadge,
   ProfileVerifiedMark,
   type ProfileLinkItem,
 } from "@/components/profile/ProfilePrimitives";
 import { TagAuthorityRow } from "@/components/AuthorityBadge";
 import { QualityPanel } from "@/components/QualityControls";
 import { authoritiesForProvider } from "@/lib/credentials";
+import { hasAaaAttribution, publicContactEmail } from "@/lib/aaaDirectory";
 import { brandSocialToDisplay } from "@/lib/social";
 
 function buildPracticeLinks(brand?: Provider["brandProfile"]): ProfileLinkItem[] {
@@ -75,12 +77,13 @@ function buildPracticeLinks(brand?: Provider["brandProfile"]): ProfileLinkItem[]
       href: brand.externalBookingUrl,
     });
   }
-  if (brand?.contactEmail) {
+  const email = publicContactEmail(brand?.contactEmail);
+  if (email) {
     items.push({
       kind: "email",
       label: "Email",
-      sublabel: brand.contactEmail,
-      href: `mailto:${brand.contactEmail}`,
+      sublabel: email,
+      href: `mailto:${email}`,
     });
   }
   if (brand?.contactPhone) {
@@ -320,9 +323,15 @@ export default function ProviderProfilePage({
   const location = hasAddress(provider) ? formatAddress(provider.address) : "";
   const mapHref = mapsUrl(provider);
   const authorities = authoritiesForProvider(provider);
-  const verified =
-    provider.verificationStatus === "verified" ||
-    authorities.some((a) => a.verified || a.code.toUpperCase() === "AAA");
+  // AyurPass verified only — AAA is directory attribution, not a verified checkmark
+  const verified = provider.verificationStatus === "verified";
+  const aaaListed = hasAaaAttribution(authorities);
+  const aaaMembership =
+    authorities.find((a) => a.code.toUpperCase() === "AAA")?.registrationNumber ?? null;
+  const visibleLinkItems =
+    aaaListed && !verified
+      ? linkItems.filter((i) => i.kind !== "book")
+      : linkItems;
   const tags = brand?.tags?.filter(Boolean) ?? [];
   const amenities = brand?.amenities?.filter(Boolean) ?? [];
   const typeLabel = PROVIDER_TYPE_LABEL[provider.type] ?? provider.type;
@@ -333,10 +342,12 @@ export default function ProviderProfilePage({
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : `${SITE_URL}${sharePath}`;
   const teamCount = team.length;
-  const bookHref = brand?.externalBookingUrl || null;
+  // Unclaimed AAA imports are not bookable (0 services; no external booking CTA)
+  const bookHref =
+    aaaListed && !verified ? null : brand?.externalBookingUrl || null;
   const handleChooseSession = () => setTab("services");
   const hours = brand?.openingHours?.trim() || null;
-  const socialOnly = linkItems.filter((i) => i.kind === "social");
+  const socialOnly = visibleLinkItems.filter((i) => i.kind === "social");
   const ratingValue = Number(provider.rating ?? 0);
   const reviewCount = Number(provider.reviewCount ?? 0);
 
@@ -349,7 +360,7 @@ export default function ProviderProfilePage({
 VERSION:3.0
 FN:${provider.businessName}
 TEL:${brand?.contactPhone || ""}
-EMAIL:${brand?.contactEmail || ""}
+EMAIL:${publicContactEmail(brand?.contactEmail) || ""}
 URL:${shareUrl}
 END:VCARD`;
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -392,7 +403,7 @@ END:VCARD`;
               Book online
             </Link>
           )
-        ) : hasBookableServices ? (
+        ) : hasBookableServices && !(aaaListed && !verified) ? (
           <button
             type="button"
             onClick={handleChooseSession}
@@ -455,10 +466,16 @@ END:VCARD`;
               </div>
             ) : null}
 
+            {aaaListed ? (
+              <div className="mt-2.5 flex justify-center md:justify-start">
+                <ProfileAaaBadge membership={aaaMembership} />
+              </div>
+            ) : null}
+
             {/* Social logos only in hero — full contact lives under Links */}
-            {linkItems.length > 0 ? (
+            {visibleLinkItems.length > 0 ? (
               <div className="mt-3">
-                <ProfileSocialStrip items={linkItems} size="sm" compact />
+                <ProfileSocialStrip items={visibleLinkItems} size="sm" compact />
               </div>
             ) : null}
 
@@ -642,8 +659,8 @@ END:VCARD`;
 
               {tab === "links" ? (
                 <ProfileSection label="Links & social">
-                  {linkItems.length ? (
-                    <ProfileLinkButtons items={linkItems} />
+                  {visibleLinkItems.length ? (
+                    <ProfileLinkButtons items={visibleLinkItems} />
                   ) : (
                     <ProfileEmptyState
                       title="No links yet"

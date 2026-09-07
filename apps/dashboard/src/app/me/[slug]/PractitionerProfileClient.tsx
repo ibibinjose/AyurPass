@@ -42,6 +42,7 @@ import {
 import { TagAuthorityRow } from "@/components/AuthorityBadge";
 import { QualityPanel } from "@/components/QualityControls";
 import { authoritiesForProfessional } from "@/lib/credentials";
+import { publicContactEmail } from "@/lib/aaaDirectory";
 import { brandSocialToDisplay } from "@/lib/social";
 import { ExternalLinkIcon, MailIcon, MapPinIcon } from "@/components/icons";
 
@@ -51,7 +52,7 @@ function buildLinkItems(
   brand?: BrandProfile | null,
 ): ProfileLinkItem[] {
   const aaaProfileUrl = professional.verificationDocuments?.profileUrl;
-  const contactEmail = brand?.contactEmail || professional.user?.email;
+  const contactEmail = publicContactEmail(brand?.contactEmail, professional.user?.email);
   const contactPhone = brand?.contactPhone || professional.user?.phone;
   const social = brand?.socialLinks;
   const items: ProfileLinkItem[] = [];
@@ -305,7 +306,7 @@ export default function PractitionerProfileClient({
 VERSION:3.0
 FN:${displayName}
 TEL:${brand?.contactPhone || ""}
-EMAIL:${brand?.contactEmail || ""}
+EMAIL:${publicContactEmail(brand?.contactEmail, professional.user?.email) || ""}
 URL:${shareUrl}
 END:VCARD`;
     const blob = new Blob([vcard], { type: "text/vcard" });
@@ -322,7 +323,8 @@ END:VCARD`;
   const rating = Number(professional.rating ?? 0);
   const years = professional.yearsExperience;
 
-  const bookHref = brand?.externalBookingUrl || null;
+  const bookHref =
+    aaaListed && !verified ? null : brand?.externalBookingUrl || null;
   const handleChooseSession = () => setTab("services");
 
   return (
@@ -356,7 +358,7 @@ END:VCARD`;
                   Book online
                 </Link>
               )
-            ) : hasBookableServices ? (
+            ) : hasBookableServices && !(aaaListed && !verified) ? (
               <button
                 type="button"
                 onClick={handleChooseSession}
@@ -378,14 +380,19 @@ END:VCARD`;
             imageUrl={avatar}
             hubLogoUrl={practiceLogo && practiceLogo !== avatar ? practiceLogo : null}
             size={128}
-            status={verified || aaaListed ? "online" : "offline"}
+            status={verified ? "online" : "offline"}
           />
 
           <ProfileHeroInfo>
             <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
               <span>{displayName}</span>
-              {verified || aaaListed ? <ProfileVerifiedMark size="lg" /> : null}
+              {verified ? <ProfileVerifiedMark size="lg" /> : null}
             </h1>
+            {aaaListed ? (
+              <div className="mt-2 flex justify-center md:justify-start">
+                <ProfileAaaBadge membership={membership} />
+              </div>
+            ) : null}
 
             <p className="text-base font-semibold text-ink-secondary md:text-lg">{title}</p>
 
@@ -552,7 +559,7 @@ END:VCARD`;
                         ) : null}
                         {aaaListed ? (
                           <ProfileBackgroundRow label="Directory">
-                            <ProfileAaaBadge />
+                            <ProfileAaaBadge membership={membership} />
                           </ProfileBackgroundRow>
                         ) : null}
                       </ProfileBackgroundCard>

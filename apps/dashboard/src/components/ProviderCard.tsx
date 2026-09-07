@@ -10,6 +10,7 @@ import { VerifiedTick } from "./VerifiedTick";
 import { VerifiedLogoBadge } from "./VerifiedLogoBadge";
 import { TagAuthorityRow } from "./AuthorityBadge";
 import { authoritiesForProvider } from "@/lib/credentials";
+import { hasAaaAttribution, isUnclaimedAaaProvider } from "@/lib/aaaDirectory";
 import { QualityCardStrip } from "./QualityControls";
 import { useDirectoryDensity } from "@/components/DirectoryLayout";
 import { CardListMedia } from "./CardListMedia";
@@ -24,13 +25,14 @@ export function ProviderCard({ provider }: { provider: Provider }) {
 
   const location = formatAddress(provider.address);
   const authorities = authoritiesForProvider(provider);
-  const verified =
-    provider.verificationStatus === "verified" ||
-    authorities.some((a) => a.verified || a.code.toUpperCase() === "AAA");
+  // AyurPass verified only — AAA directory attribution is not a verified checkmark
+  const verified = provider.verificationStatus === "verified";
+  const aaaListed = hasAaaAttribution(authorities);
+  const unclaimedAaa = isUnclaimedAaaProvider(provider);
   const brand = provider.brandProfile;
   const cover = brand?.coverImageUrl ?? brand?.logoUrl ?? null;
   const counts = provider._count;
-  const bookable = (counts?.services ?? 0) > 0;
+  const bookable = (counts?.services ?? 0) > 0 && !unclaimedAaa;
   const showDiscoveryTags = provider.listingTier === "FREE_LISTING" || !bookable;
   const tags = (brand?.tags ?? []).filter(Boolean).slice(0, 3);
   const stats = counts
@@ -54,10 +56,16 @@ export function ProviderCard({ provider }: { provider: Provider }) {
 
   const cta = (
     <span className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-forest to-forest-deep px-3.5 text-xs font-bold text-white shadow-xs transition-all group-hover:from-forest-deep group-hover:to-forest group-hover:shadow-md sm:min-h-9 sm:px-4">
-      View practice
+      {unclaimedAaa ? "View listing" : "View practice"}
       <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>→</span>
     </span>
   );
+  const aaaChip =
+    aaaListed && !verified ? (
+      <span className="inline-flex items-center rounded-full border border-leaf/30 bg-leaf/10 px-2 py-0.5 text-[10px] font-semibold text-forest">
+        Listed in the AAA directory
+      </span>
+    ) : null;
 
   if (isList) {
     return (
@@ -114,6 +122,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
               ) : stats.length > 0 ? (
                 <p className="mt-1 text-xs font-medium text-ink-muted">{stats.join(" · ")}</p>
               ) : null}
+              {aaaChip ? <div className="mt-1.5">{aaaChip}</div> : null}
             </div>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -202,6 +211,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
         ) : stats.length > 0 ? (
           <p className="mt-3 text-sm font-medium text-ink-muted">{stats.join(" · ")}</p>
         ) : null}
+        {aaaChip ? <div className="mt-3">{aaaChip}</div> : null}
 
         <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[var(--separator)] pt-4">
           {quality}

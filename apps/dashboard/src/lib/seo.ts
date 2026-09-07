@@ -3,6 +3,7 @@ import type { Offer, ProfessionalDetail, Provider, Retreat } from "./types";
 import { BRAND_ASSET_VERSION } from "./brand";
 import { PROVIDER_TYPE_LABEL, RETREAT_CATEGORY_LABEL, formatAddress } from "./catalog";
 import { practicePath, practitionerPath } from "./paths";
+import { shouldNoindexAaaDirectoryListing, publicContactEmail } from "./aaaDirectory";
 
 /** Canonical site origin — override per environment via NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (
@@ -168,7 +169,7 @@ export function providerLocalBusinessJsonLd(provider: Provider) {
     url: abs(practicePath(provider)),
     image: brand?.coverImageUrl ?? brand?.logoUrl ?? undefined,
     telephone: brand?.contactPhone ?? undefined,
-    email: brand?.contactEmail ?? undefined,
+    email: publicContactEmail(brand?.contactEmail) ?? undefined,
     priceRange: brand?.priceBand ?? undefined,
     address: a
       ? {
@@ -413,6 +414,7 @@ export function practitionerMetadata(professional: ProfessionalDetail): Metadata
       ...(professional.specializations ?? []),
       ...dynKeywords,
     ].filter(Boolean) as string[],
+    noindex: shouldNoindexAaaDirectoryListing(professional),
   });
 }
 
@@ -430,5 +432,6 @@ export function providerMetadata(provider: Provider): Metadata {
       Boolean,
     ) as string[],
     keywords: dynKeywords,
+    noindex: shouldNoindexAaaDirectoryListing(provider),
   });
 }

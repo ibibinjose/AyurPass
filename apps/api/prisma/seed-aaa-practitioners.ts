@@ -1,10 +1,14 @@
 /**
+ * @deprecated Prefer apps/api/scripts/import-aaa-practitioners.mjs
+ * (claimable, unverified, production-gated). This seed marks listings
+ * verified and is kept only for local/dev backwards compatibility.
+ *
  * Idempotent seed: Australian Association of Ayurveda (AAA) public directory.
  * Data scraped from https://www.ayurved.org.au/find-a-practitioner (69 practitioners).
  *
  * Run scrape first (or use committed JSON):
- *   node backend/scripts/scrape-aaa-practitioners.mjs
- *   npx ts-node backend/prisma/seed-aaa-practitioners.ts
+ *   node apps/api/scripts/scrape-aaa-practitioners.mjs
+ *   npx ts-node apps/api/prisma/seed-aaa-practitioners.ts
  */
 import { PrismaClient, ProviderType, Role } from '@prisma/client';
 import { readFileSync, existsSync } from 'fs';

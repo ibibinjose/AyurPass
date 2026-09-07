@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { isUnclaimedAaaProvider } from "@/lib/aaaDirectory";
 import {
   AYURVEDA_CATALOG_BY_ID,
   AYURVEDA_CONDITIONS,
@@ -131,17 +132,9 @@ function sortProfessionals(list: Professional[], sort: ProSortKey): Professional
       if (rd !== 0) return rd;
       return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
     }
-    // recommended: verified first, then rating, then reviews, then experience
-    const av =
-      a.provider?.verificationStatus === "verified" ||
-      (a.healthAuthorities ?? []).some((x) => x.code?.toUpperCase() === "AAA")
-        ? 0
-        : 1;
-    const bv =
-      b.provider?.verificationStatus === "verified" ||
-      (b.healthAuthorities ?? []).some((x) => x.code?.toUpperCase() === "AAA")
-        ? 0
-        : 1;
+    // recommended: AyurPass-verified first (AAA directory attribution ≠ verified)
+    const av = a.provider?.verificationStatus === "verified" ? 0 : 1;
+    const bv = b.provider?.verificationStatus === "verified" ? 0 : 1;
     if (av !== bv) return av - bv;
     const rd = Number(b.rating ?? 0) - Number(a.rating ?? 0);
     if (rd !== 0) return rd;
@@ -343,6 +336,8 @@ function DiscoverInner() {
         // When Near Me coords are set, don't hard-filter by city string — sort by distance instead.
         if (loc && !userCoords && !includesText(formatAddress(p.address), loc)) return false;
         if (verifiedOnly && p.verificationStatus !== "verified") return false;
+        // Practitioner-first AAA imports: hide unclaimed AAA practice shells from Clinics tab
+        if (isUnclaimedAaaProvider(p) && (p._count?.services ?? 0) === 0) return false;
         if (
           doshaOnly &&
           myDosha &&
@@ -693,9 +688,7 @@ function DiscoverInner() {
   const verifiedProCount = useMemo(
     () =>
       (base.professionals ?? []).filter(
-        (p) =>
-          p.provider?.verificationStatus === "verified" ||
-          (p.healthAuthorities ?? []).some((a) => a.code?.toUpperCase() === "AAA"),
+        (p) => p.provider?.verificationStatus === "verified",
       ).length,
     [base.professionals],
   );

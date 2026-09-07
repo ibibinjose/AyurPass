@@ -733,11 +733,18 @@ export function ProfileMemberSince({ year }: { year: number }) {
   );
 }
 
-export function ProfileAaaBadge() {
+export function ProfileAaaBadge(props?: { membership?: string | null }) {
+  const tier = props?.membership?.trim();
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-hairline bg-surface px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-forest">
-      <ShieldIcon className="h-3.5 w-3.5 text-leaf" />
-      AAA Listed
+    <span
+      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-leaf/30 bg-leaf/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-forest"
+      title="Listed in the Australian Association of Ayurveda (AAA) public directory — not an AyurPass verification mark"
+    >
+      <ShieldIcon className="h-3.5 w-3.5 shrink-0 text-leaf" />
+      <span>Listed in the AAA directory</span>
+      {tier ? (
+        <span className="font-medium normal-case text-ink-secondary">· {tier}</span>
+      ) : null}
     </span>
   );
 }
