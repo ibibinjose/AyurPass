@@ -197,11 +197,11 @@ export default function PractitionerProfileClient({
   const provider = professional?.provider;
   const brand = provider?.brandProfile;
   const avatar = resolveMediaUrl(professional?.user?.avatarUrl ?? brand?.logoUrl ?? null);
+  // Wide cover only — never fall back to a portrait avatar/logo (stretches the hero).
   const coverUrl =
     resolveMediaUrl(professional?.user?.coverImageUrl) ??
     resolveMediaUrl(brand?.coverImageUrl) ??
-    resolveMediaUrl(brand?.logoUrl) ??
-    avatar;
+    null;
   const services = professional?.services ?? [];
   const hasBookableServices = services.length > 0;
 
@@ -215,9 +215,9 @@ export default function PractitionerProfileClient({
   const gallery = useMemo(() => {
     const g = brand?.gallery?.filter(Boolean) ?? [];
     if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
-    if (avatar && !g.includes(avatar)) return [...g, avatar];
+    // Keep Media as real gallery/cover assets only (avatar stays in the hero).
     return g;
-  }, [brand?.gallery, coverUrl, avatar]);
+  }, [brand?.gallery, coverUrl]);
 
   const tabs = useMemo(() => {
     const t: { id: string; label: string }[] = [{ id: "about", label: "About" }];
@@ -372,24 +372,24 @@ END:VCARD`;
       }
     >
       <ProfilePageFrame
-        coverUrl={coverUrl ?? avatar}
+        coverUrl={coverUrl}
       >
         <ProfileHeroShell>
           <ProfileAvatar
             name={displayName}
             imageUrl={avatar}
             hubLogoUrl={practiceLogo && practiceLogo !== avatar ? practiceLogo : null}
-            size={128}
-            status={verified ? "online" : "offline"}
+            size={120}
+            status={verified ? "online" : "none"}
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
-              <span>{displayName}</span>
+            <h1 className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+              <span className="min-w-0 break-words">{displayName}</span>
               {verified ? <ProfileVerifiedMark size="lg" /> : null}
             </h1>
             {aaaListed ? (
-              <div className="mt-2 flex justify-center md:justify-start">
+              <div className="mt-2 flex w-full min-w-0 flex-wrap justify-center md:justify-start">
                 <ProfileAaaBadge membership={membership} />
               </div>
             ) : null}
@@ -409,7 +409,7 @@ END:VCARD`;
             />
 
             {(professional.specializations.length > 0 || authorities.length > 0) && (
-              <div className="mt-2.5 flex justify-center md:justify-start">
+              <div className="mt-2.5 w-full min-w-0">
                 <TagAuthorityRow
                   tags={professional.specializations}
                   authorities={authorities}
@@ -417,6 +417,7 @@ END:VCARD`;
                   maxTags={4}
                   maxAuthorities={3}
                   linkable
+                  className="justify-center md:justify-start"
                 />
               </div>
             )}

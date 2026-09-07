@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.ayurpass.com" },
       { protocol: "https", hostname: "api-staging.ayurpass.com" },
       { protocol: "https", hostname: "picsum.photos" },
+      // AAA directory / external practice logos (imported listings)
+      { protocol: "https", hostname: "www.ayurved.org.au" },
+      { protocol: "https", hostname: "ayurved.org.au" },
       // S3 / CloudFront media CDN (when provisioned)
       { protocol: "https", hostname: "**.amazonaws.com" },
       { protocol: "https", hostname: "**.cloudfront.net" },
