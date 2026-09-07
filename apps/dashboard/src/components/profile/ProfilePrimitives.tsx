@@ -631,7 +631,7 @@ export function ProfileAvatar({
         </span>
       ) : null}
       <div
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.14)] ring-4 ring-surface"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-2 border-white/90 shadow-[0_14px_36px_rgba(15,35,25,0.22)] ring-4 ring-surface"
         style={{ width: size, height: size }}
       >
         {showPhoto ? (
@@ -639,12 +639,13 @@ export function ProfileAvatar({
           <img
             src={imageUrl!}
             alt=""
-            className="h-full w-full object-cover"
+            decoding="async"
+            className="h-full w-full object-cover object-center"
             onError={() => setImgBroken(true)}
           />
         ) : (
           <div
-            className="flex h-full w-full items-center justify-center font-display text-2xl text-white"
+            className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold tracking-wide text-white"
             style={{ background: "var(--profile-gradient, linear-gradient(145deg,#1e3228,#3d6650))" }}
             aria-hidden
           >
@@ -781,7 +782,7 @@ export function ProfileShell({ children }: { children: ReactNode }) {
 
 export function ProfileHeroShell({ children }: { children: ReactNode }) {
   return (
-    <header className="relative z-[1] flex flex-col items-center gap-6 px-5 pb-8 pt-2 sm:px-8 sm:pb-10 md:flex-row md:items-end md:gap-9 md:pt-0">
+    <header className="relative z-[1] flex flex-col items-center gap-5 px-5 pb-8 pt-1 sm:gap-6 sm:px-8 sm:pb-10 md:flex-row md:items-end md:gap-8 md:pt-0">
       {children}
     </header>
   );
@@ -927,8 +928,18 @@ export function ProfileThemePicker({
   );
 }
 
-/** Applies accent CSS vars to a profile tree + persists choice. */
-export function ProfileThemeScope({ children }: { children: ReactNode }) {
+/**
+ * Applies accent CSS vars to a profile tree.
+ * `showPicker` is owner-preview chrome — keep false on public / unclaimed pages.
+ */
+export function ProfileThemeScope({
+  children,
+  showPicker = false,
+}: {
+  children: ReactNode;
+  /** When true, render the Theme accent control (dashboard/preview only). */
+  showPicker?: boolean;
+}) {
   const [accentId, setAccentId] = useState<ProfileAccentId>("forest");
 
   useEffect(() => {
@@ -959,15 +970,17 @@ export function ProfileThemeScope({ children }: { children: ReactNode }) {
       }
     >
       {children}
-      <div className="border-t border-[var(--separator)] px-5 py-5 sm:px-8">
-        <ProfileThemePicker
-          value={accentId}
-          onChange={(id) => {
-            setAccentId(id);
-            setStoredAccentId(id);
-          }}
-        />
-      </div>
+      {showPicker ? (
+        <div className="border-t border-[var(--separator)] px-5 py-5 sm:px-8">
+          <ProfileThemePicker
+            value={accentId}
+            onChange={(id) => {
+              setAccentId(id);
+              setStoredAccentId(id);
+            }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1006,16 +1019,18 @@ export function ProfileEmptyState({ title, body }: { title: string; body: string
   );
 }
 
+/** Shared hero band height — photo and gradient fallbacks must match. */
+const COVER_BAND_CLASS =
+  "pointer-events-none absolute inset-x-0 top-0 h-44 overflow-hidden sm:h-52 md:h-56";
+
 /**
- * Immersive fluid hero cover — blurred photo or accent gradient with soft fade.
+ * Immersive fluid hero cover — photo (object-cover) or designed gradient/pattern
+ * when cover is missing or fails to load. Never stretch a portrait logo as a banner.
  * Optional `parallaxY` (px) for scroll-linked depth.
  */
 function GenericCoverGradient({ parallaxY = 0 }: { parallaxY?: number }) {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 h-44 overflow-hidden sm:h-56"
-    >
+    <div aria-hidden className={COVER_BAND_CLASS}>
       <div
         className="absolute inset-0 scale-110 will-change-transform"
         style={{
@@ -1024,12 +1039,13 @@ function GenericCoverGradient({ parallaxY = 0 }: { parallaxY?: number }) {
           transform: `translate3d(0, ${parallaxY * 0.35}px, 0)`,
         }}
       />
-      {/* Soft light wash so empty headers never look broken */}
+      {/* Soft light wash + subtle botanical-style dots so empty headers never look broken */}
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-45"
         style={{
           backgroundImage:
-            "radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.28), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(233,217,184,0.35), transparent 50%)",
+            "radial-gradient(ellipse at 25% 15%, rgba(255,255,255,0.3), transparent 55%), radial-gradient(ellipse at 80% 70%, rgba(233,217,184,0.38), transparent 50%), radial-gradient(rgba(255,255,255,0.14) 1px, transparent 1px)",
+          backgroundSize: "auto, auto, 18px 18px",
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-surface" />
@@ -1056,18 +1072,18 @@ export function ProfileCoverBand({
   }
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 overflow-hidden sm:h-60">
+    <div aria-hidden className={COVER_BAND_CLASS}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={resolved}
         alt=""
-        className="h-[130%] w-full object-cover opacity-95 will-change-transform"
-        style={{ transform: `translate3d(0, ${parallaxY * 0.4}px, 0) scale(1.05)` }}
+        decoding="async"
+        className="h-full w-full object-cover object-center opacity-95 will-change-transform"
+        style={{ transform: `translate3d(0, ${parallaxY * 0.35}px, 0) scale(1.06)` }}
         onError={() => setBroken(true)}
       />
-      <div className="absolute inset-0 backdrop-blur-[1.5px]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-surface" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-surface to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/5 to-surface" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-surface to-transparent sm:h-28" />
     </div>
   );
 }
@@ -1113,8 +1129,8 @@ export function ProfilePageFrame({
           </div>
         </div>
       ) : null}
-      {/* Spacer so avatar sits half over the cover */}
-      <div className="h-28 sm:h-36" aria-hidden />
+      {/* Spacer so avatar sits half over the cover (matches COVER_BAND_CLASS) */}
+      <div className="h-24 sm:h-32 md:h-36" aria-hidden />
       <div className="relative z-10">{children}</div>
     </div>
   );
