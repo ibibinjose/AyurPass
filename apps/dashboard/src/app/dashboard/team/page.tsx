@@ -8,6 +8,11 @@ import type { Professional } from "@/lib/types";
 import { practitionerPath } from "@/lib/paths";
 import { PencilIcon, PlusIcon, TrashIcon, UsersIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Textarea } from "@/components/ui";
+import {
+  ListingStatusBadge,
+  confirmListingStatusChange,
+  listingStatusOf,
+} from "@/components/ListingStatusControls";
 
 type FormMode = "add" | "edit";
 
@@ -139,6 +144,18 @@ export default function TeamPage() {
       setError("Couldn't remove team member.");
     }
   }
+  async function setListingStatus(m: Professional, next: "live" | "paused" | "closed") {
+    const name = m.user?.fullName || m.user?.email || "this practitioner";
+    if (!confirmListingStatusChange(name, next)) return;
+    setError(null);
+    try {
+      const updated = await api.updateProfessionalStatus(m.id, { status: next });
+      setTeam((prev) => (prev ?? []).map((x) => (x.id === m.id ? { ...x, ...updated } : x)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update practitioner status");
+    }
+  }
+
 
   return (
     <div>
@@ -305,8 +322,9 @@ export default function TeamPage() {
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">
-                    {m.user?.fullName ?? m.user?.email ?? "Practitioner"}
+                  <p className="truncate font-medium text-foreground flex flex-wrap items-center gap-2">
+                    <span>{m.user?.fullName ?? m.user?.email ?? "Practitioner"}</span>
+                    <ListingStatusBadge status={m.listingStatus} />
                   </p>
                   <p className="truncate text-sm text-ink-muted">
                     {[m.title, m.specializations?.join(" · ")].filter(Boolean).join(" — ") ||

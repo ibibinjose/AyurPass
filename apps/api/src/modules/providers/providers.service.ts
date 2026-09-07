@@ -13,6 +13,13 @@ import {
   isReservedRoot,
 } from '../../common/handles';
 import { CacheService } from '../cache/cache.service';
+import {
+  LIVE_LISTING_WHERE,
+  PUBLIC_SERVICE_WHERE,
+  PUBLIC_PROFESSIONAL_WHERE,
+  assertPubliclyVisible,
+  parseListingStatus,
+} from '../../common/listing-status';
 
 
 const PLACEHOLDER_EMAIL_DOMAIN = '@directory.ayurpass.local';
@@ -41,6 +48,7 @@ const PROVIDER_CARD = {
     type: true,
     verificationStatus: true,
     brandProfile: true,
+    listingStatus: true,
   },
 } as const;
 
@@ -55,6 +63,7 @@ const PROFESSIONAL_PROVIDER_PUBLIC = {
     type: true,
     verificationStatus: true,
     listingTier: true,
+    listingStatus: true,
     brandProfile: true,
     address: true,
     healthAuthorities: true,
@@ -260,7 +269,7 @@ export class ProvidersService {
     const cached = await this.cache.get<any[]>(cacheKey);
     if (cached) return cached;
 
-    const where: Prisma.ProviderWhereInput = {};
+    const where: Prisma.ProviderWhereInput = { ...LIVE_LISTING_WHERE };
     if (query.q?.trim()) {
       where.businessName = { contains: query.q.trim(), mode: 'insensitive' };
     }
@@ -305,6 +314,17 @@ export class ProvidersService {
       where: { id },
       include: { _count: PUBLIC_COUNTS },
     });
+    if (!row) return row;
+    assertPubliclyVisible(row, 'Practice');
+    return redactProviderPublic(row);
+  }
+
+  /** Owner/dashboard: return practice even when paused/closed. */
+  async findOneForOwner(id: string) {
+    const row = await this.prisma.provider.findUnique({
+      where: { id },
+      include: { _count: PUBLIC_COUNTS },
+    });
     return row ? redactProviderPublic(row) : row;
   }
 
@@ -333,6 +353,7 @@ export class ProvidersService {
     }
 
     if (!provider) throw new NotFoundException('Practice not found');
+    assertPubliclyVisible(provider, 'Practice');
     return redactProviderPublic(provider);
   }
 
@@ -360,7 +381,7 @@ export class ProvidersService {
   private async profileBundle(provider: NonNullable<Awaited<ReturnType<ProvidersService['findOne']>>>) {
     const [services, products, retreats, team] = await Promise.all([
       this.prisma.service.findMany({
-        where: { providerId: provider.id },
+        where: { providerId: provider.id, ...PUBLIC_SERVICE_WHERE },
         include: SERVICE_PUBLIC_INCLUDES,
         orderBy: { createdAt: 'desc' },
       }),
@@ -375,7 +396,7 @@ export class ProvidersService {
         orderBy: [{ startDate: 'asc' }, { createdAt: 'desc' }],
       }),
       this.prisma.professional.findMany({
-        where: { providerId: provider.id },
+        where: { providerId: provider.id, ...PUBLIC_PROFESSIONAL_WHERE },
         include: PROFESSIONAL_PUBLIC_INCLUDES,
         orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
       }),
@@ -553,6 +574,30 @@ export class ProvidersService {
       include: { _count: PUBLIC_COUNTS },
     });
     if (!provider) throw new NotFoundException('Practice not found');
+    assertPubliclyVisible(provider, 'Practice');
     return redactProviderPublic(provider);
+  }
+
+  async updateListingStatus(
+    id: string,
+    statusRaw: string,
+    reason: string | undefined,
+    userId: string,
+  ) {
+    const status = parseListingStatus(statusRaw);
+    const existing = await this.prisma.provider.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Practice not found');
+    const res = await this.prisma.provider.update({
+      where: { id },
+      data: {
+        listingStatus: status,
+        statusChangedAt: new Date(),
+        statusReason: reason?.trim() ? reason.trim().slice(0, 500) : null,
+        statusChangedBy: userId,
+      },
+      include: { _count: PUBLIC_COUNTS },
+    });
+    await this.invalidateCache();
+    return redactProviderPublic(res);
   }
 }

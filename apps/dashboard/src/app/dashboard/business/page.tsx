@@ -8,7 +8,7 @@ import { resolveMediaUrl } from "@/lib/media";
 import { PROVIDER_TYPE_LABEL } from "@/lib/catalog";
 import { practiceBioPath, practicePath } from "@/lib/paths";
 import { SITE_URL } from "@/lib/seo";
-import type { BrandProfile, HealthAuthorityBadge, Provider, ProviderType } from "@/lib/types";
+import type { BrandProfile, HealthAuthorityBadge, ListingStatus, Provider, ProviderType } from "@/lib/types";
 import { HEALTH_AUTHORITY_PRESETS, normalizeAuthorities } from "@/lib/credentials";
 import {
   isReservedRootHandle,
@@ -48,6 +48,11 @@ import {
   SuccessNote,
   InlineSpinner,
 } from "@/components/ui";
+import {
+  ListingStatusBadge,
+  confirmListingStatusChange,
+  listingStatusOf,
+} from "@/components/ListingStatusControls";
 
 const PROVIDER_TYPES = Object.keys(PROVIDER_TYPE_LABEL) as ProviderType[];
 const PRICE_BANDS = ["$", "$$", "$$$", "$$$$"] as const;
@@ -218,6 +223,8 @@ export default function BusinessProfilePage() {
 
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
+  const [statusReason, setStatusReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
@@ -400,6 +407,26 @@ export default function BusinessProfilePage() {
   const publicHref = practicePath(loaded);
   const bioHref = practiceBioPath(loaded);
   const sectionIndex = SECTIONS.findIndex((s) => s.id === section);
+
+  async function handleListingStatus(next: ListingStatus) {
+    if (!loaded?.id) return;
+    if (!confirmListingStatusChange(loaded.businessName || "this practice", next)) return;
+    setStatusBusy(true);
+    setError(null);
+    try {
+      const updated = await api.updateProviderStatus(loaded.id, {
+        status: next,
+        reason: statusReason.trim() || undefined,
+      });
+      setLoaded(updated);
+      setStatusReason("");
+      await refreshProfile().catch(() => undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : "Could not update listing status");
+    } finally {
+      setStatusBusy(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -598,6 +625,7 @@ export default function BusinessProfilePage() {
           >
             {loaded.listingTier === "FREE_LISTING" ? "Discover profile" : "Bookings enabled"}
           </span>
+          <ListingStatusBadge status={loaded.listingStatus} />
           {loaded.verificationStatus === "verified" ? (
             <span className="inline-flex items-center rounded-full bg-[var(--system-blue)] px-3 py-1.5 text-xs font-bold text-white">
               Verified
@@ -614,6 +642,71 @@ export default function BusinessProfilePage() {
           ) : null}
         </div>
       </div>
+
+      
+      <DashCard
+        title="Listing visibility"
+        description="Pause temporarily hides your practice from Discover and public pages without cancelling existing bookings. Close archives the listing (soft-close — you can reopen to Live anytime)."
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <ListingStatusBadge status={loaded.listingStatus} />
+          <span className="text-xs text-ink-muted">
+            {listingStatusOf(loaded.listingStatus) === "live"
+              ? "Publicly discoverable and bookable."
+              : listingStatusOf(loaded.listingStatus) === "paused"
+                ? "Hidden from public catalog. New bookings/enquiries blocked."
+                : "Archived. Hidden everywhere public until reopened."}
+          </span>
+        </div>
+        <div className="mt-3"><Field label="Optional reason (shown to your team)">
+          <Input
+            value={statusReason}
+            onChange={(e) => setStatusReason(e.target.value)}
+            placeholder="e.g. Seasonal closure, renovations…"
+            maxLength={500}
+          />
+        </Field></div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {listingStatusOf(loaded.listingStatus) === "live" ? (
+            <>
+              <Button
+                type="button"
+                variant="soft"
+                disabled={statusBusy}
+                onClick={() => void handleListingStatus("paused")}
+              >
+                Pause practice
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                disabled={statusBusy}
+                onClick={() => void handleListingStatus("closed")}
+              >
+                Close practice
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              disabled={statusBusy}
+              onClick={() => void handleListingStatus("live")}
+            >
+              Reopen to Live
+            </Button>
+          )}
+          {listingStatusOf(loaded.listingStatus) === "paused" ? (
+            <Button
+              type="button"
+              variant="danger"
+              disabled={statusBusy}
+              onClick={() => void handleListingStatus("closed")}
+            >
+              Close practice
+            </Button>
+          ) : null}
+        </div>
+      </DashCard>
 
       <DashQuickLinks
         items={[

@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { assertBookableListing } from '../../common/listing-status';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateBookingDto, UpdateBookingDto } from '../../dtos/booking.dto';
@@ -150,18 +151,24 @@ export class BookingsService {
           professionalId: true,
           doshaCompatibility: true,
           maxParticipants: true,
+          listingStatus: true,
+          providerId: true,
         },
       });
-      if (totalAmount === undefined) {
-        totalAmount = service ? Number(service.price) : 0;
+      if (!service) {
+        throw new NotFoundException('Service not found');
       }
-      if (!professionalId && service?.professionalId) {
+      assertBookableListing(service, 'This treatment');
+      if (totalAmount === undefined) {
+        totalAmount = Number(service.price);
+      }
+      if (!professionalId && service.professionalId) {
         professionalId = service.professionalId;
       }
-      if (service?.maxParticipants) {
+      if (service.maxParticipants) {
         maxParticipants = service.maxParticipants;
       }
-      if (service?.doshaCompatibility) {
+      if (service.doshaCompatibility) {
         bufferMinutes =
           Number((service.doshaCompatibility as Record<string, any>)?.bufferMinutes) || 0;
       }
@@ -170,8 +177,9 @@ export class BookingsService {
     const safeTotalAmount = totalAmount ?? 0;
     const provider = await this.prisma.provider.findUnique({
       where: { id: data.providerId },
-      select: { address: true },
+      select: { address: true, listingStatus: true },
     });
+    assertBookableListing(provider, 'This practice');
     const country = (provider?.address as Record<string, any> | null)?.country;
     const tax = calculateTaxForCountry(country, safeTotalAmount);
     
@@ -184,6 +192,14 @@ export class BookingsService {
       bufferMinutes > 0
         ? new Date(new Date(data.endTime).getTime() + bufferMinutes * 60_000)
         : data.endTime;
+
+    if (professionalId) {
+      const professional = await this.prisma.professional.findUnique({
+        where: { id: professionalId },
+        select: { listingStatus: true },
+      });
+      assertBookableListing(professional, 'This practitioner');
+    }
 
     await this.assertNoConflicts({
       providerId: data.providerId,

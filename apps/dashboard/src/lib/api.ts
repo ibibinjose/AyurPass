@@ -457,7 +457,7 @@ export const api = {
     request<Service[]>(`/services${category ? `?category=${category}` : ""}`),
   service: (id: string) => request<Service | null>(`/services/${id}`),
   servicesByProvider: (providerId: string) =>
-    request<Service[]>(`/services/provider/${providerId}`),
+    request<Service[]>(`/services/provider/${providerId}`, { auth: true }),
   createService: (data: {
     providerId: string;
     professionalId?: string;
@@ -473,6 +473,15 @@ export const api = {
   }) => request<Service>("/services", { method: "POST", body: data, auth: true }),
   updateService: (id: string, data: Partial<Omit<Service, "id" | "provider" | "professional">>) =>
     request<Service>(`/services/${id}`, { method: "PUT", body: data, auth: true }),
+  updateServiceStatus: (
+    id: string,
+    data: { status: "live" | "paused" | "closed"; reason?: string },
+  ) =>
+    request<Service>(`/services/${id}/status`, {
+      method: "PATCH",
+      body: data,
+      auth: true,
+    }),
   deleteService: (id: string) =>
     request<Service>(`/services/${id}`, { method: "DELETE", auth: true }),
 
@@ -623,6 +632,15 @@ export const api = {
       requestVanity?: boolean;
     },
   ) => request<Provider>(`/providers/${id}`, { method: "PUT", body: data, auth: true }),
+  updateProviderStatus: (
+    id: string,
+    data: { status: "live" | "paused" | "closed"; reason?: string },
+  ) =>
+    request<Provider>(`/providers/${id}/status`, {
+      method: "PATCH",
+      body: data,
+      auth: true,
+    }),
 
   // --- enquiries (leads from listing / retreat pages) ---
   createEnquiry: (data: {
@@ -963,6 +981,15 @@ export const api = {
       verificationDocuments?: Professional["verificationDocuments"];
     },
   ) => request<Professional>(`/professionals/${id}`, { method: "PUT", body: data, auth: true }),
+  updateProfessionalStatus: (
+    id: string,
+    data: { status: "live" | "paused" | "closed"; reason?: string },
+  ) =>
+    request<Professional>(`/professionals/${id}/status`, {
+      method: "PATCH",
+      body: data,
+      auth: true,
+    }),
   removeProfessional: (id: string) =>
     request<{ id: string; removed: boolean }>(`/professionals/${id}`, {
       method: "DELETE",

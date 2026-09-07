@@ -21,6 +21,11 @@ import { MediaField } from "@/components/MediaField";
 import { PencilIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@/components/ui";
 import {
+  ListingStatusBadge,
+  confirmListingStatusChange,
+  listingStatusOf,
+} from "@/components/ListingStatusControls";
+import {
   useInvalidateProviderServices,
   useProviderServices,
   useProviderTeam,
@@ -157,6 +162,18 @@ export default function ProviderServicesPage() {
       setError("This session has bookings attached and can't be deleted.");
     }
   }
+
+  async function setListingStatus(s: Service, next: "live" | "paused" | "closed") {
+    if (!confirmListingStatusChange(s.name, next)) return;
+    setError(null);
+    try {
+      await api.updateServiceStatus(s.id, { status: next });
+      reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update session status");
+    }
+  }
+
 
   const own = (services ?? []).filter((s) => s.category !== "PACKAGE");
   const shown = filter === "ALL" ? own : own.filter((s) => s.category === filter);
@@ -446,6 +463,7 @@ export default function ProviderServicesPage() {
                   <span className="rounded-full bg-clay px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-forest">
                     {CATEGORY_LABEL[s.category]}
                   </span>
+                  <ListingStatusBadge status={s.listingStatus} />
                   {parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes ? (
                     <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-forest-deep">
                       +{parseDoshaCompatibility(s.doshaCompatibility).bufferMinutes}m buffer
@@ -485,6 +503,35 @@ export default function ProviderServicesPage() {
                 >
                   Preview
                 </Link>
+                {listingStatusOf(s.listingStatus) === "live" ? (
+                  <>
+                    <button
+                      type="button"
+                      title="Pause"
+                      onClick={() => void setListingStatus(s, "paused")}
+                      className="rounded-full border border-hairline px-2.5 py-1.5 text-[11px] font-semibold text-ink-secondary hover:border-amber-400 hover:text-amber-800"
+                    >
+                      Pause
+                    </button>
+                    <button
+                      type="button"
+                      title="Close"
+                      onClick={() => void setListingStatus(s, "closed")}
+                      className="rounded-full border border-hairline px-2.5 py-1.5 text-[11px] font-semibold text-ink-secondary hover:border-red-300 hover:text-red-700"
+                    >
+                      Close
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    title="Reopen"
+                    onClick={() => void setListingStatus(s, "live")}
+                    className="rounded-full border border-forest/30 bg-forest/5 px-2.5 py-1.5 text-[11px] font-semibold text-forest hover:border-forest"
+                  >
+                    Reopen
+                  </button>
+                )}
                 <button
                   type="button"
                   title="Edit"

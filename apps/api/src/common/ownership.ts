@@ -56,6 +56,37 @@ export async function assertProviderOwner(
   }
 }
 
+
+/** Practice listing status changes are limited to OWNER / MANAGER staff (or legacy owner / admin). */
+export async function assertProviderOwnerOrManager(
+  prisma: PrismaService,
+  user: AuthedUser,
+  providerId: string,
+): Promise<void> {
+  if (user.role === 'PLATFORM_ADMIN') return;
+
+  const provider = await prisma.provider.findUnique({
+    where: { id: providerId },
+    select: { userId: true },
+  });
+  if (!provider) throw new NotFoundException('Provider not found');
+  if (provider.userId === user.sub) return;
+
+  const staff = await prisma.providerStaff.findFirst({
+    where: {
+      providerId,
+      userId: user.sub,
+      inviteStatus: 'ACCEPTED',
+      role: { in: ['OWNER', 'MANAGER'] },
+      revokedAt: null,
+    },
+    select: { id: true },
+  });
+  if (staff) return;
+
+  throw new ForbiddenException('Only practice owners or managers can change listing status');
+}
+
 export async function assertServiceProviderAccess(
   prisma: PrismaService,
   user: AuthedUser,

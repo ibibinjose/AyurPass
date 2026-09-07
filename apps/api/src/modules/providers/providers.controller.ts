@@ -1,10 +1,14 @@
-import { Controller, Get, Param, Body, Put, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, Query, Req } from '@nestjs/common';
 import { ProviderType } from '@prisma/client';
 import { ProvidersService } from './providers.service';
 import { UpdateProviderDto } from '../../dtos/provider.dto';
+import { UpdateListingStatusDto } from '../../dtos/listing-status.dto';
 import { Public } from '../../common/public.decorator';
 import { AuthedRequest } from '../../common/jwt-auth.guard';
-import { assertProviderAccess } from '../../common/ownership';
+import {
+  assertProviderAccess,
+  assertProviderOwnerOrManager,
+} from '../../common/ownership';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('providers')
@@ -70,5 +74,16 @@ export class ProvidersController {
   ) {
     await assertProviderAccess(this.prisma, req.user, id);
     return this.service.updateProvider(id, updateProviderDto);
+  }
+
+  /** Pause / close / reopen practice listing. OWNER or MANAGER only. */
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateListingStatusDto,
+    @Req() req: AuthedRequest,
+  ) {
+    await assertProviderOwnerOrManager(this.prisma, req.user, id);
+    return this.service.updateListingStatus(id, dto.status, dto.reason, req.user.sub);
   }
 }

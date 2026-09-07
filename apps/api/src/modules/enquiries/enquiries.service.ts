@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { assertBookableListing } from '../../common/listing-status';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEnquiryDto, UpdateEnquiryDto } from '../../dtos/enquiry.dto';
 import { CommunicationsService } from '../communications/communications.service';
@@ -20,9 +21,10 @@ export class EnquiriesService {
     if (targetProviderId) {
       const provider = await this.prisma.provider.findUnique({
         where: { id: targetProviderId },
-        select: { id: true },
+        select: { id: true, listingStatus: true },
       });
       if (!provider) throw new NotFoundException('Provider not found');
+      assertBookableListing(provider, 'This practice');
     } else {
       const sysProvider = await this.prisma.provider.findFirst({ select: { id: true } });
       if (sysProvider) {
