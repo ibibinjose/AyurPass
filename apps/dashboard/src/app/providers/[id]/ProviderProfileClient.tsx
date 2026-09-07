@@ -424,21 +424,24 @@ END:VCARD`;
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
-              <span>{provider.businessName}</span>
-              {verified ? (
-                <ProfileVerifiedMark size="lg" />
-              ) : (
+            <div className="flex w-full min-w-0 flex-col items-center gap-2 md:items-start">
+              <h1 className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+                <span className="min-w-0 break-words">{provider.businessName}</span>
+                {verified ? <ProfileVerifiedMark size="lg" /> : null}
+              </h1>
+              {!verified ? (
                 <button
                   type="button"
                   onClick={() => setClaimOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 dark:bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                  aria-label="Claim this Business"
+                  className="inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
                 >
-                  <ShieldIcon className="h-3.5 w-3.5" />
-                  <span>Claim this Business</span>
+                  <ShieldIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="sm:hidden">Claim</span>
+                  <span className="hidden sm:inline">Claim this Business</span>
                 </button>
-              )}
-            </h1>
+              ) : null}
+            </div>
 
             <ProfileMetaLine
               parts={[
@@ -452,7 +455,7 @@ END:VCARD`;
             />
 
             {tags.length > 0 || authorities.length > 0 ? (
-              <div className="mt-2.5 flex justify-center md:justify-start">
+              <div className="mt-2.5 w-full min-w-0">
                 <TagAuthorityRow
                   tags={tags}
                   authorities={authorities}
@@ -460,12 +463,13 @@ END:VCARD`;
                   maxTags={4}
                   maxAuthorities={3}
                   linkable
+                  className="justify-center md:justify-start"
                 />
               </div>
             ) : null}
 
             {aaaListed ? (
-              <div className="mt-2.5 flex justify-center md:justify-start">
+              <div className="mt-2.5 flex w-full min-w-0 flex-wrap justify-center md:justify-start">
                 <ProfileAaaBadge membership={aaaMembership} />
               </div>
             ) : null}

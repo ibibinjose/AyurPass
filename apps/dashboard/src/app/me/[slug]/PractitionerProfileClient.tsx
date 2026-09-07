@@ -384,12 +384,12 @@ END:VCARD`;
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
-              <span>{displayName}</span>
+            <h1 className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+              <span className="min-w-0 break-words">{displayName}</span>
               {verified ? <ProfileVerifiedMark size="lg" /> : null}
             </h1>
             {aaaListed ? (
-              <div className="mt-2 flex justify-center md:justify-start">
+              <div className="mt-2 flex w-full min-w-0 flex-wrap justify-center md:justify-start">
                 <ProfileAaaBadge membership={membership} />
               </div>
             ) : null}
@@ -409,7 +409,7 @@ END:VCARD`;
             />
 
             {(professional.specializations.length > 0 || authorities.length > 0) && (
-              <div className="mt-2.5 flex justify-center md:justify-start">
+              <div className="mt-2.5 w-full min-w-0">
                 <TagAuthorityRow
                   tags={professional.specializations}
                   authorities={authorities}
@@ -417,6 +417,7 @@ END:VCARD`;
                   maxTags={4}
                   maxAuthorities={3}
                   linkable
+                  className="justify-center md:justify-start"
                 />
               </div>
             )}
