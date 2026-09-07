@@ -197,11 +197,11 @@ export default function PractitionerProfileClient({
   const provider = professional?.provider;
   const brand = provider?.brandProfile;
   const avatar = resolveMediaUrl(professional?.user?.avatarUrl ?? brand?.logoUrl ?? null);
+  // Wide cover only — never fall back to a portrait avatar/logo (stretches the hero).
   const coverUrl =
     resolveMediaUrl(professional?.user?.coverImageUrl) ??
     resolveMediaUrl(brand?.coverImageUrl) ??
-    resolveMediaUrl(brand?.logoUrl) ??
-    avatar;
+    null;
   const services = professional?.services ?? [];
   const hasBookableServices = services.length > 0;
 
@@ -215,9 +215,9 @@ export default function PractitionerProfileClient({
   const gallery = useMemo(() => {
     const g = brand?.gallery?.filter(Boolean) ?? [];
     if (coverUrl && !g.includes(coverUrl)) return [coverUrl, ...g];
-    if (avatar && !g.includes(avatar)) return [...g, avatar];
+    // Keep Media as real gallery/cover assets only (avatar stays in the hero).
     return g;
-  }, [brand?.gallery, coverUrl, avatar]);
+  }, [brand?.gallery, coverUrl]);
 
   const tabs = useMemo(() => {
     const t: { id: string; label: string }[] = [{ id: "about", label: "About" }];
@@ -372,15 +372,15 @@ END:VCARD`;
       }
     >
       <ProfilePageFrame
-        coverUrl={coverUrl ?? avatar}
+        coverUrl={coverUrl}
       >
         <ProfileHeroShell>
           <ProfileAvatar
             name={displayName}
             imageUrl={avatar}
             hubLogoUrl={practiceLogo && practiceLogo !== avatar ? practiceLogo : null}
-            size={128}
-            status={verified ? "online" : "offline"}
+            size={120}
+            status={verified ? "online" : "none"}
           />
 
           <ProfileHeroInfo>
