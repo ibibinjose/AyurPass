@@ -41,7 +41,7 @@ export class AgentMemoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async buildAgentMemory(userId: string): Promise<AgentMemoryPackage> {
-    // 1. Semantic Memory: Factual user traits & Dosha health profile
+    // 1. Semantic Memory: Factual user traits & Dosha health profile (real data only)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -57,17 +57,24 @@ export class AgentMemoryService {
     });
 
     const hp = user?.consumer?.healthProfiles?.[0];
+    const hasDoshaScores =
+      hp != null &&
+      (hp.vataScore != null || hp.pittaScore != null || hp.kaphaScore != null);
+
     const vata = Number(hp?.vataScore ?? 0);
     const pitta = Number(hp?.pittaScore ?? 0);
     const kapha = Number(hp?.kaphaScore ?? 0);
 
-    let primaryDosha = 'Tridoshic (Balanced)';
-    if (vata > pitta && vata > kapha) primaryDosha = 'Vata Dominant';
-    else if (pitta > vata && pitta > kapha) primaryDosha = 'Pitta Dominant';
-    else if (kapha > vata && kapha > pitta) primaryDosha = 'Kapha Dominant';
-    else if (pitta === vata && pitta > kapha) primaryDosha = 'Vata-Pitta';
-    else if (pitta === kapha && pitta > vata) primaryDosha = 'Pitta-Kapha';
-    else if (vata === kapha && vata > pitta) primaryDosha = 'Vata-Kapha';
+    let primaryDosha = 'Not assessed yet';
+    if (hasDoshaScores && (vata > 0 || pitta > 0 || kapha > 0)) {
+      if (vata > pitta && vata > kapha) primaryDosha = 'Vata Dominant';
+      else if (pitta > vata && pitta > kapha) primaryDosha = 'Pitta Dominant';
+      else if (kapha > vata && kapha > pitta) primaryDosha = 'Kapha Dominant';
+      else if (pitta === vata && pitta > kapha) primaryDosha = 'Vata-Pitta';
+      else if (pitta === kapha && pitta > vata) primaryDosha = 'Pitta-Kapha';
+      else if (vata === kapha && vata > pitta) primaryDosha = 'Vata-Kapha';
+      else primaryDosha = 'Tridoshic (Balanced)';
+    }
 
     const imbalances: string[] = [];
     if (hp?.currentImbalances && typeof hp.currentImbalances === 'object') {
@@ -80,12 +87,14 @@ export class AgentMemoryService {
       fullName: user?.fullName ?? null,
       email: user?.email ?? null,
       primaryDosha,
-      currentImbalances: imbalances.length > 0 ? imbalances : ['Digestive Agni optimization', 'Stress & fatigue reduction'],
-      sensitivitiesAllergies: ['Sesame oil patch-tested: tolerant', 'Prefers gentle herbal steam'],
-      lastAssessmentDate: hp?.lastAssessment ? hp.lastAssessment.toISOString().split('T')[0] : 'Recent',
+      currentImbalances: imbalances,
+      sensitivitiesAllergies: [],
+      lastAssessmentDate: hp?.lastAssessment
+        ? hp.lastAssessment.toISOString().split('T')[0]
+        : undefined,
     };
 
-    // 2. Episodic Memory: Past completed treatment sessions and clinical takeaways
+    // 2. Episodic Memory: Past completed treatment sessions only (never invent episodes)
     const pastBookings = await this.prisma.booking.findMany({
       where: {
         consumerId: userId,
@@ -109,20 +118,8 @@ export class AgentMemoryService {
       date: b.startTime.toISOString().split('T')[0],
       providerName: b.provider?.businessName ?? 'AyurPass Clinic',
       practitionerName: b.professional?.user?.fullName ?? undefined,
-      clinicalNotes: b.notes ?? 'Completed successfully. Patient reported deep relaxation and improved muscle flexibility.',
+      clinicalNotes: b.notes ?? undefined,
     }));
-
-    // If no past bookings exist, provide a warm first-session clinical baseline
-    if (episodes.length === 0) {
-      episodes.push({
-        id: 'initial-intake',
-        serviceName: 'Ayurvedic Wellness Discovery',
-        serviceCategory: 'CONSULTATION',
-        date: 'Recent Assessment',
-        providerName: 'AyurPass Integrative Care',
-        clinicalNotes: 'Initial intake completed. Recommended starting with constitutional balancing therapies.',
-      });
-    }
 
     // 3. Working Schedule Context: Upcoming appointments
     const upcoming = await this.prisma.booking.findMany({
@@ -141,56 +138,71 @@ export class AgentMemoryService {
       serviceName: b.service?.name ?? 'Session',
       startTime: b.startTime.toISOString(),
       isVirtual: Boolean(b.service?.isVirtual),
-      videoUrl: b.service?.isVirtual ? `https://meet.ayurpass.com/room/${b.id.slice(0, 12)}` : undefined,
+      videoUrl: undefined,
     }));
 
-    // 4. Procedural Memory: Clinical & business safety guardrails
+    // 4. Procedural Memory: Clinical & business safety guardrails (policy text, not patient facts)
     const proceduralGuardrails = [
       'CLINICAL SAFETY: You are an Ayurvedic Wellness Concierge, NOT an emergency medical doctor. If the client mentions severe chest pain, acute bleeding, or shortness of breath, immediately advise them to contact emergency services (000/911).',
-      'HOLISTIC AYURVEDA: Always frame dietary, lifestyle, and herbal advice around balancing Vata, Pitta, and Kapha doshas, Agni (digestive fire), and seasonal Ritucharya.',
+      'HOLISTIC AYURVEDA: Frame dietary, lifestyle, and herbal advice around balancing Vata, Pitta, and Kapha doshas, Agni (digestive fire), and seasonal Ritucharya when relevant. Do not invent a dosha or clinical history the client does not have on file.',
       'CANCELLATION POLICY: Self-service cancellations or rescheduling require 24 hours advance notice per clinic policy. Sessions under 24 hours require contacting practice reception directly.',
-      'EMPATHETIC & GROUNDED TONE: Be warm, culturally respectful of classical Ayurvedic traditions, concise, and proactive in suggesting suitable clinic treatments or wellness packages.',
+      'EMPATHETIC & GROUNDED TONE: Be warm, culturally respectful of classical Ayurvedic traditions, concise, and clear about what is known vs. general wellness guidance.',
     ];
+
+    const doshaLine =
+      primaryDosha === 'Not assessed yet'
+        ? '- Primary Dosha: Not assessed yet (do not invent a constitution)'
+        : `- Primary Dosha: ${semantic.primaryDosha}`;
+
+    const imbalanceLine =
+      semantic.currentImbalances.length > 0
+        ? `- Health Focus / Current Imbalances: ${semantic.currentImbalances.join(', ')}`
+        : '- Health Focus / Current Imbalances: None recorded';
+
+    const episodesBlock =
+      episodes.length > 0
+        ? episodes
+            .map(
+              (ep) =>
+                `* [${ep.date}] ${ep.serviceName} at ${ep.providerName}${ep.practitionerName ? ` with ${ep.practitionerName}` : ''}${ep.clinicalNotes ? `\n  Notes: ${ep.clinicalNotes}` : ''}`,
+            )
+            .join('\n')
+        : '* No completed treatments on file yet.';
 
     // 5. Formatted System Prompt for Working Memory Injection
     const formattedSystemPrompt = `
-You are the AyurPass AI Care & Wellness Concierge, an empathetic, expert Ayurvedic companion.
-You are assisting ${semantic.fullName || 'a valued client'}.
+You are the AyurPass AI Care & Wellness Concierge, an empathetic Ayurvedic companion.
+You are assisting ${semantic.fullName || 'a signed-in client'}.
+Only use facts listed below. If something is missing, say so and offer general guidance — never invent clinical history, allergies, or past treatments.
 
-=== AGENT ACTIVE MEMORY ===
+=== CARE CONTEXT (VERIFIED) ===
 
-[1. SEMANTIC MEMORY (Patient Facts & Constitution)]
+[1. PROFILE]
 - Name: ${semantic.fullName || 'Client'}
-- Primary Dosha: ${semantic.primaryDosha}
-- Health Focus / Current Imbalances: ${semantic.currentImbalances.join(', ')}
-- Known Sensitivities / Notes: ${semantic.sensitivitiesAllergies.join('; ')}
-- Assessment Date: ${semantic.lastAssessmentDate}
+${doshaLine}
+${imbalanceLine}
+- Assessment Date: ${semantic.lastAssessmentDate ?? 'Not recorded'}
 
-[2. EPISODIC MEMORY (Past Clinical Treatments & Outcomes)]
-${episodes
-  .map(
-    (ep) =>
-      `* [${ep.date}] ${ep.serviceName} at ${ep.providerName}${ep.practitionerName ? ` with ${ep.practitionerName}` : ''}\n  Clinical Takeaway: ${ep.clinicalNotes}`,
-  )
-  .join('\n')}
+[2. PAST TREATMENTS]
+${episodesBlock}
 
-[3. SCHEDULE CONTEXT (Upcoming Sessions)]
+[3. UPCOMING SESSIONS]
 ${
   upcomingAppointments.length > 0
     ? upcomingAppointments
         .map(
           (u) =>
-            `* Upcoming: ${u.serviceName} at ${new Date(u.startTime).toLocaleString()}${u.isVirtual ? ` (Virtual Video Room: ${u.videoUrl})` : ' (In-Person Clinic)'}`,
+            `* Upcoming: ${u.serviceName} at ${new Date(u.startTime).toLocaleString()}${u.isVirtual ? ' (Virtual)' : ' (In-Person)'}`,
         )
         .join('\n')
     : '* No active upcoming sessions booked.'
 }
 
-[4. PROCEDURAL MEMORY (Clinical & Operational Guardrails)]
+[4. GUARDRAILS]
 ${proceduralGuardrails.map((g) => `- ${g}`).join('\n')}
 
 When responding:
-- Proactively leverage their Dosha (${semantic.primaryDosha}) and past session experiences so the patient feels truly remembered.
+- Use dosha and past sessions only when they are present above.
 - Keep answers practical, supportive, and structured (under 3 paragraphs).
 - Recommend relevant Ayurvedic therapies when appropriate (e.g. Abhyanga, Shirodhara, Udvartana, Herbal Steam, Yoga).
 `.trim();

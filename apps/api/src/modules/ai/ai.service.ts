@@ -57,10 +57,8 @@ export class AiService {
       throw new BadRequestException('Message is required.');
     }
 
-    // 1. Compile Agent Memory: Semantic (Facts/Dosha) + Episodic (Past Sessions) + Procedural (Policies)
     const memory = await this.agentMemory.buildAgentMemory(userId);
 
-    // 2. Prepare Working Memory: Sliding context window (last 6 turns)
     const trimmedHistory = (history || []).slice(-6);
     const messages: AiChatMessageDto[] = [
       { role: 'system', content: memory.formattedSystemPrompt },
@@ -100,34 +98,55 @@ export class AiService {
   private generateClinicalFallback(memory: AgentMemoryPackage, query: string): string {
     const q = query.toLowerCase();
     const dosha = memory.semantic.primaryDosha;
+    const hasDosha = dosha !== 'Not assessed yet';
     const name = memory.semantic.fullName ? ` ${memory.semantic.fullName}` : '';
     const lastSession = memory.episodes[0];
 
     if (q.includes('reschedule') || q.includes('cancel')) {
       return (
-        `Namaste${name}. As per our practice cancellation policy, appointments can be easily rescheduled or cancelled online up to 24 hours prior to the session from your Bookings tab. ` +
-        `If your session is within 24 hours, our therapists kindly request you reach out directly to the clinic front desk so we can adjust room turnaround and treatment preparations.`
+        `Namaste${name}. Appointments can usually be rescheduled or cancelled online up to 24 hours prior to the session from your Bookings tab. ` +
+        `If your session is within 24 hours, please reach out directly to the clinic front desk so they can adjust room turnaround and treatment preparations.`
       );
     }
 
     if (q.includes('food') || q.includes('eat') || q.includes('diet') || q.includes('detox')) {
+      const constitutionHint = hasDosha
+        ? `Based on your recorded ${dosha} profile, `
+        : 'As general Ayurvedic guidance, ';
+      const aftercare = lastSession
+        ? `Following ${lastSession.serviceName}, `
+        : '';
       return (
-        `Based on your ${dosha} constitution, it is best to support your digestive Agni with freshly prepared, warm meals. ` +
-        `Following sessions like ${lastSession?.serviceName ?? 'your recent treatment'}, we recommend sipping warm water with ginger or cumin, avoiding cold or iced drinks, and favoring light kitchari, steamed greens, and spiced mung dal to allow your tissues (dhatus) to gently integrate the therapeutic oils.`
+        `${constitutionHint}${aftercare}it is helpful to support digestive Agni with freshly prepared, warm meals. ` +
+        `Sipping warm water with ginger or cumin, avoiding cold drinks, and favoring light kitchari or steamed greens are common post-care suggestions. ` +
+        `This is general wellness guidance — not a personal diagnosis.`
       );
     }
 
     if (q.includes('stiff') || q.includes('pain') || q.includes('stress') || q.includes('next') || q.includes('book')) {
+      const contextBits = [
+        hasDosha ? `your ${dosha} profile` : null,
+        lastSession ? `your last session (${lastSession.serviceName})` : null,
+      ].filter(Boolean);
+      const lead =
+        contextBits.length > 0
+          ? `Given ${contextBits.join(' and ')}, `
+          : '';
       return (
-        `Given your ${dosha} profile and your last session (${lastSession?.serviceName ?? 'Ayurvedic session'}), ` +
-        `a therapeutic Abhyanga (warm medicated oil massage) followed by herbal Swedana steam or a soothing Shirodhara would be deeply rejuvenating for pacifying physical stiffness and grounding nervous energy. ` +
-        `You can easily book your next session through our online catalog or with your preferred practitioner.`
+        `${lead}a therapeutic Abhyanga (warm medicated oil massage) followed by herbal Swedana steam or a soothing Shirodhara is often helpful for stiffness and grounding. ` +
+        `You can browse and book sessions through the AyurPass catalog or with your preferred practitioner.`
       );
     }
 
+    const memoryHint = hasDosha
+      ? `I can see your recorded ${dosha} constitution${lastSession ? ' and past treatments' : ''} on file. `
+      : lastSession
+        ? 'I can see your past treatments on file. '
+        : 'I do not yet have a dosha assessment or treatment history on file for you. ';
+
     return (
-      `Namaste${name}. I am keeping your ${dosha} constitution and past treatment history in mind. ` +
-      `How can I assist you with your personalized Ayurvedic wellness, herbal lifestyle, or appointment schedule today?`
+      `Namaste${name}. ${memoryHint}` +
+      `How can I assist you with Ayurvedic wellness guidance or your appointment schedule today?`
     );
   }
 }

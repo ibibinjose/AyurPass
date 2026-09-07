@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { CentraLinkClient } from "./CentraLinkClient";
 
 export const metadata: Metadata = {
-  title: "CentraLink OS — Practice Operating System | AyurPass",
+  title: "CentraLink OS — Practice Operating System",
   description:
-    "CentraLink practice operating system cockpit. Unified front-desk telemetry, Panchakarma table occupancy, 7-layer clinical agent memory, and channel synchronization.",
+    "CentraLink practice operating system cockpit. Front-desk bookings, room occupancy, care memory, and channel links for your practice.",
 };
 
 export default function CentraLinkPage() {
