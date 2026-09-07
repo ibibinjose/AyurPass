@@ -260,6 +260,8 @@ export interface Professional {
     externalProfileId?: number;
     profileUrl?: string;
     membership?: string | null;
+    importedAt?: string;
+    claimable?: boolean;
   } | null;
   provider?: Pick<
     Provider,

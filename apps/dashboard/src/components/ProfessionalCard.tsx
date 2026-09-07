@@ -8,6 +8,7 @@ import { VerifiedTick } from "./VerifiedTick";
 import { VerifiedLogoBadge } from "./VerifiedLogoBadge";
 import { TagAuthorityRow } from "./AuthorityBadge";
 import { authoritiesForProfessional } from "@/lib/credentials";
+import { hasAaaAttribution } from "@/lib/aaaDirectory";
 import { QualityCardStrip } from "./QualityControls";
 import { practicePath, practitionerPath, professionalDisplayTitle } from "@/lib/paths";
 import { useDirectoryDensity } from "@/components/DirectoryLayout";
@@ -35,9 +36,9 @@ export function ProfessionalCard({ professional }: { professional: Professional 
         .join(", ")
     : "";
   const authorities = authoritiesForProfessional(professional);
-  const verified =
-    provider?.verificationStatus === "verified" ||
-    authorities.some((a) => a.verified || a.code.toUpperCase() === "AAA");
+  // AyurPass verified only — never treat AAA directory attribution as verified
+  const verified = provider?.verificationStatus === "verified";
+  const aaaListed = hasAaaAttribution(authorities, professional.verificationDocuments);
   const aaaProfileUrl = professional.verificationDocuments?.profileUrl;
   const name = professional.user?.fullName || professional.title || "Practitioner";
   const title =
@@ -78,6 +79,15 @@ export function ProfessionalCard({ professional }: { professional: Professional 
       ? ((provider.brandProfile as { coverImageUrl?: string | null }).coverImageUrl ?? null)
       : null;
   const listImage = avatar || cover;
+  const aaaChip =
+    aaaListed && !verified ? (
+      <span className="inline-flex items-center rounded-full border border-leaf/30 bg-leaf/10 px-2 py-0.5 text-[10px] font-semibold text-forest">
+        Listed in the AAA directory
+        {professional.verificationDocuments?.membership
+          ? ` · ${professional.verificationDocuments.membership}`
+          : ""}
+      </span>
+    ) : null;
 
   const href =
     professional.slug || professional.handle || professional.vanityHandle
@@ -197,6 +207,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
                 className="mt-2"
               />
             ) : null}
+            {aaaChip ? <div className="mt-1.5">{aaaChip}</div> : null}
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {quality}
@@ -314,6 +325,7 @@ export function ProfessionalCard({ professional }: { professional: Professional 
             className="mt-3"
           />
         ) : null}
+        {aaaChip ? <div className="mt-3">{aaaChip}</div> : null}
 
         <div className="mt-3 space-y-1">
           {provider ? (

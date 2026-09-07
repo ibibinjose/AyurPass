@@ -20,21 +20,34 @@ export function AuthorityBadge({
 }) {
   const pad = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[11px]";
   const checkClass = size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5";
+  const isVerifiedMark = Boolean(authority.verified);
+  const isAaaAttribution =
+    authority.code.toUpperCase() === "AAA" && !isVerifiedMark;
+  const titleBits = [
+    authority.name,
+    authority.region,
+    authority.registrationNumber,
+    isAaaAttribution ? "Listed in the AAA directory" : null,
+  ].filter(Boolean);
   const inner = (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-[var(--separator)] bg-[var(--fill-secondary)] font-semibold uppercase tracking-wide text-foreground ${pad}`}
-      title={[authority.name, authority.region, authority.registrationNumber]
-        .filter(Boolean)
-        .join(" · ")}
+      className={`inline-flex items-center gap-1.5 rounded-full border font-semibold uppercase tracking-wide ${pad} ${
+        isAaaAttribution
+          ? "border-leaf/30 bg-leaf/10 text-forest"
+          : "border-[var(--separator)] bg-[var(--fill-secondary)] text-foreground"
+      }`}
+      title={titleBits.join(" · ")}
     >
-      <span
-        className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-[0_0_0_1px_rgba(22,163,74,0.2)]"
-        style={{ width: size === "sm" ? 13 : 15, height: size === "sm" ? 13 : 15 }}
-        aria-hidden
-      >
-        <CheckIcon className={checkClass} strokeWidth={2.8} />
-      </span>
-      <span>{authority.code}</span>
+      {isVerifiedMark ? (
+        <span
+          className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-[0_0_0_1px_rgba(22,163,74,0.2)]"
+          style={{ width: size === "sm" ? 13 : 15, height: size === "sm" ? 13 : 15 }}
+          aria-hidden
+        >
+          <CheckIcon className={checkClass} strokeWidth={2.8} />
+        </span>
+      ) : null}
+      <span>{isAaaAttribution ? "AAA directory" : authority.code}</span>
       {authority.region ? (
         <span className="font-medium normal-case tracking-normal text-ink-muted">
           {authority.region}

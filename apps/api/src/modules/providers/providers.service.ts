@@ -14,6 +14,21 @@ import {
 } from '../../common/handles';
 import { CacheService } from '../cache/cache.service';
 
+
+const PLACEHOLDER_EMAIL_DOMAIN = '@directory.ayurpass.local';
+
+function redactProviderPublic<T extends { brandProfile?: unknown }>(provider: T): T {
+  const brand = provider.brandProfile;
+  if (!brand || typeof brand !== 'object' || Array.isArray(brand)) return provider;
+  const bp = { ...(brand as Record<string, unknown>) };
+  const ce = bp.contactEmail;
+  if (typeof ce === 'string' && ce.toLowerCase().endsWith(PLACEHOLDER_EMAIL_DOMAIN)) {
+    delete bp.contactEmail;
+    return { ...provider, brandProfile: bp };
+  }
+  return provider;
+}
+
 const PUBLIC_COUNTS = {
   select: { professionals: true, services: true, products: true, packages: true, rooms: true },
 } as const;
@@ -280,15 +295,17 @@ export class ProvidersService {
       return verifiedRank(a.verificationStatus) - verifiedRank(b.verificationStatus);
     });
 
-    await this.cache.set(cacheKey, sorted, 60);
-    return sorted;
+    const redacted = sorted.map((p) => redactProviderPublic(p));
+    await this.cache.set(cacheKey, redacted, 60);
+    return redacted;
   }
 
   async findOne(id: string) {
-    return this.prisma.provider.findUnique({
+    const row = await this.prisma.provider.findUnique({
       where: { id },
       include: { _count: PUBLIC_COUNTS },
     });
+    return row ? redactProviderPublic(row) : row;
   }
 
   /** Public practice profile — /practice/:slug or /[category]/:slug-:hexId */
@@ -316,7 +333,7 @@ export class ProvidersService {
     }
 
     if (!provider) throw new NotFoundException('Practice not found');
-    return provider;
+    return redactProviderPublic(provider);
   }
 
   /**
@@ -536,6 +553,6 @@ export class ProvidersService {
       include: { _count: PUBLIC_COUNTS },
     });
     if (!provider) throw new NotFoundException('Practice not found');
-    return provider;
+    return redactProviderPublic(provider);
   }
 }

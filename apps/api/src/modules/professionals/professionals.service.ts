@@ -17,6 +17,32 @@ import {
   TITLE_TO_NAMESPACE,
 } from '../../common/handles';
 
+
+const PLACEHOLDER_EMAIL_DOMAIN = '@directory.ayurpass.local';
+
+function redactPublicUser<T extends { email?: string | null } | null | undefined>(user: T): T {
+  if (!user || typeof user !== 'object') return user;
+  const email = user.email;
+  if (typeof email === 'string' && email.toLowerCase().endsWith(PLACEHOLDER_EMAIL_DOMAIN)) {
+    return { ...user, email: null };
+  }
+  return user;
+}
+
+function redactProfessionalRow<T extends { user?: { email?: string | null } | null; provider?: { brandProfile?: unknown } | null }>(row: T): T {
+  const next = { ...row, user: redactPublicUser(row.user) };
+  const brand = next.provider?.brandProfile;
+  if (brand && typeof brand === 'object' && !Array.isArray(brand)) {
+    const bp = { ...(brand as Record<string, unknown>) };
+    const ce = bp.contactEmail;
+    if (typeof ce === 'string' && ce.toLowerCase().endsWith(PLACEHOLDER_EMAIL_DOMAIN)) {
+      delete bp.contactEmail;
+      next.provider = { ...next.provider!, brandProfile: bp };
+    }
+  }
+  return next;
+}
+
 const PROVIDER_PUBLIC = {
   select: {
     id: true,
@@ -82,7 +108,7 @@ export class ProfessionalsService {
   } as const;
 
   async findAll() {
-    return this.prisma.professional.findMany({
+    const rows = await this.prisma.professional.findMany({
       include: {
         user: this.publicUser,
         provider: {
@@ -104,20 +130,22 @@ export class ProfessionalsService {
       },
       orderBy: [{ rating: 'desc' }, { reviewCount: 'desc' }],
     });
+    return rows.map((r) => redactProfessionalRow(r));
   }
 
   async findByProvider(providerId: string) {
-    return this.prisma.professional.findMany({
+    const rows = await this.prisma.professional.findMany({
       where: { providerId },
       include: {
         user: this.publicUser,
         provider: PROVIDER_PUBLIC,
       },
     });
+    return rows.map((r) => redactProfessionalRow(r));
   }
 
   async findOne(id: string) {
-    return this.prisma.professional.findUnique({
+    const row = await this.prisma.professional.findUnique({
       where: { id },
       include: {
         user: this.publicUser,
@@ -125,6 +153,7 @@ export class ProfessionalsService {
         provider: PROVIDER_PUBLIC,
       },
     });
+    return row ? redactProfessionalRow(row) : row;
   }
 
   private readonly publicInclude = {
@@ -166,7 +195,7 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Practitioner not found');
-    return professional;
+    return redactProfessionalRow(professional);
   }
 
   /** Public — /:namespace/:handle (e.g. /ayur/anita, /yoga/maya, /pro/dr-sharma) */
@@ -181,7 +210,7 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Practitioner not found');
-    return professional;
+    return redactProfessionalRow(professional);
   }
 
   /** Public — root vanity /:handle (admin-approved only) */
@@ -193,7 +222,7 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Profile not found');
-    return professional;
+    return redactProfessionalRow(professional);
   }
 
   async updateProfessional(id: string, data: UpdateProfessionalDto) {

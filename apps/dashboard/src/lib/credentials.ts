@@ -52,12 +52,14 @@ export function authoritiesForProfessional(
         region: "AU",
         profileUrl: docs.profileUrl ?? undefined,
         registrationNumber: docs.membership ?? undefined,
-        verified: true,
+        // Directory attribution only — never an AyurPass verified checkmark
+        verified: false,
       });
     } else {
-      // Ensure region / verified / profile URL are populated for AAA imports
+      // Ensure region / profile URL are populated for AAA imports.
+      // Do not force verified=true — AAA membership is attribution metadata.
       if (!existing.region) existing.region = "AU";
-      if (existing.verified == null) existing.verified = true;
+      if (existing.verified == null) existing.verified = false;
       if (!existing.profileUrl && docs.profileUrl) existing.profileUrl = docs.profileUrl;
       if (!existing.registrationNumber && docs.membership) {
         existing.registrationNumber = docs.membership;
