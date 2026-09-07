@@ -4,18 +4,20 @@ import { API_URL } from "@/lib/env";
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (authHeader) {
-      headers["Authorization"] = authHeader;
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Unauthorized", detail: "Sign in to load your care memory profile." },
+        { status: 401 },
+      );
     }
 
     const backendUrl = `${API_URL}/ai/memory-profile`;
     const res = await fetch(backendUrl, {
       method: "GET",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authHeader,
+      },
     });
 
     const data = await res.json().catch(() => null);

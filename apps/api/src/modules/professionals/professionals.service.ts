@@ -4,6 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  PUBLIC_PROFESSIONAL_WHERE,
+  assertPubliclyVisible,
+  parseListingStatus,
+} from '../../common/listing-status';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProfessionalDto, UpdateProfessionalDto } from '../../dtos/professional.dto';
@@ -54,6 +59,7 @@ const PROVIDER_PUBLIC = {
     type: true,
     verificationStatus: true,
     listingTier: true,
+    listingStatus: true,
     brandProfile: true,
     address: true,
     registrationNumber: true,
@@ -109,6 +115,7 @@ export class ProfessionalsService {
 
   async findAll() {
     const rows = await this.prisma.professional.findMany({
+      where: { ...PUBLIC_PROFESSIONAL_WHERE },
       include: {
         user: this.publicUser,
         provider: {
@@ -122,6 +129,7 @@ export class ProfessionalsService {
             type: true,
             verificationStatus: true,
             listingTier: true,
+    listingStatus: true,
             brandProfile: true,
             address: true,
             healthAuthorities: true,
@@ -133,9 +141,19 @@ export class ProfessionalsService {
     return rows.map((r) => redactProfessionalRow(r));
   }
 
-  async findByProvider(providerId: string) {
+  async findByProvider(providerId: string, opts: { includeNonLive?: boolean } = {}) {
+    if (!opts.includeNonLive) {
+      const provider = await this.prisma.provider.findUnique({
+        where: { id: providerId },
+        select: { listingStatus: true },
+      });
+      if (!provider || provider.listingStatus !== 'live') return [];
+    }
     const rows = await this.prisma.professional.findMany({
-      where: { providerId },
+      where: {
+        providerId,
+        ...(opts.includeNonLive ? {} : PUBLIC_PROFESSIONAL_WHERE),
+      },
       include: {
         user: this.publicUser,
         provider: PROVIDER_PUBLIC,
@@ -154,6 +172,14 @@ export class ProfessionalsService {
       },
     });
     return row ? redactProfessionalRow(row) : row;
+  }
+
+  async findOnePublic(id: string) {
+    const row = await this.findOne(id);
+    if (!row) throw new NotFoundException('Practitioner not found');
+    assertPubliclyVisible(row, 'Practitioner');
+    if (row.provider) assertPubliclyVisible(row.provider as { listingStatus?: string }, 'Practice');
+    return row;
   }
 
   private readonly publicInclude = {
@@ -195,6 +221,8 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Practitioner not found');
+    assertPubliclyVisible(professional, 'Practitioner');
+    if (professional.provider) assertPubliclyVisible(professional.provider, 'Practice');
     return redactProfessionalRow(professional);
   }
 
@@ -210,6 +238,8 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Practitioner not found');
+    assertPubliclyVisible(professional, 'Practitioner');
+    if (professional.provider) assertPubliclyVisible(professional.provider, 'Practice');
     return redactProfessionalRow(professional);
   }
 
@@ -222,7 +252,34 @@ export class ProfessionalsService {
       include: this.publicInclude,
     });
     if (!professional) throw new NotFoundException('Profile not found');
+    assertPubliclyVisible(professional, 'Practitioner');
+    if (professional.provider) assertPubliclyVisible(professional.provider, 'Practice');
     return redactProfessionalRow(professional);
+  }
+
+  async updateListingStatus(
+    id: string,
+    statusRaw: string,
+    reason: string | undefined,
+    userId: string,
+  ) {
+    const status = parseListingStatus(statusRaw);
+    const existing = await this.prisma.professional.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Practitioner not found');
+    const row = await this.prisma.professional.update({
+      where: { id },
+      data: {
+        listingStatus: status,
+        statusChangedAt: new Date(),
+        statusReason: reason?.trim() ? reason.trim().slice(0, 500) : null,
+        statusChangedBy: userId,
+      },
+      include: {
+        user: this.publicUser,
+        provider: PROVIDER_PUBLIC,
+      },
+    });
+    return redactProfessionalRow(row);
   }
 
   async updateProfessional(id: string, data: UpdateProfessionalDto) {

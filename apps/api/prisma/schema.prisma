@@ -115,6 +115,11 @@ model Provider {
   reviewCount       Int       @default(0)
   likeCount         Int       @default(0)
   dislikeCount      Int       @default(0)
+  /** Public catalog lifecycle: live | paused | closed (soft-close). */
+  listingStatus     String    @default("live")
+  statusChangedAt   DateTime?
+  statusReason      String?
+  statusChangedBy   String?
   createdAt         DateTime  @default(now())
 
   professionals     Professional[]
@@ -133,6 +138,8 @@ model Provider {
   jobListings       JobListing[]
   wellnessEvents    WellnessEvent[]
   billingSubscription ClinicSubscription?
+
+  @@index([listingStatus])
 }
 
 enum ClinicPlan {
@@ -288,6 +295,11 @@ model Professional {
   reviewCount             Int       @default(0)
   likeCount               Int       @default(0)
   dislikeCount            Int       @default(0)
+  /** Public catalog lifecycle: live | paused | closed (soft-close). */
+  listingStatus           String    @default("live")
+  statusChangedAt         DateTime?
+  statusReason            String?
+  statusChangedBy         String?
 
   services                Service[]
   bookings                Booking[]
@@ -296,6 +308,7 @@ model Professional {
   @@unique([handleNamespace, handle])
   @@index([handleNamespace, handle])
   @@index([vanityStatus])
+  @@index([listingStatus])
 }
 
 /**
@@ -403,10 +416,17 @@ model Service {
   reviewCount        Int       @default(0)
   likeCount          Int       @default(0)
   dislikeCount       Int       @default(0)
+  /** Public catalog lifecycle: live | paused | closed (soft-close). */
+  listingStatus      String    @default("live")
+  statusChangedAt    DateTime?
+  statusReason       String?
+  statusChangedBy    String?
   createdAt          DateTime  @default(now())
 
   bookings           Booking[]
   package            Package?
+
+  @@index([listingStatus])
 }
 
 enum ServiceCategory {

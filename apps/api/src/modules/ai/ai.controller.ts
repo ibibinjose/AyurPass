@@ -14,26 +14,18 @@ export class AiController {
     return this.ai.chat(dto.messages, dto.model);
   }
 
-  @Public()
+  /** Memory-backed care concierge — requires a signed-in user. */
   @Post('concierge')
   concierge(
     @Body() dto: { message: string; history?: any[]; model?: string },
     @Req() req: AuthedRequest,
   ) {
-    const userId = req.user?.sub;
-    if (!userId) {
-      return this.ai.conciergeChat('guest', dto.message, dto.history, dto.model);
-    }
-    return this.ai.conciergeChat(userId, dto.message, dto.history, dto.model);
+    return this.ai.conciergeChat(req.user.sub, dto.message, dto.history, dto.model);
   }
 
-  @Public()
+  /** Structured care memory for the signed-in user only. */
   @Get('memory-profile')
   memoryProfile(@Req() req: AuthedRequest) {
-    const userId = req.user?.sub;
-    if (!userId) {
-      return this.ai.getMemoryProfile('guest');
-    }
-    return this.ai.getMemoryProfile(userId);
+    return this.ai.getMemoryProfile(req.user.sub);
   }
 }

@@ -25,13 +25,14 @@ import { Button, EmptyState, ErrorNote, Field, Input, Select, Textarea } from "@
 type OSTab = "reception" | "tables" | "memory" | "channels";
 
 export function CentraLinkClient() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const provider = user?.provider ?? user?.professional?.provider ?? null;
 
   const [activeTab, setActiveTab] = useState<OSTab>("reception");
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [rooms, setRooms] = useState<Room[] | null>(null);
   const [services, setServices] = useState<Service[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [actingBookingId, setActingBookingId] = useState<string | null>(null);
 
   // Modals
@@ -72,9 +73,18 @@ export function CentraLinkClient() {
 
   const reloadData = useCallback(() => {
     if (!provider) return;
-    api.bookingsByProvider(provider.id).then(setBookings).catch(() => setBookings([]));
-    api.roomsByProvider(provider.id).then(setRooms).catch(() => setRooms([]));
-    api.servicesByProvider(provider.id).then(setServices).catch(() => setServices([]));
+    setLoadError(null);
+    Promise.all([
+      api.bookingsByProvider(provider.id).then(setBookings),
+      api.roomsByProvider(provider.id).then(setRooms),
+      api.servicesByProvider(provider.id).then(setServices),
+    ]).catch((err: unknown) => {
+      setLoadError(err instanceof Error ? err.message : "Could not load practice data.");
+      // Keep prior data if any; only force empty arrays when still null so UI can show empty vs error.
+      setBookings((prev) => (prev === null ? [] : prev));
+      setRooms((prev) => (prev === null ? [] : prev));
+      setServices((prev) => (prev === null ? [] : prev));
+    });
   }, [provider]);
 
   useEffect(() => {
@@ -103,14 +113,41 @@ export function CentraLinkClient() {
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [bookings, todayStart, todayEnd]);
 
+  // All hooks above this point — never call useState/useMemo/useEffect after this return.
+  if (authLoading) {
+    return (
+      <div className="rounded-2xl border border-hairline bg-surface px-6 py-12 text-center text-sm text-ink-muted animate-pulse">
+        Loading practice workspace…
+      </div>
+    );
+  }
+
   if (!provider) {
     return (
       <EmptyState
-        title="CentraLink OS Unavailable"
-        body="CentraLink Operating System requires a verified practice or wellness center account."
+        title="CentraLink needs a practice profile"
+        body="CentraLink is for wellness centers and practices. List your business or finish onboarding to open the practice cockpit."
+        action={
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href="/list-your-business"
+              className="inline-flex items-center rounded-xl bg-forest px-4 py-2 text-xs font-bold text-white hover:bg-forest-deep"
+            >
+              List your business
+            </Link>
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center rounded-xl border border-hairline bg-surface px-4 py-2 text-xs font-semibold text-forest hover:border-forest"
+            >
+              Continue onboarding
+            </Link>
+          </div>
+        }
       />
     );
   }
+
+  const dataLoading = bookings === null || rooms === null || services === null;
 
   // Operational breakdown
   const arrivedCount = todayBookings.filter((b) => b.status === "CONFIRMED").length;
@@ -222,7 +259,7 @@ export function CentraLinkClient() {
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                Kernel Live · 18ms
+                Practice cockpit
               </span>
               <span className="text-xs text-white/70">
                 Practice: <strong className="text-white">{provider.businessName}</strong>
@@ -233,8 +270,8 @@ export function CentraLinkClient() {
               Practice Operating System Cockpit
             </h1>
             <p className="mt-1 max-w-2xl text-xs sm:text-sm text-white/80 leading-relaxed">
-              Unified operational nerve center interconnecting live front-desk telemetry, Panchakarma
-              table allocations, 7-type agent memory, and channel synchronization.
+              Front-desk bookings, room occupancy, care context, and channel links for your practice —
+              based on live data from your AyurPass account.
             </p>
           </div>
 
@@ -288,30 +325,22 @@ export function CentraLinkClient() {
         </div>
 
         {/* Kernel Subsystem Health Badges */}
-        <div className="relative z-10 mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6 border-t border-white/10 pt-4 text-[11px] text-white/85">
+        <div className="relative z-10 mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 border-t border-white/10 pt-4 text-[11px] text-white/85">
           <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Booking Engine: <strong>Active</strong></span>
+            <span className={`h-1.5 w-1.5 rounded-full ${dataLoading ? "bg-white/40" : loadError ? "bg-amber-300" : "bg-emerald-400"}`} />
+            <span>Bookings: <strong>{dataLoading ? "Loading…" : loadError ? "Retry needed" : "Ready"}</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={`h-1.5 w-1.5 rounded-full ${rooms === null ? "bg-white/40" : (rooms?.length ?? 0) > 0 ? "bg-emerald-400" : "bg-white/40"}`} />
+            <span>Rooms: <strong>{rooms === null ? "Loading…" : `${rooms.length} listed`}</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={`h-1.5 w-1.5 rounded-full ${services === null ? "bg-white/40" : (services?.length ?? 0) > 0 ? "bg-emerald-400" : "bg-white/40"}`} />
+            <span>Services: <strong>{services === null ? "Loading…" : `${services.length} listed`}</strong></span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Table Allocator: <strong>Ready</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>7-Layer Memory: <strong>Syncd</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Channel Mesh: <strong>Connected</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Google Sync: <strong>2-Way</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>POS &amp; Stripe: <strong>Live</strong></span>
+            <span>Public page: <strong>Linked</strong></span>
           </div>
         </div>
       </div>
@@ -364,29 +393,53 @@ export function CentraLinkClient() {
             <MoonIcon className="h-4 w-4 text-forest-rich" />
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold font-display text-foreground">
-            {rooms?.length || 4}{" "}
-            <span className="text-sm font-normal text-ink-muted">active</span>
+            {rooms === null ? "—" : rooms.length}{" "}
+            <span className="text-sm font-normal text-ink-muted">listed</span>
           </p>
-          <p className="mt-1 text-xs text-emerald-600 font-medium">
-            Panchakarma droni tables online
+          <p className="mt-1 text-xs text-ink-secondary">
+            {rooms === null
+              ? "Loading rooms…"
+              : rooms.length === 0
+                ? "Add rooms to track occupancy"
+                : "From your practice room list"}
           </p>
         </div>
 
         <div className="rounded-2xl border border-hairline bg-surface p-4 sm:p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              Clinical Memory Alerts
+              Catalog services
             </p>
-            <ShieldIcon className="h-4 w-4 text-red-500" />
+            <ShieldIcon className="h-4 w-4 text-forest" />
           </div>
           <p className="mt-2 text-2xl sm:text-3xl font-bold font-display text-foreground">
-            2 <span className="text-xs font-semibold text-red-600">Action Required</span>
+            {services === null ? "—" : services.length}
           </p>
           <p className="mt-1 text-xs text-ink-secondary">
-            1 allergy contraindication · 1 pending SOAP
+            {services === null
+              ? "Loading services…"
+              : services.length === 0
+                ? "Add a service so clients can book"
+                : "Bookable offerings on your profile"}
           </p>
         </div>
       </div>
+
+      {loadError && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-amber-950">Could not refresh practice data</p>
+            <p className="text-xs text-amber-900/80">{loadError}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => reloadData()}
+            className="rounded-xl bg-forest px-3 py-1.5 text-xs font-bold text-white hover:bg-forest-deep shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* OS Navigation Tabs */}
       <div className="flex items-center gap-1.5 border-b border-hairline pb-2 overflow-x-auto">
@@ -457,22 +510,46 @@ export function CentraLinkClient() {
             </div>
           </div>
 
-          {todayBookings.length === 0 ? (
+          {dataLoading ? (
+            <div className="rounded-2xl border border-hairline p-8 text-center bg-surface text-xs text-ink-muted animate-pulse">
+              Loading today&apos;s bookings…
+            </div>
+          ) : todayBookings.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-hairline p-8 text-center bg-surface">
               <LeafIcon className="mx-auto h-8 w-8 text-forest/40" />
               <h3 className="mt-2 text-sm font-bold text-foreground">No appointments booked for today</h3>
               <p className="mt-1 text-xs text-ink-muted max-w-sm mx-auto">
-                Appointments booked through your branded website widget, Fresha-style canonical SEO
-                page, or walk-in counter will display here in real time.
+                {(services?.length ?? 0) === 0
+                  ? "Your practice has no services yet. Add a bookable service so clients can schedule, or register a walk-in once a service exists."
+                  : "Bookings from your public center page, embed widget, or walk-in counter will appear here."}
               </p>
-              <button
-                type="button"
-                onClick={() => setWalkInOpen(true)}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-forest px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
-              >
-                <PlusIcon className="h-3.5 w-3.5" />
-                Register Walk-in Client
-              </button>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                {(services?.length ?? 0) === 0 ? (
+                  <Link
+                    href="/dashboard/services"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-forest px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" />
+                    Add a service
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setWalkInOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-forest px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" />
+                    Register Walk-in Client
+                  </button>
+                )}
+                <Link
+                  href={centerPublicPath(provider)}
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-hairline bg-surface px-4 py-2 text-xs font-semibold text-forest hover:border-forest"
+                >
+                  View public profile
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface overflow-hidden shadow-xs">
@@ -607,83 +684,66 @@ export function CentraLinkClient() {
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-forest/30 bg-forest/5 p-4 relative shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-forest">Droni Table 1 (Teak Wood Bed)</span>
-                <span className="rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
-                  In Treatment
-                </span>
-              </div>
-              <p className="mt-2 text-sm font-bold text-foreground">
-                Abhyanga &amp; Shirodhara
-              </p>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Client: Maya Patel · Ends in 22 mins
-              </p>
-              <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2 text-[11px] text-ink-secondary">
-                <span>Therapist: Dr. Anita</span>
-                <span>Buffer: +15m clean-up</span>
-              </div>
+          {rooms === null ? (
+            <div className="rounded-2xl border border-hairline p-8 text-center bg-surface text-xs text-ink-muted animate-pulse">
+              Loading rooms…
             </div>
-
-            <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">Droni Table 2 (Warm Steam Chamber)</span>
-                <span className="rounded-full bg-clay text-forest px-2 py-0.5 text-[10px] font-bold">
-                  Available
-                </span>
-              </div>
-              <p className="mt-2 text-sm font-semibold text-ink-muted">
-                Sanitized &amp; Ready
+          ) : rooms.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-hairline p-8 text-center bg-surface">
+              <h3 className="text-sm font-bold text-foreground">No rooms listed yet</h3>
+              <p className="mt-1 text-xs text-ink-muted max-w-sm mx-auto">
+                Add treatment rooms or suites so CentraLink can show occupancy without invented demo tables.
               </p>
-              <p className="text-xs text-ink-secondary mt-0.5">
-                Next scheduled: 2:30 PM (Swedana)
-              </p>
-              <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2 text-[11px] text-ink-secondary">
-                <span>Temp: 39°C</span>
-                <span className="text-forest font-semibold">Ready for Walk-in</span>
-              </div>
+              <Link
+                href="/dashboard/rooms"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-forest px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-forest-deep"
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+                Add a room
+              </Link>
             </div>
-
-            <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">Suite A (Ayurvedic Consultation)</span>
-                <span className="rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 text-[10px] font-bold">
-                  Upcoming (15m)
-                </span>
-              </div>
-              <p className="mt-2 text-sm font-bold text-foreground">
-                Initial Prakriti Assessment
-              </p>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Client: Liam Wong · Nadi Pariksha
-              </p>
-              <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2 text-[11px] text-ink-secondary">
-                <span>Pulse Diagnosis</span>
-                <span>Room 101</span>
-              </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {rooms.map((room) => {
+                const roomBookings = todayBookings.filter((b) => b.roomId === room.id);
+                const active = roomBookings.find((b) => b.status !== "COMPLETED" && b.status !== "CANCELLED");
+                return (
+                  <div key={room.id} className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-foreground">{room.name}</span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          active
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                            : "bg-clay text-forest"
+                        }`}
+                      >
+                        {active ? "In use today" : "Listed"}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-ink-secondary">
+                      {active
+                        ? active.service?.name || "Session in progress"
+                        : roomBookings.length > 0
+                          ? `${roomBookings.length} booking(s) today`
+                          : "No bookings assigned today"}
+                    </p>
+                    {active?.consumer?.user?.fullName && (
+                      <p className="text-xs text-ink-muted mt-0.5">
+                        Client: {active.consumer.user.fullName}
+                      </p>
+                    )}
+                    <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2 text-[11px] text-ink-secondary">
+                      <span>{room.capacity ? `Capacity ${room.capacity}` : "Room"}</span>
+                      <Link href="/dashboard/rooms" className="text-forest font-semibold hover:underline">
+                        Manage →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">Yoga &amp; Pranayama Studio</span>
-                <span className="rounded-full bg-gold/20 text-forest px-2 py-0.5 text-[10px] font-bold">
-                  Group Class (6/8)
-                </span>
-              </div>
-              <p className="mt-2 text-sm font-bold text-foreground">
-                Evening Dosha Harmonizing Yoga
-              </p>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Starts at 5:30 PM · 2 slots remaining
-              </p>
-              <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2 text-[11px] text-ink-secondary">
-                <span>Instructor: Priya S.</span>
-                <span className="text-forest font-semibold">Auto-Rostered</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -695,59 +755,40 @@ export function CentraLinkClient() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <span>🧠</span> 7-Type Clinical Agent Memory &amp; Patient Safety Triage
+                <span>🧠</span> Care context &amp; safety
               </h2>
               <p className="text-xs text-ink-muted mt-0.5">
-                Real-time safety guardrails, Agni imbalances, and dosha contraindications derived from the patient vault.
+                Clinical alerts appear from real client notes and health profiles — this tab does not invent demo patients.
               </p>
             </div>
             <Link
               href="/dashboard/concierge"
               className="inline-flex items-center gap-1 rounded-xl bg-forest px-3 py-1.5 text-xs font-bold text-white hover:bg-forest-deep"
             >
-              Open AI Care Concierge →
+              Open Care Concierge →
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-red-500/30 bg-red-50/50 dark:bg-red-950/20 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
-                <ShieldIcon className="h-4 w-4 shrink-0" />
-                <h3 className="text-sm font-bold">High-Priority Clinical Contraindication</h3>
-              </div>
-              <p className="text-xs text-ink-secondary leading-relaxed">
-                <strong>Patient: Sarah Jenkins (11:30 AM appointment)</strong>
-                <br />
-                Recent Health Profile notes severe sesame oil contact sensitivity and high Pitta skin inflammation.
-                <br />
-                <span className="text-red-700 dark:text-red-400 font-semibold">
-                  ⚠️ Action: Substitute with cold-pressed Coconut Oil or Chandanadi Taila. Avoid heating fomentation (Swedana).
-                </span>
-              </p>
-              <div className="text-[11px] text-ink-muted border-t border-red-200 dark:border-red-900/40 pt-2 flex justify-between">
-                <span>Memory Layer: Semantic + Procedural</span>
-                <span className="font-semibold text-forest">Verified by Agent</span>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-gold/40 bg-gold/10 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-forest-deep">
-                <SparkleIcon className="h-4 w-4 shrink-0 text-gold-dark" />
-                <h3 className="text-sm font-bold">Episodic SOAP History Ready</h3>
-              </div>
-              <p className="text-xs text-ink-secondary leading-relaxed">
-                <strong>Patient: David Chen (2:00 PM appointment)</strong>
-                <br />
-                Completed Shirodhara 14 days ago with significant Vata pacification (-40% reported insomnia).
-                <br />
-                <span className="text-forest font-semibold">
-                  🌿 Recommendation: Progress to Pada-Abhyanga + Brahmi Taila combination.
-                </span>
-              </p>
-              <div className="text-[11px] text-ink-muted border-t border-gold/30 pt-2 flex justify-between">
-                <span>Memory Layer: Episodic History</span>
-                <span className="font-semibold text-forest">SOAP Synced</span>
-              </div>
+          <div className="rounded-2xl border border-dashed border-hairline bg-surface p-8 text-center space-y-3">
+            <ShieldIcon className="mx-auto h-7 w-7 text-forest/40" />
+            <h3 className="text-sm font-bold text-foreground">No fabricated clinical alerts</h3>
+            <p className="text-xs text-ink-muted max-w-md mx-auto">
+              When clients complete health profiles or practitioners add notes on bookings, relevant safety context can surface here.
+              Until then, use the Care Concierge for signed-in members and keep treatment notes on each booking.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <Link
+                href="/dashboard/bookings"
+                className="inline-flex items-center rounded-xl border border-hairline px-3 py-1.5 text-xs font-semibold text-forest hover:border-forest"
+              >
+                Review bookings
+              </Link>
+              <Link
+                href="/dashboard/concierge"
+                className="inline-flex items-center rounded-xl bg-forest px-3 py-1.5 text-xs font-bold text-white hover:bg-forest-deep"
+              >
+                Open Care Concierge
+              </Link>
             </div>
           </div>
         </div>
@@ -761,10 +802,10 @@ export function CentraLinkClient() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <span>🌐</span> CentraLink Channel Mesh &amp; Integration Telemetry
+                <span>🌐</span> Channels &amp; listing links
               </h2>
               <p className="text-xs text-ink-muted mt-0.5">
-                Real-time health of your website booking widget, QR kits, PWA Desktop App, and 2-way Google sync.
+                Shortcuts to your embed widget, public center page, and desktop app — without invented traffic metrics.
               </p>
             </div>
             <Link
@@ -775,15 +816,14 @@ export function CentraLinkClient() {
             </Link>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground">Website Widget</span>
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
               </div>
-              <p className="mt-2 text-xl font-bold font-display text-forest">142 Visits</p>
+              <p className="mt-2 text-sm font-semibold text-ink-secondary">Embed bookable sessions</p>
               <p className="text-[11px] text-ink-muted mt-0.5">
-                Iframe embedded on WordPress/Squarespace
+                Preview the iframe you can place on your site. Visit counts are not simulated here.
               </p>
               <Link
                 href={`/embed/${provider.slug || provider.id}`}
@@ -796,12 +836,11 @@ export function CentraLinkClient() {
 
             <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">Fresha Canonical URL</span>
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-xs font-bold text-foreground">Public center page</span>
               </div>
-              <p className="mt-2 text-xl font-bold font-display text-forest">Indexed</p>
-              <p className="text-[11px] text-mono text-ink-muted mt-0.5 truncate">
-                {centerPublicPath(provider)}
+              <p className="mt-2 text-sm font-semibold text-ink-secondary truncate">{centerPublicPath(provider)}</p>
+              <p className="text-[11px] text-ink-muted mt-0.5">
+                Your AyurPass listing clients can open and book from.
               </p>
               <Link
                 href={centerPublicPath(provider)}
@@ -815,36 +854,17 @@ export function CentraLinkClient() {
             <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-foreground">Desktop App (PWA)</span>
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
               </div>
-              <p className="mt-2 text-xl font-bold font-display text-forest">Connected</p>
+              <p className="mt-2 text-sm font-semibold text-ink-secondary">Install for desk use</p>
               <p className="text-[11px] text-ink-muted mt-0.5">
-                Offline cache &amp; badge dock enabled
+                Optional shortcut for reception — no fake connection status.
               </p>
               <Link
                 href="/dashboard/desktop-app"
                 className="mt-3 inline-flex text-xs font-semibold text-forest hover:underline"
               >
-                Launch PWA →
+                Open PWA guide →
               </Link>
-            </div>
-
-            <div className="rounded-2xl border border-hairline bg-surface p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground">Google Calendar Sync</span>
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              </div>
-              <p className="mt-2 text-xl font-bold font-display text-forest">2-Way Live</p>
-              <p className="text-[11px] text-ink-muted mt-0.5">
-                Last synced 2 minutes ago
-              </p>
-              <button
-                type="button"
-                onClick={() => alert("Sync refresh requested across all practitioner calendars.")}
-                className="mt-3 inline-flex text-xs font-semibold text-forest hover:underline"
-              >
-                Force Sync Now ↺
-              </button>
             </div>
           </div>
         </div>
@@ -905,12 +925,21 @@ export function CentraLinkClient() {
                   onChange={(e) => setWalkInServiceId(e.target.value)}
                 >
                   <option value="">Select treatment…</option>
-                  {services?.map((s) => (
+                  {(services ?? []).map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name} ({s.durationMinutes}m · {formatMoney(s.price, s.currency)})
                     </option>
                   ))}
                 </Select>
+                {(services?.length ?? 0) === 0 && (
+                  <p className="mt-1.5 text-[11px] text-ink-muted">
+                    No services yet.{" "}
+                    <Link href="/dashboard/services" className="font-semibold text-forest hover:underline">
+                      Add a service
+                    </Link>{" "}
+                    before registering walk-ins.
+                  </p>
+                )}
               </Field>
 
               {/* Add-ons selector */}

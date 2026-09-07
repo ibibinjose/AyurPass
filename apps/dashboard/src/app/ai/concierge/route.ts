@@ -3,20 +3,23 @@ import { API_URL } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
     const authHeader = req.headers.get("authorization");
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (authHeader) {
-      headers["Authorization"] = authHeader;
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Unauthorized", detail: "Sign in to use the care concierge." },
+        { status: 401 },
+      );
     }
+
+    const body = await req.json().catch(() => ({}));
 
     const backendUrl = `${API_URL}/ai/concierge`;
     const res = await fetch(backendUrl, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authHeader,
+      },
       body: JSON.stringify(body),
     });
 

@@ -2,8 +2,9 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ConciergeClient } from "./ConciergeClient";
 
 export const metadata = {
-  title: "AI Care Concierge | AyurPass",
-  description: "Personalized Ayurvedic care, treatment recommendations, and scheduling with structured cognitive agent memory.",
+  title: "AI Care Concierge",
+  description:
+    "Personalized Ayurvedic care guidance and scheduling help using your profile and booking history when signed in.",
 };
 
 export default function ConciergePage() {

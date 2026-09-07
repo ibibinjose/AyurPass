@@ -1,4 +1,5 @@
 export type {
+  ListingStatus,
   Role,
   ProviderType,
   BookingStatus,

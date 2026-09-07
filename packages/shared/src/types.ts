@@ -2,6 +2,9 @@
 
 export type Role = "CONSUMER" | "PROFESSIONAL" | "PROVIDER_ADMIN" | "PLATFORM_ADMIN";
 
+/** Public catalog lifecycle for practices, practitioners, and services. */
+export type ListingStatus = "live" | "paused" | "closed";
+
 export type ProviderType =
   | "AYURVEDA_CLINIC"
   | "AYURVEDA_RESORT"
@@ -198,6 +201,11 @@ export interface Provider {
   subscriptionTier?: string | null;
   listingTier?: string | null;
   verificationStatus: string;
+  /** Public catalog lifecycle: live | paused | closed */
+  listingStatus?: ListingStatus | string;
+  statusChangedAt?: string | null;
+  statusReason?: string | null;
+  statusChangedBy?: string | null;
   /** Business / clinic registration number */
   registrationNumber?: string | null;
   /** Operating licence / permit */
@@ -251,6 +259,11 @@ export interface Professional {
   reviewCount: number;
   likeCount?: number | null;
   dislikeCount?: number | null;
+  /** Public catalog lifecycle: live | paused | closed */
+  listingStatus?: ListingStatus | string;
+  statusChangedAt?: string | null;
+  statusReason?: string | null;
+  statusChangedBy?: string | null;
   createdAt: string;
   registrationNumber?: string | null;
   licenceNumber?: string | null;
@@ -307,10 +320,15 @@ export interface Service {
   reviewCount?: number | null;
   likeCount?: number | null;
   dislikeCount?: number | null;
+  /** Public catalog lifecycle: live | paused | closed */
+  listingStatus?: ListingStatus | string;
+  statusChangedAt?: string | null;
+  statusReason?: string | null;
+  statusChangedBy?: string | null;
   createdAt: string;
   provider?: Pick<
     Provider,
-    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile"
+    "id" | "code" | "businessName" | "type" | "verificationStatus" | "brandProfile" | "listingStatus"
   >;
   professional?: {
     id: string;
