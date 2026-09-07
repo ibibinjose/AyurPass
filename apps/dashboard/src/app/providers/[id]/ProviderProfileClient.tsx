@@ -223,10 +223,10 @@ export default function ProviderProfilePage({
 
   // All hooks must run before any early return (stable hook order).
   const brand = provider?.brandProfile;
-  const logo =
-    resolveMediaUrl(brand?.logoUrl) ?? resolveMediaUrl(brand?.coverImageUrl) ?? null;
-  const coverUrl =
-    resolveMediaUrl(brand?.coverImageUrl) ?? resolveMediaUrl(brand?.logoUrl) ?? null;
+  // Logo/avatar only — never promote a square logo into the wide hero cover.
+  const logo = resolveMediaUrl(brand?.logoUrl) ?? null;
+  // Cover banner is optional; missing → designed gradient fallback in ProfileCoverBand.
+  const coverUrl = resolveMediaUrl(brand?.coverImageUrl) ?? null;
   const gallery = useMemo(() => brand?.gallery?.filter(Boolean) ?? [], [brand?.gallery]);
   const linkItems = useMemo(() => buildPracticeLinks(brand), [brand]);
   const hasBookableServices = (services?.length ?? 0) > 0;
@@ -238,9 +238,9 @@ export default function ProviderProfilePage({
     for (const img of gallery) {
       if (img && !g.includes(img)) g.push(img);
     }
-    if (logo && !g.includes(logo)) g.push(logo);
+    // Do not pad Media with the avatar/logo — that caused portrait stretch in the gallery.
     return g;
-  }, [gallery, coverUrl, logo]);
+  }, [gallery, coverUrl]);
 
   const tabs = useMemo(() => {
     // Fixed order: story → media → links → catalogue → team → reviews
@@ -414,19 +414,17 @@ END:VCARD`;
         ) : null}
       </div>
     }>
-      <ProfilePageFrame
-        coverUrl={coverUrl ?? logo}
-      >
+      <ProfilePageFrame coverUrl={coverUrl}>
         <ProfileHeroShell>
           <ProfileAvatar
             name={provider.businessName}
             imageUrl={logo}
-            size={128}
-            status={verified ? "online" : "offline"}
+            size={120}
+            status={verified ? "online" : "none"}
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+            <h1 className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
               <span>{provider.businessName}</span>
               {verified ? (
                 <ProfileVerifiedMark size="lg" />
@@ -652,7 +650,10 @@ END:VCARD`;
                       ))}
                     </div>
                   ) : (
-                    <ProfileEmptyState title="No media yet" body="Gallery images will appear here." />
+                    <ProfileEmptyState
+                      title="No gallery photos yet"
+                      body="When this practice adds a cover or gallery, photos will appear here."
+                    />
                   )}
                 </ProfileSection>
               ) : null}
@@ -688,16 +689,29 @@ END:VCARD`;
                     <div className="rounded-3xl border border-dashed border-hairline bg-clay/20 px-5 py-10 text-center">
                       <p className="font-display text-lg text-forest">No sessions listed yet</p>
                       <p className="mx-auto mt-2 max-w-sm text-sm font-medium text-ink-secondary">
-                        This practice may book offline or via enquiry. Reach out to ask about
-                        availability.
+                        {verified
+                          ? "This practice may book offline or via enquiry. Reach out to ask about availability."
+                          : "This listing has not published bookable sessions yet. Send an enquiry, or claim the business if you manage it."}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => setEnquireOpen(true)}
-                        className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white"
-                      >
-                        Enquire about sessions
-                      </button>
+                      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEnquireOpen(true)}
+                          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white"
+                        >
+                          Enquire about sessions
+                        </button>
+                        {!verified ? (
+                          <button
+                            type="button"
+                            onClick={() => setClaimOpen(true)}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-600/35 bg-emerald-50/80 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+                          >
+                            <ShieldIcon className="h-4 w-4" />
+                            Claim this Business
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   )}
                 </ProfileSection>
