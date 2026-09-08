@@ -20,10 +20,15 @@ export function ClaimBusinessModal({
   open,
   onClose,
   provider,
+  professionalName,
+  context = "practice",
 }: {
   open: boolean;
   onClose: () => void;
   provider: Provider;
+  /** When claiming from a practitioner public profile */
+  professionalName?: string;
+  context?: "practice" | "practitioner";
 }) {
   const { user } = useAuth();
   const titleId = useId();
@@ -126,6 +131,10 @@ export function ClaimBusinessModal({
 
     const message = [
       `CLAIM BUSINESS REQUEST for "${provider.businessName}" (ID: ${provider.id})`,
+      professionalName?.trim()
+        ? `Practitioner profile: ${professionalName.trim()}`
+        : null,
+      context === "practitioner" ? `Claim context: practitioner profile` : null,
       `Claimant Name: ${fullName.trim()}`,
       `Role: ${role}`,
       `Contact Phone: ${contactPhone.trim() || "N/A"}`,
@@ -184,10 +193,14 @@ export function ClaimBusinessModal({
             </span>
             <div className="min-w-0">
               <h2 id={titleId} className="font-display text-lg font-semibold text-forest">
-                Claim {provider.businessName}
+                {context === "practitioner"
+                  ? `Claim your profile${professionalName ? ` — ${professionalName}` : ""}`
+                  : `Claim your profile — ${provider.businessName}`}
               </h2>
               <p className="text-xs font-medium text-ink-secondary">
-                Verify business ownership to manage directory listing & enquiries
+                {context === "practitioner"
+                  ? `Verify ownership of affiliated practice ${provider.businessName} to manage this listing & enquiries`
+                  : "Verify ownership to manage directory listing & enquiries"}
               </p>
             </div>
           </div>

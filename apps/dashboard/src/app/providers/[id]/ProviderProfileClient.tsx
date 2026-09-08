@@ -376,7 +376,7 @@ END:VCARD`;
 
   return (
     <PageWrap stickyCta={
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setEnquireOpen(true)}
@@ -411,6 +411,25 @@ END:VCARD`;
           >
             Choose a session
           </button>
+        ) : !verified ? (
+          <button
+            type="button"
+            onClick={() => setClaimOpen(true)}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-4 text-sm font-semibold text-emerald-900"
+          >
+            <ShieldIcon className="h-4 w-4" />
+            Claim
+          </button>
+        ) : null}
+        {!verified && (bookHref || (hasBookableServices && !(aaaListed && !verified))) ? (
+          <button
+            type="button"
+            onClick={() => setClaimOpen(true)}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-4 text-sm font-semibold text-emerald-900"
+          >
+            <ShieldIcon className="h-4 w-4" />
+            Claim your profile
+          </button>
         ) : null}
       </div>
     }>
@@ -426,21 +445,24 @@ END:VCARD`;
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
-              <span>{provider.businessName}</span>
-              {verified ? (
-                <ProfileVerifiedMark size="lg" />
-              ) : (
+            <div className="flex w-full min-w-0 flex-col items-center gap-2 md:items-start">
+              <h1 className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+                <span className="min-w-0 break-words">{provider.businessName}</span>
+                {verified ? <ProfileVerifiedMark size="lg" /> : null}
+              </h1>
+              {!verified ? (
                 <button
                   type="button"
                   onClick={() => setClaimOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 dark:bg-emerald-950/40 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                  aria-label="Claim your profile"
+                  className="inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
                 >
-                  <ShieldIcon className="h-3.5 w-3.5" />
-                  <span>Claim this Business</span>
+                  <ShieldIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="sm:hidden">Claim</span>
+                  <span className="hidden sm:inline">Claim your profile</span>
                 </button>
-              )}
-            </h1>
+              ) : null}
+            </div>
 
             <ProfileMetaLine
               parts={[
@@ -615,7 +637,7 @@ END:VCARD`;
                             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-forest/25 bg-surface px-5 text-sm font-bold text-forest transition-colors hover:border-leaf hover:bg-clay/50"
                           >
                             <ShieldIcon className="h-4 w-4" />
-                            Claim this business
+                            Claim your profile
                           </button>
                         ) : null}
                       </div>
@@ -688,16 +710,29 @@ END:VCARD`;
                     <div className="rounded-3xl border border-dashed border-hairline bg-clay/20 px-5 py-10 text-center">
                       <p className="font-display text-lg text-forest">No sessions listed yet</p>
                       <p className="mx-auto mt-2 max-w-sm text-sm font-medium text-ink-secondary">
-                        This practice may book offline or via enquiry. Reach out to ask about
-                        availability.
+                        {verified
+                          ? "This practice may book offline or via enquiry. Reach out to ask about availability."
+                          : "This listing has not published bookable sessions yet. Send an enquiry, or claim your profile if you manage it."}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => setEnquireOpen(true)}
-                        className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white"
-                      >
-                        Enquire about sessions
-                      </button>
+                      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setEnquireOpen(true)}
+                          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white"
+                        >
+                          Enquire about sessions
+                        </button>
+                        {!verified ? (
+                          <button
+                            type="button"
+                            onClick={() => setClaimOpen(true)}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-600/35 bg-emerald-50/80 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+                          >
+                            <ShieldIcon className="h-4 w-4" />
+                            Claim your profile
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   )}
                 </ProfileSection>
@@ -920,18 +955,18 @@ END:VCARD`;
                   <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
                     <ShieldIcon className="h-4 w-4 shrink-0" />
                     <p className="text-xs font-bold uppercase tracking-wider">
-                      Is this your business?
+                      Is this your profile?
                     </p>
                   </div>
                   <p className="text-xs font-medium leading-relaxed text-ink-secondary">
-                    Claim this listing to verify ownership, manage profile details, and respond to enquiries.
+                    Claim your profile to verify ownership, manage listing details, and respond to enquiries.
                   </p>
                   <button
                     type="button"
                     onClick={() => setClaimOpen(true)}
                     className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white shadow-sm hover:bg-emerald-800 transition-colors"
                   >
-                    Claim this Business
+                    Claim your profile
                   </button>
                 </div>
               ) : null}
@@ -1002,7 +1037,7 @@ function PageWrap({
       ) : null}
       {/* Spacer so sticky CTA + bottom tabs don't cover content */}
       {stickyCta ? (
-        <div className="h-16 md:hidden" aria-hidden />
+        <div className="h-28 md:hidden" aria-hidden />
       ) : null}
     </LayoutWrapper>
   );

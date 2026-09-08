@@ -14,6 +14,7 @@ import type { BrandProfile, ProfessionalDetail } from "@/lib/types";
 import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { ServiceCard } from "@/components/ServiceCard";
 import { EnquireModal } from "@/components/EnquireModal";
+import { ClaimBusinessModal } from "@/components/profile/ClaimBusinessModal";
 import {
   AffiliatedPageCard,
   ProfileAaaBadge,
@@ -44,7 +45,7 @@ import { QualityPanel } from "@/components/QualityControls";
 import { authoritiesForProfessional } from "@/lib/credentials";
 import { publicContactEmail } from "@/lib/aaaDirectory";
 import { brandSocialToDisplay } from "@/lib/social";
-import { ExternalLinkIcon, MailIcon, MapPinIcon } from "@/components/icons";
+import { ExternalLinkIcon, MailIcon, MapPinIcon, ShieldIcon } from "@/components/icons";
 
 function buildLinkItems(
   professional: ProfessionalDetail,
@@ -139,6 +140,7 @@ export default function PractitionerProfileClient({
     undefined,
   );
   const [enquireOpen, setEnquireOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [tab, setTab] = useState("about");
 
   useEffect(() => {
@@ -331,7 +333,7 @@ END:VCARD`;
     <PageWrap
       stickyCta={
         provider ? (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setEnquireOpen(true)}
@@ -366,6 +368,25 @@ END:VCARD`;
               >
                 Choose a session
               </button>
+            ) : !verified ? (
+              <button
+                type="button"
+                onClick={() => setClaimOpen(true)}
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-4 text-sm font-semibold text-emerald-900"
+              >
+                <ShieldIcon className="h-4 w-4" />
+                Claim
+              </button>
+            ) : null}
+            {!verified && (bookHref || (hasBookableServices && !(aaaListed && !verified))) ? (
+              <button
+                type="button"
+                onClick={() => setClaimOpen(true)}
+                className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-emerald-600/35 bg-emerald-50 px-4 text-sm font-semibold text-emerald-900"
+              >
+                <ShieldIcon className="h-4 w-4" />
+                Claim your profile
+              </button>
             ) : null}
           </div>
         ) : undefined
@@ -384,10 +405,28 @@ END:VCARD`;
           />
 
           <ProfileHeroInfo>
-            <h1 className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
-              <span>{displayName}</span>
-              {verified ? <ProfileVerifiedMark size="lg" /> : null}
-            </h1>
+            <div className="flex w-full min-w-0 flex-col items-center gap-2 md:items-start">
+              <h1 className="flex w-full min-w-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-center font-display text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-forest md:justify-start md:text-left sm:text-[2.25rem]">
+                <span className="min-w-0 break-words">{displayName}</span>
+                {verified ? <ProfileVerifiedMark size="lg" /> : null}
+              </h1>
+              {!verified && provider ? (
+                <button
+                  type="button"
+                  onClick={() => setClaimOpen(true)}
+                  aria-label="Claim your profile"
+                  className="inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
+                >
+                  <ShieldIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="sm:hidden">Claim</span>
+                  <span className="hidden sm:inline">Claim your profile</span>
+                </button>
+              ) : !verified && !provider ? (
+                <p className="max-w-sm text-center text-xs font-medium leading-relaxed text-ink-muted md:text-left">
+                  Claim becomes available once this profile is linked to a practice listing.
+                </p>
+              ) : null}
+            </div>
             {aaaListed ? (
               <div className="mt-2 flex justify-center md:justify-start">
                 <ProfileAaaBadge membership={membership} />
@@ -491,16 +530,28 @@ END:VCARD`;
                           {location ? ` · ${location}` : ""}. Send an enquiry to learn more about
                           sessions and availability.
                         </p>
-                        {provider ? (
-                          <button
-                            type="button"
-                            onClick={() => setEnquireOpen(true)}
-                            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
-                          >
-                            <MailIcon className="h-4 w-4" />
-                            Enquire
-                          </button>
-                        ) : null}
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                          {provider ? (
+                            <button
+                              type="button"
+                              onClick={() => setEnquireOpen(true)}
+                              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 text-sm font-semibold text-white hover:bg-forest-deep"
+                            >
+                              <MailIcon className="h-4 w-4" />
+                              Enquire
+                            </button>
+                          ) : null}
+                          {!verified && provider ? (
+                            <button
+                              type="button"
+                              onClick={() => setClaimOpen(true)}
+                              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-600/35 bg-emerald-50/80 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+                            >
+                              <ShieldIcon className="h-4 w-4" />
+                              Claim your profile
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     </ProfileSection>
                   )}
@@ -603,10 +654,24 @@ END:VCARD`;
                       ))}
                     </div>
                   ) : (
-                    <ProfileEmptyState
-                      title="No sessions listed"
-                      body="Bookable services will appear here."
-                    />
+                    <div className="rounded-3xl border border-dashed border-hairline bg-clay/20 px-5 py-10 text-center">
+                      <p className="font-display text-lg text-forest">No sessions listed</p>
+                      <p className="mx-auto mt-2 max-w-sm text-sm font-medium text-ink-secondary">
+                        {!verified && provider
+                          ? "Bookable services will appear here once published. Claim your profile if you manage this listing."
+                          : "Bookable services will appear here."}
+                      </p>
+                      {!verified && provider ? (
+                        <button
+                          type="button"
+                          onClick={() => setClaimOpen(true)}
+                          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-600/35 bg-emerald-50/80 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100"
+                        >
+                          <ShieldIcon className="h-4 w-4" />
+                          Claim your profile
+                        </button>
+                      ) : null}
+                    </div>
                   )}
                 </ProfileSection>
               ) : null}
@@ -766,6 +831,41 @@ END:VCARD`;
                   </ProfileBackgroundCard>
                 </ProfileSection>
               ) : null}
+
+              {!verified && provider ? (
+                <div className="rounded-2xl border border-emerald-600/30 bg-emerald-50/70 dark:bg-emerald-950/30 px-4 py-4 space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
+                    <ShieldIcon className="h-4 w-4 shrink-0" />
+                    <p className="text-xs font-bold uppercase tracking-wider">
+                      Is this your profile?
+                    </p>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed text-ink-secondary">
+                    Claim your profile to verify ownership of {provider.businessName}, manage listing
+                    details, and respond to enquiries.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setClaimOpen(true)}
+                    className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white shadow-sm hover:bg-emerald-800 transition-colors"
+                  >
+                    Claim your profile
+                  </button>
+                </div>
+              ) : !verified && !provider ? (
+                <div className="rounded-2xl border border-hairline bg-clay/20 px-4 py-4 space-y-2">
+                  <div className="flex items-center gap-1.5 text-forest">
+                    <ShieldIcon className="h-4 w-4 shrink-0" />
+                    <p className="text-xs font-bold uppercase tracking-wider">
+                      Is this your profile?
+                    </p>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed text-ink-secondary">
+                    Claim becomes available once this practitioner is linked to a practice listing on
+                    AyurPass.
+                  </p>
+                </div>
+              ) : null}
             </>
           }
         />
@@ -779,6 +879,16 @@ END:VCARD`;
           businessName={displayName}
         />
       )}
+
+      {provider ? (
+        <ClaimBusinessModal
+          open={claimOpen}
+          onClose={() => setClaimOpen(false)}
+          provider={provider}
+          professionalName={displayName}
+          context="practitioner"
+        />
+      ) : null}
     </PageWrap>
   );
 }
@@ -802,7 +912,7 @@ function PageWrap({
           {stickyCta}
         </div>
       ) : null}
-      {stickyCta ? <div className="h-16 md:hidden" aria-hidden /> : null}
+      {stickyCta ? <div className="h-28 md:hidden" aria-hidden /> : null}
     </LayoutWrapper>
   );
 }

@@ -18,9 +18,11 @@ import {
   MapPinIcon,
   PhoneIcon,
   ShareIcon,
+  ShieldIcon,
 } from "@/components/icons";
 import { ProfileVerifiedMark } from "@/components/profile/ProfilePrimitives";
 import { EnquireModal } from "@/components/EnquireModal";
+import { ClaimBusinessModal } from "@/components/profile/ClaimBusinessModal";
 
 /**
  * Link-in-bio landing page for social sharing (Instagram / TikTok / X bio).
@@ -41,6 +43,7 @@ export default function PracticeLinkBioClient({
   const [services, setServices] = useState<Service[]>(initialProfile?.services ?? []);
   const [products, setProducts] = useState<Product[]>(initialProfile?.products ?? []);
   const [enquireOpen, setEnquireOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -298,6 +301,16 @@ export default function PracticeLinkBioClient({
               Book now
             </a>
           ) : null}
+          {!verified ? (
+            <button
+              type="button"
+              onClick={() => setClaimOpen(true)}
+              className="profile-spring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-600/35 bg-emerald-50/90 text-sm font-bold text-emerald-900 shadow-sm hover:bg-emerald-100"
+            >
+              <ShieldIcon className="h-4 w-4" />
+              Claim your profile
+            </button>
+          ) : null}
         </div>
 
         {/* Stacked link-in-bio rows */}
@@ -460,6 +473,12 @@ export default function PracticeLinkBioClient({
         onClose={() => setEnquireOpen(false)}
         providerId={provider.id}
         businessName={provider.businessName}
+      />
+
+      <ClaimBusinessModal
+        open={claimOpen}
+        onClose={() => setClaimOpen(false)}
+        provider={provider}
       />
     </div>
   );
